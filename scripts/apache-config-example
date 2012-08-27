@@ -1,0 +1,75 @@
+<VirtualHost *:80>
+	ServerAdmin webmaster@localhost
+
+
+
+  ServerName example.com
+  DocumentRoot /home/ubuntu/rwserver/roundware/
+  Alias /media /home/ubuntu/python/django/contrib/admin/media
+  Alias /audio /var/www/rwaudio
+  RewriteEngine On
+  RewriteRule ^/(audio.*)$ /$1 [QSA,L,PT]
+  RewriteRule ^/(media.*)$ /$1 [QSA,L,PT]
+  RewriteRule ^/(static.*)$ /$1 [QSA,L,PT]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^/(.*)$ /mysite.fcgi/$1 [QSA,L]
+
+#	DocumentRoot /var/www
+	<Directory />
+		Options FollowSymLinks
+		AllowOverride None
+	</Directory>
+
+	<Directory /static/>
+		Options Indexes FollowSymLinks MultiViews
+		AllowOverride None
+		Order allow,deny
+		allow from all
+	</Directory>
+
+	<Directory /var/www/>
+		Options Indexes FollowSymLinks MultiViews
+		AllowOverride None
+		Order allow,deny
+		allow from all
+	</Directory>
+
+	ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+	<Directory "/usr/lib/cgi-bin">
+		AllowOverride None
+		Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+		Order allow,deny
+		Allow from all
+	</Directory>
+
+	ErrorLog /var/log/apache2/error.log
+
+	# Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+
+	CustomLog /var/log/apache2/access.log combined
+
+    Alias /doc/ "/usr/share/doc/"
+    <Directory "/usr/share/doc/">
+        Options Indexes MultiViews FollowSymLinks
+        AllowOverride None
+        Order deny,allow
+        Deny from all
+        Allow from 127.0.0.0/255.0.0.0 ::1/128
+    </Directory>
+
+
+FastCGIExternalServer /home/ubuntu/rwserver/roundware/mysite.fcgi -host 127.0.0.1:3033
+#          SetHandler fastcgi-script
+#     </Files>
+
+#     <Files roundware/roundware.py>
+#          SetHandler fastcgi-script
+#     </Files>
+
+#     FastCgiServer /var/www/roundware/scapes.py -processes 4 -socket /tmp/fcgi2.sock
+#     FastCgiServer /var/www/roundware/roundware.py -processes 4 -socket /tmp/fcgi.sock
+
+
+</VirtualHost>

@@ -1,0 +1,4 @@
+echo "create database roundware" | mysql -uroot -p
+echo "create user 'round'@'localhost' identified by 'round'" | mysql -uroot -p
+echo "grant all privileges on roundware.* to 'round'@'localhost' with grant option" | mysql -uroot -p
+

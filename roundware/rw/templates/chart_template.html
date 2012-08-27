@@ -1,0 +1,144 @@
+<head>
+	<meta charset="utf-8">
+    <title>Roundware Smithsonian Dashboard</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
+    
+    {% load chartit %}
+    {{ charts|load_charts:"session_day_container, asset_day_container, asset_question_container, asset_section_container" }}
+    
+    <link href="http://rwdev.dyndns.org/static/css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      .sidebar-nav {
+        padding: 9px 0;
+      }
+	  p .footer-img {
+		float: right;
+		margin: 0px 5%;
+		width: 220px;
+		height: auto;
+	}
+	.hero-unit h1 {
+		font-size: 3em;
+	}
+	div.span10.project-stats .page-header, div.span10.project-stats .stats-row{
+		display: none;
+	}
+    </style>
+    <link href="http://rwdev.dyndns.org/static/css/bootstrap-responsive.css" rel="stylesheet">
+</head>
+<body>
+	<div class="container-fluid">
+		<div class="row-fluid">
+			<div class="span12">
+				<div class="hero-unit">
+					<h1>Roundware Data Analysis</h1>
+					<h2>Project Page</h2>
+				</div>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class="span2">
+				<div class="well sidebar-nav">
+					<ul class="nav nav-list">
+						<li class="nav-header">Graphs</li>
+						<li class="active"><a href="#sessionsPerDay" data-toggle="tab">Sessions per day</a></li>
+						<li><a href="#assetsPerDay" data-toggle="tab">Assets per day</a></li>
+						<li><a href="#questionDistro" data-toggle="tab">Recording Distribution by Question</a></li>
+						<li><a href="#sectionDistro" data-toggle="tab">Recording Distribution by Section</a></li>
+					</ul>
+				</div>
+				<div class="well sidebar-nav">
+					<ul class="nav nav-list">
+						<li class="nav-header">Maps (Not Yet Available!)</li>
+						<li><a href="#">Sessions</a></li>
+						<li><a href="#">Assets</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="span10 project-stats">
+				<div class="page-header">
+					<h1>Project Stats: American Stories</h1>
+				</div>
+				<div class="row-fluid stats-row">
+					<div class="span4">
+						<h2>Today</h2>
+						<dl>
+							<dt>Current Sessions:<dt><dd>3</dd>
+							<dt>Total Assets Today<dt><dd>Audio: 3</dd>
+							<dt>Total Sessions Today:<dt><dd>16</dd>
+						<dl>
+					</div>
+					<div class="span4">
+						<h2>Cumulative</h2>
+						<dl>
+							<dt>Total Assets<dt><dd>Audio: 176</dd>
+							<dt>Total Sessions:<dt><dd>2231</dd>
+							<dt>Average Number of Sessions per Day:<dt><dd>5.7</dd>
+							<dt>Average Number of Assets per Day:<dt><dd>2.3</dd>
+							<dt>Average Length of Session (MM:SS):<dt><dd>08:42</dd>
+						<dl>
+					</div>
+					<div class="alert alert-info span4">
+						<h2>Filters</h2>
+						<dl>
+							<dt>Date Range<dt><dd><em>01-JAN-2012 - 15-Mar-2012</em></dd>
+						<dl>
+					</div>
+				</div>
+				<div class="row-fluid main-content">
+					<div class="span12">
+						<h2></h2>
+						<h3></h3>
+						<div class="tab-content">
+							<div class="tab-pane fade in active" id="sessionsPerDay">
+								<div id="session_day_container"></div>
+							</div>
+							<div class="tab-pane fade" id="assetsPerDay">
+								<div id="asset_day_container"></div>
+							</div>
+							<div class="tab-pane fade" id="questionDistro">
+								<div id="asset_question_container"></div>
+							</div>
+							<div class="tab-pane fade" id="sectionDistro">
+								<div id="asset_section_container"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<hr/>
+		<footer>
+			<p>&copy; Roundware 2012<img class="footer-img" src="http://rwdev.dyndns.org/static/img/roundware_logo.png" alt="roundware"/>
+			<img class="footer-img" id="smithsonian" src="http://rwdev.dyndns.org/static/img/smithsonian.gif" alt="Smithsonian Institute"/></p>
+
+		</footer>
+	</div>
+	<!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!-- code to include the highcharts and jQuery libraries goes here -->
+    <!-- load_charts filter takes a comma-separated list of id's where -->
+    <!-- the charts need to be rendered to                             
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script> -->
+    <script src="http://rwdev.dyndns.org/static/js/bootstrap-tab.js"></script>
+    <script src="http://rwdev.dyndns.org/static/js/bootstrap-transition.js"></script>
+	<script>
+	// $(function(){
+	// 	$('.nav-list a').click(function(event) {
+	// 		event.preventDefault();
+	// 		$(this).tab('show');
+	// 	})
+	// })
+	
+	</script>
+</body>

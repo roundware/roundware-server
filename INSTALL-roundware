@@ -1,0 +1,12 @@
+sudo mkdir /var/www/rwaudio
+sudo chmod a+wrx /var/www/rwaudio #maybe not a great idea. but www-data user needs to create files here somehow.
+sudo mkdir /var/www/.gnome2
+sudo chown www-data:www-data /var/www/.gnome2
+sudo touch /var/log/roundware
+sudo chown www-data /var/log/roundware
+sudo mkdir /etc/roundware
+sudo cp ./scripts/sample-config /etc/roundware/rw
+sudo cp ./scripts/rw_test_audio1.wav /var/www/rwaudio
+sh install_clean_django_rw.sh
+sudo /etc/init.d/dbus restart
+

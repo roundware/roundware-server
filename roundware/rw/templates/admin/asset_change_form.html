@@ -1,0 +1,8 @@
+{% extends extends_url %}
+
+{% block extrahead %}
+    <script type="text/javascript">
+        var AUDIO_FILE_SERVER = "{{ AUDIO_FILE_URI }}";
+    </script>
+    {{ block.super }}
+{% endblock %}
