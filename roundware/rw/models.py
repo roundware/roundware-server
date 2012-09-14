@@ -275,3 +275,7 @@ class Vote(models.Model):
     type = models.CharField(max_length=16)
     def __unicode__(self):
             return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)
+
+def get_field_names_from_model(model):
+    """Pass in a model class. Return list of strings of field names"""
+    return [f.name for f in model._meta.fields]
