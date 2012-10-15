@@ -1,5 +1,5 @@
 #!/bin/bash
-DIST_PATH="/usr/local/lib/python2.6/dist-packages"
+DIST_PATH="/usr/local/lib/python2.7/dist-packages"
 CODE_PATH="/home/ubuntu/rwserver/trunk"
 FILE_HOME=`dirname $0`
 sudo rm -rf $DIST_PATH/roundwared/
