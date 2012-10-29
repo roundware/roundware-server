@@ -251,7 +251,7 @@ def get_available_assets(request):
         assets = models.Asset.objects.filter(**kw)
         if tag_ids:
             if tagbool and str(tagbool).lower() == 'or':
-                assets = assets.filter(tags__in=tag_ids.split(','))
+                assets = assets.filter(tags__in=tag_ids.split(',')).distinct()
             else:
                 # 'and'.  Asset must have all tags
                 for tag_id in tag_ids.split(','):
