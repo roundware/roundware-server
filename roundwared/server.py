@@ -118,6 +118,7 @@ def get_config(request):
 	if not form.has_key('project_id'):
 		raise roundexception.RoundException("a project_id is required for this operation")
 	project = models.Project.objects.get(id=form.get('project_id'))
+	#speaker
 
 	if not form.has_key('device_id') or (form.has_key('device_id') and form['device_id']==""):
 		device_id = str(uuid.uuid4())
