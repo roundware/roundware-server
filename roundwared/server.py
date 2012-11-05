@@ -118,7 +118,8 @@ def get_config(request):
 	if not form.has_key('project_id'):
 		raise roundexception.RoundException("a project_id is required for this operation")
 	project = models.Project.objects.get(id=form.get('project_id'))
-	#speaker
+	speakers = models.Speaker.objects.filter(project=form.get('project_id')).values()
+    audiotracks = models.Audiotrack.objects.filter(project=form.get('project_id')).values()
 
 	if not form.has_key('device_id') or (form.has_key('device_id') and form['device_id']==""):
 		device_id = str(uuid.uuid4())
@@ -181,7 +182,9 @@ def get_config(request):
 	                }},
 
 	        { "server":{	                
-	                "version": "2.0"}}
+	                "version": "2.0"}},
+            { "speakers":[dict(d) for d in speakers]},
+            { "audiotracks":[dict(d) for d in audiotracks]}
 	]	
 	db.log_event('start_session',session_id,None)
 	return response
