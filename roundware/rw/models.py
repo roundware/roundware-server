@@ -36,6 +36,7 @@ class Project(models.Model):
     max_recording_length = models.IntegerField()
     listen_questions_dynamic =  models.BooleanField()
     speak_questions_dynamic = models.BooleanField()
+    sharing_url = models.CharField(max_length=512)
     sharing_message = models.TextField(null=True, blank=True)
     out_of_range_message = models.TextField(null=True, blank=True)
     sharing_message_loc = models.ManyToManyField(LocalizedString, related_name='sharing_msg_string', null=True, blank=True)
