@@ -67,8 +67,8 @@ class Session(models.Model):
     project = models.ForeignKey(Project)
     ordering = ['id']
     language = models.ForeignKey(Language, null=True)
-#    client_type = models.TextField(null=True, blank=True)
-#    client_system = models.TextField(null=True, blank=True)
+    client_type = models.CharField(max_length=128, null=True, blank=True)
+    client_system = models.CharField(max_length=128, null=True, blank=True)
     def __unicode__(self):
         return str(self.id)
 
