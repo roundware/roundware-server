@@ -38,12 +38,12 @@ import pycurl
 #db.get_recordings(request)
 p = Project.objects.get(id=1)
 s = Session.objects.get(id=2210)
-db.get_default_tags_for_project(p,s)
+db.get_default_tags_for_project(p, s)
 
 
 def migrate_tag_and_project_msgs():
-    l  = Language.objects.filter(language_code = 'en')[0]
-    l_es = Language.objects.filter(language_code = 'es')[0]
+    l = Language.objects.filter(language_code='en')[0]
+    l_es = Language.objects.filter(language_code='es')[0]
     t = Tag.objects.all()
     for tag in t:
         ls = LocalizedString(language=l, localized_string=tag.value)
@@ -55,20 +55,20 @@ def migrate_tag_and_project_msgs():
         tag.description = tag.value
         tag.value = ""
         tag.save()
-        
+
     p = Project.objects.all()
     for proj in p:
         if proj.sharing_message != None and proj.sharing_message != "":
-            ls_share = LocalizedString(language=l, localized_string=proj.sharing_message)            
+            ls_share = LocalizedString(language=l, localized_string=proj.sharing_message)
             ls_share.save()
             ls_es = LocalizedString(language=l_es, localized_string="spanish placeholder for: " + proj.sharing_message)
             ls_es.save()
             proj.sharing_message_loc.add(ls_share)
-            proj.sharing_message_loc.add(ls_es)            
+            proj.sharing_message_loc.add(ls_es)
             proj.sharing_message = ""
             proj.save()
         if proj.out_of_range_message != None and proj.out_of_range_message != "":
-            ls_range = LocalizedString(language=l, localized_string=proj.out_of_range_message)            
+            ls_range = LocalizedString(language=l, localized_string=proj.out_of_range_message)
             ls_range.save()
             ls_es = LocalizedString(language=l_es, localized_string="spanish placeholder for: " + proj.out_of_range_message)
             ls_es.save()
@@ -76,13 +76,13 @@ def migrate_tag_and_project_msgs():
             proj.out_of_range_message_loc.add(ls_es)
             proj.out_of_range_message = ""
             proj.save()
-    
+
 #migrate_tag_and_project_msgs()
 
-def localize_all_assets_to_en():    
-    l = Language.objects.filter(language_code = 'en')[0]
+
+def localize_all_assets_to_en():
+    l = Language.objects.filter(language_code='en')[0]
     a = Asset.objects.all()
     for asset in a:
         asset.language = l
         asset.save()
-    

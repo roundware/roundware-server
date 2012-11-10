@@ -26,15 +26,17 @@ from roundwared import gpsmixer
 from roundwared import rounddbus
 from roundwared import server
 
-def main (request):
+
+def main(request):
     return HttpResponse(json.dumps(catch_errors(request), sort_keys=True, indent=4), mimetype='application/json')
 
-def catch_errors (request):
+
+def catch_errors(request):
     try:
         config_file = "rw"
         if request.GET.has_key('config'):
             config_file = request.GET['config']
-        settings.initialize_config(os.path.join('/etc/roundware/',config_file))
+        settings.initialize_config(os.path.join('/etc/roundware/', config_file))
 
         logging.basicConfig(
             filename=settings.config["log_file"],
@@ -50,37 +52,36 @@ def catch_errors (request):
         return function(request)
     except roundexception.RoundException as e:
         logging.error(str(e) + traceback.format_exc())
-        return { "error_message" : str(e) }
+        return {"error_message": str(e)}
     except:
         logging.error(
             "An uncaught exception was raised. See traceback for details." + \
             traceback.format_exc())
         return {
-            "error_message" : "An uncaught exception was raised. See traceback for details.",
-            "traceback" : traceback.format_exc(),
+            "error_message": "An uncaught exception was raised. See traceback for details.",
+            "traceback": traceback.format_exc(),
         }
 
 
-def operation_to_function (operation):
+def operation_to_function(operation):
     if not operation:
         raise roundexception.RoundException("Operation is required")
     operations = {
-        "request_stream" : server.request_stream,
-        "heartbeat" : server.heartbeat,
-        "current_version" : server.current_version,
-        "log_event" : server.log_event,
-        "create_envelope" : server.create_envelope,
-        "add_asset_to_envelope" : server.add_asset_to_envelope,
-        "get_config" : server.get_config,
-        "get_tags" : server.get_tags_for_project,
-        "modify_stream" : server.modify_stream,
-        "get_current_streaming_asset" : server.get_current_streaming_asset,
-        "get_asset_info" : server.get_asset_info,
-        "get_available_assets" : server.get_available_assets,
-        "play_asset_in_stream" : server.play_asset_in_stream,
-        "vote_asset" : server.vote_asset,
-        "skip_ahead" : server.skip_ahead,
-        
+        "request_stream": server.request_stream,
+        "heartbeat": server.heartbeat,
+        "current_version": server.current_version,
+        "log_event": server.log_event,
+        "create_envelope": server.create_envelope,
+        "add_asset_to_envelope": server.add_asset_to_envelope,
+        "get_config": server.get_config,
+        "get_tags": server.get_tags_for_project,
+        "modify_stream": server.modify_stream,
+        "get_current_streaming_asset": server.get_current_streaming_asset,
+        "get_asset_info": server.get_asset_info,
+        "get_available_assets": server.get_available_assets,
+        "play_asset_in_stream": server.play_asset_in_stream,
+        "vote_asset": server.vote_asset,
+        "skip_ahead": server.skip_ahead,
     }
     key = string.lower(operation)
     if operations.has_key(key):
@@ -91,6 +92,7 @@ def operation_to_function (operation):
 from chartit import DataPool, Chart
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
+
 
 @login_required
 def chart_views(request):

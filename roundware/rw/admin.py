@@ -8,11 +8,14 @@ from settings import AUDIO_FILE_URI
 
 from filterspec import TagCategoryFilterSpec, AudioLengthFilterSpec
 
+
 class VoteInline(admin.TabularInline):
     model = Vote
 
+
 class AssetTagsInline(admin.TabularInline):
     model = Asset.tags.through
+
 
 class SmarterModelAdmin(admin.ModelAdmin):
     valid_lookups = ()
@@ -21,6 +24,7 @@ class SmarterModelAdmin(admin.ModelAdmin):
         if lookup.startswith(self.valid_lookups):
             return True
         return super(SmarterModelAdmin, self).lookup_allowed(lookup, *args, **kwargs)
+
 
 def project_restricted_queryset_through(model_class, field_name):
     """
@@ -44,14 +48,18 @@ def project_restricted_queryset_through(model_class, field_name):
         return qset.filter(**{field_name + "__in": authorized_objects})
     return queryset
 
+
 class ProjectProtectedThroughAssetModelAdmin(admin.ModelAdmin):
     queryset = project_restricted_queryset_through(Asset, 'asset')
+
 
 class ProjectProtectedThroughSessionModelAdmin(admin.ModelAdmin):
     queryset = project_restricted_queryset_through(Session, 'session')
 
+
 class ProjectProtectedThroughUIModelAdmin(admin.ModelAdmin):
     queryset = project_restricted_queryset_through(MasterUI, 'master_ui')
+
 
 class ProjectProtectedModelAdmin(admin.ModelAdmin):
     def queryset(self, request):
@@ -61,6 +69,7 @@ class ProjectProtectedModelAdmin(admin.ModelAdmin):
             return qset
 
         return qset.filter(project__in=get_objects_for_user(request.user, 'rw.access_project'))
+
 
 class AssetAdminForm(forms.ModelForm):
     # Step 1: Add the extra form fields to the ModelForm
@@ -90,6 +99,7 @@ class AssetAdminForm(forms.ModelForm):
             model.save()
 
         return model
+
 
 class AssetAdmin(ProjectProtectedModelAdmin):
     valid_lookups = ('tags__tag_category__name', 'tags__description')
@@ -142,8 +152,9 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     filter_horizontal = ('tags',)
 
     class Media:
-        css = { "all" : ("css/jplayer.blue.monday.css",)}
-        js = ('js/jquery.jplayer.min.js','js/audio.js')
+        css = {"all": ("css/jplayer.blue.monday.css",)}
+        js = ('js/jquery.jplayer.min.js', 'js/audio.js')
+
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'tag_category', 'description')
@@ -152,68 +163,84 @@ class TagAdmin(admin.ModelAdmin):
         AssetTagsInline,
     ]
 
+
 class LanguageAdmin(admin.ModelAdmin):
     list_display = ('id', 'language_code')
     ordering = ['id']
+
 
 class LocalizedStringAdmin(admin.ModelAdmin):
     list_display = ('id', 'language', 'localized_string')
     ordering = ['id']
 
+
 class VoteAdmin(ProjectProtectedThroughAssetModelAdmin):
     list_display = ('id', 'session', 'asset', 'value')
     ordering = ['id']
+
 
 class RepeatModeAdmin(admin.ModelAdmin):
     list_display = ('id', 'mode')
     ordering = ['id']
 
+
 class ProjectAdmin(GuardedModelAdmin):
-    list_display = ('id', 'name', 'latitude','longitude')
+    list_display = ('id', 'name', 'latitude', 'longitude')
     ordering = ['id']
+
 
 class SessionAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'device_id', 'starttime')
     ordering = ['id']
 
+
 class UIModeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'data')
     ordering = ['id']
+
 
 class TagCategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'data')
     ordering = ['id']
 
+
 class SelectionMethodAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'data')
     ordering = ['id']
 
+
 #MasterUIs describe screens containing choices limited to one mode (Speak, Listen),
 #  and one tag category.
 class MasterUIAdmin(ProjectProtectedModelAdmin):
-    list_display = ('id', 'name', 'ui_mode','tag_category','select','active','index','project')
+    list_display = ('id', 'name', 'ui_mode', 'tag_category', 'select', 'active', 'index', 'project')
     ordering = ['id']
+
 
 #UI Mappings describe the ordering and selectability of tags for a given MasterUI.
 class UIMappingAdmin(ProjectProtectedThroughUIModelAdmin):
-    list_display = ('id', 'master_ui','index','tag','default','active')
+    list_display = ('id', 'master_ui', 'index', 'tag', 'default', 'active')
     ordering = ['id']
+
 
 class AudiotrackAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'project')
     ordering = ['id']
 
+
 class EventAdmin(ProjectProtectedThroughSessionModelAdmin):
-    list_display = ('id','session','event_type','data','server_time','client_time')
+    list_display = ('id', 'session', 'event_type', 'data', 'server_time', 'client_time')
     ordering = ['id']
+
 
 class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
-    list_display = ('id','session')
+    list_display = ('id', 'session')
     ordering = ['id']
 
+
 class SpeakerAdmin(ProjectProtectedModelAdmin):
-    list_display = ('id','code','project','latitude', 'longitude','uri')
+    list_display = ('id', 'code', 'project', 'latitude', 'longitude', 'uri')
     ordering = ['id']
+
 
 class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):
     list_display = ('id', 'session', 'asset', 'starttime', 'duration')
@@ -222,21 +249,20 @@ class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):
 
 admin.site.register(Language, LanguageAdmin)
 admin.site.register(LocalizedString, LocalizedStringAdmin)
-admin.site.register(Session,SessionAdmin)
-admin.site.register(Audiotrack,AudiotrackAdmin)
-admin.site.register(Tag,TagAdmin)
-admin.site.register(UIMode,UIModeAdmin)
-admin.site.register(TagCategory,TagCategoryAdmin)
-admin.site.register(MasterUI,MasterUIAdmin)
-admin.site.register(UIMapping,UIMappingAdmin)
-admin.site.register(SelectionMethod,SelectionMethodAdmin)
+admin.site.register(Session, SessionAdmin)
+admin.site.register(Audiotrack, AudiotrackAdmin)
+admin.site.register(Tag, TagAdmin)
+admin.site.register(UIMode, UIModeAdmin)
+admin.site.register(TagCategory, TagCategoryAdmin)
+admin.site.register(MasterUI, MasterUIAdmin)
+admin.site.register(UIMapping, UIMappingAdmin)
+admin.site.register(SelectionMethod, SelectionMethodAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(EventType)
-admin.site.register(Event,EventAdmin)
-admin.site.register(Asset,AssetAdmin)
-admin.site.register(Speaker,SpeakerAdmin)
-admin.site.register(Envelope,EnvelopeAdmin)
+admin.site.register(Event, EventAdmin)
+admin.site.register(Asset, AssetAdmin)
+admin.site.register(Speaker, SpeakerAdmin)
+admin.site.register(Envelope, EnvelopeAdmin)
 admin.site.register(ListeningHistoryItem, ListeningHistoryItemAdmin)
 admin.site.register(Vote, VoteAdmin)
 admin.site.register(RepeatMode, RepeatModeAdmin)
-

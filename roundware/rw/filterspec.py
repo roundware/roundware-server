@@ -5,6 +5,7 @@ from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext as _
 from models import TagCategory, Tag
 
+
 class TagCategoryFilterSpec(RelatedFilterSpec):
     """
     Adds filtering by first char (alphabetic style) of values in the admin
@@ -29,7 +30,7 @@ class TagCategoryFilterSpec(RelatedFilterSpec):
             cat_t = request.GET.get("tags__tag_category__name__iexact")
             cat = TagCategory.objects.get(name__iexact=cat_t)
             tags = Tag.objects.filter(tag_category__id__exact="%s" % cat.pk)
-            self.lookup_choices = list(tag.description for tag in tags )
+            self.lookup_choices = list(tag.description for tag in tags)
             self.lookup_choices.sort()
         else:
             self.lookup_kwarg = '%s__tag_category__name__iexact' % f.name
@@ -37,7 +38,6 @@ class TagCategoryFilterSpec(RelatedFilterSpec):
             # getting the first char of values
             self.lookup_choices = list(cat.name for cat in TagCategory.objects.all())
             self.lookup_choices.sort()
-
 
     def choices(self, cl):
         yield {'selected': self.lookup_val is None,
@@ -50,6 +50,7 @@ class TagCategoryFilterSpec(RelatedFilterSpec):
             yield {'selected': smart_unicode(val) == self.lookup_val,
                    'query_string': cl.get_query_string({self.lookup_kwarg: val}),
                    'display': val}
+
     def title(self):
         return _('%(field_name)s') %\
                {'field_name': self.field.verbose_name}
@@ -63,6 +64,7 @@ from django.contrib.admin.filterspecs import FilterSpec, DateFieldFilterSpec
 from django.utils.translation import ugettext as _
 from datetime import datetime
 
+
 class AudioLengthFilterSpec(DateFieldFilterSpec):
     """
     Adds filtering by future and previous values in the admin
@@ -72,7 +74,7 @@ class AudioLengthFilterSpec(DateFieldFilterSpec):
     """
 
     def __init__(self, f, request, params, model, model_admin, *args, **kwargs):
-        super(AudioLengthFilterSpec, self).__init__(f, request, params, model, model_admin,  *args, **kwargs)
+        super(AudioLengthFilterSpec, self).__init__(f, request, params, model, model_admin, *args, **kwargs)
         today = datetime.now()
         self.links = (
             (_('Any'), {}),
@@ -87,7 +89,7 @@ class AudioLengthFilterSpec(DateFieldFilterSpec):
                               '%s__lt' % self.field.name: 50000000000}),
             (_('50s - 60s'), {'%s__gte' % self.field.name: 50000000000,
                               '%s__lt' % self.field.name: 60000000000}),
-            (_('60s +'), {'%s__gte' % self.field.name: 60000000000 })
+            (_('60s +'), {'%s__gte' % self.field.name: 60000000000})
             )
 
     def title(self):

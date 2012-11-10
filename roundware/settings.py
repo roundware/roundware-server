@@ -17,7 +17,7 @@ PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
 print(PROJECT_PATH)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
 
         'NAME': 'roundware',                      # Or path to database file if using sqlite3.
         'USER': 'round',                      # Not used with sqlite3.
@@ -115,9 +115,9 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     #os.path.join(PROJECT_PATH, 'templates')
-	PROJECT_PATH + '/templates',
-	PROJECT_PATH + '/rw/templates',
-	PROJECT_PATH + '/geoposition/templates'
+    PROJECT_PATH + '/templates',
+    PROJECT_PATH + '/rw/templates',
+    PROJECT_PATH + '/geoposition/templates'
 )
 
 INSTALLED_APPS = (

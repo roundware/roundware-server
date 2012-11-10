@@ -9,7 +9,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'roundware.views.home', name='home'),
 #    url(r'^charts/asset/$', 'rw.views.chart_views'),
     url(r'^dashboard/$', 'rw.views.chart_views'),
-    
+
     url(r'^roundware/$', 'rw.views.main'),
     url(r'^roundware$', 'rw.views.main'),
 
