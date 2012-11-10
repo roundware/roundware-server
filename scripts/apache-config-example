@@ -4,7 +4,7 @@
 
 
   ServerName example.com
-  DocumentRoot /home/ubuntu/rwserver/roundware/
+  DocumentRoot /home/ubuntu/roundware-server/roundware/
   Alias /media /home/ubuntu/python/django/contrib/admin/media
   Alias /audio /var/www/rwaudio
   RewriteEngine On
@@ -60,7 +60,7 @@
     </Directory>
 
 
-FastCGIExternalServer /home/ubuntu/rwserver/roundware/mysite.fcgi -host 127.0.0.1:3033
+FastCGIExternalServer /home/ubuntu/roundware-server/roundware/mysite.fcgi -host 127.0.0.1:3033
 #          SetHandler fastcgi-script
 #     </Files>
 
