@@ -177,7 +177,7 @@ def get_config(request):
                     "max_recording_length":project.max_recording_length,
                     "sharing_message":sharing_message,
                     "out_of_range_message":out_of_range_message,
-                    "sharing_url":sharing_url,
+                    "sharing_url":project.sharing_url,
                     "listen_questions_dynamic":project.listen_questions_dynamic,
                     "speak_questions_dynamic":project.speak_questions_dynamic,
                     "listen_enabled":project.listen_enabled,
