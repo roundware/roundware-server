@@ -175,6 +175,7 @@ def get_config(request):
                     "project_name":project.name,
                     "audio_format":project.audio_format,
                     "max_recording_length":project.max_recording_length,
+                    "recording_radius":project.recording_radius,
                     "sharing_message":sharing_message,
                     "out_of_range_message":out_of_range_message,
                     "sharing_url":project.sharing_url,
