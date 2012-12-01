@@ -38,10 +38,10 @@ class RoundFileSrc (gst.Bin):
         def on_pad(comp, pad):
             convpad = self.audioconvert.get_compatible_pad(pad, pad.get_caps())
             pad.link(convpad)
-            self.wavparse.connect("pad-added", on_pad)
-            self.pad = self.volume.get_pad("src")
-            self.ghostpad = gst.GhostPad("src", self.pad)
-            self.add_pad(self.ghostpad)
+        self.wavparse.connect("pad-added", on_pad)
+        self.pad = self.volume.get_pad("src")
+        self.ghostpad = gst.GhostPad("src", self.pad)
+        self.add_pad(self.ghostpad)
 
     def seek_to_start(self):
         if not self.already_seeked:
