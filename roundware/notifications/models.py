@@ -5,6 +5,7 @@ from django.contrib.sites.models import Site
 from django.core import urlresolvers
 from django.core.mail import EmailMultiAlternatives
 from django.db import models
+from guardian.models import UserObjectPermission
 from roundware.rw.models import Project
 import logging
 
@@ -55,7 +56,10 @@ class ActionNotification(models.Model):
             subject=self.subject,
             body=message,
             from_email=getattr(settings, "EMAIL_HOST_USER", "info@localhost"),
-            to=[user.email for user in self.who.all() if user.has_perm('access_project', self.notification.project)],
+#            to=[user.email for user in self.who.all() if user.has_perm('access_project', self.notification.project)],
+            to=[user.email for user in self.who.all() if UserObjectPermission.objects.filter(user=user,
+                                                                                             permission__codename="access_project",
+                                                                                             object_pk=self.notification.project.pk) or user.is_superuser],
         )
         self.last_sent_time = datetime.datetime.now()
         self.last_sent_reference = ref
