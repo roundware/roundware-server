@@ -55,7 +55,7 @@ class ActionNotification(models.Model):
             subject=self.subject,
             body=message,
             from_email=getattr(settings, "EMAIL_HOST_USER", "info@localhost"),
-            to=[user.email for user in self.who.all() if user.has_perm('view_project', self.notification.project)],
+            to=[user.email for user in self.who.all() if user.has_perm('access_project', self.notification.project)],
         )
         self.last_sent_time = datetime.datetime.now()
         self.last_sent_reference = ref
