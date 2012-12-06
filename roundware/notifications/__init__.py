@@ -10,11 +10,11 @@ logger = logging.getLogger("notifications")
 def send_notifications_add(sender, instance, created, **kwargs):
     if not created:
         return
-    logger.info("caught add")
     object_string = sender._meta.object_name.lower()
-    logger.info("%s %s", object_string, instance.id)
+    logger.info("caught add %s", object_string)
     objects = [i[0] for i in ENABLED_MODELS if i[1].lower() == object_string]
     if objects:
+        logger.info("%s %s", object_string, instance.id)
         object_int = objects[0]
         date_diff = datetime.datetime.now() - datetime.timedelta(seconds=getattr(settings, "NOTIFICATIONS_TIME_BETWEEN", 30))
         notifications = ActionNotification.objects.filter(notification__model = object_int,
@@ -28,11 +28,11 @@ def send_notifications_add(sender, instance, created, **kwargs):
 def send_notifications_edit(sender, instance, created, **kwargs):
     if created:
         return
-    logger.info("caught edit")
     object_string = sender._meta.object_name.lower()
-    logger.info("%s %s", object_string, instance.id)
+    logger.info("caught edit %s", object_string)
     objects = [i[0] for i in ENABLED_MODELS if i[1].lower() == object_string]
     if objects:
+        logger.info("%s %s", object_string, instance.id)
         object_int = objects[0]
         date_diff = datetime.datetime.now() - datetime.timedelta(seconds=getattr(settings, "NOTIFICATIONS_TIME_BETWEEN", 30))
         notifications = ActionNotification.objects.filter(notification__model = object_int,
@@ -44,11 +44,11 @@ def send_notifications_edit(sender, instance, created, **kwargs):
             n.notify(ref=instance.pk)
 
 def send_notifications_delete(sender, instance, **kwargs):
-    logger.info("caught delete")
     object_string = sender._meta.object_name.lower()
-    logger.info("%s %s", object_string, instance.id)
+    logger.info("caught delete %s", object_string)
     objects = [i[0] for i in ENABLED_MODELS if i[1].lower() == object_string]
     if objects:
+        logger.info("%s %s", object_string, instance.id)
         object_int = objects[0]
         notifications = ActionNotification.objects.filter(notification__model = object_int,
                                                           action = 2)
