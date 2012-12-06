@@ -41,8 +41,8 @@ class ActionNotification(models.Model):
     message = models.TextField()
     subject = models.CharField(max_length=255, blank=True)
     notification = models.ForeignKey(ModelNotification)
-    last_sent_time = models.DateTimeField(null=True)
-    last_sent_reference = models.IntegerField(null=True, default=datetime.datetime.now() - datetime.timedelta(hours=1))
+    last_sent_time = models.DateTimeField(null=True, default=datetime.datetime.now() - datetime.timedelta(hours=1))
+    last_sent_reference = models.IntegerField(null=True)
 
     def notify(self, ref=None):
         message = self.message
@@ -58,7 +58,7 @@ class ActionNotification(models.Model):
             to=[user.email for user in self.who.all() if user.has_perm('view_project', self.notification.project)],
         )
         self.last_sent_time = datetime.datetime.now()
-        self.last_sent_reference=ref
+        self.last_sent_reference = ref
         self.save()
         ret = email.send()
         logger.info("Email Sent: %(email)s, %(ret)s" % {'email' : email.to, 'ret' : ret})
