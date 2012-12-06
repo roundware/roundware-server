@@ -1,8 +1,14 @@
+import datetime
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.core import urlresolvers
 from django.core.mail import EmailMultiAlternatives
 from django.db import models
 from roundware.rw.models import Project
+import logging
+
+logger = logging.getLogger("notifications")
 
 ENABLED_MODELS = (
     (0, "Asset"),
@@ -35,16 +41,24 @@ class ActionNotification(models.Model):
     message = models.TextField()
     subject = models.CharField(max_length=255, blank=True)
     notification = models.ForeignKey(ModelNotification)
+    last_sent_time = models.DateTimeField(null=True)
+    last_sent_reference = models.IntegerField(null=True, default=datetime.datetime.now() - datetime.timedelta(hours=1))
 
-    def notify(self):
+    def notify(self, ref=None):
+        message = self.message
         if self.action in [0,1]:
-            link = self.notification.get_absolute_url()
-            self.message = "%s\n%s" % (self.message, link)
+            link = "http://%(domain)s%(abs)s" % {'domain' : Site.objects.get_current().domain,
+                                                 'abs' : urlresolvers.reverse("admin:%s_%s_change" % ("rw", ENABLED_MODELS[self.notification.model][1].lower()), args=(ref,))}
+            message = "%s\n%s" % (self.message, link)
 
         email = EmailMultiAlternatives(
-            subject='',
-            body=self.message,
-            from_email='info@roundware.com',
+            subject=self.subject,
+            body=message,
+            from_email=getattr(settings, "EMAIL_HOST_USER", "info@localhost"),
             to=[user.email for user in self.who.all() if user.has_perm('view_project', self.notification.project)],
         )
-        email.send()
+        self.last_sent_time = datetime.datetime.now()
+        self.last_sent_reference=ref
+        self.save()
+        ret = email.send()
+        logger.info("Email Sent: %(email)s, %(ret)s" % {'email' : email.to, 'ret' : ret})
