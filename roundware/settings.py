@@ -35,7 +35,7 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'America/New_York'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -137,6 +137,7 @@ INSTALLED_APPS = (
     'roundware.geoposition',
     'guardian',
     'chartit',
+    'notifications',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -162,4 +163,10 @@ LOGGING = {
     }
 }
 
-ANONYMOUS_USER_ID = 0
+ANONYMOUS_USER_ID = 2
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'email@gmail.com'
+EMAIL_HOST_PASSWORD = 'password'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
