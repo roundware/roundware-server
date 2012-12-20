@@ -27,6 +27,7 @@ class ModelNotification(models.Model):
     modified = models.DateTimeField(auto_now=True)
     model = models.IntegerField(choices=ENABLED_MODELS)
     project = models.ForeignKey(Project)
+    active = models.BooleanField(default=True)
 
     def __unicode__(self):
         return "%(model)s (%(project)s)" % {'model' : ENABLED_MODELS[self.model][1], 'project' : self.project}
@@ -44,19 +45,33 @@ class ActionNotification(models.Model):
     notification = models.ForeignKey(ModelNotification)
     last_sent_time = models.DateTimeField(null=True, default=datetime.datetime.now() - datetime.timedelta(hours=1))
     last_sent_reference = models.IntegerField(null=True)
+    active = models.BooleanField(default=True)
+
+    def is_active(self):
+        """
+        Returns Boolean.
+        Returns True if both the ActionNotification and its parent ModelNotification are active
+        """
+        return bool(self.active and self.notification.active)
 
     def notify(self, ref=None):
+        """
+        Notify the associated users when the notification triggers
+        """
         message = self.message
+        #include a link to the admin page if the object is being added or edited
         if self.action in [0,1]:
             link = "http://%(domain)s%(abs)s" % {'domain' : Site.objects.get_current().domain,
                                                  'abs' : urlresolvers.reverse("admin:%s_%s_change" % ("rw", ENABLED_MODELS[self.notification.model][1].lower()), args=(ref,))}
             message = "%s\n%s" % (self.message, link)
 
+        #create the email object
         email = EmailMultiAlternatives(
             subject=self.subject,
             body=message,
             from_email=getattr(settings, "EMAIL_HOST_USER", "info@localhost"),
-#            to=[user.email for user in self.who.all() if user.has_perm('access_project', self.notification.project)],
+            #only send to users who have permissions through django-guardian to access the associated project
+            #TODO: this only works when the ModelNotification points to a 'Asset' will need to be adjusted when additional models are to be added.
             to=[user.email for user in self.who.all() if UserObjectPermission.objects.filter(user=user,
                                                                                              permission__codename="access_project",
                                                                                              object_pk=self.notification.project.pk) or user.is_superuser],
