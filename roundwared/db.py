@@ -1,3 +1,27 @@
+# ROUNDWARE
+# a participatory, location-aware media platform
+
+# Copyright (C) 2008-2013 Halsey Solutions, LLC
+# with contributions from:
+# Mike MacHenry
+# Ben McAllister (listenfaster.com)
+# Halsey Burgund (halseyburgund.com)
+# http://roundware.org | contact@roundware.org
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 import string
 import logging
 import datetime
@@ -44,7 +68,7 @@ def get_config_tag_json(p, s):
                 #def toTagDictionary(self):
                     #return {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
 
-                masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'value': mapping.tag.loc_msg.filter(language=lingo)[0].localized_string})
+                masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'data': mapping.tag.data, 'value': mapping.tag.loc_msg.filter(language=lingo)[0].localized_string})
             masterD["options"] = masterOptionsList
             masterD["defaults"] = default
             if not modes.has_key(masterui.ui_mode.name):
