@@ -138,7 +138,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
 
     form = AssetAdminForm
 
-    ordering = ['id']
+    ordering = ['-id']
     inlines = [
         VoteInline,
     ]
