@@ -8,7 +8,7 @@ TEMPLATE_DEBUG = True
 ADMINS = (
     ('round', 'your_email@example.com'),
 )
-AUDIO_FILE_URI = "http://rwdev.dyndns.org/audio/"
+AUDIO_FILE_URI = "http://roundware.org/audio/"
 MANAGERS = ADMINS
 
 #change this to reflect your environment
@@ -21,7 +21,7 @@ DATABASES = {
 
         'NAME': 'roundware',                      # Or path to database file if using sqlite3.
         'USER': 'round',                      # Not used with sqlite3.
-        'PASSWORD': 'round',                  # Not used with sqlite3.
+        'PASSWORD': 'password',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
@@ -137,7 +137,8 @@ INSTALLED_APPS = (
     'roundware.geoposition',
     'guardian',
     'chartit',
-    'notifications',
+    'roundware.notifications',
+    'south',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -163,10 +164,19 @@ LOGGING = {
     }
 }
 
-ANONYMOUS_USER_ID = 2
+# change this to the proper id for AnonymousUser in database for Guardian
+ANONYMOUS_USER_ID = 0
 
+# settings for notifications module
+# this is the email account from which notificaitons will be sent
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'email@gmail.com'
 EMAIL_HOST_PASSWORD = 'password'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+# Load the local settings file
+try:
+    from local_settings import *
+except ImportError:
+    pass
