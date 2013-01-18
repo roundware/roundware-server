@@ -1,3 +1,7 @@
-sudo apt-get install python-mysqldb python-configobj mysql-server icecast2 ffmpeg apache2 pacpl gstreamer0.10-gnomevfs python-dbus libapache2-mod-fastcgi python-gst0.10 python-django python-flup gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 gstreamer0.10-plugins-bad gstreamer0.10-plugins-good gstreamer0.10-plugins-bad-multiverse gstreamer0.10-plugins-ugly libavcodec-extra-53
+sudo apt-get install python-mysqldb python-configobj mysql-server icecast2 ffmpeg apache2 pacpl gstreamer0.10-gnomevfs python-dbus libapache2-mod-fastcgi python-gst0.10 python-django python-flup gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 gstreamer0.10-plugins-bad gstreamer0.10-plugins-good gstreamer0.10-plugins-bad-multiverse gstreamer0.10-plugins-ugly libavcodec-extra-53 python-pip gstreamer-tools python-setuptools
 
 sudo a2enmod rewrite
+# django apps
+sudo pip install django-guardian
+sudo pip install django_chartit
+sudo pip install south
