@@ -187,8 +187,8 @@ def get_config(request):
                     "geo_speak_enabled":project.geo_speak_enabled,
                     "reset_tag_defaults_on_startup":project.reset_tag_defaults_on_startup,
                     "legal_agreement":legal_agreement,
-                    "new_recording_email_body":project.new_recording_email_body,
-                    "new_recording_email_recipient":project.new_recording_email_recipient,
+                    "files_url":project.files_url,
+                    "audio_stream_bitrate":project.audio_stream_bitrate,
                     }},
 
             {"server":{
