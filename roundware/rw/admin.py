@@ -157,11 +157,13 @@ class AssetAdmin(ProjectProtectedModelAdmin):
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('id', 'tag_category', 'description')
+    list_display = ('id', 'tag_category', 'description', 'get_loc')
+    search_fields = ('description',)
+    list_filter = ('tag_category',)
     ordering = ['id']
-    inlines = [
-        AssetTagsInline,
-    ]
+    # inlines = [
+    #    AssetTagsInline,
+    # ]
 
 
 class LanguageAdmin(admin.ModelAdmin):
@@ -172,6 +174,8 @@ class LanguageAdmin(admin.ModelAdmin):
 class LocalizedStringAdmin(admin.ModelAdmin):
     list_display = ('id', 'language', 'localized_string')
     ordering = ['id']
+    list_filter = ('language',)
+    search_fields = ('localized_string',)
 
 
 class VoteAdmin(ProjectProtectedThroughAssetModelAdmin):
@@ -185,13 +189,33 @@ class RepeatModeAdmin(admin.ModelAdmin):
 
 
 class ProjectAdmin(GuardedModelAdmin):
-    list_display = ('id', 'name', 'latitude', 'longitude')
+    list_display = ('id', 'name', 'latitude', 'longitude', 'max_recording_length', 'recording_radius')
     ordering = ['id']
+    save_on_top = True
+    fieldsets = (
+        ('Basic Info', {
+            'fields': ('name', 'latitude', 'longitude', 'pub_date', 'audio_format', 'auto_submit')
+        }),
+        ('Configuration', {
+            'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',
+                       'reset_tag_defaults_on_startup', 'max_recording_length', 'recording_radius', 'sharing_url',
+                       'out_of_range_url', 'repeat_mode')
+        }),
+        ('Localized Strings', {
+            'fields': ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',)
+        }),
+        ('Other', {
+            'classes': ('collapse',),
+            'fields': ('new_recording_email_body', 'new_recording_email_recipient', 'listen_questions_dynamic',
+                       'speak_questions_dynamic', 'sharing_message', 'out_of_range_message', 'legal_agreement')
+        }),
+        )
 
 
 class SessionAdmin(ProjectProtectedModelAdmin):
-    list_display = ('id', 'device_id', 'starttime')
-    ordering = ['id']
+    list_display = ('id', 'project', 'starttime', 'device_id', 'language')
+    list_filter = ('project', 'language', 'starttime')
+    ordering = ['-id']
 
 
 class UIModeAdmin(admin.ModelAdmin):
@@ -212,23 +236,42 @@ class SelectionMethodAdmin(admin.ModelAdmin):
 #MasterUIs describe screens containing choices limited to one mode (Speak, Listen),
 #  and one tag category.
 class MasterUIAdmin(ProjectProtectedModelAdmin):
-    list_display = ('id', 'name', 'ui_mode', 'tag_category', 'select', 'active', 'index', 'project')
+    list_display = ('id', 'project', 'name', 'ui_mode', 'tag_category', 'select', 'active', 'index')
+    list_filter = ('project', 'ui_mode', 'tag_category')
     ordering = ['id']
 
 
 #UI Mappings describe the ordering and selectability of tags for a given MasterUI.
 class UIMappingAdmin(ProjectProtectedThroughUIModelAdmin):
-    list_display = ('id', 'master_ui', 'index', 'tag', 'default', 'active')
+    list_display = ('id', 'active', 'master_ui', 'index', 'tag', 'default')
+    list_filter = ('master_ui',)
+    list_editable = ('active', 'default', 'index')
     ordering = ['id']
 
 
 class AudiotrackAdmin(ProjectProtectedModelAdmin):
-    list_display = ('id', 'project')
+    list_display = ('id', 'project', 'norm_minduration', 'norm_maxduration', 'norm_mindeadair', 'norm_maxdeadair')
+    list_filter = ('project',)
     ordering = ['id']
-
+    fieldsets = (
+        (None, {
+            'fields': ('project', 'minvolume', 'maxvolume')
+        }),
+        ('Chunks', {
+            'fields': ('minduration', 'maxduration', 'mindeadair', 'maxdeadair')
+        }),
+        ('Fading', {
+            'fields': ('minfadeintime', 'maxfadeintime', 'minfadeouttime', 'maxfadeouttime')
+        }),
+        ('Panning', {
+            'fields': ('minpanpos', 'maxpanpos', 'minpanduration', 'maxpanduration')
+        }),
+        )
 
 class EventAdmin(ProjectProtectedThroughSessionModelAdmin):
-    list_display = ('id', 'session', 'event_type', 'data', 'server_time', 'client_time')
+    list_display = ('id', 'session', 'event_type', 'latitude','longitude', 'data', 'server_time')
+    # search_fields = ('session',)
+    list_filter = ('event_type', 'server_time')
     ordering = ['id']
 
 
@@ -238,12 +281,14 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
 
 
 class SpeakerAdmin(ProjectProtectedModelAdmin):
-    list_display = ('id', 'code', 'project', 'latitude', 'longitude', 'uri')
+    list_display = ('id', 'activeyn', 'code', 'project', 'latitude', 'longitude', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume', 'uri')
+    list_filter = ('project', 'activeyn')
+    list_editable = ('activeyn', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume',)
     ordering = ['id']
 
 
 class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):
-    list_display = ('id', 'session', 'asset', 'starttime', 'duration')
+    list_display = ('id', 'session', 'asset', 'starttime', 'norm_duration')
     ordering = ['session']
 
 

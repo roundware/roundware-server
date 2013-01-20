@@ -117,6 +117,12 @@ class Tag(models.Model):
     loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)
     data = models.TextField(null=True, blank=True)
 
+    def get_loc(self):
+        return "<br />".join(unicode(t) for t in self.loc_msg.all())
+    get_loc.short_description = "Localized Names"
+    get_loc.name = "Localized Names"
+    get_loc.allow_tags = True
+
     def __unicode__(self):
             return self.tag_category.name + " : " + self.description
 
@@ -167,6 +173,30 @@ class Audiotrack(models.Model):
     minpanduration = models.FloatField()
     maxpanduration = models.FloatField()
     repeatrecordings = models.BooleanField()
+
+    def norm_minduration(self):
+        if self.minduration:
+            return "%.2f s" % (self.minduration / 1000000000.0,)
+    norm_minduration.short_description = "Min Duration"
+    norm_minduration.name = "Min Duration"
+
+    def norm_maxduration(self):
+        if self.maxduration:
+            return "%.2f s" % (self.maxduration / 1000000000.0,)
+    norm_maxduration.short_description = "Max Duration"
+    norm_maxduration.name = "Max Duration"
+
+    def norm_mindeadair(self):
+        if self.mindeadair:
+            return "%.2f s" % (self.mindeadair / 1000000000.0,)
+    norm_mindeadair.short_description = "Min Silence"
+    norm_mindeadair.name = "Min Silence"
+
+    def norm_maxdeadair(self):
+        if self.maxdeadair:
+            return "%.2f s" % (self.maxdeadair / 1000000000.0,)
+    norm_maxdeadair.short_description = "Max Silence"
+    norm_maxdeadair.name = "Max Silence"
 
     def __unicode__(self):
             return "Track " + str(self.id)
@@ -301,6 +331,12 @@ class ListeningHistoryItem(models.Model):
     asset = models.ForeignKey(Asset)
     starttime = models.DateTimeField()
     duration = models.BigIntegerField(null=True, blank=True)
+
+    def norm_duration(self):
+        if self.duration:
+            return "%.2f s" % (self.duration / 1000000000.0,)
+    norm_duration.short_description = "Playback Duration"
+    norm_duration.name = "Playback Duration"
 
     def __unicode__(self):
             return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + " duration: " + str(self.duration)
