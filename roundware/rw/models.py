@@ -64,6 +64,10 @@ class Project(models.Model):
     new_recording_email_recipient = models.TextField(null=True)
     repeat_mode = models.ForeignKey(RepeatMode, null=True)
     files_url = models.CharField(max_length=512, blank=True)
+    BITRATE_CHOICES = (
+        ('64','64'), ('96','96'),('112','112'),('128','128'),('160','160'),('196','196'),('256','256'),
+    )
+    audio_stream_bitrate = models.CharField(max_length=3, choices=BITRATE_CHOICES, default='128')
 
     def __unicode__(self):
             return self.name

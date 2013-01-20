@@ -194,11 +194,12 @@ class ProjectAdmin(GuardedModelAdmin):
     save_on_top = True
     fieldsets = (
         ('Basic Info', {
-            'fields': ('name', 'latitude', 'longitude', 'pub_date', 'audio_format', 'auto_submit')
+            'fields': ('name', 'latitude', 'longitude', 'pub_date', 'auto_submit')
         }),
         ('Configuration', {
             'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',
-                       'reset_tag_defaults_on_startup', 'max_recording_length', 'recording_radius', 'sharing_url',
+                       'reset_tag_defaults_on_startup', 'max_recording_length', 'recording_radius',
+                       'audio_stream_bitrate', 'sharing_url',
                        'out_of_range_url', 'files_url', 'repeat_mode')
         }),
         ('Localized Strings', {
@@ -206,7 +207,7 @@ class ProjectAdmin(GuardedModelAdmin):
         }),
         ('Other', {
             'classes': ('collapse',),
-            'fields': ('new_recording_email_body', 'new_recording_email_recipient', 'listen_questions_dynamic',
+            'fields': ('audio_format', 'new_recording_email_body', 'new_recording_email_recipient', 'listen_questions_dynamic',
                        'speak_questions_dynamic', 'sharing_message', 'out_of_range_message', 'legal_agreement')
         }),
         )
