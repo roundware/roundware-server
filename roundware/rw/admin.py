@@ -199,7 +199,7 @@ class ProjectAdmin(GuardedModelAdmin):
         ('Configuration', {
             'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',
                        'reset_tag_defaults_on_startup', 'max_recording_length', 'recording_radius', 'sharing_url',
-                       'out_of_range_url', 'repeat_mode')
+                       'out_of_range_url', 'files_url', 'repeat_mode')
         }),
         ('Localized Strings', {
             'fields': ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',)

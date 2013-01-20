@@ -62,8 +62,8 @@ class Project(models.Model):
     legal_agreement_loc = models.ManyToManyField(LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
     new_recording_email_body = models.TextField(null=True)
     new_recording_email_recipient = models.TextField(null=True)
-
     repeat_mode = models.ForeignKey(RepeatMode, null=True)
+    files_url = models.CharField(max_length=512, blank=True)
 
     def __unicode__(self):
             return self.name
