@@ -207,8 +207,7 @@ class ProjectAdmin(GuardedModelAdmin):
         }),
         ('Other', {
             'classes': ('collapse',),
-            'fields': ('audio_format', 'listen_questions_dynamic',
-                       'speak_questions_dynamic', 'sharing_message', 'out_of_range_message', 'legal_agreement')
+            'fields': ('audio_format', 'listen_questions_dynamic', 'speak_questions_dynamic')
         }),
         )
 
