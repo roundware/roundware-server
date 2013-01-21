@@ -60,8 +60,6 @@ class Project(models.Model):
     reset_tag_defaults_on_startup = models.BooleanField()
     legal_agreement = models.TextField(null=True, blank=True)
     legal_agreement_loc = models.ManyToManyField(LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
-    new_recording_email_body = models.TextField(null=True)
-    new_recording_email_recipient = models.TextField(null=True)
     repeat_mode = models.ForeignKey(RepeatMode, null=True)
     files_url = models.CharField(max_length=512, blank=True)
     BITRATE_CHOICES = (
