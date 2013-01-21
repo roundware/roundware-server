@@ -302,6 +302,7 @@ class Asset(models.Model):
 
 class Envelope(models.Model):
     session = models.ForeignKey(Session)
+    created = models.DateTimeField(default=datetime.datetime.now)
     assets = models.ManyToManyField(Asset)
 
     def __unicode__(self):

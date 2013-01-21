@@ -272,12 +272,12 @@ class EventAdmin(ProjectProtectedThroughSessionModelAdmin):
     list_display = ('id', 'session', 'event_type', 'latitude','longitude', 'data', 'server_time')
     # search_fields = ('session',)
     list_filter = ('event_type', 'server_time')
-    ordering = ['id']
+    ordering = ['-id']
 
 
 class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
-    list_display = ('id', 'session')
-    ordering = ['id']
+    list_display = ('id', 'session', 'created')
+    ordering = ['-id']
 
 
 class SpeakerAdmin(ProjectProtectedModelAdmin):
