@@ -161,6 +161,7 @@ class TagAdmin(admin.ModelAdmin):
     search_fields = ('description',)
     list_filter = ('tag_category',)
     ordering = ['id']
+    filter_vertical = ('loc_msg',)
     # inlines = [
     #    AssetTagsInline,
     # ]
@@ -192,6 +193,7 @@ class ProjectAdmin(GuardedModelAdmin):
     list_display = ('id', 'name', 'latitude', 'longitude', 'max_recording_length', 'recording_radius')
     ordering = ['id']
     save_on_top = True
+    filter_vertical = ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc')
     fieldsets = (
         ('Basic Info', {
             'fields': ('name', 'latitude', 'longitude', 'pub_date', 'auto_submit')
