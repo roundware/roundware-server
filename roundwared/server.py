@@ -188,6 +188,7 @@ def get_config(request):
                     "reset_tag_defaults_on_startup":project.reset_tag_defaults_on_startup,
                     "legal_agreement":legal_agreement,
                     "files_url":project.files_url,
+                    "files_version":project.files_version,
                     "audio_stream_bitrate":project.audio_stream_bitrate,
                     }},
 
