@@ -59,6 +59,7 @@ class Project(models.Model):
     legal_agreement_loc = models.ManyToManyField(LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
     repeat_mode = models.ForeignKey(RepeatMode, null=True)
     files_url = models.CharField(max_length=512, blank=True)
+    files_version = models.IntegerField(max_length=10, null=True, blank=True)
     BITRATE_CHOICES = (
         ('64','64'), ('96','96'),('112','112'),('128','128'),('160','160'),('196','196'),('256','256'),
     )
