@@ -59,9 +59,9 @@ class Project(models.Model):
     legal_agreement_loc = models.ManyToManyField(LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
     repeat_mode = models.ForeignKey(RepeatMode, null=True)
     files_url = models.CharField(max_length=512, blank=True)
-    files_version = models.IntegerField(max_length=10, null=True, blank=True)
+    files_version = models.CharField(max_length=16, blank=True)
     BITRATE_CHOICES = (
-        ('64','64'), ('96','96'),('112','112'),('128','128'),('160','160'),('196','196'),('256','256'),
+        ('64', '64'), ('96', '96'), ('112', '112'), ('128', '128'), ('160', '160'), ('192', '192'), ('256', '256'), ('320','320'),
     )
     audio_stream_bitrate = models.CharField(max_length=3, choices=BITRATE_CHOICES, default='128')
 
