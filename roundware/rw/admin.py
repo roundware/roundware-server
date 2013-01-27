@@ -1,10 +1,10 @@
-from roundware.geoposition.forms import GeopositionField
+from django.forms import FileField
 from guardian.admin import GuardedModelAdmin
 from guardian.shortcuts import get_objects_for_user
 from models import *
 from django.contrib import admin
 from django import forms
-from settings import AUDIO_FILE_URI
+from django.conf import settings
 
 from filterspec import TagCategoryFilterSpec, AudioLengthFilterSpec
 
@@ -70,37 +70,6 @@ class ProjectProtectedModelAdmin(admin.ModelAdmin):
 
         return qset.filter(project__in=get_objects_for_user(request.user, 'rw.access_project'))
 
-
-class AssetAdminForm(forms.ModelForm):
-    # Step 1: Add the extra form fields to the ModelForm
-    #latitude = forms.FloatField(required=False)
-    #longitude = forms.FloatField(required=False)
-    map = GeopositionField()
-
-    class Meta:
-        model = Asset
-
-    # Step 2: Override the constructor to manually set the form's latitude and
-    # longitude fields if a Location instance is passed into the form
-    def __init__(self, *args, **kwargs):
-        super(AssetAdminForm, self).__init__(*args, **kwargs)
-        self.initial['map'] = (self.instance.latitude, self.instance.longitude)
-
-    # Step 3: Override the save method to manually set the model's latitude and
-    # longitude properties based on what was submitted from the form
-    def save(self, commit=True):
-        model = super(AssetAdminForm, self).save(commit=False)
-        #
-        # Save the latitude and longitude based on the form fields
-        model.latitude = float(self.cleaned_data['map'][0])
-        model.longitude = float(self.cleaned_data['map'][1])
-
-        if commit:
-            model.save()
-
-        return model
-
-
 class AssetAdmin(ProjectProtectedModelAdmin):
     valid_lookups = ('tags__tag_category__name', 'tags__description')
 
@@ -112,21 +81,21 @@ class AssetAdmin(ProjectProtectedModelAdmin):
 
     def add_view(self, request, form_url='', extra_context=None):
         extra_context = extra_context or {}
-        extra_context['AUDIO_FILE_URI'] = AUDIO_FILE_URI
+        extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
         extra_context['extends_url'] = "admin/change_form.html"
         return super(AssetAdmin, self).add_view(request, form_url,
             extra_context=extra_context)
 
     def change_view(self, request, object_id, extra_context=None):
         extra_context = extra_context or {}
-        extra_context['AUDIO_FILE_URI'] = AUDIO_FILE_URI
+        extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
         extra_context['extends_url'] = "admin/change_form.html"
         return super(AssetAdmin, self).change_view(request, object_id,
             extra_context=extra_context)
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
-        extra_context['AUDIO_FILE_URI'] = AUDIO_FILE_URI
+        extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
         extra_context['extends_url'] = "admin/change_list.html"
         return super(AssetAdmin, self).changelist_view(request,
             extra_context=extra_context)
@@ -136,24 +105,41 @@ class AssetAdmin(ProjectProtectedModelAdmin):
             return True
         return super(AssetAdmin, self).lookup_allowed(lookup, *args, **kwargs)
 
-    form = AssetAdminForm
+    #form = AssetAdminForm
 
     ordering = ['-id']
     inlines = [
         VoteInline,
     ]
     #exclude = ('tags',)
-    readonly_fields = ('audio_player', 'audiolength', 'session', 'created', 'filename')
+    readonly_fields = ('location_map', 'audio_player', 'audiolength', 'session', 'created')#, 'longitude', 'latitude')#, 'filename')
     list_display = ('id', 'session', 'submitted', 'project', 'audio_link_url', 'audio_player', 'created',
                     'norm_audiolength', 'get_likes', 'get_flags', 'get_tags', 'volume', )
     list_filter = ('project', 'tags', 'submitted', 'audiolength', 'created', 'language', )
     list_editable = ('submitted', 'volume')
     save_on_top = True
     filter_horizontal = ('tags',)
+    fieldsets = (
+        ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude', 'language')}),
+        (None, {'fields' : ('project', 'session', 'created', 'submitted', 'tags')}),
+        ('Audio Data', {'fields' : ('audio_player', 'filename', 'volume', 'audiolength')})
+    )
 
     class Media:
-        css = {"all": ("css/jplayer.blue.monday.css",)}
-        js = ('js/jquery.jplayer.min.js', 'js/audio.js')
+        css = {
+            "all": (
+                "css/jplayer.blue.monday.css",
+                "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css",
+                )
+            }
+        js = (
+                'js/jquery.jplayer.min.js',
+                'js/audio.js',
+                'http://maps.google.com/maps/api/js?sensor=false',
+                'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
+                'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
+                'js/location_map.js',
+            )
 
 
 class TagAdmin(admin.ModelAdmin):
