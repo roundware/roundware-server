@@ -13,7 +13,7 @@ setup(
     url     = 'http://roundware.sourceforge.net',
     license     = 'LGPL',
     scripts     = glob.glob('bin/*'),
-    packages    = ["roundware.rw", "roundware", "roundwared", "roundware.geoposition", "roundware.notifications"],
+    packages    = ["roundware.rw", "roundware", "roundwared", "roundware.notifications"],
 #   data_files = [
 #       ('/usr/lib/cgi-bin', glob.glob('cgi-bin/*.py')),
 #       ('/var/www/roundware', glob.glob('www/*py')),

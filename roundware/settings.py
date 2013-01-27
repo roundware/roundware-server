@@ -14,7 +14,6 @@ MANAGERS = ADMINS
 #change this to reflect your environment
 #JSS: this will always set PROJECT_PATH to the directory in which settings.py is contained
 PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
-print(PROJECT_PATH)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
@@ -117,7 +116,6 @@ TEMPLATE_DIRS = (
     #os.path.join(PROJECT_PATH, 'templates')
     PROJECT_PATH + '/templates',
     PROJECT_PATH + '/rw/templates',
-    PROJECT_PATH + '/geoposition/templates'
 )
 
 INSTALLED_APPS = (
@@ -134,7 +132,6 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 
     #this will allow for google maps integration in the admin
-    'roundware.geoposition',
     'guardian',
     'chartit',
     'roundware.notifications',
