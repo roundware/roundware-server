@@ -221,11 +221,13 @@ class Event(models.Model):
     operationid = models.IntegerField(null=True, blank=True)
     udid = models.CharField(max_length=50, null=True, blank=True)
 
+#from south.modelsinspector import add_introspection_rules
+#add_introspection_rules([], ["^roundware\.rw\.widgets\.LocationField"])
 
 class Asset(models.Model):
     session = models.ForeignKey(Session, null=True, blank=True)
-    latitude = models.FloatField(null=True, blank=True)
-    longitude = models.FloatField(null=True, blank=True)
+    latitude = models.FloatField(null=True, blank=True, default="0.0")
+    longitude = models.FloatField(null=True, blank=True, default="0.0")
     filename = models.CharField(max_length=256, null=True, blank=True)
     volume = models.FloatField(null=True, blank=True)
 
@@ -245,6 +247,13 @@ class Asset(models.Model):
         return """<div data-filename="%s" class="audio-file"></div>""" % self.filename
     audio_player.short_name = "audio"
     audio_player.allow_tags = True
+
+    def location_map(self):
+        html = """<input type="text" value="" id="searchbox" style=" width:800px;height:30px; font-size:15px;">
+        <div id="map" style="width:800px; height: 400px; margin-top: 10px;"></div>"""
+        return html
+    location_map.short_name = "location"
+    location_map.allow_tags = True
 
     def norm_audiolength(self):
         if self.audiolength:
