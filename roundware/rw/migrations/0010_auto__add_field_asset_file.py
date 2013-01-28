@@ -8,15 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Project.files_url'
-        db.add_column('rw_project', 'files_url',
-                      self.gf('django.db.models.fields.CharField')(default='', max_length=512, blank=True),
+        # Adding field 'Asset.file'
+        db.add_column('rw_asset', 'file',
+                      self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True, blank=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'Project.files_url'
-        db.delete_column('rw_project', 'files_url')
+        # Deleting field 'Asset.file'
+        db.delete_column('rw_asset', 'file')
 
 
     models = {
@@ -24,6 +24,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Asset'},
             'audiolength': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'file': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'filename': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'language': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Language']", 'null': 'True'}),
@@ -58,6 +59,7 @@ class Migration(SchemaMigration):
         'rw.envelope': {
             'Meta': {'object_name': 'Envelope'},
             'assets': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['rw.Asset']", 'symmetrical': 'False'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'session': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Session']"})
         },
@@ -113,29 +115,26 @@ class Migration(SchemaMigration):
         'rw.project': {
             'Meta': {'object_name': 'Project'},
             'audio_format': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'audio_stream_bitrate': ('django.db.models.fields.CharField', [], {'default': "'128'", 'max_length': '3'}),
             'auto_submit': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            # 'files_url': ('django.db.models.fields.CharField', [], {'max_length': '512', 'blank': 'True'}),
+            'files_url': ('django.db.models.fields.CharField', [], {'max_length': '512', 'blank': 'True'}),
+            'files_version': ('django.db.models.fields.CharField', [], {'max_length': '16', 'blank': 'True'}),
             'geo_listen_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'geo_speak_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'latitude': ('django.db.models.fields.FloatField', [], {}),
-            'legal_agreement': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'legal_agreement_loc': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'legal_agreement_string'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['rw.LocalizedString']"}),
             'listen_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'listen_questions_dynamic': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'longitude': ('django.db.models.fields.FloatField', [], {}),
             'max_recording_length': ('django.db.models.fields.IntegerField', [], {}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'new_recording_email_body': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'new_recording_email_recipient': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'out_of_range_message': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'out_of_range_message_loc': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'out_of_range_msg_string'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['rw.LocalizedString']"}),
             'out_of_range_url': ('django.db.models.fields.CharField', [], {'max_length': '512'}),
             'pub_date': ('django.db.models.fields.DateTimeField', [], {}),
             'recording_radius': ('django.db.models.fields.IntegerField', [], {'null': 'True'}),
             'repeat_mode': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.RepeatMode']", 'null': 'True'}),
             'reset_tag_defaults_on_startup': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'sharing_message': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'sharing_message_loc': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'sharing_msg_string'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['rw.LocalizedString']"}),
             'sharing_url': ('django.db.models.fields.CharField', [], {'max_length': '512'}),
             'speak_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
