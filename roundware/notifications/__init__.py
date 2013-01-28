@@ -23,6 +23,7 @@ def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
         date_diff = datetime.datetime.now() - datetime.timedelta(seconds=getattr(settings, "NOTIFICATIONS_TIME_BETWEEN", 30))
         #get the enabled notifications
         notifications = ActionNotification.objects.filter(notification__model = object_int,
+                                                          notification__project = instance.project,
                                                           notification__active = True,
                                                           action = action,
                                                           active = True,
@@ -51,6 +52,7 @@ def send_notifications_delete(sender, instance, *args, **kwargs):
         logger.info("%s %s", object_string, instance.id)
         object_int = objects[0]
         notifications = ActionNotification.objects.filter(notification__model = object_int,
+                                                          notification__project = instance.project,
                                                           notification__active = True,
                                                           action = 2,
                                                           active = True,
