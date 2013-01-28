@@ -122,7 +122,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     fieldsets = (
         ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude', 'language')}),
         (None, {'fields' : ('project', 'session', 'created', 'submitted', 'tags')}),
-        ('Audio Data', {'fields' : ('audio_player', 'filename', 'volume', 'audiolength')})
+        ('Audio Data', {'fields' : ('audio_player', 'file', 'volume', 'audiolength')})
     )
 
     class Media:
