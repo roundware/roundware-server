@@ -226,9 +226,10 @@ class Event(models.Model):
 
 class Asset(models.Model):
     session = models.ForeignKey(Session, null=True, blank=True)
-    latitude = models.FloatField(null=True, blank=True, default="0.0")
-    longitude = models.FloatField(null=True, blank=True, default="0.0")
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     filename = models.CharField(max_length=256, null=True, blank=True)
+    file = models.FileField(upload_to='.', null=True, blank=True)
     volume = models.FloatField(null=True, blank=True)
 
     submitted = models.BooleanField(default=True)
@@ -305,6 +306,10 @@ class Asset(models.Model):
 
     get_votes.short_description = "Votes"
     get_votes.name = "Votes"
+
+    def save(self, *args, **kwargs):
+        self.filename = self.file.name
+        super(Asset, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude)
