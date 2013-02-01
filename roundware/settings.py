@@ -9,6 +9,10 @@ ADMINS = (
     ('round', 'your_email@example.com'),
 )
 AUDIO_FILE_URI = "http://roundware.org/audio/"
+AUDIO_FILE_DIR = "/var/www/rwaudio"
+
+DEFAULT_SESSION_ID = "-1"
+API_URL = "http://roundware.com/roundware/"
 MANAGERS = ADMINS
 
 #change this to reflect your environment
