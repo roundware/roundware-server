@@ -7,6 +7,7 @@ from django import forms
 from django.conf import settings
 
 from filterspec import TagCategoryFilterSpec, AudioLengthFilterSpec
+from roundware.rw.signals import add_asset_to_envelope, create_envelope
 
 
 class VoteInline(admin.TabularInline):
@@ -140,6 +141,12 @@ class AssetAdmin(ProjectProtectedModelAdmin):
                 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
                 'js/location_map.js',
             )
+
+    def save_model(self, request, obj, form, change):
+        create_envelope(instance=obj)
+        obj.save()
+        add_asset_to_envelope(instance=obj)
+
 
 
 class TagAdmin(admin.ModelAdmin):
