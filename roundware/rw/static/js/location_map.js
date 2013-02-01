@@ -1,7 +1,15 @@
 $(document).ready(function(){
 
-    var default_lng = "-71.057205";
-    var default_lat = "42.355709";
+    var default_lng = document.getElementById("id_longitude").value;
+    var default_lat = document.getElementById("id_latitude").value;
+    if ( default_lng == "" ) {
+        default_lng = "-71.057205";
+        document.getElementById("id_longitude").value = default_lng;
+    }
+    if ( default_lat == "" ) {
+        default_lat = "42.355709";
+        document.getElementById("id_latitude").value = default_lat;
+    }
     var mapOptions = {
         zoom: 10,
         mapTypeId: google.maps.MapTypeId.ROADMAP,

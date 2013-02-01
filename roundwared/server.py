@@ -359,33 +359,46 @@ def create_envelope(request):
 
 def add_asset_to_envelope(request):
 
+    #envelope_id
+    #asset_id
+    #client_time
+    asset_id = get_parameter_from_request(request, 'asset_id', None)
+    asset = None
+    if asset_id:
+        try:
+            asset = models.Asset.objects.get(pk=asset_id)
+        except models.Asset.DoesNotExist:
+            raise roundexception.RoundException("Invalid Asset ID Provided. No Asset exists with ID %s" % asset_id)
     envelope_id = get_parameter_from_request(request, 'envelope_id', True)
-    latitude = get_parameter_from_request(request, 'latitude', False)
-    longitude = get_parameter_from_request(request, 'longitude', False)
-    if latitude == None:
-        latitude = 0.0
-    if longitude == None:
-        longitude = 0.0
-
-    tagset = []
-    tags = get_parameter_from_request(request, 'tags', False)
-    if tags != None:
-        ids = tags.split(',')
-        tagset = models.Tag.objects.filter(id__in=ids)
 
     envelope = models.Envelope.objects.get(id=envelope_id)
     session = envelope.session
     project = session.project
 
-    submitted = get_parameter_from_request(request, 'submitted', False)
-    if submitted == None and is_listener_in_range_of_stream(request.GET, project):
-        submitted = session.project.auto_submit
-    elif submitted == None:
-        submitted = False
+    #get data to create asset
+    if not asset_id:
+        latitude = get_parameter_from_request(request, 'latitude', False)
+        longitude = get_parameter_from_request(request, 'longitude', False)
+        if latitude == None:
+            latitude = 0.0
+        if longitude == None:
+            longitude = 0.0
+
+        tagset = []
+        tags = get_parameter_from_request(request, 'tags', False)
+        if tags != None:
+            ids = tags.split(',')
+            tagset = models.Tag.objects.filter(id__in=ids)
+
+            submitted = get_parameter_from_request(request, 'submitted', False)
+            if submitted == None and is_listener_in_range_of_stream(request.GET, project):
+                submitted = session.project.auto_submit
+            elif submitted == None:
+                submitted = False
 
     db.log_event("start_upload", session.id, request.GET)
 
-    fileitem = request.FILES.get('file')
+    fileitem = request.FILES.get('file') if not asset_id else asset.file
     if fileitem.name:
         logging.debug("Processing " + fileitem.name)
         (filename_prefix, filename_extension) = \
@@ -396,21 +409,27 @@ def add_asset_to_envelope(request):
         fileout.close()
         newfilename = convertaudio.convert_uploaded_file(fn)
         if newfilename:
-            asset = models.Asset(latitude=latitude, longitude=longitude,
-                                  filename=newfilename, session=session, submitted=submitted, volume=1.0, language=session.language)
-            asset.project = session.project
-            asset.save()
-            for t in tagset:
-                asset.tags.add(t)
+            if not asset_id:
+                asset = models.Asset(latitude=latitude, longitude=longitude,
+                                      filename=newfilename, session=session, submitted=submitted, volume=1.0, language=session.language)
+                asset.save()
+                for t in tagset:
+                    asset.tags.add(t)
+            else:
+                #update asset with session
+                asset.session = session
+                asset.filename = newfilename
+                asset.volume = 1.0
+                asset.project = session.project
 
             discover_audiolength.discover_and_set_audiolength(asset, newfilename)
             asset.save()
             envelope.assets.add(asset)
             envelope.save()
         else:
-            raise RoundException("File not converted successfully: " + newfilename)
+            raise roundexception.RoundException("File not converted successfully: " + newfilename)
     else:
-        raise RoundException("No file in request")
+        raise roundexception.RoundException("No file in request")
     rounddbus.emit_stream_signal(0, "refresh_recordings", "")
     return {"success": True}
 

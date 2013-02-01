@@ -1,7 +1,20 @@
-from django.db import models
+import urllib, urllib2
+from django.core.files.storage import FileSystemStorage
+from django.db import models, transaction
 from roundware.settings import AUDIO_FILE_URI
-
+from django.db.models.signals import post_save, pre_save
+from django.conf import settings
+from django.dispatch import receiver
 import datetime
+
+try:
+    import simplejson as json
+except:
+    import json
+
+import logging
+
+logger = logging.getLogger(name=__file__)
 
 
 class BigIntegerField(models.IntegerField):
@@ -229,7 +242,9 @@ class Asset(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     filename = models.CharField(max_length=256, null=True, blank=True)
-    file = models.FileField(upload_to='.', null=True, blank=True)
+    file = models.FileField(storage=FileSystemStorage(location=getattr(settings, "AUDIO_FILE_DIR"),
+                                                      base_url=getattr(settings, "AUDIO_FILE_URI")),
+                            upload_to=".", null=True, blank=True)
     volume = models.FloatField(null=True, blank=True)
 
     submitted = models.BooleanField(default=True)
@@ -243,6 +258,10 @@ class Asset(models.Model):
     tags.tag_category_filter = True
 
     audiolength.audio_length_filter = True
+
+    def __init__(self, *args, **kwargs):
+        super(Asset, self).__init__(*args, **kwargs)
+        self.ENVELOPE_ID = 0
 
     def audio_player(self):
         return """<div data-filename="%s" class="audio-file"></div>""" % self.filename
@@ -292,7 +311,6 @@ class Asset(models.Model):
         votes = self.vote_set.all()
         votes_dict = {}
         for v in votes:
-            print v
             dict_num = votes_dict.get(v.type, 0)
             if v.value is None:
                 value = 0
@@ -307,13 +325,12 @@ class Asset(models.Model):
     get_votes.short_description = "Votes"
     get_votes.name = "Votes"
 
-    def save(self, *args, **kwargs):
-        self.filename = self.file.name
-        super(Asset, self).save(*args, **kwargs)
+    @transaction.commit_on_success
+    def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
+        super(Asset, self).save(force_insert, force_update, using, *args, **kwargs)
 
     def __unicode__(self):
-        return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude)
-
+            return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude)
 
 class Envelope(models.Model):
     session = models.ForeignKey(Session)
