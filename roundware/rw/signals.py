@@ -34,7 +34,6 @@ def add_asset_to_envelope(instance, **kwargs):
     post_data = [('operation', 'add_asset_to_envelope'),
                  ('envelope_id', instance.ENVELOPE_ID),
                  ('asset_id', instance.id),
-                 ('client_time', instance.audiolength),
                  ]
     #post to server
     result = urllib2.urlopen(API_URL, urllib.urlencode(post_data))
