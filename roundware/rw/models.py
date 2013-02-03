@@ -325,12 +325,12 @@ class Asset(models.Model):
     get_votes.short_description = "Votes"
     get_votes.name = "Votes"
 
-    @transaction.commit_on_success
-    def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
-        super(Asset, self).save(force_insert, force_update, using, *args, **kwargs)
+#    @transaction.commit_on_success
+#    def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
+#        super(Asset, self).save(force_insert, force_update, using, *args, **kwargs)
 
     def __unicode__(self):
-            return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude)
+        return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude)
 
 class Envelope(models.Model):
     session = models.ForeignKey(Session)
