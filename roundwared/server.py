@@ -398,7 +398,7 @@ def add_asset_to_envelope(request):
 
     db.log_event("start_upload", session.id, request.GET)
 
-    fileitem = request.FILES.get('file') if not asset_id else asset.file
+    fileitem = request.FILES.get('file') if not asset else asset.file
     if fileitem.name:
         logging.debug("Processing " + fileitem.name)
         (filename_prefix, filename_extension) = \
@@ -407,11 +407,19 @@ def add_asset_to_envelope(request):
         fileout = open(os.path.join(settings.config["upload_dir"], fn), 'wb')
         fileout.write(fileitem.file.read())
         fileout.close()
+        if asset:
+            asset.file.delete()
         newfilename = convertaudio.convert_uploaded_file(fn)
         if newfilename:
-            if not asset_id:
-                asset = models.Asset(latitude=latitude, longitude=longitude,
-                                      filename=newfilename, session=session, submitted=submitted, volume=1.0, language=session.language)
+            if not asset:
+                asset = models.Asset(latitude=latitude,
+                                     longitude=longitude,
+                                     filename=newfilename,
+                                     session=session,
+                                     submitted=submitted,
+                                     volume=1.0,
+                                     language=session.language,
+                                     project = session.project)
                 asset.save()
                 for t in tagset:
                     asset.tags.add(t)
@@ -419,8 +427,7 @@ def add_asset_to_envelope(request):
                 #update asset with session
                 asset.session = session
                 asset.filename = newfilename
-                asset.volume = 1.0
-                asset.project = session.project
+                asset.save()
 
             discover_audiolength.discover_and_set_audiolength(asset, newfilename)
             asset.save()

@@ -33,10 +33,10 @@ def main(request):
 
 def catch_errors(request):
     try:
-        config_file = "rw"
+        config_file = "sample-config"
         if request.GET.has_key('config'):
             config_file = request.GET['config']
-        settings.initialize_config(os.path.join('/etc/roundware/', config_file))
+        settings.initialize_config(os.path.join('/media/sf_roundware-server/files/', config_file))
 
         logging.basicConfig(
             filename=settings.config["log_file"],
