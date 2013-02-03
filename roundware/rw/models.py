@@ -245,10 +245,10 @@ class Asset(models.Model):
     file = models.FileField(storage=FileSystemStorage(location=getattr(settings, "AUDIO_FILE_DIR"),
                                                       base_url=getattr(settings, "AUDIO_FILE_URI")),
                             upload_to=".", null=True, blank=True)
-    volume = models.FloatField(null=True, blank=True)
+    volume = models.FloatField(null=True, blank=True, default=1.0)
 
     submitted = models.BooleanField(default=True)
-    project = models.ForeignKey(Project, null=True, blank=True)
+    project = models.ForeignKey(Project, null=True, blank=False)
 
     created = models.DateTimeField(default=datetime.datetime.now)
     audiolength = models.BigIntegerField(null=True, blank=True)
