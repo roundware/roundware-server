@@ -1,0 +1,7 @@
+# This file contains all the packages to be installed through pip along with the latest, tested, version number.
+# to run, simple execute 'pip install -r requirements.txt'
+Django==1.3.4
+South==0.7.6
+configobj==4.7.2
+django-chartit==0.1
+django-guardian==1.0.4

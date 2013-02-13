@@ -34,11 +34,12 @@ var jpCreator = function(id) { return '<div id="jquery_jplayer_' + id + '" class
  */
 function createPlayer(id, filename, dom, $) {
     var re = /.*\.(.{3,4})$/; // File extention = last 3-4 chars after last period.
-    var extension = filename.match(re)[1];
-    if (!extension) {
-        console.log("Invalid or missing file extention");
+    var extension = filename.match(re);
+    if (!extension ) {
+        console.log("Invalid or missing file extension.");
         return;
     }
+    extension = extension[1];
     var setMediaObject = {};
     setMediaObject[extension] = AUDIO_FILE_SERVER + filename;
 
