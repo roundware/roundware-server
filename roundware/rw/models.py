@@ -245,14 +245,14 @@ class Asset(models.Model):
     file = models.FileField(storage=FileSystemStorage(location=getattr(settings, "AUDIO_FILE_DIR"),
                                                       base_url=getattr(settings, "AUDIO_FILE_URI")),
                             upload_to=".", null=True, blank=True)
-    volume = models.FloatField(null=True, blank=True, default=1.0)
+    volume = models.FloatField(null=True, blank=True, default=1.0, help_text="The volume setting for this Asset.")
 
     submitted = models.BooleanField(default=True)
     project = models.ForeignKey(Project, null=True, blank=False)
 
     created = models.DateTimeField(default=datetime.datetime.now)
     audiolength = models.BigIntegerField(null=True, blank=True)
-    tags = models.ManyToManyField(Tag, null=True, blank=True)
+    tags = models.ManyToManyField(Tag, null=True, blank=True, help_text="Please tag the Asset accordingly.")
     language = models.ForeignKey(Language, null=True)
 
     tags.tag_category_filter = True
@@ -325,9 +325,9 @@ class Asset(models.Model):
     get_votes.short_description = "Votes"
     get_votes.name = "Votes"
 
-#    @transaction.commit_on_success
-#    def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
-#        super(Asset, self).save(force_insert, force_update, using, *args, **kwargs)
+    @transaction.commit_on_success
+    def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
+        super(Asset, self).save(force_insert, force_update, using, *args, **kwargs)
 
     def __unicode__(self):
         return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude)
