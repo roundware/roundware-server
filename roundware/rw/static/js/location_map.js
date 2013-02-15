@@ -6,12 +6,10 @@ $(document).ready(function(){
     if ( default_lng == "" ) {
         default_lng_missing = true;
         default_lng = "-71.057205";
-        document.getElementById("id_longitude").value = default_lng;
     }
     if ( default_lat == "" ) {
         default_lat_missing = true;
         default_lat = "42.355709";
-        document.getElementById("id_latitude").value = default_lat;
     }
     var mapOptions = {
         zoom: 10,
@@ -37,8 +35,8 @@ $(document).ready(function(){
         draggable: true,
         visible: false
     });
-    if (!default_lat_missing || !default_lng_missing ) {
-        visible = true
+    if (default_lat_missing == false || default_lng_missing == false) {
+        marker.setVisible(true);
     }
 
     google.maps.event.addListener(marker, 'dragend', function(mouseEvent) {
@@ -100,6 +98,10 @@ $(document).ready(function(){
                 }
                 var location = new google.maps.LatLng(ui.item.latitude, ui.item.longitude);
                 marker.setPosition(location);
+                if (!marker.getVisible()) {
+                    marker.setVisible(true);
+                }
+                map.setZoom(15);
                 savePosition(location);
             }
         });

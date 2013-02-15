@@ -239,8 +239,8 @@ class Event(models.Model):
 
 class Asset(models.Model):
     session = models.ForeignKey(Session, null=True, blank=True)
-    latitude = models.FloatField(null=True, blank=True)
-    longitude = models.FloatField(null=True, blank=True)
+    latitude = models.FloatField(null=True, blank=False)
+    longitude = models.FloatField(null=True, blank=False)
     filename = models.CharField(max_length=256, null=True, blank=True)
     file = models.FileField(storage=FileSystemStorage(location=getattr(settings, "AUDIO_FILE_DIR"),
                                                       base_url=getattr(settings, "AUDIO_FILE_URI")),
