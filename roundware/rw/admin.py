@@ -121,9 +121,9 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     save_on_top = True
     filter_horizontal = ('tags',)
     fieldsets = (
-        ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude', 'language')}),
-        (None, {'fields' : ('project', 'session', 'created', 'submitted', 'tags')}),
-        ('Audio Data', {'fields' : ('audio_player', 'file', 'volume', 'audiolength')})
+        ('Audio Data', {'fields' : ('audio_player', 'file', 'volume', 'audiolength')}),
+        (None, {'fields' : ('project', 'language', 'session', 'created', 'submitted', 'tags')}),
+        ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude')})
     )
 
     class Media:
@@ -140,6 +140,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
                 'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
                 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
                 'js/location_map.js',
+                'js/asset_admin.js',
             )
 
     def save_model(self, request, obj, form, change):

@@ -239,16 +239,16 @@ class Event(models.Model):
 
 class Asset(models.Model):
     session = models.ForeignKey(Session, null=True, blank=True)
-    latitude = models.FloatField(null=True, blank=True)
-    longitude = models.FloatField(null=True, blank=True)
+    latitude = models.FloatField(null=True, blank=False)
+    longitude = models.FloatField(null=True, blank=False)
     filename = models.CharField(max_length=256, null=True, blank=True)
     file = models.FileField(storage=FileSystemStorage(location=getattr(settings, "AUDIO_FILE_DIR"),
                                                       base_url=getattr(settings, "AUDIO_FILE_URI")),
-                            upload_to=".", null=True, blank=True)
-    volume = models.FloatField(null=True, blank=True)
+                            upload_to=".", null=True, blank=True, help_text="Upload audio file")
+    volume = models.FloatField(null=True, blank=True, default=1.0)
 
     submitted = models.BooleanField(default=True)
-    project = models.ForeignKey(Project, null=True, blank=True)
+    project = models.ForeignKey(Project, null=True, blank=False)
 
     created = models.DateTimeField(default=datetime.datetime.now)
     audiolength = models.BigIntegerField(null=True, blank=True)
@@ -269,8 +269,10 @@ class Asset(models.Model):
     audio_player.allow_tags = True
 
     def location_map(self):
-        html = """<input type="text" value="" id="searchbox" style=" width:800px;height:30px; font-size:15px;">
-        <div id="map" style="width:800px; height: 400px; margin-top: 10px;"></div>"""
+        html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
+        <div id="map_instructions">To change or select location, type an address above and select from the available options;
+        then move pin to exact location of asset.</div>
+        <div id="map" style="width:800px; height: 600px; margin-top: 10px;"></div>"""
         return html
     location_map.short_name = "location"
     location_map.allow_tags = True
@@ -330,7 +332,7 @@ class Asset(models.Model):
         super(Asset, self).save(force_insert, force_update, using, *args, **kwargs)
 
     def __unicode__(self):
-            return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude)
+        return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude)
 
 class Envelope(models.Model):
     session = models.ForeignKey(Session)

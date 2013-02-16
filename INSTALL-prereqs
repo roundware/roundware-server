@@ -2,6 +2,4 @@ sudo apt-get install python-mysqldb python-configobj mysql-server icecast2 ffmpe
 
 sudo a2enmod rewrite
 # django apps
-sudo pip install django-guardian
-sudo pip install django_chartit
-sudo pip install south
+sudo pip install -r requirements.txt

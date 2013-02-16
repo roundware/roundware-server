@@ -353,17 +353,17 @@ def create_envelope(request):
 #add_asset_to_envelope (POST method)
 #args (operation, envelope_id, file, latitude, longitude, [tagids])
 #example: http://localhost/roundware/?operation=add_asset_to_envelope
+# OR
+#add_asset_to_envelope (GET method)
+#args (operation, envelope_id, asset_id) #asset_id must point to an Asset that exists in the database
 #returns success bool
 #{"success": true}
-
-
 def add_asset_to_envelope(request):
 
-    #envelope_id
-    #asset_id
-    #client_time
-    asset_id = get_parameter_from_request(request, 'asset_id', None)
+    #get asset_id from the GET request
+    asset_id = get_parameter_from_request(request, 'asset_id', False)
     asset = None
+    #grab the Asset from the database, if an asset_id has been passed in
     if asset_id:
         try:
             asset = models.Asset.objects.get(pk=asset_id)
@@ -373,33 +373,12 @@ def add_asset_to_envelope(request):
 
     envelope = models.Envelope.objects.get(id=envelope_id)
     session = envelope.session
-    project = session.project
-
-    #get data to create asset
-    if not asset_id:
-        latitude = get_parameter_from_request(request, 'latitude', False)
-        longitude = get_parameter_from_request(request, 'longitude', False)
-        if latitude == None:
-            latitude = 0.0
-        if longitude == None:
-            longitude = 0.0
-
-        tagset = []
-        tags = get_parameter_from_request(request, 'tags', False)
-        if tags != None:
-            ids = tags.split(',')
-            tagset = models.Tag.objects.filter(id__in=ids)
-
-            submitted = get_parameter_from_request(request, 'submitted', False)
-            if submitted == None and is_listener_in_range_of_stream(request.GET, project):
-                submitted = session.project.auto_submit
-            elif submitted == None:
-                submitted = False
 
     db.log_event("start_upload", session.id, request.GET)
 
-    fileitem = request.FILES.get('file') if not asset_id else asset.file
+    fileitem = request.FILES.get('file') if not asset else asset.file
     if fileitem.name:
+        #copy the file to a unique name (current time and date)
         logging.debug("Processing " + fileitem.name)
         (filename_prefix, filename_extension) = \
             os.path.splitext(fileitem.name)
@@ -407,21 +386,53 @@ def add_asset_to_envelope(request):
         fileout = open(os.path.join(settings.config["upload_dir"], fn), 'wb')
         fileout.write(fileitem.file.read())
         fileout.close()
+        #delete the uploaded original after the copy has been made
+        if asset:
+            asset.file.delete()
+        #make sure everything is in wav form
         newfilename = convertaudio.convert_uploaded_file(fn)
         if newfilename:
-            if not asset_id:
-                asset = models.Asset(latitude=latitude, longitude=longitude,
-                                      filename=newfilename, session=session, submitted=submitted, volume=1.0, language=session.language)
+            #create the new asset if request comes in from a source other
+            #than the django admin interface
+            if not asset:
+                latitude = get_parameter_from_request(request, 'latitude', False)
+                longitude = get_parameter_from_request(request, 'longitude', False)
+                if latitude is None:
+                    latitude = 0.0
+                if longitude is None:
+                    longitude = 0.0
+
+                tagset = []
+                tags = get_parameter_from_request(request, 'tags', False)
+                if tags is not None:
+                    ids = tags.split(',')
+                    tagset = models.Tag.objects.filter(id__in=ids)
+
+                submitted = get_parameter_from_request(request, 'submitted', False)
+                if submitted is None:
+                    submitted = False
+                    if is_listener_in_range_of_stream(request.GET, session.project):
+                        submitted = session.project.auto_submit
+
+                asset = models.Asset(latitude=latitude,
+                                     longitude=longitude,
+                                     filename=newfilename,
+                                     session=session,
+                                     submitted=submitted,
+                                     volume=1.0,
+                                     language=session.language,
+                                     project = session.project)
                 asset.save()
                 for t in tagset:
                     asset.tags.add(t)
+            #if the request comes from the django admin interface
+            #update the Asset with the right information
             else:
                 #update asset with session
                 asset.session = session
                 asset.filename = newfilename
-                asset.volume = 1.0
-                asset.project = session.project
 
+            #get the audiolength of the file and update the Asset
             discover_audiolength.discover_and_set_audiolength(asset, newfilename)
             asset.save()
             envelope.assets.add(asset)

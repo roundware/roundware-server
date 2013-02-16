@@ -2,18 +2,19 @@ $(document).ready(function(){
 
     var default_lng = document.getElementById("id_longitude").value;
     var default_lat = document.getElementById("id_latitude").value;
+    var default_lng_missing, default_lat_missing = false;
     if ( default_lng == "" ) {
+        default_lng_missing = true;
         default_lng = "-71.057205";
-        document.getElementById("id_longitude").value = default_lng;
     }
     if ( default_lat == "" ) {
+        default_lat_missing = true;
         default_lat = "42.355709";
-        document.getElementById("id_latitude").value = default_lat;
     }
     var mapOptions = {
         zoom: 10,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
-        center: new google.maps.LatLng(default_lat,default_lng)
+        center: new google.maps.LatLng(default_lat, default_lng)
     };
 
     var map = new google.maps.Map(document.getElementById("map"),mapOptions);
@@ -31,14 +32,21 @@ $(document).ready(function(){
     var marker = new google.maps.Marker({
         position: new google.maps.LatLng(default_lat,default_lng),
         map: map,
-        draggable: true
+        draggable: true,
+        visible: false
     });
+    if (default_lat_missing == false || default_lng_missing == false) {
+        marker.setVisible(true);
+    }
 
     google.maps.event.addListener(marker, 'dragend', function(mouseEvent) {
         savePosition(mouseEvent.latLng);
     });
 
     google.maps.event.addListener(map, 'click', function(mouseEvent){
+        if (!marker.getVisible()) {
+            marker.setVisible(true);
+        }
         marker.setPosition(mouseEvent.latLng);
         savePosition(mouseEvent.latLng);
     });
@@ -90,6 +98,10 @@ $(document).ready(function(){
                 }
                 var location = new google.maps.LatLng(ui.item.latitude, ui.item.longitude);
                 marker.setPosition(location);
+                if (!marker.getVisible()) {
+                    marker.setVisible(true);
+                }
+                map.setZoom(15);
                 savePosition(location);
             }
         });
