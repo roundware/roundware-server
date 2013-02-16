@@ -244,15 +244,15 @@ class Asset(models.Model):
     filename = models.CharField(max_length=256, null=True, blank=True)
     file = models.FileField(storage=FileSystemStorage(location=getattr(settings, "AUDIO_FILE_DIR"),
                                                       base_url=getattr(settings, "AUDIO_FILE_URI")),
-                            upload_to=".", null=True, blank=True)
-    volume = models.FloatField(null=True, blank=True, default=1.0, help_text="The volume setting for this Asset.")
+                            upload_to=".", null=True, blank=True, help_text="Upload audio file")
+    volume = models.FloatField(null=True, blank=True, default=1.0)
 
     submitted = models.BooleanField(default=True)
     project = models.ForeignKey(Project, null=True, blank=False)
 
     created = models.DateTimeField(default=datetime.datetime.now)
     audiolength = models.BigIntegerField(null=True, blank=True)
-    tags = models.ManyToManyField(Tag, null=True, blank=True, help_text="Please tag the Asset accordingly.")
+    tags = models.ManyToManyField(Tag, null=True, blank=True)
     language = models.ForeignKey(Language, null=True)
 
     tags.tag_category_filter = True
@@ -269,8 +269,10 @@ class Asset(models.Model):
     audio_player.allow_tags = True
 
     def location_map(self):
-        html = """<input type="text" value="" id="searchbox" style=" width:800px;height:30px; font-size:15px;">
-        <div id="map" style="width:800px; height: 400px; margin-top: 10px;"></div>"""
+        html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
+        <div id="map_instructions">To change or select location, type an address above and select from the available options;
+        then move pin to exact location of asset.</div>
+        <div id="map" style="width:800px; height: 600px; margin-top: 10px;"></div>"""
         return html
     location_map.short_name = "location"
     location_map.allow_tags = True
