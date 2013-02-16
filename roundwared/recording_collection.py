@@ -136,7 +136,19 @@ class RecordingCollection:
         self.nearby_unplayed_recordings = new_nearby_unplayed_recordings
         self.nearby_played_recordings = new_nearby_played_recordings
         #logging.debug("before: " + str(self.nearby_unplayed_recordings))
-        random.shuffle(self.nearby_unplayed_recordings)
+        # random.shuffle(self.nearby_unplayed_recordings)
+        votes = []
+        for asset_id in self.nearby_unplayed_recordings:
+            vote = models.Vote.objects.get(asset=asset_id)
+            votes.append((vote, asset_id))
+        number_votes = len(votes)
+        top_three = sorted(votes, key=lambda x: x[0])[number_votes-3:]
+        random.shuffle(top_three)
+        unplayed = self.nearby_unplayed_recordings
+        for asset_id in top_three:
+            unplayed.pop(unplayed.index(asset_id))
+            unplayed.insert(0, asset_id)
+
         #logging.debug("after: " + str(self.nearby_unplayed_recordings))
 
     #True if the listener are recording are close enough to be heard.
