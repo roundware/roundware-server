@@ -376,11 +376,19 @@ class ListeningHistoryItem(models.Model):
             return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + " duration: " + str(self.duration)
 
 
+class VoteType(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __unicode__(self):
+        return str(self.id) + ": " + self.name
+
+
 class Vote(models.Model):
     value = models.IntegerField(null=True, blank=True)
     session = models.ForeignKey(Session)
     asset = models.ForeignKey(Asset)
     type = models.CharField(max_length=16)
+    type_fk = models.ForeignKey(VoteType, null=True)
 
     def __unicode__(self):
             return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)
