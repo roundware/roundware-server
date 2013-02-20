@@ -216,15 +216,19 @@ def get_tags_for_project(request):
 
 
 #get_available_assets
-#args (project_id, [latitude], [longitude], [radius], [tagids], [tagbool], [language], [...])
+#args (project_id, [latitude], [longitude], [radius], [tagids,], [tagbool], [language], [asset_id,], [envelope_id], [...])
 #can pass additional parameters matching name of fields on Asset
 #example: http://localhost/roundware/?operation=get_available_assets
 #returns
 #
 def get_available_assets(request):
     """Return JSON list of available assets based on filter criteria passed in
-    request.  Returns localized value on asset by asset basis unless a specific
-    language code is passed. Fall back to English if necessary."""
+    request.  If asset_id is passed, ignore other filters and return single
+    asset.  If multiple, comma-separated values for asset_id are passed, ignore
+    other filters and return all those assets.  If envelope_id is passed, ignore
+    other filters and return all assets in that envelope.  Returns localized
+    value for tag strings on asset by asset basis unless a specific language
+    code is passed. Fall back to English if necessary."""
     
 
     def _get_best_localized_string(asset, tag, best_lang_id):
@@ -253,8 +257,11 @@ def get_available_assets(request):
         raise roundexception.RoundException("Roundware configuration file is missing 'external_host_name_without_port' key. ")
 
     known_params = ['project_id', 'latitude', 'longitude',
-                    'tag_ids', 'tagbool', 'radius', 'language', ]
+                    'tag_ids', 'tagbool', 'radius', 'language', 'asset_id',
+                    'envelope_id' ]
     project_id = get_parameter_from_request(request, 'project_id', None)
+    asset_id = get_parameter_from_request(request, 'asset_id', None)
+    envelope_id = get_parameter_from_request(request, 'envelope_id', None)
     latitude = get_parameter_from_request(request, 'latitude', None)
     longitude = get_parameter_from_request(request, 'longitude', None)
     radius = get_parameter_from_request(request, 'radius', None)
@@ -287,45 +294,58 @@ def get_available_assets(request):
                 "Specified language code does not exist."
             )
 
-    if project_id:
-        project = models.Project.objects.get(id=project_id)
-        kw['project__exact'] = project
+    if project_id or asset_id or envelope_id:
+        
+        # by asset
+        if asset_id:
+            # ignore all other filter criteria
+            assets = models.Asset.objects.filter(id__in=asset_id.split(','))
+        
+        # by envelope    
+        elif envelope_id:
+            envelope = models.Envelope.objects.get(id=envelope_id)
+            assets = envelope.assets.all()    
+        
+        # by project
+        elif project_id:
+            project = models.Project.objects.get(id=project_id)
+            kw['project__exact'] = project
+            
+            assets = models.Asset.objects.filter(**kw)
+            if tag_ids:
+                if tagbool and str(tagbool).lower() == 'or':
+                    assets = assets.filter(tags__in=tag_ids.split(',')).distinct()
+                else:
+                    # 'and'.  Asset must have all tags
+                    for tag_id in tag_ids.split(','):
+                        assets = assets.filter(tags__id=tag_id)
 
-        assets = models.Asset.objects.filter(**kw)
-        if tag_ids:
-            if tagbool and str(tagbool).lower() == 'or':
-                assets = assets.filter(tags__in=tag_ids.split(',')).distinct()
-            else:
-                # 'and'.  Asset must have all tags
-                for tag_id in tag_ids.split(','):
-                    assets = assets.filter(tags__id=tag_id)
+            # filter by extra params. These are chained with an AND
+            assets = assets.filter(**extras)
 
-        # filter by extra params. These are chained with an AND
-        assets = assets.filter(**extras)
-
-        if latitude and longitude:  # need both
-            # return only assets within specified or default radius
-            # by project
-            latitude = float(latitude)
-            longitude = float(longitude)
-            if not radius:
-                radius = project.recording_radius
+            if latitude and longitude:  # need both
+                # return only assets within specified or default radius
+                # by project
+                latitude = float(latitude)
+                longitude = float(longitude)
                 if not radius:
-                    raise roundexception.RoundException("Project does not "
-                        "specify a radius and no radius parameter passed to "
-                        "operation.")
-            radius = float(radius)
-            for asset in assets:
-                distance = gpsmixer.distance_in_meters(
-                    latitude, longitude,
-                    asset.latitude, asset.longitude)
-                if distance > radius:
-                    assets = assets.exclude(id=asset.id)
+                    radius = project.recording_radius
+                    if not radius:
+                        raise roundexception.RoundException("Project does not "
+                            "specify a radius and no radius parameter passed to "
+                            "operation.")
+                radius = float(radius)
+                for asset in assets:
+                    distance = gpsmixer.distance_in_meters(
+                        latitude, longitude,
+                        asset.latitude, asset.longitude)
+                    if distance > radius:
+                        assets = assets.exclude(id=asset.id)
 
         assets_list = []
         for asset in assets:
             if not qry_retlng:
-                retlng = asset.language
+                retlng = asset.language # can be None
             else:
                 retlng = qry_retlng
             assets_list.append(
@@ -346,7 +366,8 @@ def get_available_assets(request):
         return assets_list
 
     else:
-        raise roundexception.RoundException("This operation requires that you pass a project_id")
+        raise roundexception.RoundException("This operation requires that you "
+            "pass a project_id, asset_id, or envelope_id")
             
 
 def log_event(request):
