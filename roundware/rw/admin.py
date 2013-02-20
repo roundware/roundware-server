@@ -144,10 +144,13 @@ class AssetAdmin(ProjectProtectedModelAdmin):
             )
 
     def save_model(self, request, obj, form, change):
-        create_envelope(instance=obj)
+        #only call create_envelope if the model is being added.
+        if not change:
+            create_envelope(instance=obj)
         obj.save()
-        add_asset_to_envelope(instance=obj)
-
+        #only call add_asset_to_envelope when the model is being added.
+        if not change:
+            add_asset_to_envelope(instance=obj)
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -174,8 +177,9 @@ class LocalizedStringAdmin(admin.ModelAdmin):
 
 
 class VoteAdmin(ProjectProtectedThroughAssetModelAdmin):
-    list_display = ('id', 'session', 'asset', 'value')
-    ordering = ['id']
+    list_display = ('id', 'session', 'asset', 'type', 'type_fk', 'value')
+    fields = ('asset', 'type', 'type_fk', 'session', 'value')
+    ordering = ['-id']
 
 
 class RepeatModeAdmin(admin.ModelAdmin):
@@ -226,6 +230,11 @@ class TagCategoryAdmin(admin.ModelAdmin):
 
 class SelectionMethodAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'data')
+    ordering = ['id']
+
+
+class VoteTypeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
     ordering = ['id']
 
 
@@ -307,3 +316,4 @@ admin.site.register(Envelope, EnvelopeAdmin)
 admin.site.register(ListeningHistoryItem, ListeningHistoryItemAdmin)
 admin.site.register(Vote, VoteAdmin)
 admin.site.register(RepeatMode, RepeatModeAdmin)
+admin.site.register(VoteType, VoteTypeAdmin)
