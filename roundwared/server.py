@@ -216,14 +216,35 @@ def get_tags_for_project(request):
 
 
 #get_available_assets
-#args (project_id, [latitude], [longitude], [radius], [tagids], [tagbool], [...])
+#args (project_id, [latitude], [longitude], [radius], [tagids], [tagbool], [language], [...])
 #can pass additional parameters matching name of fields on Asset
 #example: http://localhost/roundware/?operation=get_available_assets
 #returns
 #
 def get_available_assets(request):
     """Return JSON list of available assets based on filter criteria passed in
-    request"""
+    request.  Returns localized value on asset by asset basis unless a specific
+    language code is passed. Fall back to English if necessary."""
+    
+
+    def _get_best_localized_string(asset, tag, best_lang_id):
+        """ Return localized string with specified language code.
+            If that's not available, look for a language field on the model and
+            use that.  If that's not available, fall back to English. 
+        """
+        try:
+            localization = tag.loc_msg.get(language=best_lang_id)
+        except models.LocalizedString.DoesNotExist:
+            # try object's specified language
+            asset_lang =  asset.language
+            if asset_lang and retlng != asset_lang:
+                localization = tag.loc_msg.get(language=asset_lang)
+            else:
+                # fall back to English
+                eng_id = models.Language.objects.get(language_code='en')
+                localization = tag.loc_msg.get(language=eng_id)
+        return localization.localized_string    
+
     form = request.GET
     kw = {}
     try:
@@ -232,13 +253,14 @@ def get_available_assets(request):
         raise roundexception.RoundException("Roundware configuration file is missing 'external_host_name_without_port' key. ")
 
     known_params = ['project_id', 'latitude', 'longitude',
-                    'tag_ids', 'tagbool']
+                    'tag_ids', 'tagbool', 'radius', 'language', ]
     project_id = get_parameter_from_request(request, 'project_id', None)
     latitude = get_parameter_from_request(request, 'latitude', None)
     longitude = get_parameter_from_request(request, 'longitude', None)
     radius = get_parameter_from_request(request, 'radius', None)
     tag_ids = get_parameter_from_request(request, 'tagids', None)
     tagbool = get_parameter_from_request(request, 'tagbool', None)
+    language = get_parameter_from_request(request, 'language', None)
     if (latitude and not longitude) or (longitude and not latitude):
         raise roundexception.RoundException(
             "This operation requires that you pass both latitude and "
@@ -254,11 +276,16 @@ def get_available_assets(request):
     for k, v in extraparams:
         extras[str(k)] = str(v)
 
-    # set language
-    if 'language' in extraparams:
-        retlng = models.Language.objects.get(pk=extraparams['language'])
-    else:
-        retlng = 'en'
+    # if a language (code) is specified, use that
+    # otherwise, return localized value specific to Asset    
+    qry_retlng = None
+    if language:
+        try:
+            qry_retlng = models.Language.objects.get(language_code=language)
+        except models.Language.DoesNotExist:
+            raise roundexception.RoundException(
+                "Specified language code does not exist."
+            )
 
     if project_id:
         project = models.Project.objects.get(id=project_id)
@@ -297,6 +324,10 @@ def get_available_assets(request):
 
         assets_list = []
         for asset in assets:
+            if not qry_retlng:
+                retlng = asset.language
+            else:
+                retlng = qry_retlng
             assets_list.append(
                 dict(asset_id=asset.id,
                      asset_url='%s%s' % (
@@ -308,15 +339,15 @@ def get_available_assets(request):
                      tags=[dict(
                          tag_category_name=tag.tag_category.name,
                          tag_id=tag.id,
-                         localized_value=tag.loc_msg.get(
-                             language__language_code=retlng).localized_string
+                         localized_value=_get_best_localized_string(
+                             asset, tag, retlng)
                      ) for tag in asset.tags.all()]),
             )
         return assets_list
 
     else:
         raise roundexception.RoundException("This operation requires that you pass a project_id")
-
+            
 
 def log_event(request):
 
