@@ -216,7 +216,7 @@ def get_tags_for_project(request):
 
 
 #get_available_assets
-#args (project_id, [latitude], [longitude], [radius], [tagids,], [tagbool], [language], [asset_id,], [envelope_id], [...])
+#args (project_id, [latitude], [longitude], [radius], [tagids,], [tagbool], [language], [asset_id,...], [envelope_id,...], [...])
 #can pass additional parameters matching name of fields on Asset
 #example: http://localhost/roundware/?operation=get_available_assets
 #returns
@@ -226,7 +226,9 @@ def get_available_assets(request):
     request.  If asset_id is passed, ignore other filters and return single
     asset.  If multiple, comma-separated values for asset_id are passed, ignore
     other filters and return all those assets.  If envelope_id is passed, ignore
-    other filters and return all assets in that envelope.  Returns localized
+    other filters and return all assets in that envelope.  If multiple, 
+    comma-separated values for envelope_id are passed, ignore
+    other filters and return all those assets.  Returns localized
     value for tag strings on asset by asset basis unless a specific language
     code is passed. Fall back to English if necessary."""
     
@@ -247,7 +249,7 @@ def get_available_assets(request):
                 # fall back to English
                 eng_id = models.Language.objects.get(language_code='en')
                 localization = tag.loc_msg.get(language=eng_id)
-        return localization.localized_string    
+        return localization.localized_string
 
     form = request.GET
     kw = {}
@@ -303,8 +305,13 @@ def get_available_assets(request):
         
         # by envelope    
         elif envelope_id:
-            envelope = models.Envelope.objects.get(id=envelope_id)
-            assets = envelope.assets.all()    
+            assets = []
+            envelopes = models.Envelope.objects.filter(id__in=envelope_id.split(','))
+            for e in envelopes:
+                e_assets = e.assets.all()
+                for a in e_assets:
+                    if a not in assets:
+                        assets.append(a)
         
         # by project
         elif project_id:
@@ -356,6 +363,7 @@ def get_available_assets(request):
                      longitude=asset.longitude,
                      audio_length=asset.audiolength,
                      submitted=asset.submitted,
+                     language=asset.language.language_code,
                      tags=[dict(
                          tag_category_name=tag.tag_category.name,
                          tag_id=tag.id,
