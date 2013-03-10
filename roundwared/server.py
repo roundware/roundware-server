@@ -608,20 +608,19 @@ def stream_exists(sessionid, audio_format):
 
 
 def is_listener_in_range_of_stream(form, proj):
-    if not (form.has_key('latitude') and form.has_key('longitude')):
+    if not ('latitude' in form and 'longitude' in form) or not (form['latitude'] and form['longitude']):
         return True
     speakers = models.Speaker.objects.filter(project=proj, activeyn=True)
 
     for speaker in speakers:
         #only do this if latitude and longitude are included, return False otherwise
-        if form['latitude'] and form['longitude']:
-            distance = gpsmixer.distance_in_meters(
-                    float(form['latitude']),
-                    float(form['longitude']),
-                    speaker.latitude,
-                    speaker.longitude)
-            if distance < 3 * speaker.maxdistance:
-                return True
+        distance = gpsmixer.distance_in_meters(
+            float(form['latitude']),
+            float(form['longitude']),
+            speaker.latitude,
+            speaker.longitude)
+        if distance < 3 * speaker.maxdistance:
+            return True
     return False
 
 #END 2.0 Helper methods
