@@ -144,9 +144,14 @@ class AssetAdmin(ProjectProtectedModelAdmin):
             )
 
     def save_model(self, request, obj, form, change):
-        create_envelope(instance=obj)
+        #only call create_envelope if the model is being added.
+        if not change:
+            create_envelope(instance=obj)
         obj.save()
-        add_asset_to_envelope(instance=obj)
+
+        #only call add_asset_to_envelope when the model is being added.
+        if not change:
+            add_asset_to_envelope(instance=obj)
 
 
 
