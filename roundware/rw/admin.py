@@ -121,9 +121,9 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     save_on_top = True
     filter_horizontal = ('tags',)
     fieldsets = (
-        ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude', 'language')}),
-        (None, {'fields' : ('project', 'session', 'created', 'submitted', 'tags')}),
-        ('Audio Data', {'fields' : ('audio_player', 'file', 'volume', 'audiolength')})
+        ('Audio Data', {'fields' : ('audio_player', 'file', 'volume', 'audiolength')}),
+        (None, {'fields' : ('project', 'language', 'session', 'created', 'submitted', 'tags')}),
+        ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude')})
     )
 
     class Media:

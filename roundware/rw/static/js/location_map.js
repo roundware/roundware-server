@@ -35,7 +35,6 @@ $(document).ready(function(){
         draggable: true,
         visible: false
     });
-
     if (default_lat_missing == false || default_lng_missing == false) {
         marker.setVisible(true);
     }
