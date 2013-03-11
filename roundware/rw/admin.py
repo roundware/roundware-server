@@ -282,10 +282,30 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
 
 
 class SpeakerAdmin(ProjectProtectedModelAdmin):
+    readonly_fields = ('location_map',)
     list_display = ('id', 'activeyn', 'code', 'project', 'latitude', 'longitude', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume', 'uri')
     list_filter = ('project', 'activeyn')
     list_editable = ('activeyn', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume',)
     ordering = ['id']
+
+    fieldsets = (
+        (None, {'fields' : ('activeyn', 'code', 'project', 'maxvolume','minvolume', 'uri')}),
+        ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude', 'maxdistance', 'mindistance')})
+    )
+
+    class Media:
+        css = {
+            "all": (
+                "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css",
+            )
+        }
+        js = (
+            'http://maps.google.com/maps/api/js?sensor=false',
+            'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
+            'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
+            'js/location_map.js',
+        )
+
 
 
 class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):
