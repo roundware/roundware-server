@@ -8,11 +8,11 @@ from roundware.rw import models
 from roundwared import db
 
 
-class RecordingCollection:
+class RecordingCollection(object):
     ######################################################################
     # Public
     ######################################################################
-    def __init__(self, stream, request, radius):
+    def __init__(self, stream, request, radius, ordering='random'):
         self.radius = radius
         self.stream = stream
         self.request = request
@@ -24,6 +24,7 @@ class RecordingCollection:
         self.nearby_unplayed_recordings = []
         self.lock = threading.Lock()
         self.update_request(self.request)
+        self.ordering = ordering
 
     # Updates the request stored in the collection.
     def update_request(self, request):
@@ -132,27 +133,36 @@ class RecordingCollection:
             else:
                 new_far_recordings.append(r)
 
+        if self.ordering is 'random':
+            random.shuffle(new_nearby_unplayed_recordings)
+        elif self.ordering is 'by_like':
+            new_nearby_unplayed_recordings = \
+                self.order_assets_by_like(new_nearby_unplayed_recordings)
+        elif self.ordering is 'by_weight':
+            new_nearby_unplayed_recordings = \
+                self.order_assets_by_weight(new_nearby_unplayed_recordings)
+
         self.far_recordings = new_far_recordings
         self.nearby_unplayed_recordings = new_nearby_unplayed_recordings
         self.nearby_played_recordings = new_nearby_played_recordings
-        #logging.debug("before: " + str(self.nearby_unplayed_recordings))
-        # random.shuffle(self.nearby_unplayed_recordings)
-        random.shuffle(self.nearby_unplayed_recordings)
-        votes = []
-        for asset in self.nearby_unplayed_recordings:
-            vote = models.Vote.objects.filter(asset=asset).count()
-            # logging.debug("VOTE = " + str(vote))
-	    votes.append((vote, asset))
-        number_votes = len(votes)
-        top_three = sorted(votes, key=lambda x: x[0])[number_votes-3:]
-        random.shuffle(top_three)
-        unplayed = self.nearby_unplayed_recordings
-        for vote, asset in top_three:
-            unplayed.pop(unplayed.index(asset))
-            unplayed.insert(0, asset)
-            logging.debug("VOTE = " + str(vote))
 
-        #logging.debug("after: " + str(self.nearby_unplayed_recordings))
+    def order_assets_by_like(self, assets):
+        unplayed = []
+        for asset in assets:
+            count = models.Vote.filter(asset=asset, type='like').count()
+            unplayed.append((count, asset))
+        sorted(unplayed, key=lambda x: x[0])
+        unplayed.reverse()
+        return [x[1] for x in unplayed]
+
+    def order_assets_by_weight(self, assets):
+        unplayed = []
+        for asset in assets:
+            weight = asset.weight
+            unplayed.append((weight, asset))
+        sorted(unplayed, key=lambda x: x[0])
+        unplayed.reverse()
+        return [x[1] for x in unplayed]
 
     #True if the listener and recording are close enough to be heard.
     def is_nearby(self, listener, recording):

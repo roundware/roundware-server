@@ -44,8 +44,10 @@ class RoundStream:
                 settings.config["icecast_username"],
                 settings.config["icecast_password"])
         self.heartbeat()
+        project = models.Session.objects.get(id=sessionid)
         self.recordingCollection = \
-            recording_collection.RecordingCollection(self, request, self.radius)
+            recording_collection.RecordingCollection(
+                    self, request, self.radius, project.ordering)
 
     def start(self):
         logging.info("Serving stream" + str(self.sessionid))
