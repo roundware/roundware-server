@@ -154,7 +154,8 @@ class RecordingCollection(object):
             unplayed.append((count, asset))
         sorted(unplayed, key=lambda x: x[0])
         unplayed.reverse()
-        logging.info('Ordered by like: ' + str([asset.filename for asset in asset]))
+        logging.info('Ordered by like: ' + \
+                str([(u[0], u[1].filename) for u in unplayed]))
         return [x[1] for x in unplayed]
 
     def order_assets_by_weight(self, assets):
@@ -165,7 +166,8 @@ class RecordingCollection(object):
             unplayed.append((weight, asset))
         sorted(unplayed, key=lambda x: x[0])
         unplayed.reverse()
-        logging.info('Ordered by weight: ' + str([asset.filename for asset in asset]))
+        logging.info('Ordered by weighting: ' + \
+                str([(u[0], u[1].filename) for u in unplayed]))
         return [x[1] for x in unplayed]
 
     #True if the listener and recording are close enough to be heard.
