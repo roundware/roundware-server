@@ -147,21 +147,25 @@ class RecordingCollection(object):
         self.nearby_played_recordings = new_nearby_played_recordings
 
     def order_assets_by_like(self, assets):
+        logging.info('Unordered: ' + str([asset.filename for asset in asset]))
         unplayed = []
         for asset in assets:
             count = models.Vote.filter(asset=asset, type='like').count()
             unplayed.append((count, asset))
         sorted(unplayed, key=lambda x: x[0])
         unplayed.reverse()
+        logging.info('Ordered by like: ' + str([asset.filename for asset in asset]))
         return [x[1] for x in unplayed]
 
     def order_assets_by_weight(self, assets):
         unplayed = []
+        logging.info('Unordered: ' + str([asset.filename for asset in asset]))
         for asset in assets:
             weight = asset.weight
             unplayed.append((weight, asset))
         sorted(unplayed, key=lambda x: x[0])
         unplayed.reverse()
+        logging.info('Ordered by weight: ' + str([asset.filename for asset in asset]))
         return [x[1] for x in unplayed]
 
     #True if the listener and recording are close enough to be heard.
