@@ -147,11 +147,12 @@ class RecordingCollection(object):
         self.nearby_played_recordings = new_nearby_played_recordings
 
     def order_assets_by_like(self, assets):
-        logging.info('Unordered: ' + str([asset.filename for asset in asset]))
         unplayed = []
         for asset in assets:
             count = models.Vote.filter(asset=asset, type='like').count()
             unplayed.append((count, asset))
+        logging.info('Unordered: ' + \
+                str([(u[0], u[1].filename) for u in unplayed]))
         sorted(unplayed, key=lambda x: x[0])
         unplayed.reverse()
         logging.info('Ordered by like: ' + \
@@ -160,10 +161,11 @@ class RecordingCollection(object):
 
     def order_assets_by_weight(self, assets):
         unplayed = []
-        logging.info('Unordered: ' + str([asset.filename for asset in asset]))
         for asset in assets:
             weight = asset.weight
             unplayed.append((weight, asset))
+        logging.info('Unordered: ' + \
+                str([(u[0], u[1].filename) for u in unplayed]))
         sorted(unplayed, key=lambda x: x[0])
         unplayed.reverse()
         logging.info('Ordered by weighting: ' + \
