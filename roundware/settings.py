@@ -8,12 +8,27 @@ TEMPLATE_DEBUG = True
 ADMINS = (
     ('round', 'your_email@example.com'),
 )
-AUDIO_FILE_URI = "http://roundware.org/audio/"
-AUDIO_FILE_DIR = "/var/www/rwaudio"
 
+######## ROUNDWARE SPECIFIC SETTINGS ###########
+# external url where audio files can be accessed
+AUDIO_FILE_URI = "http://roundware.org/audio/"
+# internal path name to audio file directory
+AUDIO_FILE_DIR = "/var/www/rwaudio"
+# session_id assigned to files that are uploaded through the admin
+# MUST correspond to session_id that exists in session table
 DEFAULT_SESSION_ID = "-1"
 API_URL = "http://roundware.com/roundware/"
 MANAGERS = ADMINS
+# change this to the proper id for AnonymousUser in database for Guardian
+ANONYMOUS_USER_ID = 0
+# settings for notifications module
+# this is the email account from which notifications will be sent
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'email@gmail.com'
+EMAIL_HOST_PASSWORD = 'password'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+######## END ROUNDWARE SPECIFIC SETTINGS #########
 
 #change this to reflect your environment
 #JSS: this will always set PROJECT_PATH to the directory in which settings.py is contained
@@ -164,17 +179,6 @@ LOGGING = {
         },
     }
 }
-
-# change this to the proper id for AnonymousUser in database for Guardian
-ANONYMOUS_USER_ID = 0
-
-# settings for notifications module
-# this is the email account from which notificaitons will be sent
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'email@gmail.com'
-EMAIL_HOST_PASSWORD = 'password'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
 
 # Load the local settings file
 try:
