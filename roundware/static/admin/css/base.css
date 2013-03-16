@@ -715,8 +715,7 @@ table#change-history tbody th {
 /* HEADER */
 
 #header {
-    /*background: #4580DA;*/
-    background: #cccccc;
+    background: #417690;
     color: #ffc;
     overflow: hidden;
 }
@@ -731,10 +730,10 @@ table#change-history tbody th {
 
 #branding h1 {
     padding: 0 10px;
-    font-size: 24px;
-    margin: 20px 0;
-    font-weight: bold;
-    color: #000;
+    font-size: 18px;
+    margin: 8px 0;
+    font-weight: normal;
+    color: #f4f379;
 }
 
 #branding h2 {
