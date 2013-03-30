@@ -177,8 +177,8 @@ class LocalizedStringAdmin(admin.ModelAdmin):
 
 
 class VoteAdmin(ProjectProtectedThroughAssetModelAdmin):
-    list_display = ('id', 'session', 'asset', 'type', 'type_fk', 'value')
-    fields = ('asset', 'type', 'type_fk', 'session', 'value')
+    list_display = ('id', 'session', 'asset', 'type', 'value')
+    fields = ('asset', 'type', 'session', 'value')
     ordering = ['-id']
 
 
@@ -233,9 +233,9 @@ class SelectionMethodAdmin(admin.ModelAdmin):
     ordering = ['id']
 
 
-class VoteTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
-    ordering = ['id']
+#class VoteTypeAdmin(admin.ModelAdmin):
+#    list_display = ('id', 'name')
+#    ordering = ['id']
 
 
 #MasterUIs describe screens containing choices limited to one mode (Speak, Listen),
@@ -316,4 +316,4 @@ admin.site.register(Envelope, EnvelopeAdmin)
 admin.site.register(ListeningHistoryItem, ListeningHistoryItemAdmin)
 admin.site.register(Vote, VoteAdmin)
 admin.site.register(RepeatMode, RepeatModeAdmin)
-admin.site.register(VoteType, VoteTypeAdmin)
+#admin.site.register(VoteType, VoteTypeAdmin)
