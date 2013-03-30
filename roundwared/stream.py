@@ -29,6 +29,7 @@ class RoundStream:
         session = models.Session.objects.get(id=sessionid)
         logging.debug("Roundstream init: got session, getting project radius")
         self.radius = session.project.recording_radius
+        self.ordering = session.project.ordering
         logging.debug("Roundstream init: got session, got project radius: " + str(self.radius))
         if self.radius == None:
             self.radius = settings.config["recording_radius"]
@@ -47,7 +48,7 @@ class RoundStream:
         project = models.Session.objects.get(id=sessionid)
         self.recordingCollection = \
             recording_collection.RecordingCollection(
-                    self, request, self.radius, project.ordering)
+                    self, request, self.radius, str(self.ordering))
 
     def start(self):
         logging.info("Serving stream" + str(self.sessionid))

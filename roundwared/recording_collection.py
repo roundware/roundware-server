@@ -8,7 +8,7 @@ from roundware.rw import models
 from roundwared import db
 
 
-class RecordingCollection(object):
+class RecordingCollection:
     ######################################################################
     # Public
     ######################################################################
@@ -22,9 +22,9 @@ class RecordingCollection(object):
         self.far_recordings = []
         self.nearby_played_recordings = []
         self.nearby_unplayed_recordings = []
+        self.ordering = ordering
         self.lock = threading.Lock()
         self.update_request(self.request)
-        self.ordering = ordering
 
     # Updates the request stored in the collection.
     def update_request(self, request):
@@ -133,12 +133,13 @@ class RecordingCollection(object):
             else:
                 new_far_recordings.append(r)
 
-        if self.ordering is 'random':
+        logging.debug('Ordering is: ' + self.ordering)
+        if self.ordering == 'random':
             random.shuffle(new_nearby_unplayed_recordings)
-        elif self.ordering is 'by_like':
+        elif self.ordering == 'by_like':
             new_nearby_unplayed_recordings = \
                 self.order_assets_by_like(new_nearby_unplayed_recordings)
-        elif self.ordering is 'by_weight':
+        elif self.ordering == 'by_weight':
             new_nearby_unplayed_recordings = \
                 self.order_assets_by_weight(new_nearby_unplayed_recordings)
 
@@ -164,11 +165,11 @@ class RecordingCollection(object):
         for asset in assets:
             weight = asset.weight
             unplayed.append((weight, asset))
-        logging.info('Unordered: ' + \
+        logging.debug('Unordered: ' + \
                 str([(u[0], u[1].filename) for u in unplayed]))
         sorted(unplayed, key=lambda x: x[0])
         unplayed.reverse()
-        logging.info('Ordered by weighting: ' + \
+        logging.debug('Ordered by weighting: ' + \
                 str([(u[0], u[1].filename) for u in unplayed]))
         return [x[1] for x in unplayed]
 
