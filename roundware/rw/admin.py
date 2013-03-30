@@ -122,7 +122,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     filter_horizontal = ('tags',)
     fieldsets = (
         ('Audio Data', {'fields' : ('audio_player', 'file', 'volume', 'audiolength')}),
-        (None, {'fields' : ('project', 'language', 'session', 'created', 'submitted', 'tags')}),
+        (None, {'fields' : ('project', 'language', 'session', 'created', 'submitted', 'weight', 'tags')}),
         ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude')})
     )
 
@@ -200,7 +200,7 @@ class ProjectAdmin(GuardedModelAdmin):
             'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',
                        'reset_tag_defaults_on_startup', 'max_recording_length', 'recording_radius',
                        'audio_stream_bitrate', 'sharing_url',
-                       'out_of_range_url', 'files_url', 'files_version', 'repeat_mode')
+                       'out_of_range_url', 'files_url', 'files_version', 'repeat_mode', 'ordering')
         }),
         ('Localized Strings', {
             'fields': ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',)
@@ -231,11 +231,6 @@ class TagCategoryAdmin(admin.ModelAdmin):
 class SelectionMethodAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'data')
     ordering = ['id']
-
-
-#class VoteTypeAdmin(admin.ModelAdmin):
-#    list_display = ('id', 'name')
-#    ordering = ['id']
 
 
 #MasterUIs describe screens containing choices limited to one mode (Speak, Listen),
@@ -316,4 +311,3 @@ admin.site.register(Envelope, EnvelopeAdmin)
 admin.site.register(ListeningHistoryItem, ListeningHistoryItemAdmin)
 admin.site.register(Vote, VoteAdmin)
 admin.site.register(RepeatMode, RepeatModeAdmin)
-#admin.site.register(VoteType, VoteTypeAdmin)
