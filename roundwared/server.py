@@ -155,6 +155,7 @@ def get_config(request):
     sharing_message = "none set"
     out_of_range_message = "none set"
     legal_agreement = "none set"
+    demo_stream_message = "none set"
     try:
         sharing_message = project.sharing_message_loc.filter(language=l)[0].localized_string
     except:
@@ -167,6 +168,11 @@ def get_config(request):
         legal_agreement = project.legal_agreement_loc.filter(language=l)[0].localized_string
     except:
         pass
+    try:
+        demo_stream_message = project.demo_stream_message_loc.filter(language=l)[0].localized_string
+    except:
+        pass
+
     response = [
             {"device":{"device_id": device_id}},
             {"session":{"session_id": session_id}},
@@ -190,6 +196,9 @@ def get_config(request):
                     "files_url":project.files_url,
                     "files_version":project.files_version,
                     "audio_stream_bitrate":project.audio_stream_bitrate,
+                    "demo_stream_enabled":project.demo_stream_enabled,
+                    "demo_stream_url":project.demo_stream_url,
+                    "demo_stream_message":demo_stream_message,
                     }},
 
             {"server":{

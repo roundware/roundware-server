@@ -191,19 +191,21 @@ class ProjectAdmin(GuardedModelAdmin):
     list_display = ('id', 'name', 'latitude', 'longitude', 'max_recording_length', 'recording_radius')
     ordering = ['id']
     save_on_top = True
-    filter_vertical = ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc')
+    filter_vertical = ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',
+                       'demo_stream_message_loc')
     fieldsets = (
         ('Basic Info', {
             'fields': ('name', 'latitude', 'longitude', 'pub_date', 'auto_submit')
         }),
         ('Configuration', {
             'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',
-                       'reset_tag_defaults_on_startup', 'max_recording_length', 'recording_radius',
-                       'audio_stream_bitrate', 'sharing_url',
-                       'out_of_range_url', 'files_url', 'files_version', 'repeat_mode', 'ordering')
+                       'demo_stream_enabled', 'reset_tag_defaults_on_startup', 'max_recording_length',
+                       'recording_radius', 'audio_stream_bitrate', 'sharing_url',
+                       'out_of_range_url', 'demo_stream_url', 'files_url', 'files_version', 'repeat_mode', 'ordering')
         }),
         ('Localized Strings', {
-            'fields': ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',)
+            'fields': ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',
+                       'demo_stream_message_loc')
         }),
         ('Other', {
             'classes': ('collapse',),
