@@ -77,6 +77,7 @@ class Project(models.Model):
         ('64', '64'), ('96', '96'), ('112', '112'), ('128', '128'), ('160', '160'), ('192', '192'), ('256', '256'), ('320','320'),
     )
     audio_stream_bitrate = models.CharField(max_length=3, choices=BITRATE_CHOICES, default='128')
+    ordering = models.CharField(max_length=16, choices=[('by_like', 'by_like'), ('by_weight', 'by_weight'), ('random', 'random')], default='random')
 
     def __unicode__(self):
             return self.name
@@ -254,6 +255,7 @@ class Asset(models.Model):
     audiolength = models.BigIntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, null=True, blank=True)
     language = models.ForeignKey(Language, null=True)
+    weight = models.IntegerField(choices=[(i, i) for i in range(0, 100)], default=50)
 
     tags.tag_category_filter = True
 
@@ -376,19 +378,11 @@ class ListeningHistoryItem(models.Model):
             return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + " duration: " + str(self.duration)
 
 
-class VoteType(models.Model):
-    name = models.CharField(max_length=50)
-
-    def __unicode__(self):
-        return str(self.id) + ": " + self.name
-
-
 class Vote(models.Model):
     value = models.IntegerField(null=True, blank=True)
     session = models.ForeignKey(Session)
     asset = models.ForeignKey(Asset)
-    type = models.CharField(max_length=16)
-    type_fk = models.ForeignKey(VoteType, null=True)
+    type = models.CharField(max_length=16, choices=[('like', 'like'), ('flag', 'flag')])
 
     def __unicode__(self):
             return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)
