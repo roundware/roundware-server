@@ -44,7 +44,8 @@ class Migration(SchemaMigration):
             'session': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Session']", 'null': 'True', 'blank': 'True'}),
             'submitted': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'tags': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['rw.Tag']", 'null': 'True', 'blank': 'True'}),
-            'volume': ('django.db.models.fields.FloatField', [], {'default': '1.0', 'null': 'True', 'blank': 'True'})
+            'volume': ('django.db.models.fields.FloatField', [], {'default': '1.0', 'null': 'True', 'blank': 'True'}),
+            'weight': ('django.db.models.fields.IntegerField', [], {'default': '50'})
         },
         'rw.audiotrack': {
             'Meta': {'object_name': 'Audiotrack'},
@@ -139,6 +140,7 @@ class Migration(SchemaMigration):
             'longitude': ('django.db.models.fields.FloatField', [], {}),
             'max_recording_length': ('django.db.models.fields.IntegerField', [], {}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'ordering': ('django.db.models.fields.CharField', [], {'default': "'random'", 'max_length': '16'}),
             'out_of_range_message_loc': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'out_of_range_msg_string'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['rw.LocalizedString']"}),
             'out_of_range_url': ('django.db.models.fields.CharField', [], {'max_length': '512'}),
             'pub_date': ('django.db.models.fields.DateTimeField', [], {}),
