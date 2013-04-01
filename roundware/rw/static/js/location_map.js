@@ -50,7 +50,8 @@ function RadiusWidget(radius, color) {
     var circle = new google.maps.Circle({
         strokeWeight: 2,
         strokeColor: color,
-        fillOpacity: 0
+        fillOpacity: .1,
+        fillColor: '#000000'
     });
 
     // Set the distance property value, default to 50km.
@@ -91,7 +92,7 @@ RadiusWidget.prototype.addSizer_ = function() {
         draggable: true,
         title: 'Drag me!',
         raiseOnDrag: false,
-        icon: '/static/imgs/resize-off.png'
+        icon: '/static/img/resize-off.png'
     });
 
     sizer.bindTo('map', this);
