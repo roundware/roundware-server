@@ -464,13 +464,15 @@ def add_asset_to_envelope(request):
             #create the new asset if request comes in from a source other
             #than the django admin interface
             if not asset:
+
+                #get location data from request
                 latitude = get_parameter_from_request(request, 'latitude', False)
                 longitude = get_parameter_from_request(request, 'longitude', False)
-                if latitude is None:
-                    latitude = 0.0
-                if longitude is None:
-                    longitude = 0.0
-
+                #if no location data in request, default to project latitude and longitude
+                if not latitude:
+                    latitude = session.project.latitude
+                if not longitude:
+                    longitude = session.project.longitude
                 tagset = []
                 tags = get_parameter_from_request(request, 'tags', False)
                 if tags is not None:
@@ -675,16 +677,17 @@ def stream_exists(sessionid, audio_format):
 
 
 def is_listener_in_range_of_stream(form, proj):
-    if not (form.has_key('latitude') and form.has_key('longitude')):
+    if not ('latitude' in form and 'longitude' in form) or not (form['latitude'] and form['longitude']):
         return True
     speakers = models.Speaker.objects.filter(project=proj, activeyn=True)
 
     for speaker in speakers:
+        #only do this if latitude and longitude are included, return False otherwise
         distance = gpsmixer.distance_in_meters(
-                float(form['latitude']),
-                float(form['longitude']),
-                speaker.latitude,
-                speaker.longitude)
+            float(form['latitude']),
+            float(form['longitude']),
+            speaker.latitude,
+            speaker.longitude)
         if distance < 3 * speaker.maxdistance:
             return True
     return False
