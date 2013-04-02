@@ -556,7 +556,7 @@ def request_stream(request):
                   "/demo_stream.mp3"
 
         return {
-            'demo_stream_url': url,
+            'stream_url': url,
             'demo_stream_message': msg
         }
 
