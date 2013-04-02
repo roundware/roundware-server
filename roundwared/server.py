@@ -557,7 +557,7 @@ def request_stream(request):
 
         return {
             'demo_stream_url': url,
-            'user_message': msg
+            'demo_stream_message': msg
         }
 
     elif is_listener_in_range_of_stream(request_form, project):
