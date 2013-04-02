@@ -539,8 +539,28 @@ def request_stream(request):
         raise roundexception.RoundException("Must supply session_id.")
     session = models.Session.objects.get(id=request_form.get('session_id'))
     project = session.project
+    demo_stream_enabled = session.project.demo_stream_enabled
 
-    if is_listener_in_range_of_stream(request_form, project):
+    if demo_stream_enabled == True:
+        msg = "demo_stream_message"
+        try:
+            msg = project.demo_stream_message_loc.filter(language=session.language)[0].localized_string
+        except:
+            pass
+
+        if project.demo_stream_url:
+            url = project.demo_stream_url
+        else:
+            url = "http://" + hostname_without_port + ":" + \
+                  str(settings.config["icecast_port"]) + \
+                  "/demo_stream.mp3"
+
+        return {
+            'demo_stream_url': url,
+            'user_message': msg
+        }
+
+    elif is_listener_in_range_of_stream(request_form, project):
         command = ['/usr/local/bin/streamscript', '--session_id', str(session.id), '--project_id', str(project.id)]
         for p in ['latitude', 'longitude', 'audio_format']:
             if request_form.has_key(p) and request_form[p]:
