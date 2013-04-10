@@ -556,8 +556,8 @@ def request_stream(request):
                   "/demo_stream.mp3"
 
         return {
-            'demo_stream_url': url,
-            'user_message': msg
+            'stream_url': url,
+            'demo_stream_message': msg
         }
 
     elif is_listener_in_range_of_stream(request_form, project):
