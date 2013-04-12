@@ -259,6 +259,9 @@ class Asset(models.Model):
     tags = models.ManyToManyField(Tag, null=True, blank=True)
     language = models.ForeignKey(Language, null=True)
     weight = models.IntegerField(choices=[(i, i) for i in range(0, 100)], default=50)
+    mediatype = models.CharField(max_length=16, choices=[('audio', 'audio'), ('video', 'video'), ('photo', 'photo'),
+                                                         ('text', 'text')], default='audio')
+    description = models.TextField(max_length=2048, blank=True)
 
     tags.tag_category_filter = True
 

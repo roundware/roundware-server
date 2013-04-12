@@ -485,11 +485,16 @@ def add_asset_to_envelope(request):
                     if is_listener_in_range_of_stream(request.GET, session.project):
                         submitted = session.project.auto_submit
 
+                mediatype= get_parameter_from_request(request, 'mediatype', False)
+                if mediatype is None:
+                    mediatype = "audio"
+
                 asset = models.Asset(latitude=latitude,
                                      longitude=longitude,
                                      filename=newfilename,
                                      session=session,
                                      submitted=submitted,
+                                     mediatype=mediatype,
                                      volume=1.0,
                                      language=session.language,
                                      project = session.project)
@@ -513,7 +518,8 @@ def add_asset_to_envelope(request):
     else:
         raise roundexception.RoundException("No file in request")
     rounddbus.emit_stream_signal(0, "refresh_recordings", "")
-    return {"success": True}
+    return {"success": True,
+            "asset_id": asset.id}
 
 
 def get_parameter_from_request(request, name, required):

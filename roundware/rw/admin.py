@@ -109,6 +109,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     #form = AssetAdminForm
 
     ordering = ['-id']
+    save_as = True
     inlines = [
         VoteInline,
     ]
@@ -121,7 +122,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     save_on_top = True
     filter_horizontal = ('tags',)
     fieldsets = (
-        ('Audio Data', {'fields' : ('audio_player', 'file', 'volume', 'audiolength')}),
+        ('Media Data', {'fields' : ('mediatype', 'audio_player', 'file', 'volume', 'audiolength', 'description')}),
         (None, {'fields' : ('project', 'language', 'session', 'created', 'submitted', 'tags')}),
         ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude')})
     )
@@ -242,6 +243,7 @@ class MasterUIAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'project', 'name', 'ui_mode', 'tag_category', 'select', 'active', 'index')
     list_filter = ('project', 'ui_mode', 'tag_category')
     ordering = ['id']
+    save_as = True
 
 
 #UI Mappings describe the ordering and selectability of tags for a given MasterUI.
@@ -250,12 +252,14 @@ class UIMappingAdmin(ProjectProtectedThroughUIModelAdmin):
     list_filter = ('master_ui',)
     list_editable = ('active', 'default', 'index')
     ordering = ['id']
+    save_as = True
 
 
 class AudiotrackAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'project', 'norm_minduration', 'norm_maxduration', 'norm_mindeadair', 'norm_maxdeadair')
     list_filter = ('project',)
     ordering = ['id']
+    save_as = True
     fieldsets = (
         (None, {
             'fields': ('project', 'minvolume', 'maxvolume')
@@ -289,6 +293,8 @@ class SpeakerAdmin(ProjectProtectedModelAdmin):
     list_filter = ('project', 'activeyn')
     list_editable = ('activeyn', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume',)
     ordering = ['id']
+    save_as = True
+    save_on_top = True
 
     fieldsets = (
         (None, {'fields' : ('activeyn', 'code', 'project', 'maxvolume','minvolume', 'uri')}),
