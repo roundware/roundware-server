@@ -219,12 +219,15 @@ def get_tags_for_project(request):
 #args (project_id, [latitude], [longitude], [radius], [tagids], [tagbool], [language], [...])
 #can pass additional parameters matching name of fields on Asset
 #example: http://localhost/roundware/?operation=get_available_assets
-#returns
+#returns Dictionary
 #
 def get_available_assets(request):
-    """Return JSON list of available assets based on filter criteria passed in
+    """
+    Return JSON serializable dictionary with the number of matching assets
+    and a list of available assets based on filter criteria passed in
     request.  Returns localized value on asset by asset basis unless a specific
-    language code is passed. Fall back to English if necessary."""
+    language code is passed. Fall back to English if necessary.
+    """
     
 
     def _get_best_localized_string(asset, tag, best_lang_id):
@@ -322,6 +325,8 @@ def get_available_assets(request):
                 if distance > radius:
                     assets = assets.exclude(id=asset.id)
 
+        assets_info = {}
+        assets_info['number_of_assets'] = len(assets)
         assets_list = []
         for asset in assets:
             if not qry_retlng:
@@ -343,7 +348,8 @@ def get_available_assets(request):
                              asset, tag, retlng)
                      ) for tag in asset.tags.all()]),
             )
-        return assets_list
+        assets_info['assets'] = assets_list
+        return assets_info
 
     else:
         raise roundexception.RoundException("This operation requires that you pass a project_id")
