@@ -12,7 +12,7 @@ class RecordingCollection:
     ######################################################################
     # Public
     ######################################################################
-    def __init__(self, stream, request, radius):
+    def __init__(self, stream, request, radius, ordering='random'):
         self.radius = radius
         self.stream = stream
         self.request = request
@@ -22,6 +22,7 @@ class RecordingCollection:
         self.far_recordings = []
         self.nearby_played_recordings = []
         self.nearby_unplayed_recordings = []
+        self.ordering = ordering
         self.lock = threading.Lock()
         self.update_request(self.request)
 
@@ -132,14 +133,47 @@ class RecordingCollection:
             else:
                 new_far_recordings.append(r)
 
+        logging.debug('Ordering is: ' + self.ordering)
+        if self.ordering == 'random':
+            random.shuffle(new_nearby_unplayed_recordings)
+        elif self.ordering == 'by_like':
+            new_nearby_unplayed_recordings = \
+                self.order_assets_by_like(new_nearby_unplayed_recordings)
+        elif self.ordering == 'by_weight':
+            new_nearby_unplayed_recordings = \
+                self.order_assets_by_weight(new_nearby_unplayed_recordings)
+
         self.far_recordings = new_far_recordings
         self.nearby_unplayed_recordings = new_nearby_unplayed_recordings
         self.nearby_played_recordings = new_nearby_played_recordings
-        #logging.debug("before: " + str(self.nearby_unplayed_recordings))
-        random.shuffle(self.nearby_unplayed_recordings)
-        #logging.debug("after: " + str(self.nearby_unplayed_recordings))
 
-    #True if the listener are recording are close enough to be heard.
+    def order_assets_by_like(self, assets):
+        unplayed = []
+        for asset in assets:
+            count = models.Vote.filter(asset=asset, type='like').count()
+            unplayed.append((count, asset))
+        logging.info('Unordered: ' + \
+                str([(u[0], u[1].filename) for u in unplayed]))
+        sorted(unplayed, key=lambda x: x[0])
+        unplayed.reverse()
+        logging.info('Ordered by like: ' + \
+                str([(u[0], u[1].filename) for u in unplayed]))
+        return [x[1] for x in unplayed]
+
+    def order_assets_by_weight(self, assets):
+        unplayed = []
+        for asset in assets:
+            weight = asset.weight
+            unplayed.append((weight, asset))
+        logging.debug('Unordered: ' + \
+                str([(u[0], u[1].filename) for u in unplayed]))
+        sorted(unplayed, key=lambda x: x[0])
+        unplayed.reverse()
+        logging.debug('Ordered by weighting: ' + \
+                str([(u[0], u[1].filename) for u in unplayed]))
+        return [x[1] for x in unplayed]
+
+    #True if the listener and recording are close enough to be heard.
     def is_nearby(self, listener, recording):
         if listener.has_key('latitude') \
             and listener['latitude'] \

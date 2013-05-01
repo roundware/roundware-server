@@ -77,6 +77,10 @@ class Project(models.Model):
         ('64', '64'), ('96', '96'), ('112', '112'), ('128', '128'), ('160', '160'), ('192', '192'), ('256', '256'), ('320','320'),
     )
     audio_stream_bitrate = models.CharField(max_length=3, choices=BITRATE_CHOICES, default='128')
+    ordering = models.CharField(max_length=16, choices=[('by_like', 'by_like'), ('by_weight', 'by_weight'), ('random', 'random')], default='random')
+    demo_stream_enabled = models.BooleanField()
+    demo_stream_url = models.CharField(max_length=512, blank=True)
+    demo_stream_message_loc = models.ManyToManyField(LocalizedString, related_name='demo_stream_msg_string', null=True, blank=True)
 
     def __unicode__(self):
             return self.name
@@ -254,6 +258,10 @@ class Asset(models.Model):
     audiolength = models.BigIntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, null=True, blank=True)
     language = models.ForeignKey(Language, null=True)
+    weight = models.IntegerField(choices=[(i, i) for i in range(0, 100)], default=50)
+    mediatype = models.CharField(max_length=16, choices=[('audio', 'audio'), ('video', 'video'), ('photo', 'photo'),
+                                                         ('text', 'text')], default='audio')
+    description = models.TextField(max_length=2048, blank=True)
 
     tags.tag_category_filter = True
 
@@ -359,6 +367,14 @@ class Speaker(models.Model):
     def __unicode__(self):
             return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude) + " : " + self.uri
 
+    def location_map(self):
+        html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
+        <div id="map_instructions">To change or select location, type an address above and select from the available options;
+        then move pin to exact location of asset.</div>
+        <div id="map" style="width:800px; height: 600px; margin-top: 10px;"></div>"""
+        return html
+    location_map.short_name = "location"
+    location_map.allow_tags = True
 
 class ListeningHistoryItem(models.Model):
     session = models.ForeignKey(Session)
@@ -380,7 +396,7 @@ class Vote(models.Model):
     value = models.IntegerField(null=True, blank=True)
     session = models.ForeignKey(Session)
     asset = models.ForeignKey(Asset)
-    type = models.CharField(max_length=16)
+    type = models.CharField(max_length=16, choices=[('like', 'like'), ('flag', 'flag')])
 
     def __unicode__(self):
             return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)

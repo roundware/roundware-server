@@ -109,6 +109,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     #form = AssetAdminForm
 
     ordering = ['-id']
+    save_as = True
     inlines = [
         VoteInline,
     ]
@@ -121,7 +122,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     save_on_top = True
     filter_horizontal = ('tags',)
     fieldsets = (
-        ('Audio Data', {'fields' : ('audio_player', 'file', 'volume', 'audiolength')}),
+        ('Media Data', {'fields' : ('mediatype', 'audio_player', 'file', 'volume', 'audiolength', 'description')}),
         (None, {'fields' : ('project', 'language', 'session', 'created', 'submitted', 'tags')}),
         ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude')})
     )
@@ -144,9 +145,14 @@ class AssetAdmin(ProjectProtectedModelAdmin):
             )
 
     def save_model(self, request, obj, form, change):
-        create_envelope(instance=obj)
+        #only call create_envelope if the model is being added.
+        if not change:
+            create_envelope(instance=obj)
         obj.save()
-        add_asset_to_envelope(instance=obj)
+
+        #only call add_asset_to_envelope when the model is being added.
+        if not change:
+            add_asset_to_envelope(instance=obj)
 
 
 
@@ -187,19 +193,21 @@ class ProjectAdmin(GuardedModelAdmin):
     list_display = ('id', 'name', 'latitude', 'longitude', 'max_recording_length', 'recording_radius')
     ordering = ['id']
     save_on_top = True
-    filter_vertical = ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc')
+    filter_vertical = ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',
+                       'demo_stream_message_loc')
     fieldsets = (
         ('Basic Info', {
             'fields': ('name', 'latitude', 'longitude', 'pub_date', 'auto_submit')
         }),
         ('Configuration', {
             'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',
-                       'reset_tag_defaults_on_startup', 'max_recording_length', 'recording_radius',
-                       'audio_stream_bitrate', 'sharing_url',
-                       'out_of_range_url', 'files_url', 'files_version', 'repeat_mode')
+                       'demo_stream_enabled', 'reset_tag_defaults_on_startup', 'max_recording_length',
+                       'recording_radius', 'audio_stream_bitrate', 'sharing_url',
+                       'out_of_range_url', 'demo_stream_url', 'files_url', 'files_version', 'repeat_mode', 'ordering')
         }),
         ('Localized Strings', {
-            'fields': ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',)
+            'fields': ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',
+                       'demo_stream_message_loc')
         }),
         ('Other', {
             'classes': ('collapse',),
@@ -235,6 +243,7 @@ class MasterUIAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'project', 'name', 'ui_mode', 'tag_category', 'select', 'active', 'index')
     list_filter = ('project', 'ui_mode', 'tag_category')
     ordering = ['id']
+    save_as = True
 
 
 #UI Mappings describe the ordering and selectability of tags for a given MasterUI.
@@ -243,12 +252,14 @@ class UIMappingAdmin(ProjectProtectedThroughUIModelAdmin):
     list_filter = ('master_ui',)
     list_editable = ('active', 'default', 'index')
     ordering = ['id']
+    save_as = True
 
 
 class AudiotrackAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'project', 'norm_minduration', 'norm_maxduration', 'norm_mindeadair', 'norm_maxdeadair')
     list_filter = ('project',)
     ordering = ['id']
+    save_as = True
     fieldsets = (
         (None, {
             'fields': ('project', 'minvolume', 'maxvolume')
@@ -277,10 +288,32 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
 
 
 class SpeakerAdmin(ProjectProtectedModelAdmin):
+    readonly_fields = ('location_map',)
     list_display = ('id', 'activeyn', 'code', 'project', 'latitude', 'longitude', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume', 'uri')
     list_filter = ('project', 'activeyn')
     list_editable = ('activeyn', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume',)
     ordering = ['id']
+    save_as = True
+    save_on_top = True
+
+    fieldsets = (
+        (None, {'fields' : ('activeyn', 'code', 'project', 'maxvolume','minvolume', 'uri')}),
+        ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude', 'maxdistance', 'mindistance')})
+    )
+
+    class Media:
+        css = {
+            "all": (
+                "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css",
+            )
+        }
+        js = (
+            'http://maps.google.com/maps/api/js?sensor=false',
+            'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
+            'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
+            'js/location_map.js',
+        )
+
 
 
 class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):

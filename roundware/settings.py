@@ -6,26 +6,26 @@ DEBUG = True
 TEMPLATE_DEBUG = True
 
 ADMINS = (
-    ('round', 'your_email@example.com'),
+    ('round', 'bryanlandia@gmail.com'),
 )
 
 ######## ROUNDWARE SPECIFIC SETTINGS ###########
 # external url where audio files can be accessed
-AUDIO_FILE_URI = "http://roundware.org/audio/"
+AUDIO_FILE_URI = "http://roundwaredev.bryanlandia.com/audio/"
 # internal path name to audio file directory
 AUDIO_FILE_DIR = "/var/www/rwaudio"
 # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
 DEFAULT_SESSION_ID = "-1"
-API_URL = "http://roundware.com/roundware/"
+API_URL = "http://roundwaredev.bryanlandia.com/roundware/"
 MANAGERS = ADMINS
 # change this to the proper id for AnonymousUser in database for Guardian
 ANONYMOUS_USER_ID = 0
 # settings for notifications module
 # this is the email account from which notifications will be sent
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'email@gmail.com'
-EMAIL_HOST_PASSWORD = 'password'
+EMAIL_HOST_USER = 'bryanlandia@gmail.com'
+EMAIL_HOST_PASSWORD = 'vZ3ffooo'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 ######## END ROUNDWARE SPECIFIC SETTINGS #########
@@ -39,7 +39,7 @@ DATABASES = {
 
         'NAME': 'roundware',                      # Or path to database file if using sqlite3.
         'USER': 'round',                      # Not used with sqlite3.
-        'PASSWORD': 'password',                  # Not used with sqlite3.
+        'PASSWORD': 'round',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
@@ -53,7 +53,7 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/New_York'
+TIME_ZONE = 'America/Los_Angeles'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html

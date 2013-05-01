@@ -28,7 +28,7 @@ from roundwared import server
 
 
 def main(request):
-    return HttpResponse(json.dumps(catch_errors(request), sort_keys=True, indent=4), mimetype='application/json')
+    return HttpResponse(json.dumps(catch_errors(request), sort_keys=True, indent=4, ensure_ascii=False), mimetype='application/json')
 
 
 def catch_errors(request):

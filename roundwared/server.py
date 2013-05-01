@@ -155,6 +155,7 @@ def get_config(request):
     sharing_message = "none set"
     out_of_range_message = "none set"
     legal_agreement = "none set"
+    demo_stream_message = "none set"
     try:
         sharing_message = project.sharing_message_loc.filter(language=l)[0].localized_string
     except:
@@ -167,6 +168,11 @@ def get_config(request):
         legal_agreement = project.legal_agreement_loc.filter(language=l)[0].localized_string
     except:
         pass
+    try:
+        demo_stream_message = project.demo_stream_message_loc.filter(language=l)[0].localized_string
+    except:
+        pass
+
     response = [
             {"device":{"device_id": device_id}},
             {"session":{"session_id": session_id}},
@@ -190,6 +196,9 @@ def get_config(request):
                     "files_url":project.files_url,
                     "files_version":project.files_version,
                     "audio_stream_bitrate":project.audio_stream_bitrate,
+                    "demo_stream_enabled":project.demo_stream_enabled,
+                    "demo_stream_url":project.demo_stream_url,
+                    "demo_stream_message":demo_stream_message,
                     }},
 
             {"server":{
@@ -216,18 +225,22 @@ def get_tags_for_project(request):
 
 
 #get_available_assets
-#args (project_id, [latitude], [longitude], [radius], [tagids], [tagbool], [language], [...])
+#args (project_id, [latitude], [longitude], [radius], [tagids,], [tagbool], [language], [asset_id,...], [envelope_id,...], [...])
 #can pass additional parameters matching name of fields on Asset
 #example: http://localhost/roundware/?operation=get_available_assets
 #returns Dictionary
 #
 def get_available_assets(request):
-    """
-    Return JSON serializable dictionary with the number of matching assets
+    """Return JSON serializable dictionary with the number of matching assets
     and a list of available assets based on filter criteria passed in
-    request.  Returns localized value on asset by asset basis unless a specific
-    language code is passed. Fall back to English if necessary.
-    """
+    request.  If asset_id is passed, ignore other filters and return single
+    asset.  If multiple, comma-separated values for asset_id are passed, ignore
+    other filters and return all those assets.  If envelope_id is passed, ignore
+    other filters and return all assets in that envelope.  If multiple, 
+    comma-separated values for envelope_id are passed, ignore
+    other filters and return all those assets.  Returns localized
+    value for tag strings on asset by asset basis unless a specific language
+    code is passed. Fall back to English if necessary."""
     
 
     def _get_best_localized_string(asset, tag, best_lang_id):
@@ -246,7 +259,7 @@ def get_available_assets(request):
                 # fall back to English
                 eng_id = models.Language.objects.get(language_code='en')
                 localization = tag.loc_msg.get(language=eng_id)
-        return localization.localized_string    
+        return localization.localized_string
 
     form = request.GET
     kw = {}
@@ -256,8 +269,11 @@ def get_available_assets(request):
         raise roundexception.RoundException("Roundware configuration file is missing 'external_host_name_without_port' key. ")
 
     known_params = ['project_id', 'latitude', 'longitude',
-                    'tag_ids', 'tagbool', 'radius', 'language', ]
+                    'tag_ids', 'tagbool', 'radius', 'language', 'asset_id',
+                    'envelope_id' ]
     project_id = get_parameter_from_request(request, 'project_id', None)
+    asset_id = get_parameter_from_request(request, 'asset_id', None)
+    envelope_id = get_parameter_from_request(request, 'envelope_id', None)
     latitude = get_parameter_from_request(request, 'latitude', None)
     longitude = get_parameter_from_request(request, 'longitude', None)
     radius = get_parameter_from_request(request, 'radius', None)
@@ -290,47 +306,65 @@ def get_available_assets(request):
                 "Specified language code does not exist."
             )
 
-    if project_id:
-        project = models.Project.objects.get(id=project_id)
-        kw['project__exact'] = project
+    if project_id or asset_id or envelope_id:
+        
+        # by asset
+        if asset_id:
+            # ignore all other filter criteria
+            assets = models.Asset.objects.filter(id__in=asset_id.split(','))
+        
+        # by envelope    
+        elif envelope_id:
+            assets = []
+            envelopes = models.Envelope.objects.filter(id__in=envelope_id.split(','))
+            for e in envelopes:
+                e_assets = e.assets.all()
+                for a in e_assets:
+                    if a not in assets:
+                        assets.append(a)
+        
+        # by project
+        elif project_id:
+            project = models.Project.objects.get(id=project_id)
+            kw['project__exact'] = project
+            
+            assets = models.Asset.objects.filter(**kw)
+            if tag_ids:
+                if tagbool and str(tagbool).lower() == 'or':
+                    assets = assets.filter(tags__in=tag_ids.split(',')).distinct()
+                else:
+                    # 'and'.  Asset must have all tags
+                    for tag_id in tag_ids.split(','):
+                        assets = assets.filter(tags__id=tag_id)
 
-        assets = models.Asset.objects.filter(**kw)
-        if tag_ids:
-            if tagbool and str(tagbool).lower() == 'or':
-                assets = assets.filter(tags__in=tag_ids.split(',')).distinct()
-            else:
-                # 'and'.  Asset must have all tags
-                for tag_id in tag_ids.split(','):
-                    assets = assets.filter(tags__id=tag_id)
+            # filter by extra params. These are chained with an AND
+            assets = assets.filter(**extras)
 
-        # filter by extra params. These are chained with an AND
-        assets = assets.filter(**extras)
-
-        if latitude and longitude:  # need both
-            # return only assets within specified or default radius
-            # by project
-            latitude = float(latitude)
-            longitude = float(longitude)
-            if not radius:
-                radius = project.recording_radius
+            if latitude and longitude:  # need both
+                # return only assets within specified or default radius
+                # by project
+                latitude = float(latitude)
+                longitude = float(longitude)
                 if not radius:
-                    raise roundexception.RoundException("Project does not "
-                        "specify a radius and no radius parameter passed to "
-                        "operation.")
-            radius = float(radius)
-            for asset in assets:
-                distance = gpsmixer.distance_in_meters(
-                    latitude, longitude,
-                    asset.latitude, asset.longitude)
-                if distance > radius:
-                    assets = assets.exclude(id=asset.id)
+                    radius = project.recording_radius
+                    if not radius:
+                        raise roundexception.RoundException("Project does not "
+                            "specify a radius and no radius parameter passed to "
+                            "operation.")
+                radius = float(radius)
+                for asset in assets:
+                    distance = gpsmixer.distance_in_meters(
+                        latitude, longitude,
+                        asset.latitude, asset.longitude)
+                    if distance > radius:
+                        assets = assets.exclude(id=asset.id)
 
         assets_info = {}
         assets_info['number_of_assets'] = len(assets)
         assets_list = []
         for asset in assets:
             if not qry_retlng:
-                retlng = asset.language
+                retlng = asset.language # can be None
             else:
                 retlng = qry_retlng
             assets_list.append(
@@ -341,6 +375,7 @@ def get_available_assets(request):
                      longitude=asset.longitude,
                      audio_length=asset.audiolength,
                      submitted=asset.submitted,
+                     language=asset.language.language_code,
                      tags=[dict(
                          tag_category_name=tag.tag_category.name,
                          tag_id=tag.id,
@@ -352,7 +387,8 @@ def get_available_assets(request):
         return assets_info
 
     else:
-        raise roundexception.RoundException("This operation requires that you pass a project_id")
+        raise roundexception.RoundException("This operation requires that you "
+            "pass a project_id, asset_id, or envelope_id")
             
 
 def log_event(request):
@@ -432,13 +468,15 @@ def add_asset_to_envelope(request):
             #create the new asset if request comes in from a source other
             #than the django admin interface
             if not asset:
+
+                #get location data from request
                 latitude = get_parameter_from_request(request, 'latitude', False)
                 longitude = get_parameter_from_request(request, 'longitude', False)
-                if latitude is None:
-                    latitude = 0.0
-                if longitude is None:
-                    longitude = 0.0
-
+                #if no location data in request, default to project latitude and longitude
+                if not latitude:
+                    latitude = session.project.latitude
+                if not longitude:
+                    longitude = session.project.longitude
                 tagset = []
                 tags = get_parameter_from_request(request, 'tags', False)
                 if tags is not None:
@@ -451,11 +489,16 @@ def add_asset_to_envelope(request):
                     if is_listener_in_range_of_stream(request.GET, session.project):
                         submitted = session.project.auto_submit
 
+                mediatype= get_parameter_from_request(request, 'mediatype', False)
+                if mediatype is None:
+                    mediatype = "audio"
+
                 asset = models.Asset(latitude=latitude,
                                      longitude=longitude,
                                      filename=newfilename,
                                      session=session,
                                      submitted=submitted,
+                                     mediatype=mediatype,
                                      volume=1.0,
                                      language=session.language,
                                      project = session.project)
@@ -479,7 +522,8 @@ def add_asset_to_envelope(request):
     else:
         raise roundexception.RoundException("No file in request")
     rounddbus.emit_stream_signal(0, "refresh_recordings", "")
-    return {"success": True}
+    return {"success": True,
+            "asset_id": asset.id}
 
 
 def get_parameter_from_request(request, name, required):
@@ -505,8 +549,28 @@ def request_stream(request):
         raise roundexception.RoundException("Must supply session_id.")
     session = models.Session.objects.get(id=request_form.get('session_id'))
     project = session.project
+    demo_stream_enabled = session.project.demo_stream_enabled
 
-    if is_listener_in_range_of_stream(request_form, project):
+    if demo_stream_enabled == True:
+        msg = "demo_stream_message"
+        try:
+            msg = project.demo_stream_message_loc.filter(language=session.language)[0].localized_string
+        except:
+            pass
+
+        if project.demo_stream_url:
+            url = project.demo_stream_url
+        else:
+            url = "http://" + hostname_without_port + ":" + \
+                  str(settings.config["icecast_port"]) + \
+                  "/demo_stream.mp3"
+
+        return {
+            'stream_url': url,
+            'demo_stream_message': msg
+        }
+
+    elif is_listener_in_range_of_stream(request_form, project):
         command = ['/usr/local/bin/streamscript', '--session_id', str(session.id), '--project_id', str(project.id)]
         for p in ['latitude', 'longitude', 'audio_format']:
             if request_form.has_key(p) and request_form[p]:
@@ -643,16 +707,17 @@ def stream_exists(sessionid, audio_format):
 
 
 def is_listener_in_range_of_stream(form, proj):
-    if not (form.has_key('latitude') and form.has_key('longitude')):
+    if not ('latitude' in form and 'longitude' in form) or not (form['latitude'] and form['longitude']):
         return True
     speakers = models.Speaker.objects.filter(project=proj, activeyn=True)
 
     for speaker in speakers:
+        #only do this if latitude and longitude are included, return False otherwise
         distance = gpsmixer.distance_in_meters(
-                float(form['latitude']),
-                float(form['longitude']),
-                speaker.latitude,
-                speaker.longitude)
+            float(form['latitude']),
+            float(form['longitude']),
+            speaker.latitude,
+            speaker.longitude)
         if distance < 3 * speaker.maxdistance:
             return True
     return False
