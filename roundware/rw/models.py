@@ -242,6 +242,10 @@ class Event(models.Model):
 #add_introspection_rules([], ["^roundware\.rw\.widgets\.LocationField"])
 
 class Asset(models.Model):
+
+    ASSET_MEDIA_TYPES = [('audio', 'audio'), ('video', 'video'), 
+                         ('photo', 'photo'), ('text', 'text')]
+
     session = models.ForeignKey(Session, null=True, blank=True)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
@@ -259,8 +263,7 @@ class Asset(models.Model):
     tags = models.ManyToManyField(Tag, null=True, blank=True)
     language = models.ForeignKey(Language, null=True)
     weight = models.IntegerField(choices=[(i, i) for i in range(0, 100)], default=50)
-    mediatype = models.CharField(max_length=16, choices=[('audio', 'audio'), ('video', 'video'), ('photo', 'photo'),
-                                                         ('text', 'text')], default='audio')
+    mediatype = models.CharField(max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
     description = models.TextField(max_length=2048, blank=True)
 
     tags.tag_category_filter = True

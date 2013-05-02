@@ -232,7 +232,7 @@ def get_tags_for_project(request):
 #
 def get_available_assets(request):
     """Return JSON serializable dictionary with the number of matching assets
-    and a list of available assets based on filter criteria passed in
+    by media type and a list of available assets based on filter criteria passed in
     request.  If asset_id is passed, ignore other filters and return single
     asset.  If multiple, comma-separated values for asset_id are passed, ignore
     other filters and return all those assets.  If envelope_id is passed, ignore
@@ -288,6 +288,7 @@ def get_available_assets(request):
     # accept other keyword parameters as long as the keys are fields on
     # Asset model
     asset_fields = models.get_field_names_from_model(models.Asset)
+    asset_media_types = [tup[0] for tup in models.Asset.ASSET_MEDIA_TYPES]
     extraparams = [(param[0], param[1]) for param in form.items()
                 if param[0] not in known_params and
                 param[0] in asset_fields]
@@ -360,9 +361,14 @@ def get_available_assets(request):
                         assets = assets.exclude(id=asset.id)
 
         assets_info = {}
-        assets_info['number_of_assets'] = len(assets)
+        assets_info['number_of_assets'] = {}
+        for mtype in asset_media_types:
+            assets_info['number_of_assets'][mtype]= 0
         assets_list = []
+
         for asset in assets:
+            if asset.mediatype in asset_media_types:
+                assets_info['number_of_assets'][asset.mediatype] +=1
             if not qry_retlng:
                 retlng = asset.language # can be None
             else:
