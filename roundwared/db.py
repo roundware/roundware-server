@@ -114,7 +114,7 @@ def get_recordings(request):
     else:
         logging.debug("get_recordings: no tags supplied")
         if s != None:
-            recs = Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=s.language).distinct()
+            # recs = Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=s.language).distinct()
             recs = filter_recs_for_tags(p, get_default_tags_for_project(p, s), s.language)
 
     logging.debug("db: get_recordings: got " + str(len(recs)) + " recordings from db for project " + str(p.id))
@@ -157,7 +157,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     for cat in cats:
         tags_per_cat_dict[cat] = Tag.objects.filter(tag_category=cat)
 
-    project_recs = Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=l).distinct()
+    project_recs = Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=l, mediatype='audio').distinct()
     for rec in project_recs:
         remove = False
         for cat in cats:
