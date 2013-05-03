@@ -275,7 +275,10 @@ class Asset(models.Model):
         self.ENVELOPE_ID = 0
 
     def audio_player(self):
-        return """<div data-filename="%s" class="audio-file"></div>""" % self.filename
+        if self.mediatype == 'audio':
+            return """<div data-filename="%s" class="audio-file"></div>""" % self.filename
+        else:
+            return ""
     audio_player.short_name = "audio"
     audio_player.allow_tags = True
 
@@ -295,9 +298,10 @@ class Asset(models.Model):
     norm_audiolength.name = "Audio Length"
     norm_audiolength.allow_tags = True
 
-    def audio_link_url(self):
+    def media_link_url(self):
         return '<a href="%s/%s" target="_new">%s</a>' % (AUDIO_FILE_URI, self.filename, self.filename)
-    audio_link_url.allow_tags = True
+    media_link_url.allow_tags = True
+
 
     def get_tags(self):
         return "<br />".join(unicode(t) for t in self.tags.all())
