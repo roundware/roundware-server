@@ -431,6 +431,8 @@ def add_asset_to_envelope(request):
 
     #get asset_id from the GET request
     asset_id = get_parameter_from_request(request, 'asset_id', False)
+    #get mediatype from the GET request
+    mediatype = get_parameter_from_request(request, 'mediatype', False)
     asset = None
     #grab the Asset from the database, if an asset_id has been passed in
     if asset_id:
@@ -458,8 +460,11 @@ def add_asset_to_envelope(request):
         #delete the uploaded original after the copy has been made
         if asset:
             asset.file.delete()
-        #make sure everything is in wav form
-        newfilename = convertaudio.convert_uploaded_file(fn)
+        #make sure everything is in wav form only if mediatype is audio
+        if mediatype == "audio":
+            newfilename = convertaudio.convert_uploaded_file(fn)
+        else:
+            newfilename = fn
         if newfilename:
             #create the new asset if request comes in from a source other
             #than the django admin interface
@@ -485,7 +490,6 @@ def add_asset_to_envelope(request):
                     if is_listener_in_range_of_stream(request.GET, session.project):
                         submitted = session.project.auto_submit
 
-                mediatype= get_parameter_from_request(request, 'mediatype', False)
                 if mediatype is None:
                     mediatype = "audio"
 
@@ -508,9 +512,10 @@ def add_asset_to_envelope(request):
                 asset.session = session
                 asset.filename = newfilename
 
-            #get the audiolength of the file and update the Asset
-            discover_audiolength.discover_and_set_audiolength(asset, newfilename)
-            asset.save()
+            #get the audiolength of the file only if mediatype is audio and update the Asset
+            if mediatype == "audio":
+                discover_audiolength.discover_and_set_audiolength(asset, newfilename)
+                asset.save()
             envelope.assets.add(asset)
             envelope.save()
         else:
