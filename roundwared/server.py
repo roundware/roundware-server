@@ -431,8 +431,6 @@ def add_asset_to_envelope(request):
 
     #get asset_id from the GET request
     asset_id = get_parameter_from_request(request, 'asset_id', False)
-    #get mediatype from the GET request
-    mediatype = get_parameter_from_request(request, 'mediatype', False)
     asset = None
     #grab the Asset from the database, if an asset_id has been passed in
     if asset_id:
@@ -448,6 +446,9 @@ def add_asset_to_envelope(request):
     db.log_event("start_upload", session.id, request.GET)
 
     fileitem = request.FILES.get('file') if not asset else asset.file
+    #get mediatype from the GET request
+    mediatype = get_parameter_from_request(request, 'mediatype', False) if not asset else asset.mediatype
+
     if fileitem.name:
         #copy the file to a unique name (current time and date)
         logging.debug("Processing " + fileitem.name)
@@ -469,7 +470,6 @@ def add_asset_to_envelope(request):
             #create the new asset if request comes in from a source other
             #than the django admin interface
             if not asset:
-
                 #get location data from request
                 latitude = get_parameter_from_request(request, 'latitude', False)
                 longitude = get_parameter_from_request(request, 'longitude', False)
