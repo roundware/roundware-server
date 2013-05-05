@@ -6,9 +6,9 @@
   ServerName example.com
   DocumentRoot /home/ubuntu/roundware-server/roundware/
   Alias /media /home/ubuntu/python/django/contrib/admin/media
-  Alias /audio /var/www/rwaudio
+  Alias /rwmedia /var/www/rwmedia
   RewriteEngine On
-  RewriteRule ^/(audio.*)$ /$1 [QSA,L,PT]
+  RewriteRule ^/(rwmedia.*)$ /$1 [QSA,L,PT]
   RewriteRule ^/(media.*)$ /$1 [QSA,L,PT]
   RewriteRule ^/(static.*)$ /$1 [QSA,L,PT]
   RewriteCond %{REQUEST_FILENAME} !-f
