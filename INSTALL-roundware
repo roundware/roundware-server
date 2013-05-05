@@ -1,5 +1,5 @@
-sudo mkdir /var/www/rwaudio
-sudo chmod a+wrx /var/www/rwaudio # maybe not a great idea. but www-data user needs to create files here somehow.
+sudo mkdir /var/www/rwmedia
+sudo chmod a+wrx /var/www/rwmedia # maybe not a great idea. but www-data user needs to create files here somehow.
 sudo mkdir /var/www/.gnome2
 sudo chown www-data:www-data /var/www/.gnome2
 sudo touch /var/log/roundware
@@ -8,7 +8,7 @@ sudo mkdir /etc/roundware
 # copy default RW config file into place - don't forget to edit!
 sudo cp ./files/sample-config /etc/roundware/rw
 # copy test audio file to correct location
-sudo cp ./files/rw_test_audio1.wav /var/www/rwaudio
+sudo cp ./files/rw_test_audio1.wav /var/www/rwmedia
 # install correct shout2send gstreamer plugin
 sudo mv /usr/lib/i386-linux-gnu/gstreamer-0.10/libgstshout2.so /usr/lib/i386-linux-gnu/gstreamer-0.10/libgstshout2.so.old
 sudo cp files/libgstshout2.so /usr/lib/i386-linux-gnu/gstreamer-0.10/libgstshout2.so

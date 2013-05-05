@@ -5,9 +5,9 @@ port = 8001
 # default port for icecast streams
 icecast_port = 8000
 # default location for participant audio (see recording table in db) 
-audio_dir = /var/www/rwaudio
+audio_dir = /var/www/rwmedia
 # default location for incoming participant audio - may be used if incoming audio is ingested before included in piece
-upload_dir = /var/www/rwaudio
+upload_dir = /var/www/rwmedia
 # used for communication with red5 - the open source flash communication server.  Exclusively used for making recordings from browser.
 flv_upload_dir = /home/dskippy/red5-0.8.0/webapps/oflaDemo/streams/
 # log file location

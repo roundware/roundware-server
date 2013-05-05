@@ -11,9 +11,9 @@ ADMINS = (
 
 ######## ROUNDWARE SPECIFIC SETTINGS ###########
 # external url where audio files can be accessed
-AUDIO_FILE_URI = "http://roundware.org/audio/"
+AUDIO_FILE_URI = "http://roundware.org/rwmedia/"
 # internal path name to audio file directory
-AUDIO_FILE_DIR = "/var/www/rwaudio"
+AUDIO_FILE_DIR = "/var/www/rwmedia"
 # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
 DEFAULT_SESSION_ID = "-1"
