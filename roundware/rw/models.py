@@ -129,7 +129,7 @@ class SelectionMethod(models.Model):
 
 class Tag(models.Model):
     tag_category = models.ForeignKey(TagCategory)
-    value = models.TextField()
+    value = models.TextField(null=True, blank=True)
     description = models.TextField()
     loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)
     data = models.TextField(null=True, blank=True)

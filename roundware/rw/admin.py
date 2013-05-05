@@ -123,7 +123,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     filter_horizontal = ('tags',)
     fieldsets = (
         ('Media Data', {'fields' : ('mediatype', 'audio_player', 'file', 'volume', 'audiolength', 'description')}),
-        (None, {'fields' : ('project', 'language', 'session', 'created', 'submitted', 'tags')}),
+        (None, {'fields' : ('project', 'language', 'session', 'created', 'weight', 'submitted', 'tags')}),
         ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude')})
     )
 
