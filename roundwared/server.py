@@ -448,6 +448,10 @@ def add_asset_to_envelope(request):
     fileitem = request.FILES.get('file') if not asset else asset.file
     #get mediatype from the GET request
     mediatype = get_parameter_from_request(request, 'mediatype', False) if not asset else asset.mediatype
+    #if mediatype parameter not passed, set to 'audio'
+    #this ensures backwards compatibility
+    if mediatype is None:
+        mediatype = "audio"
 
     if fileitem.name:
         #copy the file to a unique name (current time and date)
@@ -489,9 +493,6 @@ def add_asset_to_envelope(request):
                     submitted = False
                     if is_listener_in_range_of_stream(request.GET, session.project):
                         submitted = session.project.auto_submit
-
-                if mediatype is None:
-                    mediatype = "audio"
 
                 asset = models.Asset(latitude=latitude,
                                      longitude=longitude,
