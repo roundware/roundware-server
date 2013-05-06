@@ -372,6 +372,7 @@ def get_available_assets(request):
                      longitude=asset.longitude,
                      audio_length=asset.audiolength,
                      submitted=asset.submitted,
+                     project=asset.project.name,
                      language=asset.language.language_code,
                      tags=[dict(
                          tag_category_name=tag.tag_category.name,
