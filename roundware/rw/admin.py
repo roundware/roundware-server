@@ -110,6 +110,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
 
     ordering = ['-id']
     save_as = True
+    list_per_page = 25
     inlines = [
         VoteInline,
     ]
@@ -162,6 +163,7 @@ class TagAdmin(admin.ModelAdmin):
     list_filter = ('tag_category',)
     ordering = ['id']
     filter_vertical = ('loc_msg',)
+    filter_horizontal = ('relationships',)
     # inlines = [
     #    AssetTagsInline,
     # ]

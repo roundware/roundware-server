@@ -68,7 +68,9 @@ def get_config_tag_json(p, s):
                 #def toTagDictionary(self):
                     #return {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
 
-                masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'data': mapping.tag.data, 'value': mapping.tag.loc_msg.filter(language=lingo)[0].localized_string})
+                masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'data': mapping.tag.data,
+                                          'relationships': mapping.tag.get_relationships(),
+                                          'value': mapping.tag.loc_msg.filter(language=lingo)[0].localized_string})
             masterD["options"] = masterOptionsList
             masterD["defaults"] = default
             if not modes.has_key(masterui.ui_mode.name):
