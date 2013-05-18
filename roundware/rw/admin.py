@@ -84,32 +84,45 @@ class AssetAdmin(ProjectProtectedModelAdmin):
         extra_context = extra_context or {}
         extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
         extra_context['extends_url'] = "admin/change_form.html"
-        return super(AssetAdmin, self).add_view(request, form_url,
-            extra_context=extra_context)
+        return super(AssetAdmin, self).add_view(request, form_url, extra_context=extra_context)
 
     def change_view(self, request, object_id, extra_context=None):
         extra_context = extra_context or {}
         extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
         extra_context['extends_url'] = "admin/change_form.html"
-        return super(AssetAdmin, self).change_view(request, object_id,
-            extra_context=extra_context)
+        return super(AssetAdmin, self).change_view(request, object_id, extra_context=extra_context)
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
         extra_context['extends_url'] = "admin/change_list.html"
-        return super(AssetAdmin, self).changelist_view(request,
-            extra_context=extra_context)
+        return super(AssetAdmin, self).changelist_view(request, extra_context=extra_context)
 
     def lookup_allowed(self, lookup, *args, **kwargs):
         if lookup.startswith(self.valid_lookups):
             return True
         return super(AssetAdmin, self).lookup_allowed(lookup, *args, **kwargs)
 
-    #form = AssetAdminForm
+    def save_model(self, request, obj, form, change):
+        #only call create_envelope if the model is being added.
+        if not change:
+            create_envelope(instance=obj)
+        obj.save()
 
+        #only call add_asset_to_envelope when the model is being added.
+        if not change:
+            add_asset_to_envelope(instance=obj)
+
+    def copy_asset(modeladmin, request, queryset):
+        for obj in queryset:
+            obj.pk = None
+            obj.save()
+    copy_asset.short_description = "Copy selected assets"
+
+    actions = [copy_asset]
+    actions_on_bottom = True
     ordering = ['-id']
-    save_as = True
+    # save_as = True
     list_per_page = 25
     inlines = [
         VoteInline,
@@ -144,16 +157,6 @@ class AssetAdmin(ProjectProtectedModelAdmin):
                 'js/location_map.js',
                 'js/asset_admin.js',
             )
-
-    def save_model(self, request, obj, form, change):
-        #only call create_envelope if the model is being added.
-        if not change:
-            create_envelope(instance=obj)
-        obj.save()
-
-        #only call add_asset_to_envelope when the model is being added.
-        if not change:
-            add_asset_to_envelope(instance=obj)
 
 
 
