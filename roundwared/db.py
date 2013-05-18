@@ -57,7 +57,13 @@ def get_config_tag_json(p, s):
     for masterui in m:
         if masterui.active:
             mappings = UIMapping.objects.filter(master_ui=masterui, active=True)
-            masterD = masterui.toTagDictionary()
+            if masterui.header_text_loc.all():
+                ht = masterui.header_text_loc.filter(language=lingo)[0].localized_string
+            else:
+                ht = ""
+            #masterD = masterui.toTagDictionary()
+            masterD = {'name': masterui.name, 'header_text': ht, 'code': masterui.tag_category.name,
+                       'select': masterui.select.name, 'order': masterui.index}
             masterOptionsList = []
 
             default = []
