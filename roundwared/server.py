@@ -489,8 +489,16 @@ def add_asset_to_envelope(request):
                     ids = tags.split(',')
                     tagset = models.Tag.objects.filter(id__in=ids)
 
+                # get optional submitted parameter from request (Y, N or blank string are only acceptable values)
                 submitted = get_parameter_from_request(request, 'submitted', False)
-                if submitted is None:
+                # set submitted variable to proper boolean value if it is passed as parameter
+                if submitted == "N":
+                    submitted = False
+                elif submitted == "Y":
+                    submitted = True
+                # if blank string or not included as parameter, check if in range of project and if so
+                # set asset.submitted based on project.auto_submit boolean value
+                elif submitted is None or len(submitted) == 0:
                     submitted = False
                     if is_listener_in_range_of_stream(request.GET, session.project):
                         submitted = session.project.auto_submit
