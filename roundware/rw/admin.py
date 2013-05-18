@@ -115,8 +115,11 @@ class AssetAdmin(ProjectProtectedModelAdmin):
 
     def copy_asset(modeladmin, request, queryset):
         for obj in queryset:
+            tags = obj.tags.all()
             obj.pk = None
             obj.save()
+            for i in tags:
+                obj.tags.add(i)
     copy_asset.short_description = "Copy selected assets"
 
     actions = [copy_asset]
