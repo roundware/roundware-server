@@ -68,6 +68,7 @@ def play_asset_in_stream(request):
     form = request.GET
     request = form_to_request(form)
     arg_hack = json.dumps(request)
+    db.log_event("play_asset_in_stream", int(form['session_id']), form)
 
     if not form.has_key('session_id'):
         raise roundexception.RoundException("a session_id is required for this operation")
@@ -81,6 +82,8 @@ def play_asset_in_stream(request):
 
 def skip_ahead(request):
     form = request.GET
+    db.log_event("skip_ahead", int(form['session_id']), form)
+
     if not form.has_key('session_id'):
         raise roundexception.RoundException("a session_id is required for this operation")
     if check_for_single_audiotrack(form.get('session_id')) != True:
@@ -91,6 +94,8 @@ def skip_ahead(request):
 
 def vote_asset(request):
     form = request.GET
+    db.log_event("vote_asset", int(form['session_id']), form)
+
     if not form.has_key('session_id'):
         raise roundexception.RoundException("a session_id is required for this operation")
     if not form.has_key('asset_id'):
@@ -555,6 +560,7 @@ def request_stream(request):
         hostname_without_port = str(settings.config["external_host_name_without_port"])
     except KeyError:
         raise roundexception.RoundException("Roundware configuration file is missing 'external_host_name_without_port' key. ")
+    db.log_event("request_stream", int(request_form['session_id']), request_form)
 
     if not request_form.get('session_id'):
         raise roundexception.RoundException("Must supply session_id.")
