@@ -260,9 +260,10 @@ class SelectionMethodAdmin(admin.ModelAdmin):
 #MasterUIs describe screens containing choices limited to one mode (Speak, Listen),
 #  and one tag category.
 class MasterUIAdmin(ProjectProtectedModelAdmin):
-    list_display = ('id', 'project', 'name', 'ui_mode', 'tag_category', 'select', 'active', 'index')
+    list_display = ('id', 'project', 'name', 'get_header_text_loc', 'ui_mode', 'tag_category', 'select', 'active', 'index')
     list_filter = ('project', 'ui_mode', 'tag_category')
     ordering = ['id']
+    filter_horizontal = ('header_text_loc', )
     save_as = True
 
 

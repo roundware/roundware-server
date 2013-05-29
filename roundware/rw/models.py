@@ -129,7 +129,7 @@ class SelectionMethod(models.Model):
 
 class Tag(models.Model):
     tag_category = models.ForeignKey(TagCategory)
-    value = models.TextField(null=True, blank=True)
+    value = models.TextField()
     description = models.TextField()
     loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)
     data = models.TextField(null=True, blank=True)
@@ -149,12 +149,19 @@ class Tag(models.Model):
 
 class MasterUI(models.Model):
     name = models.CharField(max_length=50)
+    header_text_loc = models.ManyToManyField(LocalizedString, null=True, blank=True)
     ui_mode = models.ForeignKey(UIMode)
     tag_category = models.ForeignKey(TagCategory)
     select = models.ForeignKey(SelectionMethod)
     active = models.BooleanField(default=True)
     index = models.IntegerField()
     project = models.ForeignKey(Project)
+
+    def get_header_text_loc(self):
+        return "<br />".join(unicode(t) for t in self.header_text_loc.all())
+    get_header_text_loc.short_description = "Localized Header Text"
+    get_header_text_loc.name = "Localized Header Text"
+    get_header_text_loc.allow_tags = True
 
     def toTagDictionary(self):
         return {'name': self.name, 'code': self.tag_category.name, 'select': self.select.name, 'order': self.index}
