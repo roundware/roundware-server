@@ -122,7 +122,19 @@ class AssetAdmin(ProjectProtectedModelAdmin):
                 obj.tags.add(i)
     copy_asset.short_description = "Copy selected assets"
 
-    actions = [copy_asset]
+    def copy_asset_with_votes(modeladmin, request, queryset):
+        for obj in queryset:
+            tags = obj.tags.all()
+            votes = obj.vote_set.all()
+            obj.pk = None
+            obj.save()
+            for i in tags:
+                obj.tags.add(i)
+            for i in votes:
+                obj.vote_set.add(i)
+    copy_asset_with_votes.short_description = "Copy selected assets while retaining votes"
+
+    actions = [copy_asset, copy_asset_with_votes]
     actions_on_bottom = True
     ordering = ['-id']
     # save_as = True
