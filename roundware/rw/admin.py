@@ -132,7 +132,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     ]
     #exclude = ('tags',)
     readonly_fields = ('location_map', 'audio_player', 'audiolength', 'session', 'created')#, 'longitude', 'latitude')#, 'filename')
-    list_display = ('id', 'session', 'submitted', 'project', 'audio_link_url', 'audio_player', 'created',
+    list_display = ('id', 'session', 'submitted', 'project', 'media_link_url', 'audio_player', 'created',
                     'norm_audiolength', 'get_likes', 'get_flags', 'get_tags', 'weight', 'volume', )
     list_filter = ('project', 'tags', 'submitted', 'audiolength', 'created', 'language', )
     list_editable = ('submitted', 'weight', 'volume')

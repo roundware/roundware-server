@@ -69,8 +69,10 @@ function createPlayer(id, filename, dom, $) {
             dom[0].id = 'jquery_jplayer_' + id;
             dom[1].id = 'jp_container_' + id;
             filename = $(this).attr('data-filename');
-            $(that).append(dom);
-            createPlayer(id, filename, dom[0], $);
+            if (filename && filename != 'None') {
+                $(that).append(dom);
+                createPlayer(id, filename, dom[0], $);
+            }
             id++;
         });
     })
