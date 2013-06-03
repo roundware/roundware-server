@@ -252,6 +252,9 @@ class Event(models.Model):
 #add_introspection_rules([], ["^roundware\.rw\.widgets\.LocationField"])
 
 class Asset(models.Model):
+    ASSET_MEDIA_TYPES = [('audio', 'audio'), ('video', 'video'),
+                        ('photo', 'photo'), ('text', 'text')]
+
     session = models.ForeignKey(Session, null=True, blank=True)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
