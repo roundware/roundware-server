@@ -10,11 +10,22 @@ ADMINS = (
 )
 
 ######## ROUNDWARE SPECIFIC SETTINGS ###########
+# url base for media files
+MEDIA_BASE_URI = "http://roundware.org/rwmedia/" 
 # external url where audio files can be accessed
-AUDIO_FILE_URI = "http://roundware.org/rwmedia/"
-# internal path name to audio file directory
-AUDIO_FILE_DIR = "/var/www/rwmedia"
-# session_id assigned to files that are uploaded through the admin
+AUDIO_FILE_URI = MEDIA_BASE_URI # + "audio"
+# external url where video files can be accessed
+VIDEO_FILE_URI = AUDIO_FILE_URI #MEDIA_BASE_URI + "video"
+# external url where image files can be accessed
+IMAGE_FILE_URI = AUDIO_FILE_URI #MEDIA_BASE_URI + "img"
+
+MEDIA_ROOT = ''
+MEDIA_BASE_DIR = "/var/www/rwmedia/"
+# internal path name to media file directories
+AUDIO_FILE_DIR = MEDIA_BASE_DIR #+ "audio"
+VIDEO_FILE_DIR = MEDIA_BASE_DIR #+ "video"
+IMAGE_FILE_DIR = MEDIA_BASE_DIR #+ "img"
+ # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
 DEFAULT_SESSION_ID = "-1"
 API_URL = "http://roundware.com/roundware/"
