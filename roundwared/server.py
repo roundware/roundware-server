@@ -7,6 +7,7 @@ import json
 import traceback
 import uuid
 import datetime
+import psutil
 from roundwared import settings
 from roundwared import db
 from roundwared import convertaudio
@@ -568,7 +569,9 @@ def request_stream(request):
     project = session.project
     demo_stream_enabled = session.project.demo_stream_enabled
 
-    if demo_stream_enabled == True:
+    cpu = psutil.cpu_times_percent().system
+
+    if demo_stream_enabled or cpu > float(settings.config["demo_stream_cpu_limit"]):
         msg = "demo_stream_message"
         try:
             msg = project.demo_stream_message_loc.filter(language=session.language)[0].localized_string
