@@ -1,7 +1,7 @@
 import urllib, urllib2
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
-from roundware.settings import AUDIO_FILE_URI
+from roundware.settings import MEDIA_BASE_URI
 from django.db.models.signals import post_save, pre_save
 from django.conf import settings
 from django.dispatch import receiver
@@ -259,9 +259,9 @@ class Asset(models.Model):
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
     filename = models.CharField(max_length=256, null=True, blank=True)
-    file = models.FileField(storage=FileSystemStorage(location=getattr(settings, "AUDIO_FILE_DIR"),
-                                                      base_url=getattr(settings, "AUDIO_FILE_URI")),
-                            upload_to=".", null=True, blank=True, help_text="Upload audio file")
+    file = models.FileField(storage=FileSystemStorage(location=getattr(settings, "MEDIA_BASE_DIR"),
+                                                      base_url=getattr(settings, "MEDIA_BASE_URI")),
+                            upload_to=".", null=True, blank=True, help_text="Upload file")
     volume = models.FloatField(null=True, blank=True, default=1.0)
 
     submitted = models.BooleanField(default=True)
@@ -272,8 +272,7 @@ class Asset(models.Model):
     tags = models.ManyToManyField(Tag, null=True, blank=True)
     language = models.ForeignKey(Language, null=True)
     weight = models.IntegerField(choices=[(i, i) for i in range(0, 100)], default=50)
-    mediatype = models.CharField(max_length=16, choices=[('audio', 'audio'), ('video', 'video'), ('photo', 'photo'),
-                                                         ('text', 'text')], default='audio')
+    mediatype = models.CharField(max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
     description = models.TextField(max_length=2048, blank=True)
 
     tags.tag_category_filter = True
@@ -284,13 +283,47 @@ class Asset(models.Model):
         super(Asset, self).__init__(*args, **kwargs)
         self.ENVELOPE_ID = 0
 
+    def media_display(self):
+        """display the media with HTML based on mediatype.
+        """
+        if self.mediatype == 'audio':
+            return self.audio_player()
+        elif self.mediatype == 'photo':
+            return self.image_display()
+        elif self.mediatype == 'text':
+            return self.text_display()
+        else:
+            return ""
+    media_display.short_name = "media"
+    media_display.allow_tags = True
+
     def audio_player(self):
         if self.mediatype == 'audio':
-            return """<div data-filename="%s" class="audio-file"></div>""" % self.filename
-        else:
-            return ""     
+            return """<div data-filename="%s" class="media-display audio-file"></div>""" % self.filename
     audio_player.short_name = "audio"
     audio_player.allow_tags = True
+
+    def image_display(self):
+        image_src = "%s%s" % (MEDIA_BASE_URI, self.filename)
+        return """<div data-filename="%s" class="media-display image-file"><a href="%s" target="imagepop"
+               ><img src="%s" alt="%s" title="%s"/></a></div>""" % (
+                self.filename, image_src, image_src, 
+                self.description, "click for full image")
+    image_display.short_name = "image"
+    image_display.allow_tags = True
+
+    def text_display(self):
+        try:
+            fileread = self.file.read()
+            chars = len(fileread)
+            excerpt = fileread[:1000]
+            more_str = chars > 1000 and """ <br/>... (excerpted from %s)""" % self.media_link_url() or ""
+            return """<div data-filename="%s" class="media-display text-file"
+                   >%s %s</div>""" % (self.filename, excerpt, more_str)
+        except IOError:
+            return """<div class="media-display">Unable to read from file</div>"""
+    text_display.short_name = "text"
+    text_display.allow_tags = True
 
     def location_map(self):
         html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
@@ -309,7 +342,7 @@ class Asset(models.Model):
     norm_audiolength.allow_tags = True
 
     def media_link_url(self):
-        return '<a href="%s/%s" target="_new">%s</a>' % (AUDIO_FILE_URI, self.filename, self.filename)
+        return '<a href="%s%s" target="_new">%s</a>' % (MEDIA_BASE_URI, self.filename, self.filename)
     media_link_url.allow_tags = True
 
     def get_tags(self):
