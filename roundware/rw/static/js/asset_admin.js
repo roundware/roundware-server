@@ -1,11 +1,11 @@
 $(document).ready(function(){
-    var audio_player = $('div.audio-file');
-    var audio_player_section = $('div.form-row.audio_player');
+    var media_display = $('div.media-display');
+    var media_display_section = $('div.form-row.media_display');
 
     var file_upload_section = $('div.form-row.file');
 
-    if ( audio_player.attr('data-filename') == "None" ) {
-        audio_player_section.hide();
+    if ( media_display.attr('data-filename') == "None" ) {
+        media_display_section.hide();
     } else {
         file_upload_section.hide();
     }
