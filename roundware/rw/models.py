@@ -298,7 +298,8 @@ class Asset(models.Model):
     media_display.allow_tags = True
 
     def audio_player(self):
-        return """<div data-filename="%s" class="media-display audio-file"></div>""" % self.filename
+        if self.mediatype == 'audio':
+            return """<div data-filename="%s" class="media-display audio-file"></div>""" % self.filename
     audio_player.short_name = "audio"
     audio_player.allow_tags = True
 
