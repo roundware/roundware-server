@@ -131,7 +131,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
         VoteInline,
     ]
     #exclude = ('tags',)
-    readonly_fields = ('location_map', 'audio_player', 'audiolength', 'session', 'created')#, 'longitude', 'latitude')#, 'filename')
+    readonly_fields = ('location_map', 'audio_player', 'media_display', 'audiolength', 'session', 'created')#, 'longitude', 'latitude')#, 'filename')
     list_display = ('id', 'session', 'submitted', 'project', 'media_link_url', 'mediatype', 'audio_player', 'created',
                     'norm_audiolength', 'get_likes', 'get_flags', 'get_tags', 'weight', 'volume', )
     list_filter = ('project', 'tags', 'submitted', 'audiolength', 'created', 'language', )
@@ -139,7 +139,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     save_on_top = True
     filter_horizontal = ('tags',)
     fieldsets = (
-        ('Media Data', {'fields' : ('mediatype', 'audio_player', 'file', 'volume', 'audiolength', 'description')}),
+        ('Media Data', {'fields' : ('mediatype', 'media_display', 'file', 'volume', 'audiolength', 'description')}),
         (None, {'fields' : ('project', 'language', 'session', 'created', 'weight', 'submitted', 'tags')}),
         ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude')})
     )
@@ -149,6 +149,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
             "all": (
                 "css/jplayer.blue.monday.css",
                 "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css",
+                "css/asset_admin.css"
                 )
             }
         js = (
