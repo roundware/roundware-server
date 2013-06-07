@@ -386,6 +386,7 @@ def get_available_assets(request):
                      longitude=asset.longitude,
                      audio_length=asset.audiolength,
                      submitted=asset.submitted,
+                     project=asset.project.name,
                      language=asset.language.language_code,
                      tags=[dict(
                          tag_category_name=tag.tag_category.name,
@@ -525,6 +526,7 @@ def add_asset_to_envelope(request):
                                      volume=1.0,
                                      language=session.language,
                                      project = session.project)
+                asset.file.name = fn
                 asset.save()
                 for t in tagset:
                     asset.tags.add(t)
