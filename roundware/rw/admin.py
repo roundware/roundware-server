@@ -134,7 +134,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     readonly_fields = ('location_map', 'audio_player', 'media_display', 'audiolength', 'session', 'created')#, 'longitude', 'latitude')#, 'filename')
     list_display = ('id', 'session', 'submitted', 'project', 'media_link_url', 'mediatype', 'audio_player', 'created',
                     'norm_audiolength', 'get_likes', 'get_flags', 'get_tags', 'weight', 'volume', )
-    list_filter = ('project', 'tags', 'submitted', 'audiolength', 'created', 'language', )
+    list_filter = ('project', 'tags', 'submitted', 'mediatype', 'audiolength', 'created', 'language', )
     list_editable = ('submitted', 'weight', 'volume')
     save_on_top = True
     filter_horizontal = ('tags',)

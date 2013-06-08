@@ -320,8 +320,8 @@ class Asset(models.Model):
             more_str = chars > 1000 and """ <br/>... (excerpted from %s)""" % self.media_link_url() or ""
             return """<div data-filename="%s" class="media-display text-file"
                    >%s %s</div>""" % (self.filename, excerpt, more_str)
-        except IOError:
-            return """<div class="media-display">Unable to read from file</div>"""
+        except Exception as e:
+           return """<div class="media-display" data-filename="%s">""" + '%s (%s)' % (self.filename, e.message, type(e)) + """</div>"""
     text_display.short_name = "text"
     text_display.allow_tags = True
 

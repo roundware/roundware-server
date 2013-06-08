@@ -66,6 +66,9 @@ def get_asset_info(request):
 
 def play_asset_in_stream(request):
     form = request.GET
+    # add skipped asset_id to form in order to track which asset is played
+    #assetid = form[asset_id]
+    #form[data] = form["asset_id"]
     request = form_to_request(form)
     arg_hack = json.dumps(request)
     db.log_event("play_asset_in_stream", int(form['session_id']), form)
