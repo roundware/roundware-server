@@ -180,37 +180,37 @@ def get_config(request):
         pass
 
     cpu_idle = psutil.cpu_times_percent().idle
-    demo_stream = "true" if cpu_idle < float(settings.config["demo_stream_cpu_limit"]) else project.demo_stream_enabled
+    demo_stream = project.demo_stream_enabled or cpu_idle < float(settings.config["demo_stream_cpu_limit"])
 
     response = [
-            {"device": {"device_id": device_id}},
-            {"session": {"session_id": session_id}}, {
-                "project": {
-                    "project_id": project.id,
-                    "project_name": project.name,
-                    "audio_format": project.audio_format,
-                    "max_recording_length": project.max_recording_length,
-                    "recording_radius": project.recording_radius,
-                    "sharing_message": sharing_message,
-                    "out_of_range_message": out_of_range_message,
-                    "sharing_url": project.sharing_url,
-                    "listen_questions_dynamic": project.listen_questions_dynamic,
-                    "speak_questions_dynamic": project.speak_questions_dynamic,
-                    "listen_enabled": project.listen_enabled,
-                    "geo_listen_enabled": project.geo_listen_enabled,
-                    "speak_enabled": project.speak_enabled,
-                    "geo_speak_enabled": project.geo_speak_enabled,
-                    "reset_tag_defaults_on_startup": project.reset_tag_defaults_on_startup,
-                    "legal_agreement": legal_agreement,
-                    "files_url": project.files_url,
-                    "files_version": project.files_version,
-                    "audio_stream_bitrate": project.audio_stream_bitrate,
-                    "demo_stream_enabled": demo_stream,
-                    "demo_stream_url": project.demo_stream_url,
-                    "demo_stream_message": demo_stream_message,
-                }
-            },
-            {"server": {
+            {"device":{"device_id": device_id}},
+            {"session":{"session_id": session_id}},
+            {"project":{
+                    "project_id":project.id,
+                    "project_name":project.name,
+                    "audio_format":project.audio_format,
+                    "max_recording_length":project.max_recording_length,
+                    "recording_radius":project.recording_radius,
+                    "sharing_message":sharing_message,
+                    "out_of_range_message":out_of_range_message,
+                    "sharing_url":project.sharing_url,
+                    "listen_questions_dynamic":project.listen_questions_dynamic,
+                    "speak_questions_dynamic":project.speak_questions_dynamic,
+                    "listen_enabled":project.listen_enabled,
+                    "geo_listen_enabled":project.geo_listen_enabled,
+                    "speak_enabled":project.speak_enabled,
+                    "geo_speak_enabled":project.geo_speak_enabled,
+                    "reset_tag_defaults_on_startup":project.reset_tag_defaults_on_startup,
+                    "legal_agreement":legal_agreement,
+                    "files_url":project.files_url,
+                    "files_version":project.files_version,
+                    "audio_stream_bitrate":project.audio_stream_bitrate,
+                    "demo_stream_enabled":demo_stream,
+                    "demo_stream_url":project.demo_stream_url,
+                    "demo_stream_message":demo_stream_message,
+                    }},
+
+            {"server":{
                     "version": "2.0"}},
             {"speakers":[dict(d) for d in speakers]},
             {"audiotracks":[dict(d) for d in audiotracks]}
@@ -572,7 +572,9 @@ def request_stream(request):
     project = session.project
     demo_stream_enabled = session.project.demo_stream_enabled
 
-    if demo_stream_enabled:
+    cpu = psutil.cpu_times_percent().system
+
+    if demo_stream_enabled or cpu > float(settings.config["demo_stream_cpu_limit"]):
         msg = "demo_stream_message"
         try:
             msg = project.demo_stream_message_loc.filter(language=session.language)[0].localized_string
