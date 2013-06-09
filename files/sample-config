@@ -1,10 +1,10 @@
-# network interface used
+
 interface = eth0
 # still used?
 port = 8001
 # default port for icecast streams
 icecast_port = 8000
-# default location for participant audio (see recording table in db) 
+# default location for participant audio (see recording table in db)
 audio_dir = /var/www/rwmedia
 # default location for incoming participant audio - may be used if incoming audio is ingested before included in piece
 upload_dir = /var/www/rwmedia
@@ -19,9 +19,9 @@ dbuser = round
 dbpasswd = round
 dbname = roundware
 # settings 
-num_pan_steps = 200     # discrete steps
-stereo_pan_interval = 10        # milliseconds
-ping_interval = 10000   # milliseconds
+num_pan_steps = 200    # discrete steps
+stereo_pan_interval = 10    # milliseconds
+ping_interval = 10000    # milliseconds
 master_volume = 3.0
 # maybe deprecated?
 record_caps = "audio/x-raw-int,channels=1,rate=8000,endianness=1234,signed=true,width=16,depth=16"
@@ -33,4 +33,5 @@ heartbeat_timeout = 200
 recording_repeat_count = 2
 # radius in meters - system wide setting 
 recording_radius = 1
-external_host_name_without_port = rw.externalhost.com	
+external_host_name_without_port = rw.externalhost.com
+demo_stream_cpu_limit = 50.0
