@@ -7,6 +7,7 @@ import json
 import traceback
 import uuid
 import datetime
+import psutil
 from roundwared import settings
 from roundwared import db
 from roundwared import convertaudio
@@ -181,6 +182,9 @@ def get_config(request):
     except:
         pass
 
+    cpu_idle = psutil.cpu_times_percent().idle
+    demo_stream = project.demo_stream_enabled or cpu_idle < float(settings.config["demo_stream_cpu_limit"])
+
     response = [
             {"device":{"device_id": device_id}},
             {"session":{"session_id": session_id}},
@@ -204,7 +208,7 @@ def get_config(request):
                     "files_url":project.files_url,
                     "files_version":project.files_version,
                     "audio_stream_bitrate":project.audio_stream_bitrate,
-                    "demo_stream_enabled":project.demo_stream_enabled,
+                    "demo_stream_enabled":demo_stream,
                     "demo_stream_url":project.demo_stream_url,
                     "demo_stream_message":demo_stream_message,
                     }},
@@ -581,7 +585,9 @@ def request_stream(request):
     project = session.project
     demo_stream_enabled = session.project.demo_stream_enabled
 
-    if demo_stream_enabled == True:
+    cpu = psutil.cpu_times_percent().system
+
+    if demo_stream_enabled or cpu > float(settings.config["demo_stream_cpu_limit"]):
         msg = "demo_stream_message"
         try:
             msg = project.demo_stream_message_loc.filter(language=session.language)[0].localized_string
