@@ -133,7 +133,7 @@ class Tag(models.Model):
     description = models.TextField()
     loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)
     data = models.TextField(null=True, blank=True)
-    relationships = models.ManyToManyField('self', symmetrical=False, related_name='related_to', null=True, blank=True)
+    relationships = models.ManyToManyField('self', symmetrical=True, related_name='related_to', null=True, blank=True)
 
     def get_loc(self):
         return "<br />".join(unicode(t) for t in self.loc_msg.all())
