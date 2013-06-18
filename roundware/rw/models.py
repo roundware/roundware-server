@@ -98,6 +98,7 @@ class Session(models.Model):
     language = models.ForeignKey(Language, null=True)
     client_type = models.CharField(max_length=128, null=True, blank=True)
     client_system = models.CharField(max_length=128, null=True, blank=True)
+    demo_stream_enabled = models.BooleanField(default=False)
 
     def __unicode__(self):
         return str(self.id)
