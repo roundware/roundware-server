@@ -157,8 +157,7 @@ def get_config(request):
         s.client_type = form.get('client_type')
     if form.has_key('client_system'):
         s.client_system = form.get('client_system')
-    s.save()
-    session_id = s.id
+
 
     sharing_url = str.format("http://{0}/roundware/?operation=view_envelope&envelopeid=[id]", hostname_without_port)
     sharing_message = "none set"
@@ -183,7 +182,10 @@ def get_config(request):
         pass
 
     cpu_idle = psutil.cpu_times_percent().idle
-    demo_stream = project.demo_stream_enabled or cpu_idle < float(settings.config["demo_stream_cpu_limit"])
+    s.demo_stream_enabled = project.demo_stream_enabled or cpu_idle < float(settings.config["demo_stream_cpu_limit"])
+
+    s.save()
+    session_id = s.id
 
     response = [
             {"device":{"device_id": device_id}},
@@ -208,7 +210,8 @@ def get_config(request):
                     "files_url":project.files_url,
                     "files_version":project.files_version,
                     "audio_stream_bitrate":project.audio_stream_bitrate,
-                    "demo_stream_enabled":demo_stream,
+                    # TODO: following attribute 'demo_stream_enabled' has be moved to the 'session' object
+                    "demo_stream_enabled":s.demo_stream_enabled,
                     "demo_stream_url":project.demo_stream_url,
                     "demo_stream_message":demo_stream_message,
                     }},
@@ -583,11 +586,8 @@ def request_stream(request):
         raise roundexception.RoundException("Must supply session_id.")
     session = models.Session.objects.get(id=request_form.get('session_id'))
     project = session.project
-    demo_stream_enabled = session.project.demo_stream_enabled
 
-    cpu = psutil.cpu_times_percent().system
-
-    if demo_stream_enabled or cpu > float(settings.config["demo_stream_cpu_limit"]):
+    if session.demo_stream_enabled:
         msg = "demo_stream_message"
         try:
             msg = project.demo_stream_message_loc.filter(language=session.language)[0].localized_string
