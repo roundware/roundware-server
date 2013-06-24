@@ -3,7 +3,7 @@ import os
 
 DEBUG = True
 #TEMPLATE_DEBUG = DEBUG
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     ('round', 'your_email@example.com'),

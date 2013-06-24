@@ -315,6 +315,7 @@ class Asset(models.Model):
     def text_display(self):
         try:
             fileread = self.file.read()
+            self.file.close()
             chars = len(fileread)
             excerpt = fileread[:1000]
             more_str = chars > 1000 and """ <br/>... (excerpted from %s)""" % self.media_link_url() or ""
