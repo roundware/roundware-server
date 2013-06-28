@@ -11,12 +11,10 @@ pygst.require("0.10")
 import gst
 import random
 import logging
-import sys
 import os
 from roundwared import roundfilesrc
 from roundwared import settings
 from roundwared import db
-from roundware.rw import models
 
 STATE_PLAYING = 0
 STATE_DEAD_AIR = 1

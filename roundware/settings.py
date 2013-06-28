@@ -39,6 +39,10 @@ EMAIL_HOST_USER = 'email@gmail.com'
 EMAIL_HOST_PASSWORD = 'password'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+LISTEN_UIMODE = "listen"
+SPEAK_UIMODE = "speak"
+
 ######## END ROUNDWARE SPECIFIC SETTINGS #########
 
 #change this to reflect your environment
@@ -180,7 +184,7 @@ LOGGING = {
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
     },
     'loggers': {
         'django.request': {
@@ -188,8 +192,53 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+}
+
+# PROFILING using django-profiler
+if DEBUG:
+    PROFILING_SQL_QUERIES = True
+    LOGGING['handlers'].update({
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+        'profile_logfile': {
+            'filename': '/var/log/rwprofiling',
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose'
+        },        
+    })
+
+    LOGGING['loggers'].update({
+         'profiling': {
+            'level': 'DEBUG',
+            'handlers': ['console','profile_logfile'],
+            'propagate': False,
+         },   
+    })       
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache',
+        'TIMEOUT': 60,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
     }
 }
+
 
 # Load the local settings file
 try:

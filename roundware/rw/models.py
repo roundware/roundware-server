@@ -1,11 +1,9 @@
-import urllib, urllib2
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from roundware.settings import MEDIA_BASE_URI
-from django.db.models.signals import post_save, pre_save
 from django.conf import settings
-from django.dispatch import receiver
 import datetime
+from cache_utils.decorators import cached
 
 try:
     import simplejson as json
@@ -84,6 +82,17 @@ class Project(models.Model):
 
     def __unicode__(self):
             return self.name
+
+    @cached(60*60)
+    def get_tag_cats_by_ui_mode(self, ui_mode):
+        """ Return TagCategories for this project for specified UIMode 
+            by name, like 'listen' or 'speak'.
+            Pass name of UIMode.
+        """
+        logging.debug('inside get_tag_cats_by_ui_mode... not from cache')
+        master_uis = MasterUI.objects.select_related('tag_category').filter(project=self, ui_mode__name=ui_mode)
+        return [mui.tag_category for mui in master_uis]
+
 
     class Meta:
         permissions = (('access_project', 'Access Project'),)
@@ -166,6 +175,14 @@ class MasterUI(models.Model):
 
     def toTagDictionary(self):
         return {'name': self.name, 'code': self.tag_category.name, 'select': self.select.name, 'order': self.index}
+
+    def save(self):
+        # invalidate cached value for tag categories by ui_mode for the 
+        # associated project.
+        logging.debug("invalidating Project.get_tags_by_ui_mode for project "
+                     " %s and UIMode %s" %(self.project, self.ui_mode.name))
+        super(MasterUI, self).save()
+        Project.get_tag_cats_by_ui_mode.invalidate(self.project, str(self.ui_mode.name))
 
     def __unicode__(self):
             return str(self.id) + ":" + self.ui_mode.name + ":" + self.name
@@ -456,3 +473,4 @@ class Vote(models.Model):
 def get_field_names_from_model(model):
     """Pass in a model class. Return list of strings of field names"""
     return [f.name for f in model._meta.fields]
+
