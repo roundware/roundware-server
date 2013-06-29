@@ -1,13 +1,12 @@
 import time
-import string
 import subprocess
 import os
 import logging
 import json
-import traceback
 import uuid
 import datetime
 import psutil
+from profiling import profile
 from roundwared import settings
 from roundwared import db
 from roundwared import convertaudio
@@ -19,10 +18,9 @@ from roundwared import rounddbus
 from roundware.rw import models
 from roundware import settings as rw_settings
 
-
 def check_for_single_audiotrack(session_id):
     ret = False
-    session = models.Session.objects.get(id=session_id)
+    session = models.Session.objects.select_related('project').get(id=session_id)
     tracks = models.Audiotrack.objects.filter(project=session.project)
     if tracks.count() == 1:
         ret = True
@@ -64,7 +62,6 @@ def get_asset_info(request):
     else:
         return {"user_error_message": "asset not found"}
 
-
 def play_asset_in_stream(request):
     form = request.GET
     # add skipped asset_id to form in order to track which asset is played
@@ -94,7 +91,6 @@ def skip_ahead(request):
         raise roundexception.RoundException("this operation is only valid for projects with 1 audiotrack")
     rounddbus.emit_stream_signal(int(form['session_id']), "skip_ahead", "")
     return {"success": True}
-
 
 def vote_asset(request):
     form = request.GET
@@ -127,6 +123,7 @@ def vote_asset(request):
 #2.0 Protocol
 
 
+# @profile(stats=True)
 def get_config(request):
     form = request.GET
     try:
@@ -225,6 +222,7 @@ def get_config(request):
     return response
 
 
+# @profile(stats=True)
 def get_tags_for_project(request):
     form = request.GET
     p = None
@@ -244,7 +242,7 @@ def get_tags_for_project(request):
 #can pass additional parameters matching name of fields on Asset
 #example: http://localhost/roundware/?operation=get_available_assets
 #returns Dictionary
-#
+# @profile(stats=True)
 def get_available_assets(request):
     """Return JSON serializable dictionary with the number of matching assets
     by media type and a list of available assets based on filter criteria passed in
@@ -430,7 +428,7 @@ def log_event(request):
 #example:
 #{"envelope_id": 2}
 
-
+# @profile(stats=True)
 def create_envelope(request):
     form = request.GET
     if not form.has_key('session_id'):
@@ -452,6 +450,7 @@ def create_envelope(request):
 #args (operation, envelope_id, asset_id) #asset_id must point to an Asset that exists in the database
 #returns success bool
 #{"success": true}
+# @profile(stats=True)
 def add_asset_to_envelope(request):
 
     #get asset_id from the GET request
@@ -465,7 +464,7 @@ def add_asset_to_envelope(request):
             raise roundexception.RoundException("Invalid Asset ID Provided. No Asset exists with ID %s" % asset_id)
     envelope_id = get_parameter_from_request(request, 'envelope_id', True)
 
-    envelope = models.Envelope.objects.get(id=envelope_id)
+    envelope = models.Envelope.objects.select_related('session').get(id=envelope_id)
     session = envelope.session
 
     db.log_event("start_upload", session.id, request.GET)
@@ -574,6 +573,7 @@ def get_parameter_from_request(request, name, required):
     return ret
 
 
+# @profile(stats=True)
 def request_stream(request):
     request_form = request.GET
     try:
@@ -584,7 +584,7 @@ def request_stream(request):
 
     if not request_form.get('session_id'):
         raise roundexception.RoundException("Must supply session_id.")
-    session = models.Session.objects.get(id=request_form.get('session_id'))
+    session = models.Session.objects.select_related('project').get(id=request_form.get('session_id'))
     project = session.project
 
     if session.demo_stream_enabled:
@@ -619,6 +619,7 @@ def request_stream(request):
             command.extend(['--audio_stream_bitrate', str(request_form['audio_stream_bitrate'])])
 
         audio_format = project.audio_format.upper()
+
         apache_safe_daemon_subprocess(command)
         wait_for_stream(session.id, audio_format)
 
@@ -646,7 +647,7 @@ def request_stream(request):
             'user_message': msg
         }
 
-
+# @profile(stats=True)
 def modify_stream(request):
     success = False
     msg = ""
@@ -656,7 +657,7 @@ def modify_stream(request):
     db.log_event("modify_stream", int(form['session_id']), form)
 
     if form.has_key('session_id'):
-        session = models.Session.objects.get(id=form['session_id'])
+        session = models.Session.objects.select_related('project').get(id=form['session_id'])
         project = session.project
         if form.has_key('language'):
             try:
@@ -770,7 +771,9 @@ def form_to_request(form):
             request[p] = []
     for p in ['tags']:
         if form.has_key(p) and form[p]:
-            request[p] = map(int, form[p].split(","))
+            # make sure we don't have blank values from trailing commas
+            p_list = [v for v in form[p].split(",") if v != ""]
+            request[p] = map(int, p_list)
         else:
             request[p] = []
 

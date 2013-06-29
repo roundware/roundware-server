@@ -3,6 +3,7 @@
 import logging
 import random
 import threading
+from profiling import profile
 from roundwared import gpsmixer
 from roundware.rw import models
 from roundwared import db
@@ -28,6 +29,7 @@ class RecordingCollection:
         self.update_request(self.request)
 
     # Updates the request stored in the collection.
+    # @profile(stats=True)
     def update_request(self, request):
         logging.debug("update_request")
         self.lock.acquire()
@@ -43,6 +45,7 @@ class RecordingCollection:
         self.lock.release()
 
     # Gets a new recording to play.
+    # @profile(stats=True)
     def get_recording(self):
         logging.debug("Recording Collection: Getting a recording from the bucket.")
         self.lock.acquire()

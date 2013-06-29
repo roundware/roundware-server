@@ -1,6 +1,5 @@
 import libxml2
 import urllib2
-import os
 import logging
 import pycurl
 

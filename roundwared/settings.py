@@ -28,6 +28,8 @@ configstring = """
     heartbeat_timeout   = integer(1, 3600, default=30)
     recording_repeat_count  = integer(0, default = 2)
     recording_radius    = integer(0, 6378100, default=16)
+    external_host_name_without_port = string(default=rw.externalhost.com)
+    demo_stream_cpu_limit = float(0.0,100.0,default=50.0)
 """
 
 
