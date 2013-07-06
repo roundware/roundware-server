@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 
-import threading
 import logging
 import sys
-import os
 import traceback
 from roundwared import settings
 from roundwared import daemon
 from roundwared import roundgetopt
-from roundwared import stream
-from roundwared import settings
+from roundwared.stream import RoundStream
 from roundwared import rounddbus
+# from memory_profiler import profile
 
 
 def listofint(s):
@@ -20,7 +18,7 @@ options_data = [
 	#(name,			type,		default)
 	("session_id",		int),
 	("foreground",),
-        ("project_id",		int,	0),
+    ("project_id",		int,	0),
 	#("subcategoryid",	listofint,	[]),
 	#("questionid",		listofint,	[]),
 	#("usertypeid",		listofint,	[]),
@@ -34,6 +32,7 @@ options_data = [
         ("audio_stream_bitrate", int, 128),
 ]
 
+# @profile
 def main ():
 	opts = roundgetopt.getopts(options_data)
 	if opts.has_key('configfile'):
@@ -69,7 +68,7 @@ def initialize_logging(foreground):
 def start_stream (sessionid, audio_format, request):
 	try:
 		logging.info("Starting stream " + str(sessionid))
-		current_stream = stream.RoundStream(
+		current_stream = RoundStream(
 			sessionid, audio_format, request)
 		rounddbus.add_stream_signal_receiver(current_stream)
 		current_stream.start()

@@ -8,7 +8,6 @@ import math
 import httplib
 import urlparse
 from roundwared import gnomevfsmp3src
-from roundwared import settings
 
 
 class GPSMixer (gst.Bin):

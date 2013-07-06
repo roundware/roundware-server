@@ -22,29 +22,26 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import string
 import logging
 import datetime
-import time
+from profiling import profile
 from roundwared import settings
-from roundwared import gpsmixer
 from roundwared import roundexception
-from django.db.models import Q
+from roundware import settings as rw_settings
 from roundware.rw.models import Session
 from roundware.rw.models import Language
 from roundware.rw.models import Event
 from roundware.rw.models import Project
 from roundware.rw.models import Asset
 from roundware.rw.models import Tag
-from roundware.rw.models import TagCategory
 from roundware.rw.models import MasterUI
 from roundware.rw.models import UIMapping
 from roundware.rw.models import ListeningHistoryItem
 from roundwared import icecast2
-import operator
-import pycurl
+from cache_utils.decorators import cached
 
 
+# @profile(stats=True)
 def get_config_tag_json(p, s):
     lingo = Language.objects.filter(language_code='en')[0]
     if s != None:
@@ -87,6 +84,8 @@ def get_config_tag_json(p, s):
     return modes
 
 
+# @profile(stats=True)
+@cached(30)
 def get_recordings(request):
 
     logging.debug("get_recordings: got request: " + str(request))
@@ -102,11 +101,11 @@ def get_recordings(request):
 
     if request.has_key("session_id") and hasattr(request["session_id"], "__iter__") and len(request["session_id"]) > 0:
         logging.debug("get_recordings: got session_id: " + str(request["session_id"][0]))
-        s = Session.objects.get(id=request["session_id"][0])
+        s = Session.objects.select_related('project', 'language').get(id=request["session_id"][0])
         p = s.project
     elif request.has_key("session_id") and not hasattr(request["session_id"], "__iter__"):
         logging.debug("get_recordings: got session_id: " + str(request["session_id"]))
-        s = Session.objects.get(id=request["session_id"])
+        s = Session.objects.select_related('project', 'language').get(id=request["session_id"])
         p = s.project
 
     # this first check checks whether tags is a list of numbers.
@@ -129,6 +128,7 @@ def get_recordings(request):
     return recs
 
 
+# @profile(stats=True)
 def get_default_tags_for_project(p, s):
     lingo = Language.objects.filter(language_code='en')[0]
     if s != None:
@@ -154,40 +154,46 @@ def get_default_tags_for_project(p, s):
 #q_objects = [Q(**{field + '__icontains':q}) for field in search_fields]
 #queryset = BlogPost.objects.filter(reduce(operator.or_, q_objects))
 
-
+# @profile(stats=True)
+@cached(60*1)
 def filter_recs_for_tags(p, tagids_from_request, l):
+    """ Return Assets containing at least one matching tag in each available 
+    tag category with the tags supplied in tagids_from_request.
+    """
     logging.debug("filter_recs_for_tags enter")
-    recs = []
-    tags_from_request = Tag.objects.filter(id__in=tagids_from_request)
 
-    tags_per_cat_dict = {}
-    cats = TagCategory.objects.all()
-    for cat in cats:
-        tags_per_cat_dict[cat] = Tag.objects.filter(tag_category=cat)
+    recs = []
+    tag_ids_per_cat_dict = {}
+    # project_cats = TagCategory.objects.filter()
+    project_cats = p.get_tag_cats_by_ui_mode(rw_settings.LISTEN_UIMODE)
+    for cat in project_cats:
+        tag_ids_per_cat_dict[cat.id] = [tag.id for tag in Tag.objects.filter(tag_category=cat)]
+
 
     project_recs = Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=l).distinct()
     for rec in project_recs:
         remove = False
-        for cat in cats:
+        rec_tag_ids = [tag.id for tag in rec.tags.all()]
+        for cat in project_cats:
             if remove:
                 break
             #tags_per_category = Tag.objects.filter(tag_category=cat)
-            tags_per_category = tags_per_cat_dict[cat]
-            tags_for_this_cat_from_request = filter(lambda x: x in tags_per_category, tags_from_request)
-            tags_for_this_cat_from_rec = filter(lambda x: x in tags_per_category, rec.tags.all())
+            tags_per_category = tag_ids_per_cat_dict[cat.id]
+            tag_ids_for_this_cat_from_request = filter(lambda x: x in tags_per_category, tagids_from_request)
+            tag_ids_for_this_cat_from_rec = filter(lambda x: x in tags_per_category, rec_tag_ids)
             # if the asset has any tags from this category, make sure at least one match with exists, else remove
-            if len(tags_for_this_cat_from_request) > 0:
+            if len(tag_ids_for_this_cat_from_request) > 0:
                 found = False
-                if len(tags_for_this_cat_from_rec) > 0 and len(tags_for_this_cat_from_request) > 0:
-                    for t in tags_for_this_cat_from_request:
-                        if t in tags_for_this_cat_from_rec:
+                if len(tag_ids_for_this_cat_from_rec) > 0:
+                    for t in tag_ids_for_this_cat_from_request:
+                        if t in tag_ids_for_this_cat_from_rec:
                             found = True
                             break
                 if not found:
                     remove = True
         if not remove:
             recs.append(rec)
-
+    logging.debug("\n\n\nfilter_recs_for_tags returned %s Assets \n\n\n" % (len(recs)))
     return recs
 # form args:
 #event_type <string>
@@ -242,6 +248,7 @@ def add_asset_to_session_history_and_update_metadata(asset_id, session_id, durat
     admin.update_metadata(asset_id, session_id)
     logging.debug("add_asset_to_session_history_and_update_metadata: returned!")
 
+    #import pycurl
     #c = pycurl.Curl()
     #c.setopt(pycurl.USERPWD, "admin:roundice")
     #logging.debug("add_asset_to_session_history_and_update_metadata - enter")

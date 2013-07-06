@@ -8,7 +8,7 @@ import time
 from roundwared import settings
 from roundwared import composition
 from roundwared import icecast2
-from roundwared import server
+from roundwared.server import icecast_mount_point
 from roundwared import gpsmixer
 from roundwared import recording_collection
 from roundware.rw import models
@@ -26,7 +26,7 @@ class RoundStream:
         self.bitrate = request["audio_stream_bitrate"]
         logging.debug("Roundstream init: bitrate: {0}".format(self.bitrate))
         logging.debug("Roundstream init: getting session id")
-        session = models.Session.objects.get(id=sessionid)
+        session = models.Session.objects.select_related('project').get(id=sessionid)
         logging.debug("Roundstream init: got session, getting project radius")
         self.radius = session.project.recording_radius
         self.ordering = session.project.ordering
@@ -246,7 +246,7 @@ class RoundStream:
 
     def is_anyone_listening(self):
         listeners = self.icecast_admin.get_client_count(
-            server.icecast_mount_point(
+            icecast_mount_point(
                 self.sessionid, self.audio_format))
         #logging.debug("Number of listeners: " + str(listeners))
         if self.last_listener_count == 0 and listeners == 0:
@@ -293,7 +293,7 @@ class RoundStreamSink (gst.Bin):
         #shout2send.set_property("username", "source")
         #shout2send.set_property("password", "roundice")
         shout2send.set_property("mount",
-            server.icecast_mount_point(sessionid, audio_format))
+            icecast_mount_point(sessionid, audio_format))
         #shout2send.set_property("streamname","initial name")
         #self.add(capsfilter, volume, self.taginjector, shout2send)
         self.add(capsfilter, volume, shout2send)
