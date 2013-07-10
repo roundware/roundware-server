@@ -1,6 +1,9 @@
 from django.core.files.storage import FileSystemStorage
+from django.core.exceptions import ValidationError
+from django.core.exceptions import NON_FIELD_ERRORS
 from django.db import models, transaction
 from roundware.settings import MEDIA_BASE_URI
+from roundware.rw import fields
 from django.conf import settings
 import datetime
 from cache_utils.decorators import cached
@@ -13,16 +16,6 @@ except:
 import logging
 
 logger = logging.getLogger(name=__file__)
-
-
-class BigIntegerField(models.IntegerField):
-    empty_strings_allowed = False
-
-    def get_internal_type(self):
-        return "BigIntegerField"
-
-    def db_type(self):
-        return 'bigint'  # Note this won't work with Oracle.
 
 
 class Language(models.Model):
@@ -272,14 +265,22 @@ class Event(models.Model):
 class Asset(models.Model):
     ASSET_MEDIA_TYPES = [('audio', 'audio'), ('video', 'video'),
                         ('photo', 'photo'), ('text', 'text')]
-
+    MEDIATYPE_CONTENT_TYPES = {
+        'audio': settings.ALLOWED_AUDIO_CONTENT_TYPES,
+        'video': [],
+        'photo': settings.ALLOWED_IMAGE_CONTENT_TYPES,
+        'text': settings.ALLOWED_TEXT_CONTENT_TYPES,
+    }
+                        
     session = models.ForeignKey(Session, null=True, blank=True)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
     filename = models.CharField(max_length=256, null=True, blank=True)
-    file = models.FileField(storage=FileSystemStorage(location=getattr(settings, "MEDIA_BASE_DIR"),
-                                                      base_url=getattr(settings, "MEDIA_BASE_URI")),
-                            upload_to=".", null=True, blank=True, help_text="Upload file")
+    file = fields.ContentTypeRestrictedFileField(storage=FileSystemStorage(
+        location=getattr(settings, "MEDIA_BASE_DIR"),
+        base_url=getattr(settings, "MEDIA_BASE_URI"),),
+        content_types=getattr(settings,"ALLOWED_MIMETYPES"),
+        upload_to=".", null=True, blank=True, help_text="Upload file")
     volume = models.FloatField(null=True, blank=True, default=1.0)
 
     submitted = models.BooleanField(default=True)
@@ -300,6 +301,24 @@ class Asset(models.Model):
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)
         self.ENVELOPE_ID = 0
+
+    def clean_fields(self, exclude=None):
+        super(Asset, self).clean_fields(exclude)
+        self.validate_filetype_for_mediatype(self.file.file.content_type)
+
+    def validate_filetype_for_mediatype(self, content_type):
+        """ content_type of file uploaded must be valid for mediatype 
+        selected.  For now, just trusts the content_type coming through HTTP.  
+        To be sure would need to examine the file. 
+        """
+        if content_type not in self.MEDIATYPE_CONTENT_TYPES[self.mediatype]:
+            raise ValidationError(
+                {
+                    NON_FIELD_ERRORS:
+                    (u"File type %s not supported for asset mediatype %s"
+                    % (content_type, self.mediatype),)
+                }   
+            )
 
     def media_display(self):
         """display the media with HTML based on mediatype.

@@ -25,6 +25,12 @@ MEDIA_BASE_DIR = "/var/www/rwmedia/"
 AUDIO_FILE_DIR = MEDIA_BASE_DIR #+ "audio"
 VIDEO_FILE_DIR = MEDIA_BASE_DIR #+ "video"
 IMAGE_FILE_DIR = MEDIA_BASE_DIR #+ "img"
+
+ALLOWED_AUDIO_CONTENT_TYPES = ['audio/x-wav', 'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',  ]
+ALLOWED_IMAGE_CONTENT_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/pjpeg', ]
+ALLOWED_TEXT_CONTENT_TYPES = ['text/plain', 'text/html', 'application/xml', ]
+ALLOWED_MIMETYPES = ALLOWED_AUDIO_CONTENT_TYPES + ALLOWED_IMAGE_CONTENT_TYPES + ALLOWED_TEXT_CONTENT_TYPES
+
  # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
 DEFAULT_SESSION_ID = "-1"
