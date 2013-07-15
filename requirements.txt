@@ -6,3 +6,5 @@ django-guardian==1.0.4
 psutil==0.7.1
 django-cache-utils==0.7.2
 django-profiler==1.1
+python-magic==0.4.3
+django-validated-file==2.0

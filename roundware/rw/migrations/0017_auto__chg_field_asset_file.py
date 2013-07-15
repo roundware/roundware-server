@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
 
         # Changing field 'Asset.file'
-        db.alter_column('rw_asset', 'file', self.gf('roundware.rw.fields.ContentTypeRestrictedFileField')(max_length=100, null=True))
+        db.alter_column('rw_asset', 'file', self.gf('roundware.rw.fields.RWValidatedFileField')(max_length=100, null=True))
 
     def backwards(self, orm):
 
@@ -23,7 +23,7 @@ class Migration(SchemaMigration):
             'audiolength': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'description': ('django.db.models.fields.TextField', [], {'max_length': '2048', 'blank': 'True'}),
-            'file': ('roundware.rw.fields.ContentTypeRestrictedFileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'file': ('roundware.rw.fields.RWValidatedFileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'filename': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'language': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Language']", 'null': 'True'}),

@@ -266,20 +266,20 @@ class Asset(models.Model):
     ASSET_MEDIA_TYPES = [('audio', 'audio'), ('video', 'video'),
                         ('photo', 'photo'), ('text', 'text')]
     MEDIATYPE_CONTENT_TYPES = {
-        'audio': settings.ALLOWED_AUDIO_CONTENT_TYPES,
+        'audio': settings.ALLOWED_AUDIO_MIME_TYPES,
         'video': [],
-        'photo': settings.ALLOWED_IMAGE_CONTENT_TYPES,
-        'text': settings.ALLOWED_TEXT_CONTENT_TYPES,
+        'photo': settings.ALLOWED_IMAGE_MIME_TYPES,
+        'text': settings.ALLOWED_TEXT_MIME_TYPES,
     }
                         
     session = models.ForeignKey(Session, null=True, blank=True)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
     filename = models.CharField(max_length=256, null=True, blank=True)
-    file = fields.ContentTypeRestrictedFileField(storage=FileSystemStorage(
+    file = fields.RWValidatedFileField(storage=FileSystemStorage(
         location=getattr(settings, "MEDIA_BASE_DIR"),
         base_url=getattr(settings, "MEDIA_BASE_URI"),),
-        content_types=getattr(settings,"ALLOWED_MIMETYPES"),
+        content_types=getattr(settings,"ALLOWED_MIME_TYPES"),
         upload_to=".", null=True, blank=True, help_text="Upload file")
     volume = models.FloatField(null=True, blank=True, default=1.0)
 
