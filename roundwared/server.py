@@ -489,6 +489,10 @@ def add_asset_to_envelope(request):
         #delete the uploaded original after the copy has been made
         if asset:
             asset.file.delete()
+            # re-assign file to asset
+            asset.file.name = fn
+            asset.filename = fn
+            asset.save()
         #make sure everything is in wav form only if mediatype is audio
         if mediatype == "audio":
             newfilename = convertaudio.convert_uploaded_file(fn)
