@@ -3,3 +3,15 @@ sudo apt-get install python-mysqldb python-configobj mysql-server icecast2 ffmpe
 sudo a2enmod rewrite
 # django apps
 sudo pip install -r requirements.txt
+
+# use our configurations for ClamAV
+sudo cp ./files/freshclam.conf /etc/clamav/freshclam.conf
+
+# update ClamAV with latest viruses/malware detection
+sudo freshclam
+
+# start clamav-freshclam services
+sudo /etc/init.d/clamav-freshclam start
+
+# make sure clamav-freshclam gets restarted on reboot
+sudo crontab -l | { cat; echo "@reboot sudo /etc/init.d/clamav-freshclam start;"} | sudo crontab -
