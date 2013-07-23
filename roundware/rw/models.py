@@ -297,9 +297,9 @@ class Asset(models.Model):
     description = models.TextField(max_length=2048, blank=True)
 
     # generic relations
-    dj_content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField(null=True, blank=True)
-    content_object = generic.GenericForeignKey('dj_content_type', 'object_id')
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
 
     tags.tag_category_filter = True
 
