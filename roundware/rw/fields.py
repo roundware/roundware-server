@@ -9,8 +9,6 @@ class RWValidatedFileField(ValidatedFileField):
     Same as FileField, but you can specify:
         * content_types - list containing allowed content_types. 
         Example: ['application/pdf', 'image/jpeg']
-        This is not reliable outside of controlled users since content_type
-        can be spoofed.
     """
     def __init__(self, content_types=None, **kwargs):
         if content_types:

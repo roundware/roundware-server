@@ -2,6 +2,8 @@ from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db import models, transaction
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 from roundware.settings import MEDIA_BASE_URI
 from roundware.rw import fields
 from django.conf import settings
@@ -294,6 +296,11 @@ class Asset(models.Model):
     mediatype = models.CharField(max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
     description = models.TextField(max_length=2048, blank=True)
 
+    # generic relations
+    dj_content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = generic.GenericForeignKey('dj_content_type', 'object_id')
+
     tags.tag_category_filter = True
 
     audiolength.audio_length_filter = True
@@ -304,7 +311,10 @@ class Asset(models.Model):
 
     def clean_fields(self, exclude=None):
         super(Asset, self).clean_fields(exclude)
-        self.validate_filetype_for_mediatype(self.file.file.content_type)
+        # if this is first upload, file will have content_type that should
+        # be validated
+        if hasattr(self.file.file, 'content_type'):
+            self.validate_filetype_for_mediatype(self.file.file.content_type)
 
     def validate_filetype_for_mediatype(self, content_type):
         """ content_type of file uploaded must be valid for mediatype 
@@ -432,7 +442,7 @@ class Asset(models.Model):
 class Envelope(models.Model):
     session = models.ForeignKey(Session)
     created = models.DateTimeField(default=datetime.datetime.now)
-    assets = models.ManyToManyField(Asset)
+    assets = models.ManyToManyField(Asset, blank=True)
 
     def __unicode__(self):
             return str(self.id) + ": Session id: " + str(self.session.id)
