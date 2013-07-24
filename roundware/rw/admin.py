@@ -179,8 +179,8 @@ class AssetAdmin(ProjectProtectedModelAdmin):
 
 class GenericAssetInline(generic.GenericStackedInline):
     model = Asset    
-    verbose_name_plural = "Assets in this Envelope"
-    ct_field = "content_type"
+    verbose_name_plural = "Add Assets"
+    ct_field = "dj_content_type"
     extra = 0
     fieldsets = AssetAdmin.fieldsets
     readonly_fields = AssetAdmin.readonly_fields  + ('project',)
