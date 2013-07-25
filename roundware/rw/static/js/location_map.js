@@ -284,11 +284,12 @@ function setLocationMaps(){
             savePosition(mouseEvent.latLng);
         });
 
-        google.maps.event.addListener(map, 'tilesloaded', function(){
-            console.log("Map tiles fully loaded!");
-        }); 
 
         var geocoder = new google.maps.Geocoder();
+
+        // make sure each searchbox has unique id
+        var searchbox = $(this).find('#searchbox');
+        if ($(searchbox).length > 0) $(searchbox)[0].id=prefix+'searchbox';
 
         $(function() {
             $("#"+prefix+"searchbox").autocomplete({
