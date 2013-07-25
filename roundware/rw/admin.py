@@ -177,10 +177,10 @@ class AssetAdmin(ProjectProtectedModelAdmin):
             )
 
 
-class GenericAssetInline(generic.GenericStackedInline):
+class AssetInline(admin.StackedInline):
     model = Asset    
     verbose_name_plural = "Add Assets"
-    ct_field = "dj_content_type"
+    # ct_field = "dj_content_type"
     extra = 0
     fieldsets = AssetAdmin.fieldsets
     readonly_fields = AssetAdmin.readonly_fields  + ('project',)
@@ -318,7 +318,7 @@ class EventAdmin(ProjectProtectedThroughSessionModelAdmin):
 class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
     list_display = ('id', 'session', 'created')
     ordering = ['-id']
-    inlines = [GenericAssetInline,]
+    inlines = [AssetInline,]
 
     def save_formset(self, request, form, formset, change):
         """
@@ -355,7 +355,8 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
             "all": (
                 "css/jplayer.blue.monday.css",
                 "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css",
-                "css/asset_admin.css"
+                "css/asset_admin.css",
+                "css/envelope_admin.css"
             )
         }
 

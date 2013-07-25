@@ -296,14 +296,10 @@ class Asset(models.Model):
     mediatype = models.CharField(max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
     description = models.TextField(max_length=2048, blank=True)
 
-    # generic foreignkey.  
     # enables inline adding/editing of Assets in Envelope Admin.
-    # it creates a generic foreign key relationship between Asset and 
-    # a single Envelope via Envelope's contenttype. Will only relate the Asset
-    # to the Envelope on which it was initially added.  
-    dj_content_type = models.ForeignKey(ContentType, null=True, blank=True)
-    object_id = models.PositiveIntegerField(null=True, blank=True)
-    content_object = generic.GenericForeignKey('dj_content_type', 'object_id')
+    # creates a relationship of an Asset to the Envelope, in which it was
+    # initially added
+    initialenvelope = models.ForeignKey('Envelope', null=True)
 
     tags.tag_category_filter = True
 
