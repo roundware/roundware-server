@@ -377,7 +377,7 @@ class Asset(models.Model):
         html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
         <div id="map_instructions">To change or select location, type an address above and select from the available options;
         then move pin to exact location of asset.</div>
-        <div class="GMap" id="map" style="width:800px; height: 200px; margin-top: 10px;"></div>""" # height 600
+        <div class="GMap" id="map" style="width:800px; height: 600px; margin-top: 10px;"></div>""" # height 600
         return html
     location_map.short_name = "location"
     location_map.allow_tags = True

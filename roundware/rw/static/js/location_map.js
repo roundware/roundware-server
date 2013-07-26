@@ -174,11 +174,14 @@ var maps = Array();
 
 function setLocationMaps(){
 
+    maps = Array(); 
+
     // we might be on the Envelope admin where there are multiple Asset divs.
     // if not, we are on the Asset admin
     asset_sets = $(".dynamic-asset_set");
+    multiple_assets = $("#asset_set-group").length;
 
-    if (asset_sets.length == 0) {
+    if (multiple_assets == 0) {
         asset_sets = $('html');
         set_id_prefix = false;
     } else {
@@ -194,19 +197,15 @@ function setLocationMaps(){
         var default_lng = $("#"+prefix+"longitude")[0];
         var default_lat = $("#"+prefix+"latitude")[0];
         var default_lng_missing, default_lat_missing = false;
-        if ( default_lng) {
-            default_lng = parseFloat(default_lng.value);
-            if (default_lng.value == "") {
-                default_lng_missing = true;
-                default_lng = -71.057205;
-            }
-        } 
-        if ( default_lat) {
-            default_lat = parseFloat(default_lat.value);
-            if (default_lat.value == '') {
-                default_lat_missing = true;
-                default_lat = 42.355709;
-            }
+        if (default_lng) default_lng = parseFloat(default_lng.value);
+        if (default_lat) default_lat = parseFloat(default_lat.value);
+        if (default_lng == "" || !default_lng) {
+            default_lng_missing = true;
+            default_lng = -71.057205;
+        }
+        if (default_lat == "" || !default_lat) {
+            default_lat_missing = true;
+            default_lat = 42.355709;    
         } 
         var mapOptions = {
             zoom: 10,
@@ -351,20 +350,6 @@ function setLocationMaps(){
         })
     }); // end each
 };
-
-function copyAssetAttrs(obj) {
-    // copy the form values of the previous Asset to the new subform,
-    // excluding the file input.
-    var oldersib = $(obj).prev();
-    var formelselector = "fieldset div.form-row:not(div[class~='file']) input, fieldset div.form-row:not(div[class~='file']) select, fieldset div.form-row:not(div[class~='file']) textarea";
-
-    if ($(oldersib).is("div.dynamic-asset_set")) { 
-        var oldersib_formels = $(oldersib).find(formelselector);
-        $.each($(obj).find(formelselector), function(key, el) {
-            el.value = oldersib_formels[key].value;
-        });
-    }
-}
 
 
 $(document).ready(function() {

@@ -1,4 +1,18 @@
 
+function copyAssetAttrs(obj) {
+    // copy the form values of the previous Asset to the new subform,
+    // excluding the file input.
+    var oldersib = $(obj).prev();
+    var formelselector = "fieldset div.form-row:not(div[class~='file']) input, fieldset div.form-row:not(div[class~='file']) select, fieldset div.form-row:not(div[class~='file']) textarea";
+
+    if ($(oldersib).is("div.dynamic-asset_set")) { 
+        var oldersib_formels = $(oldersib).find(formelselector);
+        $.each($(obj).find(formelselector), function(key, el) {
+            el.value = oldersib_formels[key].value;
+        });
+    }
+}
+
 function buildAssetAccordion() {
     var outer = $('#asset_set-group');
     // first need to wrap Asset fieldsets in an extra div
@@ -16,14 +30,14 @@ function buildAssetAccordion() {
 
     $(outer).accordion({
         header: '.dynamic-asset_set h3', 
-        collapsible: true, 
+        collapsible: false, 
         active: false,
         change: function(e, ui) {
             // force a redraw of the map after it has gone offscreen
             // as inactive accordion pane.
             map = maps[ui.options.active];
             google.maps.event.trigger(map, 'resize');// force redraw
-            map.setZoom(15); 
+            map.setZoom(map.getZoom()); 
             map.setCenter(map.marker.getPosition());
 
         }});
