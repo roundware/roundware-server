@@ -184,6 +184,7 @@ class AssetInline(admin.StackedInline):
     extra = 0
     fieldsets = AssetAdmin.fieldsets
     readonly_fields = AssetAdmin.readonly_fields  + ('project',)
+    filter_horizontal = ('tags',)
     # prepopulated_fields = {"session": ("title",)}
   
 
@@ -319,6 +320,8 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
     list_display = ('id', 'session', 'created')
     ordering = ['-id']
     inlines = [AssetInline,]
+    filter_horizontal = ('assets',)
+    # readonly_fields = ('session',)
 
     def save_formset(self, request, form, formset, change):
         """
@@ -349,6 +352,7 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
                 'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
                 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
                 'js/location_map.js',
+                'js/asset_admin.js',
                 'js/envelope_admin.js',
             )
 

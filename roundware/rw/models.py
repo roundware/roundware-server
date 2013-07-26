@@ -282,7 +282,7 @@ class Asset(models.Model):
         location=getattr(settings, "MEDIA_BASE_DIR"),
         base_url=getattr(settings, "MEDIA_BASE_URI"),),
         content_types=getattr(settings,"ALLOWED_MIME_TYPES"),
-        upload_to=".", null=True, blank=True, help_text="Upload file")
+        upload_to=".", help_text="Upload file")
     volume = models.FloatField(null=True, blank=True, default=1.0)
 
     submitted = models.BooleanField(default=True)
@@ -311,6 +311,8 @@ class Asset(models.Model):
 
     def clean_fields(self, exclude=None):
         super(Asset, self).clean_fields(exclude)
+        if not self.file:
+            return
         # if this is first upload, file will have content_type that should
         # be validated
         if hasattr(self.file.file, 'content_type'):
@@ -439,8 +441,13 @@ class Asset(models.Model):
     def __unicode__(self):
         return str(self.id) + ": " + self.mediatype + " at " + str(self.latitude) + "/" + str(self.longitude)
 
+
+def get_default_session():
+    return Session.objects.get(id=settings.DEFAULT_SESSION_ID)
+
+
 class Envelope(models.Model):
-    session = models.ForeignKey(Session)
+    session = models.ForeignKey(Session, default=get_default_session)
     created = models.DateTimeField(default=datetime.datetime.now)
     assets = models.ManyToManyField(Asset, blank=True)
 
@@ -502,4 +509,5 @@ class Vote(models.Model):
 def get_field_names_from_model(model):
     """Pass in a model class. Return list of strings of field names"""
     return [f.name for f in model._meta.fields]
+
 

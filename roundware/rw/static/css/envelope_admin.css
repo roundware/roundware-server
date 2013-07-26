@@ -11,7 +11,7 @@ couldn't figure out how to get around errors with hiding these in the inline
 
 .dynamic-asset_set h3,
 .dynamic-asset_set h3 label.vCheckboxLabel {
-    background: #000;
+    background: #aaa;
     color: #fff;
 }
 
@@ -22,4 +22,14 @@ span.delete {
 
 span.delete label {
     font-weight: bold;
+}
+
+.inline-group h2,
+.dynamic-asset_set h3 b {
+    padding: 1em 2em;
+}
+
+#select_assets_wrapper .ui-accordion-content-active {
+    font-size: 80%;
+    min-height: 300px !important;
 }

@@ -28,15 +28,19 @@ function buildAssetAccordion() {
         }
     );
 
+    // check for error notices
+    var error_divs = $(outer).find('div.errors');
+    var num_panels = $(outer).find('div.dynamic-asset_set').length
+
     $(outer).accordion({
         header: '.dynamic-asset_set h3', 
         collapsible: false, 
-        active: false,
+        active: ($(error_divs).length) ? num_panels-1 : false,
         change: function(e, ui) {
             // force a redraw of the map after it has gone offscreen
             // as inactive accordion pane.
             map = maps[ui.options.active];
-            google.maps.event.trigger(map, 'resize');// force redraw
+            google.maps.event.trigger(map, 'resize');
             map.setZoom(map.getZoom()); 
             map.setCenter(map.marker.getPosition());
 
@@ -48,6 +52,7 @@ $(document).bind("DOMNodeInserted", function(e) {
     var element = e.target;
     if ($(element).is('div.dynamic-asset_set')) {
         copyAssetAttrs(e.target);
+        hideMediaDisplay();
         setLocationMaps();
         $(e.relatedNode).accordion("destroy");
         buildAssetAccordion();
@@ -57,7 +62,21 @@ $(document).bind("DOMNodeInserted", function(e) {
     }
 });
 
+
 $(document).ready(function() {
+    // move initial select assets field below inlines
+    var select_assets = $("div.form-row.assets");
+    $(select_assets).insertAfter($('#asset_set-group'));
+    // make it an accordion with a new header
+    $(select_assets).wrapAll("<div id='select_assets_wrapper' class='inline-group'/>");
+    $(select_assets).before('<h2>Select assets from list</h2>');
+    $('div#select_assets_wrapper').accordion({
+        header: 'h2', 
+        collapsible: true, 
+        active: false,   
+    });
+
+
     // set up accordion on Assets
     buildAssetAccordion();
 });

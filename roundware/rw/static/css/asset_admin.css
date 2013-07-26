@@ -1,9 +1,9 @@
-/* style to keep photo type Asset display from getting too huge until
-   our file field handles thumbnail generation 
-*/
-
 .form-row.media_display .image-file {
     max-height: 300px;
     max-width: 99%;
-    overflow: hidden;
+    overflow: scroll;
+}
+
+.form-row.session {
+    display: none;
 }
