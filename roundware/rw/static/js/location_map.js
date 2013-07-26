@@ -169,6 +169,9 @@ RadiusWidget.prototype.setDistance = function() {
 };
 
 
+var maps = Array();
+
+
 function setLocationMaps(){
 
     // we might be on the Envelope admin where there are multiple Asset divs.
@@ -212,6 +215,7 @@ function setLocationMaps(){
         };
 
         var map = new google.maps.Map($(this).find(".GMap")[0],mapOptions);
+        
     
         function savePosition(point)
         {
@@ -230,9 +234,11 @@ function setLocationMaps(){
             visible: false
         });
 
+        map.marker = marker;
+        maps.push(map);
 
         //Create the distance widget
-        /*var minDistanceField = $("#"+prefix+"mindistance");
+        var minDistanceField = $("#"+prefix+"mindistance");
         var maxDistanceField = $("#"+prefix+"maxdistance");;
         if ( maxDistanceField && minDistanceField ) {
             var mindistance = minDistanceField.value;
@@ -256,7 +262,7 @@ function setLocationMaps(){
                 minDistanceWidget.set('position', maxDistanceWidget.get('position'));
             });
 
-        } bcw*/
+        }
 
     //    $("#id_mindistance").change(function() {
     //        console.log(this.value);
@@ -283,7 +289,6 @@ function setLocationMaps(){
             marker.setPosition(mouseEvent.latLng);
             savePosition(mouseEvent.latLng);
         });
-
 
         var geocoder = new google.maps.Geocoder();
 

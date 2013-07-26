@@ -14,7 +14,19 @@ function buildAssetAccordion() {
         }
     );
 
-    $(outer).accordion({header: '.dynamic-asset_set h3', collapsible: true, active: false});
+    $(outer).accordion({
+        header: '.dynamic-asset_set h3', 
+        collapsible: true, 
+        active: false,
+        change: function(e, ui) {
+            // force a redraw of the map after it has gone offscreen
+            // as inactive accordion pane.
+            map = maps[ui.options.active];
+            google.maps.event.trigger(map, 'resize');// force redraw
+            map.setZoom(15); 
+            map.setCenter(map.marker.getPosition());
+
+        }});
 }
 
 $(document).bind("DOMNodeInserted", function(e) {
