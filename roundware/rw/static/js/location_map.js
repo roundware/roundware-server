@@ -348,10 +348,10 @@ function setLocationMaps(){
 };
 
 function copyAssetAttrs(obj) {
-    // copy the values of the previous Asset to the new subform,
+    // copy the form values of the previous Asset to the new subform,
     // excluding the file input.
     var oldersib = $(obj).prev();
-    var formelselector = "fieldset div.form-row:not(div[class~='file']) input[type!='file'], fieldset div.form-row:not(div[class~='file']) select, fieldset div.form-row:not(div[class~='file']) textarea";
+    var formelselector = "fieldset div.form-row:not(div[class~='file']) input, fieldset div.form-row:not(div[class~='file']) select, fieldset div.form-row:not(div[class~='file']) textarea";
 
     if ($(oldersib).is("div.dynamic-asset_set")) { 
         var oldersib_formels = $(oldersib).find(formelselector);
@@ -364,14 +364,6 @@ function copyAssetAttrs(obj) {
 
 $(document).ready(function() {
     setLocationMaps();
-    $(document).bind("DOMNodeInserted", function(e) {
-        //console.log(e);
-        var element = e.target;
-        if ($(element).is('div.dynamic-asset_set')) {
-            copyAssetAttrs(e.target);
-            setLocationMaps();
-        }
-    });
 })
 
 //}(django.jQuery));

@@ -179,7 +179,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
 
 class AssetInline(admin.StackedInline):
     model = Asset    
-    verbose_name_plural = "Add Assets"
+    verbose_name_plural = "Add/edit Assets (click Asset header to show fields)"
     # ct_field = "dj_content_type"
     extra = 0
     fieldsets = AssetAdmin.fieldsets
@@ -349,6 +349,7 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
                 'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
                 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
                 'js/location_map.js',
+                'js/envelope_admin.js',
             )
 
         css = {

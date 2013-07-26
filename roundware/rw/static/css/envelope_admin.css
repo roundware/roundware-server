@@ -1,0 +1,25 @@
+/*
+couldn't figure out how to get around errors with hiding these in the inline
+*/
+
+.form-row.audiolength,
+.form-row.project,
+.form-row.session
+ {
+    display: none;
+}
+
+.dynamic-asset_set h3,
+.dynamic-asset_set h3 label.vCheckboxLabel {
+    background: #000;
+    color: #fff;
+}
+
+span.delete {
+    display: block;
+    margin-bottom: 1em;
+}
+
+span.delete label {
+    font-weight: bold;
+}
