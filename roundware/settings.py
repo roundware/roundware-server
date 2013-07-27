@@ -25,6 +25,12 @@ MEDIA_BASE_DIR = "/var/www/rwmedia/"
 AUDIO_FILE_DIR = MEDIA_BASE_DIR #+ "audio"
 VIDEO_FILE_DIR = MEDIA_BASE_DIR #+ "video"
 IMAGE_FILE_DIR = MEDIA_BASE_DIR #+ "img"
+
+ALLOWED_AUDIO_MIME_TYPES = ['audio/x-wav', 'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',  ]
+ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/pjpeg', ]
+ALLOWED_TEXT_MIME_TYPES = ['text/plain', 'text/html', 'application/xml', ]
+ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES + ALLOWED_TEXT_MIME_TYPES
+
  # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
 DEFAULT_SESSION_ID = "-1"
@@ -170,6 +176,7 @@ INSTALLED_APPS = (
     'chartit',
     'roundware.notifications',
     'south',
+    'validatedfile',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -202,6 +209,14 @@ LOGGING = {
         },
     },
 }
+
+# don't use MemoryFileUploadHandler since we want to scan from file path
+# for viruses.  Buffer scanning with pyclamav is not fully secure and is not
+# included in recent versions.
+FILE_UPLOAD_HANDLERS = (
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",
+)
+
 
 # PROFILING using django-profiler
 if DEBUG:
