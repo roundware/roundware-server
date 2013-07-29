@@ -8,6 +8,7 @@ from django.conf import settings
 
 from filterspec import TagCategoryFilterSpec, AudioLengthFilterSpec
 from roundware.rw.signals import add_asset_to_envelope, create_envelope
+from django.contrib.contenttypes import generic
 
 
 class VoteInline(admin.TabularInline):
@@ -16,6 +17,7 @@ class VoteInline(admin.TabularInline):
 
 class AssetTagsInline(admin.TabularInline):
     model = Asset.tags.through
+
 
 
 class SmarterModelAdmin(admin.ModelAdmin):
@@ -175,6 +177,16 @@ class AssetAdmin(ProjectProtectedModelAdmin):
             )
 
 
+class AssetInline(admin.StackedInline):
+    model = Asset    
+    verbose_name_plural = "Add/edit Assets (click Asset header to show fields)"
+    # ct_field = "dj_content_type"
+    extra = 0
+    fieldsets = AssetAdmin.fieldsets
+    readonly_fields = AssetAdmin.readonly_fields  + ('project',)
+    filter_horizontal = ('tags',)
+    # prepopulated_fields = {"session": ("title",)}
+  
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'tag_category', 'description', 'get_loc')
@@ -307,6 +319,52 @@ class EventAdmin(ProjectProtectedThroughSessionModelAdmin):
 class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
     list_display = ('id', 'session', 'created')
     ordering = ['-id']
+    inlines = [AssetInline,]
+    filter_horizontal = ('assets',)
+    # readonly_fields = ('session',)
+
+    def save_formset(self, request, form, formset, change):
+        """
+        Given an inline formset save it to the database.
+        """
+        def set_session(instance):
+            if not instance.session:
+                instance.session = form.cleaned_data['session']
+            instance.save()
+
+        def add_to_envelope(instance):
+            instance.ENVELOPE_ID = formset.instance.id
+            add_asset_to_envelope(instance=instance)
+
+        if formset.model == Asset:
+            instances = formset.save(commit=False)
+            map(set_session, instances)
+            map(add_to_envelope, instances)
+            formset.save_m2m()
+            return instances
+        else:
+            return formset.save()  
+
+
+    class Media:
+        js = (
+                'http://maps.google.com/maps/api/js?sensor=false',
+                'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
+                'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
+                'js/location_map.js',
+                'js/asset_admin.js',
+                'js/envelope_admin.js',
+            )
+
+        css = {
+            "all": (
+                "css/jplayer.blue.monday.css",
+                "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css",
+                "css/asset_admin.css",
+                "css/envelope_admin.css"
+            )
+        }
+
 
 
 class SpeakerAdmin(ProjectProtectedModelAdmin):
