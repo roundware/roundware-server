@@ -264,6 +264,11 @@ class Event(models.Model):
 #from south.modelsinspector import add_introspection_rules
 #add_introspection_rules([], ["^roundware\.rw\.widgets\.LocationField"])
 
+
+def get_default_session():
+    return Session.objects.get(id=settings.DEFAULT_SESSION_ID)
+
+
 class Asset(models.Model):
     ASSET_MEDIA_TYPES = [('audio', 'audio'), ('video', 'video'),
                         ('photo', 'photo'), ('text', 'text')]
@@ -274,7 +279,7 @@ class Asset(models.Model):
         'text': settings.ALLOWED_TEXT_MIME_TYPES,
     }
                         
-    session = models.ForeignKey(Session, null=True, blank=True)
+    session = models.ForeignKey(Session, null=True, blank=True, default=get_default_session)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
     filename = models.CharField(max_length=256, null=True, blank=True)
@@ -440,10 +445,6 @@ class Asset(models.Model):
 
     def __unicode__(self):
         return str(self.id) + ": " + self.mediatype + " at " + str(self.latitude) + "/" + str(self.longitude)
-
-
-def get_default_session():
-    return Session.objects.get(id=settings.DEFAULT_SESSION_ID)
 
 
 class Envelope(models.Model):
