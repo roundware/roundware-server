@@ -11,7 +11,9 @@ sudo cp ./files/sample-config /etc/roundware/rw
 sudo cp ./files/rw_test_audio1.wav /var/www/rwmedia
 # install correct shout2send gstreamer plugin
 sudo mv /usr/lib/i386-linux-gnu/gstreamer-0.10/libgstshout2.so /usr/lib/i386-linux-gnu/gstreamer-0.10/libgstshout2.so.old
-sudo cp files/libgstshout2.so /usr/lib/i386-linux-gnu/gstreamer-0.10/libgstshout2.so
+sudo cp files/32-bit/libgstshout2.so /usr/lib/i386-linux-gnu/gstreamer-0.10/libgstshout2.so
+sudo mv /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so.old
+sudo cp files/64-bit/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so
 # install everything and away we go
 sh install_clean_django_rw.sh
 # don't think this is required anymore
