@@ -1,6 +1,11 @@
 from django.core.files.storage import FileSystemStorage
+from django.core.exceptions import ValidationError
+from django.core.exceptions import NON_FIELD_ERRORS
 from django.db import models, transaction
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 from roundware.settings import MEDIA_BASE_URI
+from roundware.rw import fields
 from django.conf import settings
 import datetime
 from cache_utils.decorators import cached
@@ -13,16 +18,6 @@ except:
 import logging
 
 logger = logging.getLogger(name=__file__)
-
-
-class BigIntegerField(models.IntegerField):
-    empty_strings_allowed = False
-
-    def get_internal_type(self):
-        return "BigIntegerField"
-
-    def db_type(self):
-        return 'bigint'  # Note this won't work with Oracle.
 
 
 class Language(models.Model):
@@ -269,17 +264,30 @@ class Event(models.Model):
 #from south.modelsinspector import add_introspection_rules
 #add_introspection_rules([], ["^roundware\.rw\.widgets\.LocationField"])
 
+
+def get_default_session():
+    return Session.objects.get(id=settings.DEFAULT_SESSION_ID)
+
+
 class Asset(models.Model):
     ASSET_MEDIA_TYPES = [('audio', 'audio'), ('video', 'video'),
                         ('photo', 'photo'), ('text', 'text')]
-
-    session = models.ForeignKey(Session, null=True, blank=True)
+    MEDIATYPE_CONTENT_TYPES = {
+        'audio': settings.ALLOWED_AUDIO_MIME_TYPES,
+        'video': [],
+        'photo': settings.ALLOWED_IMAGE_MIME_TYPES,
+        'text': settings.ALLOWED_TEXT_MIME_TYPES,
+    }
+                        
+    session = models.ForeignKey(Session, null=True, blank=True, default=get_default_session)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
     filename = models.CharField(max_length=256, null=True, blank=True)
-    file = models.FileField(storage=FileSystemStorage(location=getattr(settings, "MEDIA_BASE_DIR"),
-                                                      base_url=getattr(settings, "MEDIA_BASE_URI")),
-                            upload_to=".", null=True, blank=True, help_text="Upload file")
+    file = fields.RWValidatedFileField(storage=FileSystemStorage(
+        location=getattr(settings, "MEDIA_BASE_DIR"),
+        base_url=getattr(settings, "MEDIA_BASE_URI"),),
+        content_types=getattr(settings,"ALLOWED_MIME_TYPES"),
+        upload_to=".", help_text="Upload file")
     volume = models.FloatField(null=True, blank=True, default=1.0)
 
     submitted = models.BooleanField(default=True)
@@ -293,6 +301,11 @@ class Asset(models.Model):
     mediatype = models.CharField(max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
     description = models.TextField(max_length=2048, blank=True)
 
+    # enables inline adding/editing of Assets in Envelope Admin.
+    # creates a relationship of an Asset to the Envelope, in which it was
+    # initially added
+    initialenvelope = models.ForeignKey('Envelope', null=True)
+
     tags.tag_category_filter = True
 
     audiolength.audio_length_filter = True
@@ -300,6 +313,29 @@ class Asset(models.Model):
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)
         self.ENVELOPE_ID = 0
+
+    def clean_fields(self, exclude=None):
+        super(Asset, self).clean_fields(exclude)
+        if not self.file:
+            return
+        # if this is first upload, file will have content_type that should
+        # be validated
+        if hasattr(self.file.file, 'content_type'):
+            self.validate_filetype_for_mediatype(self.file.file.content_type)
+
+    def validate_filetype_for_mediatype(self, content_type):
+        """ content_type of file uploaded must be valid for mediatype 
+        selected.  For now, just trusts the content_type coming through HTTP.  
+        To be sure would need to examine the file. 
+        """
+        if content_type not in self.MEDIATYPE_CONTENT_TYPES[self.mediatype]:
+            raise ValidationError(
+                {
+                    NON_FIELD_ERRORS:
+                    (u"File type %s not supported for asset mediatype %s"
+                    % (content_type, self.mediatype),)
+                }   
+            )
 
     def media_display(self):
         """display the media with HTML based on mediatype.
@@ -348,7 +384,7 @@ class Asset(models.Model):
         html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
         <div id="map_instructions">To change or select location, type an address above and select from the available options;
         then move pin to exact location of asset.</div>
-        <div id="map" style="width:800px; height: 600px; margin-top: 10px;"></div>"""
+        <div class="GMap" id="map" style="width:800px; height: 600px; margin-top: 10px;"></div>""" # height 600
         return html
     location_map.short_name = "location"
     location_map.allow_tags = True
@@ -408,12 +444,13 @@ class Asset(models.Model):
         super(Asset, self).save(force_insert, force_update, using, *args, **kwargs)
 
     def __unicode__(self):
-        return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude)
+        return str(self.id) + ": " + self.mediatype + " at " + str(self.latitude) + "/" + str(self.longitude)
+
 
 class Envelope(models.Model):
-    session = models.ForeignKey(Session)
+    session = models.ForeignKey(Session, default=get_default_session)
     created = models.DateTimeField(default=datetime.datetime.now)
-    assets = models.ManyToManyField(Asset)
+    assets = models.ManyToManyField(Asset, blank=True)
 
     def __unicode__(self):
             return str(self.id) + ": Session id: " + str(self.session.id)
@@ -473,4 +510,5 @@ class Vote(models.Model):
 def get_field_names_from_model(model):
     """Pass in a model class. Return list of strings of field names"""
     return [f.name for f in model._meta.fields]
+
 
