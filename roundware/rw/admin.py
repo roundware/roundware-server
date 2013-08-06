@@ -13,6 +13,15 @@ from django.contrib.contenttypes import generic
 
 class VoteInline(admin.TabularInline):
     model = Vote
+    extra = 1
+
+
+class EnvelopeInline(admin.StackedInline):
+    model = Envelope.assets.through
+    extra = 0
+    can_delete = False
+    verbose_name = ""
+    verbose_name_plural = "Related Envelope"
 
 
 class AssetTagsInline(admin.TabularInline):
@@ -142,6 +151,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     # save_as = True
     list_per_page = 25
     inlines = [
+        EnvelopeInline,
         VoteInline,
     ]
     #exclude = ('tags',)
