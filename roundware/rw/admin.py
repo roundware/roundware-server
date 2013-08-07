@@ -193,7 +193,7 @@ class AssetInline(admin.StackedInline):
     # ct_field = "dj_content_type"
     extra = 0
     fieldsets = AssetAdmin.fieldsets
-    readonly_fields = AssetAdmin.readonly_fields  + ('project',)
+    readonly_fields = AssetAdmin.readonly_fields
     filter_horizontal = ('tags',)
     # prepopulated_fields = {"session": ("title",)}
   
@@ -331,7 +331,7 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
     ordering = ['-id']
     inlines = [AssetInline,]
     filter_horizontal = ('assets',)
-    # readonly_fields = ('session',)
+    readonly_fields = ('session',)
 
     def save_formset(self, request, form, formset, change):
         """
