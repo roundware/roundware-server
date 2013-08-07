@@ -321,7 +321,7 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
     ordering = ['-id']
     inlines = [AssetInline,]
     filter_horizontal = ('assets',)
-    # readonly_fields = ('session',)
+    readonly_fields = ('session',)
 
     def save_formset(self, request, form, formset, change):
         """
