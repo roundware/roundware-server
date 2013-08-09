@@ -1,22 +1,48 @@
 
-function copyAssetAttrs(obj) {
+var next_tags_inserted_gets_copied_vals = false;
+var asset_set_selector = "div.dynamic-asset_set";
+
+function copyAssetAttrs(obj) {   
     // copy the form values of the previous Asset to the new subform,
     // excluding the file input.
-    var oldersib = $(obj).prev();
-    var formelselector = "fieldset div.form-row:not(div[class~='file']) input, fieldset div.form-row:not(div[class~='file']) select, fieldset div.form-row:not(div[class~='file']) textarea";
+    var older_sib = $(obj).prev();
 
-    if ($(oldersib).is("div.dynamic-asset_set")) { 
-        var oldersib_formels = $(oldersib).find(formelselector);
-        $.each($(obj).find(formelselector), function(key, el) {
-            el.value = oldersib_formels[key].value;
+    //copy tags separately, otherwise the number of DOM elements in the older
+    //sibling is different and throws off our $.each loop
+    var form_el_selector = "fieldset div.form-row:not(div[class~='file']) input:not([id*='searchbox']):not([id*='tags']), fieldset div.form-row:not(div[class~='file']) select:not([id*='tags']), fieldset div.form-row:not(div[class~='file']) textarea";
+
+    if ($(older_sib).is(asset_set_selector)) {
+        var older_sib_formels = $(older_sib).find(form_el_selector);
+        $.each($(obj).find(form_el_selector), function(key, el) {
+            el.value = older_sib_formels[key].value;
         });
     }
+
+}
+
+function copyTagsValuesFromOlderSibling(obj) {
+    var tags_on_selector = "select[id*='tags_to']";
+    var asset_set = $(obj).closest(asset_set_selector);
+    var prev_asset_set = $(asset_set).prevAll(asset_set_selector).first();
+    var this_tags_on_el = $(obj).find(tags_on_selector);
+    var older_tags_on_el = $(prev_asset_set).find(tags_on_selector);
+    var older_options = $(older_tags_on_el).find('option');
+    $(older_options).each( function() {
+        //console.log("copying option:"+this+" into "+obj.id);
+        $(obj).append($("<option/>", {
+                'value': this.value, 'text': this.text}));
+    });
+
+
+    // $.each($(this_tags_on_el).find('option'), function(key, el) {
+    //     el.value = older_options[key].value;
+    // })
 }
 
 function buildAssetAccordion() {
     var outer = $('#asset_set-group');
     // first need to wrap Asset fieldsets in an extra div
-    $(outer).find('div.dynamic-asset_set').each(
+    $(outer).find(asset_set_selector).each(
         function(){
             if ($(this).find('div.accordionwrapper').length==0) {
                 $(this).find('fieldset').wrapAll("<div class='accordionwrapper'/>");   
@@ -30,7 +56,7 @@ function buildAssetAccordion() {
 
     // check for error notices
     var error_divs = $(outer).find('div.errors');
-    var num_panels = $(outer).find('div.dynamic-asset_set').length
+    var num_panels = $(outer).find(asset_set_selector).length
 
     $(outer).accordion({
         header: '.dynamic-asset_set h3', 
@@ -50,15 +76,28 @@ function buildAssetAccordion() {
 $(document).bind("DOMNodeInserted", function(e) {
     //console.log(e);
     var element = e.target;
-    if ($(element).is('div.dynamic-asset_set')) {
+    if ($(element).is(asset_set_selector)) {
+
+        // when the tags_to select is inserted into DOM, then copy the tags from
+        // the older sibling.
+        next_tags_inserted_gets_copied_vals = true;
+        //console.log('copy asset form values now for: '+ e.target.id);
         copyAssetAttrs(e.target);
         hideMediaDisplay();
         setLocationMaps();
         $(e.relatedNode).accordion("destroy");
         buildAssetAccordion();
-        num_panels = $(e.relatedNode).find('div.dynamic-asset_set').length;
+        num_panels = $(e.relatedNode).find(asset_set_selector).length;
         $(e.relatedNode).accordion("option","active",num_panels-1);
 
+    }
+    // handle copying of select tags to new Asset
+    else if ($(element).is("select[id*='tags_to']")) {
+        if (next_tags_inserted_gets_copied_vals) {
+            console.log('copy tags now for: '+ e.target.id);
+            copyTagsValuesFromOlderSibling(e.target);
+            next_tags_inserted_gets_copied_vals = false;
+        }
     }
 });
 
