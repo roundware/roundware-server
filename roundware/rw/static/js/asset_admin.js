@@ -1,12 +1,17 @@
-$(document).ready(function(){
-    var media_display = $('div.media-display');
+function hideMediaDisplay() {
     var media_display_section = $('div.form-row.media_display');
+    $(media_display_section).each(function() {
+        var display_div = $(this).find('div.media-display')[0];
+        if (display_div.getAttribute('data-filename') == "None") {
+            $(this).hide();
+        }
+        else {
+            $(this).find('div.form-row.file').hide();
+        }
 
-    var file_upload_section = $('div.form-row.file');
+    });
+}
 
-    if ( media_display.attr('data-filename') == "None" ) {
-        media_display_section.hide();
-    } else {
-        file_upload_section.hide();
-    }
+$(document).ready(function(){
+    hideMediaDisplay();
 });
