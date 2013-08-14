@@ -3,7 +3,6 @@ couldn't figure out how to get around errors with hiding these in the inline
 */
 
 .dynamic-asset_set .form-row.audiolength,
-.dynamic-asset_set .form-row.project,
 .dynamic-asset_set .form-row.session
  {
     display: none;
