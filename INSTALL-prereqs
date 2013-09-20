@@ -11,7 +11,9 @@ sudo cp ./files/freshclam.conf /etc/clamav/freshclam.conf
 sudo freshclam
 
 # start clamav-freshclam services
-sudo /etc/init.d/clamav-freshclam start
+# freshclam daemon updates cause pyclamav errors after Django server starts
+# may be able to get this working if we can switch to pyclamd
+#sudo /etc/init.d/clamav-freshclam start
 
 # make sure clamav-freshclam gets restarted on reboot
 sudo crontab -l | { cat; echo "@reboot sudo /etc/init.d/clamav-freshclam start;"} | sudo crontab -
