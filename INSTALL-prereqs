@@ -16,4 +16,4 @@ sudo freshclam
 #sudo /etc/init.d/clamav-freshclam start
 
 # make sure clamav-freshclam gets restarted on reboot
-sudo crontab -l | { cat; echo "@reboot sudo /etc/init.d/clamav-freshclam start;"} | sudo crontab -
+# sudo crontab -l | { cat; echo "@reboot sudo /etc/init.d/clamav-freshclam start;"} | sudo crontab -
