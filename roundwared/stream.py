@@ -149,7 +149,7 @@ class RoundStream:
 
     def add_music_source(self):
         p = models.Project.objects.get(id=self.request["project_id"])
-        speakers = models.Speaker.objects.filter(project=p)
+        speakers = models.Speaker.objects.filter(project=p).filter(activeyn=True)
         #FIXME: We might need to unconditionally add blankaudio.
         # what happens if the only speaker is out of range? I think
         # it'll be fine but test this.
