@@ -237,8 +237,8 @@ function setLocationMaps(){
         maps.push(map);
 
         //Create the distance widget
-        var minDistanceField = $("#"+prefix+"mindistance");
-        var maxDistanceField = $("#"+prefix+"maxdistance");;
+        var minDistanceField = $("#"+prefix+"mindistance")[0];
+        var maxDistanceField = $("#"+prefix+"maxdistance")[0];
         if ( maxDistanceField && minDistanceField ) {
             var mindistance = minDistanceField.value;
             var maxdistance = maxDistanceField.value;
