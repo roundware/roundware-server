@@ -1,0 +1,9 @@
+Django==1.3.4
+South==0.7.6
+configobj==4.7.2
+django-chartit==0.1
+django-guardian==1.0.4
+psutil==0.7.1
+django-cache-utils==0.7.2
+python-magic==0.4.3
+django-validated-file==2.0

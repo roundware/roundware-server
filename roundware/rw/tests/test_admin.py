@@ -1,16 +1,19 @@
+import sys
+
 from django.test import TestCase
-from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite
 from roundware.rw.admin import *
 from roundware.rw.models import Project, Asset, Session, MasterUI
 from guardian.shortcuts import assign
-import sys
+from model_mommy import mommy
 
-class FakeRequest():
-    pass
+from .common import FakeRequest
+
 
 def str_to_class(str):
+    # print __name__
     return getattr(sys.modules[__name__], str)
+
 
 class TestAdmin(TestCase):
     """
@@ -20,19 +23,26 @@ class TestAdmin(TestCase):
     """
 
     def setUp(self):
-        self.user = User.objects.create(username="user")
-        self.user.set_password('password')
-        self.user.is_staff = True
+        self.user = mommy.make_recipe('rw.basic_user',is_staff=True)
+        # self.user.is_staff = True
         self.site = AdminSite
-        self.permitted_project = Project.objects.create(name="permitted", latitude=1, longitude=1,
-            pub_date="1111-11-11", max_recording_length=1)
-        self.excluded_project = Project.objects.create(name="excluded", latitude=1, longitude=1,
-            pub_date="1111-11-11", max_recording_length=1)
+        self.permitted_project = mommy.make('rw.Project', name='permitted')
+        self.excluded_project = mommy.make('rw.Project', name='excluded')
+        self.ui_mode = mommy.make('rw.UIMode') 
+        self.default_session = mommy.make_recipe('rw.default_session')   
+        self.default_session_id = self.default_session.id
+        self.tag_category = mommy.make('rw.TagCategory')
+        self.tag = mommy.make('rw.Tag')
+        self.selection_method = mommy.make('rw.SelectionMethod')
+        # self.permitted_project = Project.objects.create(name="permitted", latitude=1, longitude=1,
+        #     pub_date="1111-11-11", max_recording_length=1)
+        # self.excluded_project = Project.objects.create(name="excluded", latitude=1, longitude=1,
+        #     pub_date="1111-11-11", max_recording_length=1)
         assign("access_project", self.user, self.permitted_project)
         self.user.save()
         self.request = FakeRequest()
         self.request.user = self.user
-
+        
     def make_test_objects(self, model_class):
         pass
 
@@ -73,7 +83,7 @@ class TestAdmin(TestCase):
 
             qs = model_admin_class(model_class, self.site).queryset(self.request)
             project_names = get_project_names(qs)
-            print "model: " + model_name + "  project_names: ", project_names
+            # print "model: " + model_name + "  project_names: ", project_names
             self.assertIn("permitted", project_names)
             self.assertNotIn("excluded", project_names)
 
@@ -84,8 +94,9 @@ class TestAdmin(TestCase):
         """
         protected_model_test_data = [
             ['Session', [['starttime', '1999-01-01']]],
-            ['MasterUI', [['ui_mode_id', 123], ['tag_category_id', 1],
-                ['select_id', 2], ['index', 3],
+            ['MasterUI', [['ui_mode_id', self.ui_mode.id], 
+                ['tag_category_id', self.tag_category.id],
+                ['select_id', self.selection_method.id], ['index', 3],
                 ['min_volume', 3], ]],
             ['Audiotrack', [['minvolume', 1], ['maxvolume', 2],
                 ['minduration', 3], ['maxduration', 4],
@@ -112,8 +123,8 @@ class TestAdmin(TestCase):
         an asset object.
         """
         protected_asset_model_test_data = [
-            ['Vote', [['session_id', 123]]],
-            ['ListeningHistoryItem',[['session_id', 123],
+            ['Vote', [['session_id', self.default_session_id]]],
+            ['ListeningHistoryItem',[['session_id', self.default_session_id],
                 ['starttime', "1111-11-11"]]]
         ]
 
@@ -155,19 +166,20 @@ class TestAdmin(TestCase):
         a MasterUI object.
         """
         protected_ui_model_data = [
-            ['UIMapping',[['index', 1], ['tag_id', 1]]]
+            ['UIMapping',[['index', 1], ['tag_id', self.tag.id]]]
         ]
 
         extra_params = {
-            'ui_mode_id' : 123,
-            'tag_category_id' : 1,
-            'select_id' : 2,
+            'ui_mode_id' : self.ui_mode.id,
+            'tag_category_id' : self.tag_category.id,
+            'select_id' : self.selection_method.id,
             'index' : 3
         }
 
         permitted_ui_master = MasterUI.objects.create(project=self.permitted_project, **extra_params)
         excluded_ui_master = MasterUI.objects.create(project=self.excluded_project,  **extra_params)
 
+        import pdb; pdb.set_trace()
         make_test_objects = self.make_protected_test_objects_func('master_ui',
             permitted_ui_master, excluded_ui_master)
         get_project_names = lambda qs: [q.master_ui.project.name for q in qs]

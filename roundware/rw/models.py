@@ -171,12 +171,12 @@ class MasterUI(models.Model):
     def toTagDictionary(self):
         return {'name': self.name, 'code': self.tag_category.name, 'select': self.select.name, 'order': self.index}
 
-    def save(self):
+    def save(self, *args, **kwargs):
         # invalidate cached value for tag categories by ui_mode for the 
         # associated project.
         logging.debug("invalidating Project.get_tags_by_ui_mode for project "
                      " %s and UIMode %s" %(self.project, self.ui_mode.name))
-        super(MasterUI, self).save()
+        super(MasterUI, self).save(*args, **kwargs)
         Project.get_tag_cats_by_ui_mode.invalidate(self.project, str(self.ui_mode.name))
 
     def __unicode__(self):
