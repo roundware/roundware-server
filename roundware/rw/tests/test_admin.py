@@ -179,7 +179,6 @@ class TestAdmin(TestCase):
         permitted_ui_master = MasterUI.objects.create(project=self.permitted_project, **extra_params)
         excluded_ui_master = MasterUI.objects.create(project=self.excluded_project,  **extra_params)
 
-        import pdb; pdb.set_trace()
         make_test_objects = self.make_protected_test_objects_func('master_ui',
             permitted_ui_master, excluded_ui_master)
         get_project_names = lambda qs: [q.master_ui.project.name for q in qs]
