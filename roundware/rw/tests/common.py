@@ -1,6 +1,5 @@
-from django.contrib.auth.models import User
-
+# from django.core import cache
+# from mock import patch
 
 class FakeRequest():
     pass
-

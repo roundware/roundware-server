@@ -1,5 +1,5 @@
 from django.core.files.storage import FileSystemStorage
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db import models, transaction
 from django.contrib.contenttypes.models import ContentType
@@ -172,12 +172,18 @@ class MasterUI(models.Model):
         return {'name': self.name, 'code': self.tag_category.name, 'select': self.select.name, 'order': self.index}
 
     def save(self, *args, **kwargs):
-        # invalidate cached value for tag categories by ui_mode for the 
+        # invalidate cached value for tag categories for all ui_modes for the 
         # associated project.
         logging.debug("invalidating Project.get_tags_by_ui_mode for project "
                      " %s and UIMode %s" %(self.project, self.ui_mode.name))
+        try:
+            old_instance = MasterUI.objects.get(pk=self.pk)
+            old_ui_mode = old_instance.ui_mode.name
+            Project.get_tag_cats_by_ui_mode.invalidate(old_ui_mode)
+        except ObjectDoesNotExist:
+            pass
         super(MasterUI, self).save(*args, **kwargs)
-        Project.get_tag_cats_by_ui_mode.invalidate(self.project, str(self.ui_mode.name))
+        
 
     def __unicode__(self):
             return str(self.id) + ":" + self.ui_mode.name + ":" + self.name

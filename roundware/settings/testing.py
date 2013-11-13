@@ -12,6 +12,12 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
+    }
+}
+
 TEST_RUNNER = 'discover_runner.DiscoverRunner'
 # TEST_DISCOVER_TOP_LEVEL = root()
 # TEST_DISCOVER_ROOT = root()

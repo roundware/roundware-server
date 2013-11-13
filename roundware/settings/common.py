@@ -226,32 +226,6 @@ FILE_UPLOAD_HANDLERS = (
     "django.core.files.uploadhandler.TemporaryFileUploadHandler",
 )
 
-
-# PROFILING using django-profiler
-if DEBUG:
-    PROFILING_SQL_QUERIES = True
-    LOGGING['handlers'].update({
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
-        },
-        'profile_logfile': {
-            'filename': '/var/log/rwprofiling',
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'formatter': 'verbose'
-        },        
-    })
-
-    LOGGING['loggers'].update({
-         'profiling': {
-            'level': 'DEBUG',
-            'handlers': ['console','profile_logfile'],
-            'propagate': False,
-         },   
-    })       
-
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
