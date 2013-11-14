@@ -42,7 +42,7 @@ from cache_utils.decorators import cached
 
 
 # @profile(stats=True)
-def get_config_tag_json(p, s):
+def get_config_tag_json(p, s=None):
     lingo = Language.objects.filter(language_code='en')[0]
     if s != None:
         p = s.project
