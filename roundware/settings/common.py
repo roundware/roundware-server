@@ -12,9 +12,14 @@ ADMINS = (
 # holding the current file.
 here = lambda * x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
 
-PROJECT_ROOT = here("..")
+# root of roundware Django project
+PROJECT_ROOT = here("../..")
+
+# root of roundware-server
+ROUNDWARE_SERVER_ROOT = here("../..")
+
 # root() gives us file paths from the root of the system to whatever
-# folder(s) we pass it starting at the parent directory of the current file.
+# folder(s) we pass it starting at the roundware-server root
 root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
 
