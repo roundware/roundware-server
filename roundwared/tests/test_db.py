@@ -120,7 +120,9 @@ class TestGetConfigTagJSON(TestCase):
                           config['Listen'][0]['header_text'])
 
     def test_tag_values_correctly_localized(self):
-        """ Test that we get correct localized header text for tag values
+        """ Test that we get correct localized text for tag values
             based on session language, or if none passed, in English.
         """
-        pass
+        config = get_config_tag_json(None, self.spanish_sess)
+        self.assertEquals('Uno', 
+                          config['Listen'][0]['options'][0]['value'])
