@@ -42,15 +42,19 @@ from cache_utils.decorators import cached
 
 
 # @profile(stats=True)
-def get_config_tag_json(p, s=None):
+def get_config_tag_json(p=None, s=None):
+    if s is None and p is None:
+        raise roundexception.RoundException("Must pass either a project or "
+                                            "a session")
     lingo = Language.objects.filter(language_code='en')[0]
-    if s != None:
+    if s is not None:
         p = s.project
         lingo = s.language
 
     m = MasterUI.objects.filter(project=p)
     response = []
     modes = {}
+
     for masterui in m:
         if masterui.active:
             mappings = UIMapping.objects.filter(master_ui=masterui, active=True)

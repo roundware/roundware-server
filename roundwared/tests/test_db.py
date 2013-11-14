@@ -26,7 +26,7 @@ class TestGetConfigTagJSON(TestCase):
                                       language=self.spanish)
         self.masterui = mommy.make(MasterUI, active=True, 
                                    tag_category__name='TagCatName',
-                                   index=1,
+                                   index=1, ui_mode__name='Listen',
                                    header_text_loc=[self.english_hdr,
                                                     self.spanish_hdr])
         self.ui_mode_one = self.masterui.ui_mode
@@ -50,10 +50,8 @@ class TestGetConfigTagJSON(TestCase):
         self.project_two = self.master_ui_two.project  
         self.project_three = mommy.make(Project, name='project_three')
 
-    def test_get_uimapping_info_for_project(self):
-        """ Test proper UIMapping data returned based on project passed """
-        config = get_config_tag_json(self.project_one, self.english_sess)
-        expected = {self.ui_mode_one.name: [ 
+    def _proj_one_config(self):
+        return {'Listen': [ 
             {'name': self.masterui.name, 
              'header_text': "Head", 
              'code': 'TagCatName',
@@ -67,7 +65,12 @@ class TestGetConfigTagJSON(TestCase):
                  'relationships': [],
                  'value': 'One'
              }]},
-        ]}
+        ]}    
+
+    def test_get_uimapping_info_for_project(self):
+        """ Test proper UIMapping data returned based on project passed """
+        config = get_config_tag_json(self.project_one, self.english_sess)
+        expected = self._proj_one_config()
         self.assertEquals(expected, config)
 
     def test_only_masteruis_for_project_returned(self):
@@ -81,7 +84,7 @@ class TestGetConfigTagJSON(TestCase):
         # should not have any uimapping info for project _one_
         self.assertNotIn(self.masterui.name, 
                          [dic['name'] for dic in 
-                          config[self.ui_mode_one.name]])
+                          config['Listen']])
 
     def test_session_project_overrides_passed_project(self):
         """ The project associated with a passed session should be used 
@@ -93,28 +96,31 @@ class TestGetConfigTagJSON(TestCase):
         """ Confirm that only active MasterUIs are returned in 
             config tag 'JSON' (dictionary)
         """
-        pass
+        self.master_ui_two.active = False
+        self.master_ui_two.save()
+        config = get_config_tag_json(self.project_two)
+        self.assertEquals({}, config)
+        self.master_ui_two.active = True
+        self.master_ui_two.save()
 
     def test_get_right_masterui_without_passed_project(self):
         """ Don't pass a project, just use the project for the session.
             Do we still get the right MasterUI?
         """
-        pass
+        config = get_config_tag_json(None, self.english_sess)
+        expected = self._proj_one_config()
+        self.assertEquals(expected, config)
 
     def test_get_correct_localized_header_text(self):
         """ Test that we get correct localized header text for session, or if 
             none passed, header text in English.
         """
-        pass
+        config = get_config_tag_json(None, self.spanish_sess)
+        self.assertEquals('Cabeza', 
+                          config['Listen'][0]['header_text'])
 
     def test_tag_values_correctly_localized(self):
         """ Test that we get correct localized header text for tag values
             based on session language, or if none passed, in English.
-        """
-        pass
-
-    def test_default_UIMappings_returned_as_default(self):
-        """ Test that dictionary key for default has correct default 
-            UIMappings.
         """
         pass
