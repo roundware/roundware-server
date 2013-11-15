@@ -1,3 +1,5 @@
+from django.core.cache import cache
+cache #pyflakes, make sure it is imported, for patching in tests
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.exceptions import NON_FIELD_ERRORS

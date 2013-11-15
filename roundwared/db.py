@@ -161,40 +161,65 @@ def get_default_tags_for_project(p, s):
 # @profile(stats=True)
 @cached(60*1)
 def filter_recs_for_tags(p, tagids_from_request, l):
-    """ Return Assets containing at least one matching tag in each available 
+    """ Return Assets containing at least one matching tag in _each_ available 
     tag category with the tags supplied in tagids_from_request.
+    i.e., an Asset, to be returned, must match at least one tag from each 
+    category.  It won't be returned if it has a tag from one tagcategory
+    but not another.
     """
     logging.debug("filter_recs_for_tags enter")
 
     recs = []
     tag_ids_per_cat_dict = {}
     # project_cats = TagCategory.objects.filter()
+
     project_cats = p.get_tag_cats_by_ui_mode(rw_settings.LISTEN_UIMODE)
     for cat in project_cats:
+        # for each tag category a list of all of the tags with that cat
         tag_ids_per_cat_dict[cat.id] = [tag.id for tag in Tag.objects.filter(tag_category=cat)]
 
 
     project_recs = Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=l).distinct()
     for rec in project_recs:
         remove = False
+        # all tags for this asset
         rec_tag_ids = [tag.id for tag in rec.tags.all()]
         for cat in project_cats:
             if remove:
+                # don't return this asset, stop looking through tagcats
                 break
-            #tags_per_category = Tag.objects.filter(tag_category=cat)
+            # all of this tagcategory's tags
             tags_per_category = tag_ids_per_cat_dict[cat.id]
+            # any tag ids passed in the request that are in this tagcategory
             tag_ids_for_this_cat_from_request = filter(lambda x: x in tags_per_category, tagids_from_request)
-            tag_ids_for_this_cat_from_rec = filter(lambda x: x in tags_per_category, rec_tag_ids)
-            # if the asset has any tags from this category, make sure at least one match with exists, else remove
+
+            # any tag ids of this asset that are in this tagcategory
+            tag_ids_for_this_cat_from_asset = filter(lambda x: x in tags_per_category, rec_tag_ids)
+            
+            # if no tags passed in request are in this category, then 
+            # look at next category. 
+
+            # if any tags passed in request are in this category, then
+            # make sure any asset returned has at least one tag in this category
+            # e.g., pass tag id 1 in request.  if tag id 1 is in this category, then
+            # any asset returned must have at least one tag for this category
             if len(tag_ids_for_this_cat_from_request) > 0:
                 found = False
-                if len(tag_ids_for_this_cat_from_rec) > 0:
+                # if this asset has any tags in this category, ...
+                if len(tag_ids_for_this_cat_from_asset) > 0:
+                    # then look through tags in this category from request...
                     for t in tag_ids_for_this_cat_from_request:
-                        if t in tag_ids_for_this_cat_from_rec:
+                        # for a tag on this asset
+                        if t in tag_ids_for_this_cat_from_asset:
                             found = True
                             break
                 if not found:
                     remove = True
+
+        # if no tags passed in request are in any of the project categories,
+        # return this asset.  or, if the asset does have a tag in this category,
+        # return it.
+
         if not remove:
             recs.append(rec)
     logging.debug("\n\n\nfilter_recs_for_tags returned %s Assets \n\n\n" % (len(recs)))

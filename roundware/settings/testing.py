@@ -1,6 +1,8 @@
 import django
 from django_coverage.settings import *
+
 from .dev import *
+
 
 DATABASES = {
     'default': {
@@ -15,10 +17,12 @@ DATABASES = {
 
 CACHES = {
     'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache'
+    },
+    'locmemcache': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
     }
 }
-
 
 if django.VERSION[:2] < (1, 6):
     TEST_RUNNER = 'discover_runner.DiscoverRunner'

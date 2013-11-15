@@ -1,23 +1,150 @@
-from django.test import TestCase
-
 from model_mommy import mommy
+# from django_webtest import WebTest
 
-# from .common import *
-from roundware.rw.models import (MasterUI, Language, Session, 
-                                 UIMapping, Project, LocalizedString, Tag)
-from roundwared.db import get_config_tag_json
+from .common import FakeRequest, RoundwaredTestCase
+from roundware.rw.models import (MasterUI, Session, Tag, Asset, TagCategory,
+                                 UIMapping, Project, LocalizedString)
+from roundwared.db import get_config_tag_json, filter_recs_for_tags
 
 
-class TestGetConfigTagJSON(TestCase):
+class TestGetRecordings(RoundwaredTestCase):
+    """ test various permutations of db.get_recordings
+    """
+
+    def setUp(self):
+        super(type(self), TestGetRecordings).setUp(self)
+
+    def test_something(self):
+        """
+        """
+        pass
+
+
+
+class TestFilterRecsForTags(RoundwaredTestCase):
+    """ test db.filter_recs_for_tags, that it returns assets containing at 
+    least one matching tag in each available tag category for tags given in
+    the request.
+    """
+
+    def setUp(self):
+        # gives us listen and speak ui modes, a tag1, english & spanish langs
+        # and messages in english and spanish
+        super(type(self), TestFilterRecsForTags).setUp(self)
+
+        self.tagcat2, self.tagcat3, self.tagcat4 = \
+            mommy.make(TagCategory, _quantity=3)
+        self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2')
+        self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3')
+        self.project1 = mommy.make(Project, name='Project One')
+        self.project2 = mommy.make(Project, name='Project Two')
+        self.masterui1 = mommy.make(MasterUI, project=self.project1, 
+                                    ui_mode=self.ui_mode_listen,
+                                    tag_category=self.tagcat2)
+        self.masterui2 = mommy.make(MasterUI, project=self.project1, 
+                                    ui_mode=self.ui_mode_listen,
+                                    tag_category=self.tagcat3)
+        self.masterui3 = mommy.make(MasterUI, project=self.project2, 
+                                    ui_mode=self.ui_mode_listen,
+                                    tag_category=self.tagcat1)
+        self.asset1 = mommy.make(Asset, project=self.project1,
+                                 language=self.english, 
+                                 tags=[self.tag1],
+                                 audiolength=2000)
+        self.asset2 = mommy.make(Asset, project=self.project1,
+                                 language=self.english, 
+                                 tags=[self.tag2],
+                                 audiolength=2000)
+        self.asset3 = mommy.make(Asset, project=self.project2,
+                                 language=self.spanish, tags=[self.tag1],
+                                 audiolength=2000)
+        self.asset4 = mommy.make(Asset, project=self.project2,
+                                 language=self.english, tags=[self.tag1],
+                                 audiolength=2000)
+        self.asset5 = mommy.make(Asset, project=self.project1,
+                                 language=self.english, tags=[self.tag1],
+                                 audiolength=2000)
+        self.asset6 = mommy.make(Asset, project=self.project1,
+                                 language=self.english, tags=[self.tag1],
+                                 audiolength=50)
+
+    def test_only_assets_with_correct_tag_categories(self):
+        """ 
+        project 1 has assets 1,2,5,6
+        project1 related to masterui1, masterui2, therefore
+        tagcat2, tagcat3 are the active cats, therefore
+        pass tag 1, 2 that are in categories 1 and 2
+        so, assets returned must have a tag in category 2 
+        so, it should return assets with tag2: = asset2
+        """
+        recs = filter_recs_for_tags(self.project1, [self.tag1.id, self.tag2.id],
+                                    self.english)
+        self.assertNotIn(self.asset1, recs)
+        self.assertIn(self.asset2, recs)
+        self.assertNotIn(self.asset3, recs)
+        self.assertNotIn(self.asset4, recs)
+        self.assertNotIn(self.asset5, recs)
+
+    def test_assets_match_at_least_one_tag_of_all_active_tag_categories_of_passed_tags(self):
+        """
+        project1 has assets 1,2,5,6
+        project1 related to masteruis 1,2
+        masteruis 1,2 give tagcategories 2,3
+        pass tag2 and tag3 that are in categories 2 and 3
+        so, assets returned must have a tag in category 2 and 3
+        so it should return assets with tag2 and tag3: = no assets
+        asset2 matches category 2 but not 3
+        """
+        recs = filter_recs_for_tags(self.project1, 
+                                    [self.tag2.id, self.tag3.id],
+                                    self.english)
+        self.assertEqual([], recs)        
+
+    def test_no_assets_too_short_audiolength(self):
+        recs = filter_recs_for_tags(self.project1, [self.tag1.id, self.tag2.id],
+                                    self.english)
+        self.assertNotIn(self.asset6, recs)
+
+    def test_no_assets_from_wrong_projects(self):
+        recs = filter_recs_for_tags(self.project1, [self.tag1.id, self.tag2.id],
+                                    self.english)
+        self.assertNotIn(self.asset4, recs)
+
+    def test_only_assets_in_desired_language(self):
+        recs = filter_recs_for_tags(self.project2, 
+                                    [self.tag1.id],
+                                    self.spanish)
+        self.assertIn(self.asset3, recs)  # spanish language asset
+        self.assertNotIn(self.asset4, recs)  # english
+
+    def test_no_assets_from_tags_from_inactive_masteruis(self):
+        """
+        project1 has assets 1,2,5,6
+        project1 related to masteruis 1,2
+        masterui2 now inactive
+        so we only care about tagcategory 2
+        pass tag 3 that's in category 3
+        if masterui2 were active, we'd care about category 3
+        assets returned would have had to have a tag in category 2 and 3
+        but since masterui2 is inactive assets only have to have tag in cat 2
+        """
+        self.masterui2.active = False
+        self.masterui2.save()
+        recs = filter_recs_for_tags(self.project1, [self.tag3.id],
+                                    self.english)
+        self.assertIn(self.asset2, recs)
+        self.masterui2.active = True
+        self.masterui2.save()
+
+
+class TestGetConfigTagJSON(RoundwaredTestCase):
     """ test various permutations of db.get_config_tag_json 
     """
 
     def setUp(self):
-        self.maxDiff = None
+        super(type(self), TestGetConfigTagJSON).setUp(self)
 
         # make a masterui, a project, a ui_mode, tag category, selectionmethod
-        self.english = mommy.make(Language, language_code='en')
-        self.spanish = mommy.make(Language, language_code='es')
         self.english_hdr = mommy.make(LocalizedString, 
                                       localized_string="Head",
                                       language=self.english)
@@ -25,8 +152,8 @@ class TestGetConfigTagJSON(TestCase):
                                       localized_string="Cabeza",
                                       language=self.spanish)
         self.masterui = mommy.make(MasterUI, active=True, 
+                                   ui_mode=self.ui_mode_listen, index=1,
                                    tag_category__name='TagCatName',
-                                   index=1, ui_mode__name='Listen',
                                    header_text_loc=[self.english_hdr,
                                                     self.spanish_hdr])
         self.ui_mode_one = self.masterui.ui_mode
@@ -35,15 +162,9 @@ class TestGetConfigTagJSON(TestCase):
                                        language=self.english)
         self.spanish_sess = mommy.make(Session, project=self.masterui.project,
                                        language=self.spanish)
-        self.english_msg = mommy.make(LocalizedString, localized_string="One",
-                                      language=self.english)
-        self.spanish_msg = mommy.make(LocalizedString, localized_string="Uno",
-                                      language=self.spanish)
         self.project_one = self.masterui.project
-        self.tag = mommy.make(Tag, data="{'json':'value'}",
-                              loc_msg=[self.english_msg, self.spanish_msg])
         self.ui_mapping_one = mommy.make(UIMapping, master_ui=self.masterui,
-                                         active=True, tag=self.tag,
+                                         active=True, tag=self.tag1,
                                          index=1, default=True)
         self.master_ui_two = mommy.make(MasterUI, name='inactivemui', 
                                         ui_mode=self.ui_mode_one, active=True)
@@ -51,7 +172,7 @@ class TestGetConfigTagJSON(TestCase):
         self.project_three = mommy.make(Project, name='project_three')
 
     def _proj_one_config(self):
-        return {'Listen': [ 
+        return {'listen': [ 
             {'name': self.masterui.name, 
              'header_text': "Head", 
              'code': 'TagCatName',
@@ -84,7 +205,7 @@ class TestGetConfigTagJSON(TestCase):
         # should not have any uimapping info for project _one_
         self.assertNotIn(self.masterui.name, 
                          [dic['name'] for dic in 
-                          config['Listen']])
+                          config['listen']])
 
     def test_session_project_overrides_passed_project(self):
         """ The project associated with a passed session should be used 
@@ -117,7 +238,7 @@ class TestGetConfigTagJSON(TestCase):
         """
         config = get_config_tag_json(None, self.spanish_sess)
         self.assertEquals('Cabeza', 
-                          config['Listen'][0]['header_text'])
+                          config['listen'][0]['header_text'])
 
     def test_tag_values_correctly_localized(self):
         """ Test that we get correct localized text for tag values
@@ -125,4 +246,4 @@ class TestGetConfigTagJSON(TestCase):
         """
         config = get_config_tag_json(None, self.spanish_sess)
         self.assertEquals('Uno', 
-                          config['Listen'][0]['options'][0]['value'])
+                          config['listen'][0]['options'][0]['value'])

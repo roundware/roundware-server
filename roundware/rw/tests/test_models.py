@@ -3,6 +3,7 @@ from django.test import TestCase
 from model_mommy import mommy
 
 from roundware.rw import models
+from .common import use_locmemcache
 
 
 class TestMasterUI(TestCase):
@@ -15,12 +16,12 @@ class TestMasterUI(TestCase):
         self.other_uimode = mommy.make('rw.UIMode')
         self.project = self.masterui.project
 
-    def test_tag_category_invalidation_post_save(self):
+    @use_locmemcache(models, 'cache')
+    def test_tag_category_cache_invalidation_post_save(self):
         """ test that cached value for tag categories for the MasterUI's mode
         is invalidated after MasterUI saved.
         """
         ui_mode_name = self.masterui.ui_mode.name
-        orig_ui_mode_name = ui_mode_name        
         get_orig_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode_name)
 
         # is original tag_cat of masterui returned by Project's method
