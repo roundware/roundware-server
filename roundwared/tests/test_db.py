@@ -4,7 +4,9 @@ from model_mommy import mommy
 from .common import FakeRequest, RoundwaredTestCase
 from roundware.rw.models import (MasterUI, Session, Tag, Asset, TagCategory,
                                  UIMapping, Project, LocalizedString)
-from roundwared.db import get_config_tag_json, filter_recs_for_tags
+from roundwared.db import (get_config_tag_json, filter_recs_for_tags,
+                           get_recordings)
+from roundwared.roundexception import RoundException
 
 
 class TestGetRecordings(RoundwaredTestCase):
@@ -14,10 +16,77 @@ class TestGetRecordings(RoundwaredTestCase):
     def setUp(self):
         super(type(self), TestGetRecordings).setUp(self)
 
-    def test_something(self):
+        self.project1 = mommy.make(Project, name='Project One')
+        self.project2 = mommy.make(Project, name='Project Two')
+        self.session1 = mommy.make(Session, project=self.project1, 
+                                   language=self.english)
+        self.session2 = mommy.make(Session, project=self.project2,
+                                   language=self.english)
+        self.tagcat2 = mommy.make(TagCategory)
+        self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2')
+        self.masterui1 = mommy.make(MasterUI, project=self.project1, 
+                                    ui_mode=self.ui_mode_listen,
+                                    tag_category=self.tagcat1)
+        self.masterui2 = mommy.make(MasterUI, project=self.project2, 
+                                    ui_mode=self.ui_mode_listen,
+                                    tag_category=self.tagcat2)        
+        self.asset1 = mommy.make(Asset, project=self.project1,
+                                 language=self.english, 
+                                 tags=[self.tag1],
+                                 audiolength=2000)
+        self.asset2 = mommy.make(Asset, project=self.project2,
+                                 language=self.english, 
+                                 tags=[self.tag2],
+                                 audiolength=2000)
+
+    def test_no_session(self):
+        """ calling get_recordings without a session and without tags 
+        should not return any assets but an exception
         """
+        with self.assertRaises(RoundException):
+            req = {'project_id': [self.project1.id]}    
+            get_recordings(req)
+            
+
+    def test_no_session_with_tags(self):
+        """ calling get_recordings without a session but with tags 
+        should still not return any assets but an exception
         """
-        pass
+        with self.assertRaises(RoundException):
+            req = {'project_id': [self.project1.id],
+                   'tags': [self.tag1.id, self.tag2.id, ]}
+            get_recordings(req)
+        
+
+    def test_correct_assets_passing_project_and_session_different(self):
+        """ calling get_recordings with a session id and a project id,
+            where the session has a different project, should give the 
+            session's project's assets
+        """
+        req = {'project_id': self.project1.id,
+               'session_id': self.session2.id}
+        self.assertEquals([self.asset2], get_recordings(req))
+
+    def test_correct_assets_passing_project_and_empty_session_list(self):
+        """ should be able to pass an empty list for session ids  if
+        we pass a project id
+        """
+        with self.assertRaises(RoundException):
+            req = {'project_id': [self.project1.id],
+                   'session_id': []}
+            get_recordings(req)
+
+    def test_correct_assets_passing_project_and_tags_and_session(self):
+        """ if we pass tags, it uses filter_recs_for_tags.
+        """
+        req = {'project_id': [self.project2.id],  # ignored since session
+               'session_id': [self.session1.id, ],
+               'tags': [self.tag2]}
+        self.assertEqual([self.asset1], get_recordings(req))
+
+        req = {'session_id': [self.session2.id, ],
+               'tags': [self.tag2]}
+        self.assertEqual([self.asset2], get_recordings(req))               
 
 
 

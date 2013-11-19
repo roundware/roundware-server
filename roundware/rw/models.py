@@ -84,10 +84,10 @@ class Project(models.Model):
     def get_tag_cats_by_ui_mode(self, ui_mode):
         """ Return TagCategories for this project for specified UIMode 
             by name, like 'listen' or 'speak'.
-            Pass name of UIMode.
+            Pass name of UIMode. MasterUI must be active
         """
         logging.debug('inside get_tag_cats_by_ui_mode... not from cache')
-        master_uis = MasterUI.objects.select_related('tag_category').filter(project=self, ui_mode__name=ui_mode)
+        master_uis = MasterUI.objects.select_related('tag_category').filter(project=self, ui_mode__name=ui_mode, active=True)
         return [mui.tag_category for mui in master_uis]
 
 
