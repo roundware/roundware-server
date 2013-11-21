@@ -63,6 +63,9 @@ EMAIL_USE_TLS = True
 LISTEN_UIMODE = "listen"
 SPEAK_UIMODE = "speak"
 
+CONTINUOUS_REPEAT_MODE = "continuous"
+STOP_REPEAT_MODE = "stop"
+
 ######## END ROUNDWARE SPECIFIC SETTINGS #########
 
 #change this to reflect your environment

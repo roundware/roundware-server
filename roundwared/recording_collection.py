@@ -55,7 +55,7 @@ class RecordingCollection:
 #           index = random.randint(0, len(self.nearby_unplayed_recordings) - 1)
             index = 0
             recording = self.nearby_unplayed_recordings.pop(index)
-            logging.debug("RecordingCollection: get_recording: Got " + recording.filename)
+            logging.debug("RecordingCollection: get_recording: Got " + str(recording.filename))
             self.nearby_played_recordings.append(recording)
         elif len(self.nearby_played_recordings) > 0:
             logging.debug("!!!!!!!!!!!!!!!!!get_recording 1")
@@ -63,7 +63,7 @@ class RecordingCollection:
             p = models.Project.objects.get(id=int(self.request['project_id']))
             logging.debug("!!!!!!!!!!!!!!!!!get_recording 2 - repeatmode:" + p.repeat_mode.mode)
             #do this only if project setting calls for it
-            if p.repeat_mode.id == 2:
+            if p.is_continuous():
                 logging.debug("!!!!!!!!!!!!!!!!!get_recording continuous mode")
                 self.all_recordings = db.get_recordings(self.request)
                 self.far_recordings = self.all_recordings
@@ -76,7 +76,7 @@ class RecordingCollection:
                           + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
                 index = 0
                 recording = self.nearby_unplayed_recordings.pop(index)
-                logging.debug("POST UPDATE RecordingCollection: get_recording: Got " + recording.filename)
+                logging.debug("POST UPDATE RecordingCollection: get_recording: Got " + str(recording.filename))
                 self.nearby_played_recordings.append(recording)
             else:
                 logging.debug("!!!!!!!!!!!!!!!!!get_recording stop mode")
@@ -180,7 +180,6 @@ class RecordingCollection:
         if listener.has_key('latitude') \
             and listener['latitude'] \
             and listener['longitude']:
-
             distance = gpsmixer.distance_in_meters(
                 listener['latitude'], listener['longitude'],
                 recording.latitude, recording.longitude)

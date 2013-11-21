@@ -97,7 +97,8 @@ def get_recordings(request):
     p = None
     s = None
 
-    # BW: passing a project_id is actually useless.  This will always get
+    # TODO XXX: passing a project_id is actually useless in terms of this method
+    # but get_recording will fail without one in the request.  This will always get
     # the project from the session, and fail if no session is passed.
     if request.has_key("project_id") and hasattr(request["project_id"], "__iter__") and len(request["project_id"]) > 0:
         logging.debug("get_recordings: got project_id: " + str(request["project_id"][0]))

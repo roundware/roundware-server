@@ -1,15 +1,40 @@
 from django.test import TestCase
+from django.conf import settings
 
 from model_mommy import mommy
+from model_mommy.generators import gen_file_field
 
 from roundware.rw import models
+from roundware.settings import DEFAULT_SESSION_ID
+
 from .common import use_locmemcache
 
 
-class TestMasterUI(TestCase):
+def rw_validated_file_field_gen():
+    return gen_file_field()
+
+
+class RWTestCase(TestCase):
+    """ provide common testcase data for roundware.rw test cases 
+    """
+
+    def setUp(self):
+        self.maxDiff = None
+
+        generator_dict = {
+            'roundware.rw.fields.RWValidatedFileField': 
+            rw_validated_file_field_gen
+        }
+        # can't set this directly in settings: db ENGINE not yet available
+        setattr(settings, 'MOMMY_CUSTOM_FIELDS_GEN', generator_dict)
+
+
+class TestMasterUI(RWTestCase):
     """ exercise MasterUI model class """
 
     def setUp(self):
+        super(type(self), TestMasterUI).setUp(self)
+
         # make masterui, makes our tagcategory, uimode, project, 
         # selectionmethod
         self.masterui = mommy.make('rw.MasterUI')
@@ -41,9 +66,10 @@ class TestMasterUI(TestCase):
         self.assertNotIn(self.masterui.tag_category, get_tag_cats)
 
 
-class TestProject(TestCase):
+class TestProject(RWTestCase):
 
     def setUp(self):
+        super(type(self), TestProject).setUp(self)
         self.project = mommy.make('rw.Project')
         self.ui_mode = mommy.make('rw.UIMode')
 
@@ -71,3 +97,31 @@ class TestProject(TestCase):
                                      ui_mode=other_ui_mode)
         cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode.name)
         self.assertNotIn(other_master_ui.tag_category, cats)
+
+
+class TestAsset(RWTestCase):
+
+    def setUp(self):
+        super(type(self), TestAsset).setUp(self)
+
+        self.session1 = mommy.make('rw.Session', id=DEFAULT_SESSION_ID)
+        self.session2 = mommy.make('rw.Session')
+        self.project = mommy.make('rw.Project')
+        self.asset1 = mommy.make('rw.Asset')
+        self.asset2 = mommy.make('rw.Asset')
+        self.vote1 = mommy.make('rw.Vote', session=self.session1, 
+                                asset=self.asset1, type="like")
+        self.vote2 = mommy.make('rw.Vote', session=self.session2, 
+                                asset=self.asset1, type="like")
+        self.vote3 = mommy.make('rw.Vote', session=self.session1, 
+                        asset=self.asset2, type="like")
+        self.vote4 = mommy.make('rw.Vote', session=self.session1, 
+                        asset=self.asset1, type="flag")
+
+
+    def test_get_likes(self):
+        self.assertEquals(2, self.asset1.get_likes())
+        self.assertEquals(1, self.asset2.get_likes())
+
+    def test_get_flags(self):
+        self.assertEquals(1, self.asset1.get_flags())

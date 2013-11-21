@@ -90,6 +90,16 @@ class Project(models.Model):
         master_uis = MasterUI.objects.select_related('tag_category').filter(project=self, ui_mode__name=ui_mode, active=True)
         return [mui.tag_category for mui in master_uis]
 
+    @cached(60*60)
+    def is_continuous(self):
+        try:
+            if self.repeat_mode.mode == settings.CONTINUOUS_REPEAT_MODE:
+                return True
+            else:
+                return False
+        except AttributeError:
+            return False
+
 
     class Meta:
         permissions = (('access_project', 'Access Project'),)
@@ -518,5 +528,3 @@ class Vote(models.Model):
 def get_field_names_from_model(model):
     """Pass in a model class. Return list of strings of field names"""
     return [f.name for f in model._meta.fields]
-
-
