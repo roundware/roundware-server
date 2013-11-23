@@ -306,9 +306,11 @@ def cleanup_history_for_session(session_id):
 
 
 def get_current_streaming_asset(session_id):
-    l = ListeningHistoryItem.objects.filter(session=session_id).order_by('-starttime')[0]
-    return l
-
+    try:
+        l = ListeningHistoryItem.objects.filter(session=session_id).order_by('-starttime')[0]
+        return l
+    except IndexError:
+        return None
 
 def get_asset(asset_id):
     return Asset.objects.get(id=asset_id)

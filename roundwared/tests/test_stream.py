@@ -49,7 +49,7 @@ class TestRoundStream(RoundwaredTestCase):
         self.assertEquals('1', stream.ordering)
 
     def test_main_loop(self):
-        """ make sure we get a gObject """
+        """ make sure we get a gObject MainLoop """
         req = self.req1
         req["audio_stream_bitrate"] = '128'
         stream = RoundStream(self.session1.id, 'ogg', req)

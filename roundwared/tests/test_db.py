@@ -1,11 +1,15 @@
+import datetime
+
 from model_mommy import mommy
 # from django_webtest import WebTest
 
 from .common import FakeRequest, RoundwaredTestCase
 from roundware.rw.models import (MasterUI, Session, Tag, Asset, TagCategory,
-                                 UIMapping, Project, LocalizedString)
+                                 UIMapping, Project, LocalizedString,
+                                 ListeningHistoryItem)
 from roundwared.db import (get_config_tag_json, filter_recs_for_tags,
-                           get_recordings)
+                           get_recordings, get_current_streaming_asset,
+                           cleanup_history_for_session)
 from roundwared.roundexception import RoundException
 
 
@@ -316,3 +320,29 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
         config = get_config_tag_json(None, self.spanish_sess)
         self.assertEquals('Uno', 
                           config['listen'][0]['options'][0]['value'])
+
+
+class TestListeningHistoryDB(RoundwaredTestCase):
+
+    def setUp(self):
+        super(type(self), TestListeningHistoryDB).setUp(self)  
+
+        self.project1 = mommy.make(Project)
+        self.asset1 = mommy.make(Asset, project=self.project1)
+        self.asset2 = mommy.make(Asset, project=self.project1)
+        self.history1 = mommy.make(ListeningHistoryItem, asset=self.asset1,
+                                   session=self.default_session, 
+                                   starttime=datetime.datetime.now())
+        self.history2 = mommy.make(ListeningHistoryItem, asset=self.asset2,
+                                   session=self.default_session, 
+                                   starttime=datetime.datetime.now())
+
+    def test_get_current_streaming_asset(self):
+        self.assertEquals(self.history2, get_current_streaming_asset(
+                          self.default_session.id))
+
+    def test_cleanup_history_for_session(self):
+        cleanup_history_for_session(self.default_session)
+        self.assertEquals(None, get_current_streaming_asset(
+                          self.default_session.id))
+

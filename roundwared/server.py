@@ -567,13 +567,14 @@ def add_asset_to_envelope(request):
 
 def get_parameter_from_request(request, name, required):
     ret = None
-    if request.POST.has_key(name):
+    try:
         ret = request.POST.get(name)
-    elif request.GET.has_key(name):
-        ret = request.GET.get(name)
-    else:
-        if required:
-            raise roundexception.RoundException(name + " is required for this operation")
+    except (AttributeError, KeyError):
+        try:
+            ret = request.GET.get(name)
+        except (AttributeError, KeyError):
+            if required:
+                raise roundexception.RoundException(name + " is required for this operation")
     return ret
 
 
@@ -639,12 +640,13 @@ def request_stream(request):
         except:
             pass
 
-        if project.out_of_range_url:
-            url = project.out_of_range_url
-        else:
-            url = "http://" + hostname_without_port + ":" + \
-                        str(settings.config["icecast_port"]) + \
-                        "/outofrange.mp3"
+        # if project.out_of_range_url: all projects must have an out
+        # of range url
+        url = project.out_of_range_url
+        # else:
+        #     url = "http://" + hostname_without_port + ":" + \
+        #                 str(settings.config["icecast_port"]) + \
+        #                 "/outofrange.mp3"
 
         return {
             'stream_url': url,

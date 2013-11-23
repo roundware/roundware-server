@@ -13,8 +13,17 @@ def rw_validated_file_field_gen():
     return gen_file_field()
 
 
-class FakeRequest():
-    pass
+class FakeRequest(object):
+    def __init__(self):
+        self.GET = {}
+
+
+def mock_distance_in_meters_near(l_lat, l_long, rec_lat, rec_long):
+    return 1
+
+
+def mock_distance_in_meters_far(l_lat, l_long, rec_lat, rec_long):
+    return 10000000000
 
 
 class RoundwaredTestCase(TestCase):
@@ -40,8 +49,8 @@ class RoundwaredTestCase(TestCase):
                                       language=self.english)
         self.spanish_msg = mommy.make(LocalizedString, localized_string="Uno",
                                       language=self.spanish)
-        self.tagcat1 = mommy.make(TagCategory)
+        self.tagcat1 = mommy.make(TagCategory, name='tagcatname')
         self.tag1 = mommy.make(Tag, data="{'json':'value'}",
                                loc_msg=[self.english_msg, self.spanish_msg],
                                tag_category=self.tagcat1,
-                               value='tag1')
+                               value='tag1', id=1)

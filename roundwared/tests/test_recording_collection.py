@@ -1,20 +1,13 @@
 from model_mommy import mommy
 from mock import patch
 
-from .common import RoundwaredTestCase
+from .common import (RoundwaredTestCase, mock_distance_in_meters_far,
+                     mock_distance_in_meters_near)
 from roundware.rw.models import (Session, Asset, Project)
 from roundwared.recording_collection import RecordingCollection
 from roundwared.stream import RoundStream
 from roundwared import gpsmixer
 
-
-def mock_distance_in_meters_near(l_lat, l_long, rec_lat, rec_long):
-    return 0
-
-
-def mock_distance_in_meters_far(l_lat, l_long, rec_lat, rec_long):
-    return 10000000000
-        
 
 class TestRecordingCollection(RoundwaredTestCase):
     """ Exercise methods and instances of RecordingCollection

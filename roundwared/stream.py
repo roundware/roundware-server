@@ -45,7 +45,7 @@ class RoundStream:
                 settings.config["icecast_username"],
                 settings.config["icecast_password"])
         self.heartbeat()
-        project = models.Session.objects.get(id=sessionid)
+        # project = models.Session.objects.get(id=sessionid)  # not used
         self.recordingCollection = \
             recording_collection.RecordingCollection(
                     self, request, self.radius, str(self.ordering))
