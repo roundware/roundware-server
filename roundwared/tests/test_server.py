@@ -1,7 +1,11 @@
 import datetime
+from urllib import urlencode
+import json
 
 from model_mommy import mommy
 from mock import patch
+
+from django.test.client import Client
 
 from .common import (RoundwaredTestCase, FakeRequest, 
                      mock_distance_in_meters_near,
@@ -82,6 +86,27 @@ class TestServer(RoundwaredTestCase):
         self.speaker1 = mommy.make(Speaker, project=self.project1, 
                                    latitude=0.1, longitude=0.1,
                                    maxdistance=2, activeyn=True)
+
+    # def test_func_get_available_assets_kwargs_must_all_be_satisfied(self):
+    #     """ make sure response includes proper JSON using a Client request
+    #     """
+    #     c = Client()
+    #     op = 'get_available_assets'
+    #     req_dict = {'project_id': '12', 'audiolength': '5000000',
+    #                'volume': '1.0', }
+    #     f_set = urlencode(req_dict)
+    #     req_str = str.format('/roundware?{0}&{1}').format(op,f_set)
+    #     response = c.get(req_str)
+    #     self.assertEquals(200, response.status_code)
+    #     js = json.loads(respose)
+    #     expected = {
+    #         'number_of_assets' : {
+    #             'audio': 0, 'photo': 0, 'text': 0, 'video': 0
+    #         },
+    #         'assets': []
+    #     }
+    #     self.assertTrue(0, js.number_of_assets.audio)
+
           
     def test_check_for_single_audiotrack(self):
         self.assertEquals(True, check_for_single_audiotrack(self.session.id))
@@ -485,6 +510,8 @@ class TestServer(RoundwaredTestCase):
             'assets': []
         }
         self.assertEquals(expected, get_available_assets(req))
+
+
 
     ################
     # request_stream

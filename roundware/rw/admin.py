@@ -5,10 +5,12 @@ from models import *
 from django.contrib import admin
 from django import forms
 from django.conf import settings
-
-from filterspec import TagCategoryFilterSpec, AudioLengthFilterSpec
-from roundware.rw.signals import add_asset_to_envelope, create_envelope
 from django.contrib.contenttypes import generic
+
+from roundware.rw.signals import add_asset_to_envelope, create_envelope
+# from roundware.rw.filters import TagCategoryListFilter, AudiolengthListFilter
+
+
 
 
 class VoteInline(admin.TabularInline):
@@ -158,7 +160,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     readonly_fields = ('location_map', 'audio_player', 'media_display', 'audiolength', 'session', 'created')#, 'longitude', 'latitude')#, 'filename')
     list_display = ('id', 'session', 'submitted', 'project', 'media_link_url', 'mediatype', 'audio_player', 'created',
                     'norm_audiolength', 'get_likes', 'get_flags', 'get_tags', 'weight', 'volume', )
-    list_filter = ('project', 'tags', 'submitted', 'mediatype', 'audiolength', 'created', 'language', )
+    list_filter = ('project', 'tags', 'submitted', 'mediatype', 'audiolength', 'created', 'language',)  # TagCategoryListFilter, AudiolengthListFilter )
     list_editable = ('submitted', 'weight', 'volume')
     save_on_top = True
     filter_horizontal = ('tags',)

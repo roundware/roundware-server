@@ -568,11 +568,11 @@ def add_asset_to_envelope(request):
 def get_parameter_from_request(request, name, required):
     ret = None
     try:
-        ret = request.POST.get(name)
-    except (AttributeError, KeyError):
+        ret = request.POST[name]
+    except (KeyError, AttributeError):
         try:
-            ret = request.GET.get(name)
-        except (AttributeError, KeyError):
+            ret = request.GET[name]
+        except (KeyError, AttributeError):
             if required:
                 raise roundexception.RoundException(name + " is required for this operation")
     return ret

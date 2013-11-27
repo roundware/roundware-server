@@ -12,10 +12,7 @@ from django.conf import settings
 import datetime
 from cache_utils.decorators import cached
 
-try:
-    import simplejson as json
-except:
-    import json
+import json
 
 import logging
 
@@ -50,20 +47,20 @@ class Project(models.Model):
     longitude = models.FloatField()
     pub_date = models.DateTimeField('date published')
     audio_format = models.CharField(max_length=50)
-    auto_submit = models.BooleanField()
+    auto_submit = models.BooleanField(default=False)
     max_recording_length = models.IntegerField()
-    listen_questions_dynamic = models.BooleanField()
-    speak_questions_dynamic = models.BooleanField()
+    listen_questions_dynamic = models.BooleanField(default=False)
+    speak_questions_dynamic = models.BooleanField(default=False)
     sharing_url = models.CharField(max_length=512)
     sharing_message_loc = models.ManyToManyField(LocalizedString, related_name='sharing_msg_string', null=True, blank=True)
     out_of_range_message_loc = models.ManyToManyField(LocalizedString, related_name='out_of_range_msg_string', null=True, blank=True)
     out_of_range_url = models.CharField(max_length=512)
     recording_radius = models.IntegerField(null=True)
-    listen_enabled = models.BooleanField()
-    geo_listen_enabled = models.BooleanField()
-    speak_enabled = models.BooleanField()
-    geo_speak_enabled = models.BooleanField()
-    reset_tag_defaults_on_startup = models.BooleanField()
+    listen_enabled = models.BooleanField(default=False)
+    geo_listen_enabled = models.BooleanField(default=False)
+    speak_enabled = models.BooleanField(default=False)
+    geo_speak_enabled = models.BooleanField(default=False)
+    reset_tag_defaults_on_startup = models.BooleanField(default=False)
     legal_agreement_loc = models.ManyToManyField(LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
     repeat_mode = models.ForeignKey(RepeatMode, null=True)
     files_url = models.CharField(max_length=512, blank=True)
@@ -73,7 +70,7 @@ class Project(models.Model):
     )
     audio_stream_bitrate = models.CharField(max_length=3, choices=BITRATE_CHOICES, default='128')
     ordering = models.CharField(max_length=16, choices=[('by_like', 'by_like'), ('by_weight', 'by_weight'), ('random', 'random')], default='random')
-    demo_stream_enabled = models.BooleanField()
+    demo_stream_enabled = models.BooleanField(default=False)
     demo_stream_url = models.CharField(max_length=512, blank=True)
     demo_stream_message_loc = models.ManyToManyField(LocalizedString, related_name='demo_stream_msg_string', null=True, blank=True)
 
@@ -230,7 +227,7 @@ class Audiotrack(models.Model):
     maxpanpos = models.FloatField()
     minpanduration = models.FloatField()
     maxpanduration = models.FloatField()
-    repeatrecordings = models.BooleanField()
+    repeatrecordings = models.BooleanField(default=False)
 
     def norm_minduration(self):
         if self.minduration:
@@ -324,9 +321,9 @@ class Asset(models.Model):
     # initially added
     initialenvelope = models.ForeignKey('Envelope', null=True)
 
-    tags.tag_category_filter = True
-
-    audiolength.audio_length_filter = True
+    # no more FilterSpec in Django >= 1.4
+    # tags.tag_category_filter = True
+    # audiolength.audio_length_filter = True
 
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)
@@ -457,7 +454,7 @@ class Asset(models.Model):
     get_votes.short_description = "Votes"
     get_votes.name = "Votes"
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
         super(Asset, self).save(force_insert, force_update, using, *args, **kwargs)
 
@@ -476,7 +473,7 @@ class Envelope(models.Model):
 
 class Speaker(models.Model):
     project = models.ForeignKey(Project)
-    activeyn = models.BooleanField()
+    activeyn = models.BooleanField(default=False)
     code = models.CharField(max_length=10)
     latitude = models.FloatField()
     longitude = models.FloatField()

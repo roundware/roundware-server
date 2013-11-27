@@ -83,6 +83,9 @@ DATABASES = {
     }
 }
 
+# copy this to local_settings.py and uncomment.
+# only requests to this domain will be allowed
+# ALLOWED_HOSTS = ['roundware.org',]
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -204,9 +207,15 @@ INSTALLED_APPS = (
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+     'require_debug_false': {
+         '()': 'django.utils.log.RequireDebugFalse'
+     }
+    },
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
+            'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
         },
     },

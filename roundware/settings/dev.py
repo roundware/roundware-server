@@ -6,7 +6,7 @@ except ImportError:
 
 
 INSTALLED_APPS = INSTALLED_APPS + (
-    'django_coverage',
+    'discoverage',
 )
 
 DEBUG = True

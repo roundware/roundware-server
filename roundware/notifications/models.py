@@ -33,7 +33,7 @@ class ModelNotification(models.Model):
         return "%(model)s (%(project)s)" % {'model' : ENABLED_MODELS[self.model][1], 'project' : self.project}
 
     def get_absolute_url(self):
-        return urlresolvers.reverse("admin:%s_%s_change" % (self._meta.app_label, self._meta.module_name), args=(self.id,))
+        return urlresolvers.reverse("admin:%s_%s_change" % (self._meta.app_label, self._meta.model_name), args=(self.id,))
 
 class ActionNotification(models.Model):
     created = models.DateTimeField(auto_now_add=True)
