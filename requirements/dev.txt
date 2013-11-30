@@ -3,11 +3,7 @@
 django-profiler==1.1
 
 #testing.  
-# starting with Dj1.6 discover-runner is built in.
-# replace coverage with django-discoverage once we move to Dj 1.4+
-coverage==3.7
-django-coverage==1.2.4
-django-discover-runner==0.4
+django-discoverage==1.0.0
 webtest==2.0.9
 django-webtest==1.7.5
 model_mommy==1.2

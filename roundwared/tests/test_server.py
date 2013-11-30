@@ -16,9 +16,8 @@ from roundware.rw.models import (ListeningHistoryItem, Asset, Project,
 from roundwared.roundexception import RoundException
 from roundwared.server import (check_for_single_audiotrack, get_asset_info,
                                get_current_streaming_asset, 
-                               get_available_assets, play_asset_in_stream,
-                               skip_ahead, vote_asset, get_config,
-                               get_tags_for_project, request_stream)
+                               get_available_assets, 
+                               vote_asset, request_stream)
 from roundwared import server 
 from roundwared import gpsmixer
 from roundwared import settings
@@ -69,9 +68,9 @@ class TestServer(RoundwaredTestCase):
                                  language=self.spanish,
                                  tags=(self.tag1,))
         self.envelope1 = mommy.make(Envelope, session=self.session, 
-                                    assets=[self.asset1,])
+                                    assets=[self.asset1, ])
         self.envelope2 = mommy.make(Envelope, session=self.session, 
-                                    assets=[self.asset2,])
+                                    assets=[self.asset2, ])
         self.history1 = mommy.make(ListeningHistoryItem, asset=self.asset1,
                                    session=self.session, 
                                    starttime=datetime.datetime(
@@ -86,27 +85,6 @@ class TestServer(RoundwaredTestCase):
         self.speaker1 = mommy.make(Speaker, project=self.project1, 
                                    latitude=0.1, longitude=0.1,
                                    maxdistance=2, activeyn=True)
-
-    # def test_func_get_available_assets_kwargs_must_all_be_satisfied(self):
-    #     """ make sure response includes proper JSON using a Client request
-    #     """
-    #     c = Client()
-    #     op = 'get_available_assets'
-    #     req_dict = {'project_id': '12', 'audiolength': '5000000',
-    #                'volume': '1.0', }
-    #     f_set = urlencode(req_dict)
-    #     req_str = str.format('/roundware?{0}&{1}').format(op,f_set)
-    #     response = c.get(req_str)
-    #     self.assertEquals(200, response.status_code)
-    #     js = json.loads(respose)
-    #     expected = {
-    #         'number_of_assets' : {
-    #             'audio': 0, 'photo': 0, 'text': 0, 'video': 0
-    #         },
-    #         'assets': []
-    #     }
-    #     self.assertTrue(0, js.number_of_assets.audio)
-
           
     def test_check_for_single_audiotrack(self):
         self.assertEquals(True, check_for_single_audiotrack(self.session.id))
@@ -245,6 +223,49 @@ class TestServer(RoundwaredTestCase):
                       ]
         }
         self.assertEquals(expected, get_available_assets(req))
+
+    def test_func_get_available_assets_pass_multiple_asset_ids_GET(self):
+        """ make sure response includes proper JSON using a Client request
+        """
+        cl = Client()
+        op = 'get_available_assets'
+        req_dict = {'asset_id': '1,2', 'project_id': '2', 'tagids': '2,3'}
+        f_set = urlencode(req_dict)
+        req_str = '/roundware?operation={0}&{1}'.format(op,f_set)
+        response = cl.get(req_str)
+        self.assertEquals(200, response.status_code)
+        js = json.loads(response.content)
+        self.assertEqual(2, js['number_of_assets']['audio'])
+        self.assertEqual(0, js['number_of_assets']['photo'])
+        self.assertEqual(0, js['number_of_assets']['video'])
+        self.assertEqual(0, js['number_of_assets']['text'])
+        self.assertEqual([dict(self.ASSET_1.items() + \
+                       self.ASSET_1_TAGS_EN.items() ),
+
+                       dict(self.ASSET_2.items() + \
+                       self.ASSET_2_TAGS_ES.items() )], js['assets'])          
+
+    def test_func_get_available_assets_pass_multiple_asset_ids_POST(self):
+        """ make sure response includes proper JSON using a Client request
+        """
+        cl = Client()
+        op = 'get_available_assets'
+        req_dict = {'operation': 'get_available_assets', 
+                    'asset_id': '1,2', 'project_id': '2', 'tagids': '2,3'}
+        # f_set = cl.encode_multipart(req_dict)
+        response = cl.post('/roundware/', req_dict)
+        self.assertEquals(200, response.status_code)
+        js = json.loads(response.content)
+        self.assertEqual(2, js['number_of_assets']['audio'])
+        self.assertEqual(0, js['number_of_assets']['photo'])
+        self.assertEqual(0, js['number_of_assets']['video'])
+        self.assertEqual(0, js['number_of_assets']['text'])
+        self.assertEqual([dict(self.ASSET_1.items() + \
+                       self.ASSET_1_TAGS_EN.items() ),
+
+                       dict(self.ASSET_2.items() + \
+                       self.ASSET_2_TAGS_ES.items() )], js['assets'])          
+
 
     def test_get_available_assets_pass_an_invalid_asset_id(self):
         """ ignore other filters and return assets matching ids passed.
@@ -468,6 +489,24 @@ class TestServer(RoundwaredTestCase):
         }
         self.assertEquals(expected, get_available_assets(req))
 
+    def test_func_get_available_assets_pass_extra_kwarg(self):
+        """ make sure response includes proper JSON using a Client request
+        """
+        cl = Client()
+        op = 'get_available_assets'
+        req_dict = {'project_id': '12', 'audiolength': '5000000'}
+        f_set = urlencode(req_dict)
+        req_str = '/roundware?operation={0}&{1}'.format(op,f_set)
+        response = cl.get(req_str)
+        self.assertEquals(200, response.status_code)
+        js = json.loads(response.content)
+        self.assertEqual(1, js['number_of_assets']['audio'])
+        self.assertEqual(0, js['number_of_assets']['photo'])
+        self.assertEqual(0, js['number_of_assets']['video'])
+        self.assertEqual(0, js['number_of_assets']['text'])
+        self.assertEqual([dict(self.ASSET_1.items() + \
+                         self.ASSET_1_TAGS_EN.items() )], js['assets'])         
+
     def test_get_available_assets_pass_extra_kwarg_with_asset_id(self):
         """ extra kwargs should get ignored if we ask for an asset_id
         """
@@ -480,7 +519,7 @@ class TestServer(RoundwaredTestCase):
             'assets': [dict(self.ASSET_2.items() + \
                       self.ASSET_2_TAGS_ES.items() )]
         }
-        self.assertEquals(expected, get_available_assets(req))
+        self.assertEquals(expected, get_available_assets(req))      
 
     def test_get_available_assets_invalid_kwarg_does_no_harm(self):
         """ an extra kwarg in request that isn't a field on the Asset model
@@ -496,6 +535,24 @@ class TestServer(RoundwaredTestCase):
                       self.ASSET_2_TAGS_ES.items() )]
         }
         self.assertEquals(expected, get_available_assets(req))
+
+    def test_func_get_available_invalid_kwarg_does_no_harm(self):
+        """ make sure response includes proper JSON using a Client request
+        """
+        cl = Client()
+        op = 'get_available_assets'
+        req_dict = {'asset_id': '2', 'foo': 'bar'}
+        f_set = urlencode(req_dict)
+        req_str = '/roundware?operation={0}&{1}'.format(op,f_set)
+        response = cl.get(req_str)
+        self.assertEquals(200, response.status_code)
+        js = json.loads(response.content)
+        self.assertEqual(1, js['number_of_assets']['audio'])
+        self.assertEqual(0, js['number_of_assets']['photo'])
+        self.assertEqual(0, js['number_of_assets']['video'])
+        self.assertEqual(0, js['number_of_assets']['text'])
+        self.assertEqual([dict(self.ASSET_2.items() + \
+                         self.ASSET_2_TAGS_ES.items() )], js['assets'])        
     
     def test_get_available_assets_kwargs_must_all_be_satisfied(self):
         """ assets returned must match all valid kwargs passed
@@ -511,7 +568,23 @@ class TestServer(RoundwaredTestCase):
         }
         self.assertEquals(expected, get_available_assets(req))
 
-
+    def test_func_get_available_assets_kwargs_must_all_be_satisfied(self):
+        """ make sure response includes proper JSON using a Client request
+        """
+        cl = Client()
+        op = 'get_available_assets'
+        req_dict = {'project_id': '12', 'audiolength': '5000000',
+                   'volume': '1.0', }
+        f_set = urlencode(req_dict)
+        req_str = '/roundware?operation={0}&{1}'.format(op,f_set)
+        response = cl.get(req_str)
+        self.assertEquals(200, response.status_code)
+        js = json.loads(response.content)
+        self.assertEqual(0, js['number_of_assets']['audio'])
+        self.assertEqual(0, js['number_of_assets']['photo'])
+        self.assertEqual(0, js['number_of_assets']['video'])
+        self.assertEqual(0, js['number_of_assets']['text'])
+        self.assertEqual([], js['assets'])
 
     ################
     # request_stream

@@ -324,6 +324,7 @@ class Asset(models.Model):
     # no more FilterSpec in Django >= 1.4
     # tags.tag_category_filter = True
     # audiolength.audio_length_filter = True
+    audiolength.verbose_name = 'audio file length'
 
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)

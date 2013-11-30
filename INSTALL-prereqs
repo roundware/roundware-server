@@ -1,4 +1,4 @@
-sudo apt-get install python-mysqldb python-configobj mysql-server icecast2 ffmpeg apache2 pacpl gstreamer0.10-gnomevfs python-dbus libapache2-mod-fastcgi python-gst0.10 python-django python-flup gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 gstreamer0.10-plugins-base gstreamer0.10-plugins-bad gstreamer0.10-plugins-good gstreamer0.10-plugins-bad-multiverse gstreamer0.10-plugins-ugly libavcodec-extra-53 python-pip gstreamer-tools python-setuptools python-profiler libmagic1 clamav-daemon python-clamav
+sudo apt-get install python-mysqldb python-configobj mysql-server icecast2 ffmpeg apache2 pacpl gstreamer0.10-gnomevfs python-dbus libapache2-mod-fastcgi python-gst0.10 python-django python-flup gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 gstreamer0.10-plugins-base gstreamer0.10-plugins-bad gstreamer0.10-plugins-good gstreamer0.10-plugins-bad-multiverse gstreamer0.10-plugins-ugly libavcodec-extra-53 python-pip gstreamer-tools python-setuptools python-profiler libmagic1 clamav-daemon python-clamav python-lxml
 
 sudo a2enmod rewrite
 # django apps
