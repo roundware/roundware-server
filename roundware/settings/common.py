@@ -122,8 +122,10 @@ MEDIA_URL = ''
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
-# Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = PROJECT_PATH + '/static'
+# This should be the path to the 'static' directory at the root of the 
+# roundware-server installation.
+# Example: "/home/ubuntu/roundware-server/static/"
+STATIC_ROOT = "/home/ubuntu/roundware-server/static"
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
