@@ -24,7 +24,10 @@
 
 import logging
 import datetime
-from profiling import profile
+try:
+    from profiling import profile
+except ImportError:
+    pass
 from roundwared import settings
 from roundwared import roundexception
 from roundware import settings as rw_settings

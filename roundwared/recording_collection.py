@@ -3,7 +3,10 @@
 import logging
 import random
 import threading
-from profiling import profile
+try:
+    from profiling import profile
+except ImportError:
+    pass
 from roundwared import gpsmixer
 from roundware.rw import models
 from roundwared import db

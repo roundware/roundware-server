@@ -6,7 +6,10 @@ import json
 import uuid
 import datetime
 import psutil
-from profiling import profile
+try:
+    from profiling import profile
+except ImportError:
+    pass
 from roundwared import settings
 from roundwared import db
 from roundwared import convertaudio
