@@ -5,6 +5,8 @@ sudo chown www-data:www-data /var/www/.gnome2
 sudo touch /var/log/roundware
 sudo chown www-data /var/log/roundware
 sudo mkdir /etc/roundware
+sudo mkdir ./static
+sudo chown www-data ./static
 # copy default RW config file into place - don't forget to edit!
 sudo cp ./files/sample-config /etc/roundware/rw
 # copy test audio file to correct location
