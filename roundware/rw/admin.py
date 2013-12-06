@@ -168,19 +168,19 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     class Media:
         css = {
             "all": (
-                "css/jplayer.blue.monday.css",
+                "rw/css/jplayer.blue.monday.css",
                 "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css",
-                "css/asset_admin.css"
+                "rw/css/asset_admin.css"
                 )
             }
         js = (
-                'js/jquery.jplayer.min.js',
-                'js/audio.js',
+                'rw/js/jquery.jplayer.min.js',
+                'rw/js/audio.js',
                 'http://maps.google.com/maps/api/js?sensor=false',
                 'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
                 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
-                'js/location_map.js',
-                'js/asset_admin.js',
+                'rw/js/location_map.js',
+                'rw/js/asset_admin.js',
             )
 
 
@@ -358,17 +358,17 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
                 'http://maps.google.com/maps/api/js?sensor=false',
                 'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
                 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
-                'js/location_map.js',
-                'js/asset_admin.js',
-                'js/envelope_admin.js',
+                'rw/js/location_map.js',
+                'rw/js/asset_admin.js',
+                'rw/js/envelope_admin.js',
             )
 
         css = {
             "all": (
-                "css/jplayer.blue.monday.css",
+                "rw/css/jplayer.blue.monday.css",
                 "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css",
-                "css/asset_admin.css",
-                "css/envelope_admin.css"
+                "rw/css/asset_admin.css",
+                "rw/css/envelope_admin.css"
             )
         }
 
@@ -398,7 +398,7 @@ class SpeakerAdmin(ProjectProtectedModelAdmin):
             'http://maps.google.com/maps/api/js?sensor=false',
             'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
             'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
-            'js/location_map.js',
+            'rw/js/location_map.js',
         )
 
 
