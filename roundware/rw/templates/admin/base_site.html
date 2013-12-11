@@ -1,10 +1,15 @@
 {% extends "admin/base.html" %}
-{% load i18n %}
+{% load i18n %}{% load admin_static bootstrapped_goodies_tags %}{% load url from future %}
 
-{% block title %}{{ title }} | {% trans 'Roundware site admin' %}{% endblock %}
+{% block extrastyle %}
+<link rel="stylesheet" href="/static/rw/css/rw_admin.css" type="text/css" />
+{% endblock %}
+
+
+{% block title %}Roundware administration{% endblock %}
 
 {% block branding %}
-<h1 id="site-name">{% trans 'Roundware Administration' %}</h1>
+<a class="navbar-brand" href="{% url 'admin:index' %}">Roundware Administration</a>
 {% endblock %}
 
 {% block nav-global %}{% endblock %}
