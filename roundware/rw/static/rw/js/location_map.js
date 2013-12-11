@@ -92,7 +92,7 @@ RadiusWidget.prototype.addSizer_ = function() {
         draggable: true,
         title: 'Drag me!',
         raiseOnDrag: false,
-        icon: '/static/img/resize-off.png'
+        icon: '/static/rw/img/resize-off.png'
     });
 
     sizer.bindTo('map', this);
