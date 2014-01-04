@@ -82,6 +82,7 @@ def operation_to_function(operation):
         "play_asset_in_stream": server.play_asset_in_stream,
         "vote_asset": server.vote_asset,
         "skip_ahead": server.skip_ahead,
+        "get_events": server.get_events,
     }
     key = string.lower(operation)
     if operations.has_key(key):

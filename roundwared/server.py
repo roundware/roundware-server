@@ -712,6 +712,35 @@ def heartbeat(request):
 def current_version(request):
     return {"version": "2.0"}
 
+def get_events(request):
+    form = request.GET
+    session_id = form.get('session_id', None)
+    events = models.Event.objects.filter(session=session_id)
+    # event_types = models.Event.objects.values_list('event_type').distinct()
+    events_info = {}
+    events_info['number_of_events'] = 0
+    # for etype in event_types:
+    #     events_info['number_of_events'][etype]= 0
+    events_list = []
+    if form.has_key('session_id'):
+        for e in events:
+            events_list.append(
+                dict(event_id=e.id,
+                     session_id=e.session_id,
+                     event_type=e.event_type,
+                     latitude=e.latitude,
+                     longitude=e.longitude,
+                     data=e.data,
+                     tags=e.tags,
+                     server_time=str(e.server_time),
+                     )
+            )
+            events_info['number_of_events'] +=1
+        events_info['events'] = events_list
+        return events_info
+    else:
+        return {"error": "no session_id!!"}
+
 #END 2.0 Protocol
 
 #2.0 Helper methods
