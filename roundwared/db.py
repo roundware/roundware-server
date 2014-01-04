@@ -170,9 +170,9 @@ def get_default_tags_for_project(p, s):
 # @profile(stats=True)
 @cached(60*1)
 def filter_recs_for_tags(p, tagids_from_request, l):
-    """ Return Assets containing at least one matching tag in _each_ available 
+    """ Return Assets containing at least one matching tag in _each_ available
     tag category with the tags supplied in tagids_from_request.
-    i.e., an Asset, to be returned, must match at least one tag from each 
+    i.e., an Asset, to be returned, must match at least one tag from each
     category.  It won't be returned if it has a tag from one tagcategory
     but not another.
     """
@@ -204,9 +204,9 @@ def filter_recs_for_tags(p, tagids_from_request, l):
 
             # any tag ids of this asset that are in this tagcategory
             tag_ids_for_this_cat_from_asset = filter(lambda x: x in tags_per_category, rec_tag_ids)
-            
-            # if no tags passed in request are in this category, then 
-            # look at next category. 
+
+            # if no tags passed in request are in this category, then
+            # look at next category.
 
             # if any tags passed in request are in this category, then
             # make sure any asset returned has at least one tag in this category

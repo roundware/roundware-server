@@ -79,7 +79,7 @@ class Project(models.Model):
 
     @cached(60*60)
     def get_tag_cats_by_ui_mode(self, ui_mode):
-        """ Return TagCategories for this project for specified UIMode 
+        """ Return TagCategories for this project for specified UIMode
             by name, like 'listen' or 'speak'.
             Pass name of UIMode. MasterUI must be active
         """
@@ -181,7 +181,7 @@ class MasterUI(models.Model):
         return {'name': self.name, 'code': self.tag_category.name, 'select': self.select.name, 'order': self.index}
 
     def save(self, *args, **kwargs):
-        # invalidate cached value for tag categories for all ui_modes for the 
+        # invalidate cached value for tag categories for all ui_modes for the
         # associated project.
         logging.debug("invalidating Project.get_tags_by_ui_mode for project "
                      " %s and UIMode %s" %(self.project, self.ui_mode.name))
@@ -192,7 +192,7 @@ class MasterUI(models.Model):
         except ObjectDoesNotExist:
             pass
         super(MasterUI, self).save(*args, **kwargs)
-        
+
 
     def __unicode__(self):
             return str(self.id) + ":" + self.ui_mode.name + ":" + self.name
@@ -293,7 +293,7 @@ class Asset(models.Model):
         'photo': settings.ALLOWED_IMAGE_MIME_TYPES,
         'text': settings.ALLOWED_TEXT_MIME_TYPES,
     }
-                        
+
     session = models.ForeignKey(Session, null=True, blank=True, default=get_default_session)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
@@ -340,9 +340,9 @@ class Asset(models.Model):
             self.validate_filetype_for_mediatype(self.file.file.content_type)
 
     def validate_filetype_for_mediatype(self, content_type):
-        """ content_type of file uploaded must be valid for mediatype 
-        selected.  For now, just trusts the content_type coming through HTTP.  
-        To be sure would need to examine the file. 
+        """ content_type of file uploaded must be valid for mediatype
+        selected.  For now, just trusts the content_type coming through HTTP.
+        To be sure would need to examine the file.
         """
         if content_type not in self.MEDIATYPE_CONTENT_TYPES[self.mediatype]:
             raise ValidationError(
@@ -350,7 +350,7 @@ class Asset(models.Model):
                     NON_FIELD_ERRORS:
                     (u"File type %s not supported for asset mediatype %s"
                     % (content_type, self.mediatype),)
-                }   
+                }
             )
 
     def media_display(self):
@@ -377,7 +377,7 @@ class Asset(models.Model):
         image_src = "%s%s" % (MEDIA_BASE_URI, self.filename)
         return """<div data-filename="%s" class="media-display image-file"><a href="%s" target="imagepop"
                ><img src="%s" alt="%s" title="%s"/></a></div>""" % (
-                self.filename, image_src, image_src, 
+                self.filename, image_src, image_src,
                 self.description, "click for full image")
     image_display.short_name = "image"
     image_display.allow_tags = True

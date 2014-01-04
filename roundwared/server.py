@@ -252,17 +252,17 @@ def get_available_assets(request):
     request.  If asset_id is passed, ignore other filters and return single
     asset.  If multiple, comma-separated values for asset_id are passed, ignore
     other filters and return all those assets.  If envelope_id is passed, ignore
-    other filters and return all assets in that envelope.  If multiple, 
+    other filters and return all assets in that envelope.  If multiple,
     comma-separated values for envelope_id are passed, ignore
     other filters and return all those assets.  Returns localized
     value for tag strings on asset by asset basis unless a specific language
     code is passed. Fall back to English if necessary."""
-    
+
 
     def _get_best_localized_string(asset, tag, best_lang_id):
         """ Return localized string with specified language code.
             If that's not available, look for a language field on the model and
-            use that.  If that's not available, fall back to English. 
+            use that.  If that's not available, fall back to English.
         """
         try:
             localization = tag.loc_msg.get(language=best_lang_id)
@@ -313,7 +313,7 @@ def get_available_assets(request):
         extras[str(k)] = str(v)
 
     # if a language (code) is specified, use that
-    # otherwise, return localized value specific to Asset    
+    # otherwise, return localized value specific to Asset
     qry_retlng = None
     if language:
         try:
@@ -324,13 +324,13 @@ def get_available_assets(request):
             )
 
     if project_id or asset_id or envelope_id:
-        
+
         # by asset
         if asset_id:
             # ignore all other filter criteria
             assets = models.Asset.objects.filter(id__in=asset_id.split(','))
-        
-        # by envelope    
+
+        # by envelope
         elif envelope_id:
             assets = []
             envelopes = models.Envelope.objects.filter(id__in=envelope_id.split(','))
@@ -339,12 +339,12 @@ def get_available_assets(request):
                 for a in e_assets:
                     if a not in assets:
                         assets.append(a)
-        
+
         # by project
         elif project_id:
             project = models.Project.objects.get(id=project_id)
             kw['project__exact'] = project
-            
+
             assets = models.Asset.objects.filter(**kw)
             if tag_ids:
                 if tagbool and str(tagbool).lower() == 'or':
@@ -411,7 +411,7 @@ def get_available_assets(request):
 
     else:
         raise roundexception.RoundException("This operation requires that you "
-            "pass a project_id, asset_id, or envelope_id")            
+            "pass a project_id, asset_id, or envelope_id")
 
 def log_event(request):
 
@@ -583,6 +583,7 @@ def get_parameter_from_request(request, name, required):
 
 # @profile(stats=True)
 def request_stream(request):
+
     request_form = request.GET
     try:
         hostname_without_port = str(settings.config["external_host_name_without_port"])
@@ -596,6 +597,7 @@ def request_stream(request):
     project = session.project
 
     if session.demo_stream_enabled:
+        # return {"success": "demo_stream_enabled"}
         msg = "demo_stream_message"
         try:
             msg = project.demo_stream_message_loc.filter(language=session.language)[0].localized_string

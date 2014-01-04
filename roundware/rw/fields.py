@@ -7,7 +7,7 @@ import pyclamav
 class RWValidatedFileField(ValidatedFileField):
     """
     Same as FileField, but you can specify:
-        * content_types - list containing allowed content_types. 
+        * content_types - list containing allowed content_types.
         Example: ['application/pdf', 'image/jpeg']
     """
     def __init__(self, content_types=None, **kwargs):
@@ -16,8 +16,8 @@ class RWValidatedFileField(ValidatedFileField):
 
         super(RWValidatedFileField, self).__init__(**kwargs)
 
-    def clean(self, *args, **kwargs):        
-        # ValidatedFileField.clean will check the MIME type from the 
+    def clean(self, *args, **kwargs):
+        # ValidatedFileField.clean will check the MIME type from the
         # http headers and by peeking in the file
         data = super(RWValidatedFileField, self).clean(*args, **kwargs)
 
@@ -32,8 +32,8 @@ class RWValidatedFileField(ValidatedFileField):
                 'The file %s you uploaded appears to contain a virus or be'
                 'malware (%s).' % (fn, virus_name)
             )
-            
+
         return data
 
 
-add_introspection_rules([], ["^roundware\.rw\.fields\.RWValidatedFileField"])        
+add_introspection_rules([], ["^roundware\.rw\.fields\.RWValidatedFileField"])

@@ -1,5 +1,5 @@
 from django.contrib.admin import DateFieldListFilter, RelatedFieldListFilter
-from django.contrib.admin.util import (get_model_from_relation, 
+from django.contrib.admin.util import (get_model_from_relation,
                                        prepare_lookup_value)
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import smart_unicode
@@ -53,12 +53,12 @@ class AudiolengthListFilter(DateFieldListFilter):
             (_('> 60s'), {
                 self.lookup_kwarg_since: 60000000000,
                 self.lookup_kwarg_until: None,
-            }),                        
+            }),
         )
 
 
 class TagCategoryListFilter(RelatedFieldListFilter):
-    """ Adds filtering by TagCategory, based on tags on Asset.  If a 
+    """ Adds filtering by TagCategory, based on tags on Asset.  If a
     TagCategory is clicked the filter list displays specific tags in that
     TagCategory.
     """
@@ -75,7 +75,7 @@ class TagCategoryListFilter(RelatedFieldListFilter):
         rel_name = other_model._meta.pk.name
 
         if "tags__tag_category__name__iexact" in request.GET:
-            self.lookup_kwarg = '%s__description' % field_path            
+            self.lookup_kwarg = '%s__description' % field_path
             self.lookup_val = request.GET.get(self.lookup_kwarg, None)
             # getting the first char of values
             cat_t = request.GET.get("tags__tag_category__name__iexact")
@@ -93,11 +93,11 @@ class TagCategoryListFilter(RelatedFieldListFilter):
         for p in self.expected_parameters():
             if p in params:
                 value = params.pop(p)
-                self.used_parameters[p] = prepare_lookup_value(p, value)    
+                self.used_parameters[p] = prepare_lookup_value(p, value)
 
         # super(RelatedFieldListFilter, self).__init__(
         #     field, request, params, model, model_admin, field_path)
-       
+
         self.title = _('tag category')
 
     def has_output(self):
@@ -116,4 +116,4 @@ class TagCategoryListFilter(RelatedFieldListFilter):
         for val in self.lookup_choices:
             yield {'selected': smart_unicode(val) == self.lookup_val,
                    'query_string': cl.get_query_string({self.lookup_kwarg: val}),
-                   'display': val}        
+                   'display': val}

@@ -185,7 +185,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
 
 
 class AssetInline(admin.StackedInline):
-    model = Asset    
+    model = Asset
     verbose_name_plural = "Add/edit Assets (click Asset header to show fields)"
     # ct_field = "dj_content_type"
     extra = 0
@@ -193,7 +193,7 @@ class AssetInline(admin.StackedInline):
     readonly_fields = AssetAdmin.readonly_fields
     filter_horizontal = ('tags',)
     # prepopulated_fields = {"session": ("title",)}
-  
+
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'tag_category', 'description', 'get_loc')
@@ -350,7 +350,7 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
             formset.save_m2m()
             return instances
         else:
-            return formset.save()  
+            return formset.save()
 
 
     class Media:
