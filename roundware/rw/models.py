@@ -145,6 +145,7 @@ class Tag(models.Model):
     tag_category = models.ForeignKey(TagCategory)
     value = models.TextField()
     description = models.TextField()
+    loc_description = models.ManyToManyField(LocalizedString, null=True, blank=True, related_name='tag_desc')
     loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)
     data = models.TextField(null=True, blank=True)
     relationships = models.ManyToManyField('self', symmetrical=True, related_name='related_to', null=True, blank=True)
@@ -158,7 +159,7 @@ class Tag(models.Model):
         return [rel['pk'] for rel in self.relationships.all().values('pk')]
 
     def __unicode__(self):
-            return self.tag_category.name + " : " + self.description
+            return self.tag_category.name + " : " + self.value
 
 
 class MasterUI(models.Model):

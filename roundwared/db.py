@@ -72,6 +72,11 @@ def get_config_tag_json(p=None, s=None):
 
             default = []
             for mapping in mappings:
+                temp_desc = ""
+                loc_desc = ""
+                temp_desc = mapping.tag.loc_description.filter(language=lingo)
+                if temp_desc:
+                    loc_desc = temp_desc[0].localized_string
                 if mapping.default:
                     default.append(mapping.tag.id)
                 #masterOptionsList.append(mapping.toTagDictionary())
@@ -81,6 +86,7 @@ def get_config_tag_json(p=None, s=None):
                 masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'data': mapping.tag.data,
                                           'relationships': mapping.tag.get_relationships(),
                                           'description': mapping.tag.description, 'shortcode': mapping.tag.value,
+                                          'loc_description': loc_desc,
                                           'value': mapping.tag.loc_msg.filter(language=lingo)[0].localized_string})
             masterD["options"] = masterOptionsList
             masterD["defaults"] = default
