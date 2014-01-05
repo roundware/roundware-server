@@ -268,7 +268,7 @@ def get_available_assets(request):
             localization = tag.loc_msg.get(language=best_lang_id)
         except models.LocalizedString.DoesNotExist:
             # try object's specified language
-            asset_lang =  asset.language
+            asset_lang = asset.language
             if asset_lang and retlng != asset_lang:
                 localization = tag.loc_msg.get(language=asset_lang)
             else:
@@ -318,10 +318,14 @@ def get_available_assets(request):
     if language:
         try:
             qry_retlng = models.Language.objects.get(language_code=language)
+            lng_id = models.Language.objects.get(language_code=language)
         except models.Language.DoesNotExist:
             raise roundexception.RoundException(
                 "Specified language code does not exist."
             )
+    else:
+        # default to Emglish if no language parameter present
+        lng_id = 1
 
     if project_id or asset_id or envelope_id:
 
@@ -383,6 +387,11 @@ def get_available_assets(request):
         assets_list = []
 
         for asset in assets:
+            temp_desc = ""
+            loc_desc = ""
+            temp_desc = asset.loc_description.filter(language=lng_id)
+            if temp_desc:
+                loc_desc = temp_desc[0].localized_string
             if asset.mediatype in asset_media_types:
                 assets_info['number_of_assets'][asset.mediatype] +=1
             if not qry_retlng:
@@ -399,6 +408,7 @@ def get_available_assets(request):
                      submitted=asset.submitted,
                      mediatype=asset.mediatype,
                      description=asset.description,
+                     loc_description=loc_desc,
                      project=asset.project.name,
                      language=asset.language.language_code,
                      tags=[dict(

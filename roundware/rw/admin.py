@@ -158,9 +158,9 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     list_filter = ('project', 'submitted', 'mediatype', 'created', 'language', ('audiolength', AudiolengthListFilter), ('tags', TagCategoryListFilter))
     list_editable = ('submitted', 'weight', 'volume')
     save_on_top = True
-    filter_horizontal = ('tags',)
+    filter_horizontal = ('tags','loc_description')
     fieldsets = (
-        ('Media Data', {'fields' : ('mediatype', 'media_display', 'file', 'volume', 'audiolength', 'description')}),
+        ('Media Data', {'fields' : ('mediatype', 'media_display', 'file', 'volume', 'audiolength', 'description', 'loc_description')}),
         (None, {'fields' : ('project', 'language', 'session', 'created', 'weight', 'submitted', 'tags')}),
         ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude')})
     )

@@ -316,6 +316,7 @@ class Asset(models.Model):
     weight = models.IntegerField(choices=[(i, i) for i in range(0, 100)], default=50)
     mediatype = models.CharField(max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
     description = models.TextField(max_length=2048, blank=True)
+    loc_description = models.ManyToManyField(LocalizedString, null=True, blank=True)
 
     # enables inline adding/editing of Assets in Envelope Admin.
     # creates a relationship of an Asset to the Envelope, in which it was
