@@ -1,30 +1,21 @@
-from chartit.chartdata import PivotDataPool
-from chartit.charts import PivotChart
-from django.db.models.aggregates import Count, Sum
 from django.http import HttpResponse
-import time
 import string
-import subprocess
 import os
 import logging
 import json
 import traceback
-from roundware.rw.models import Asset
 from roundware.rw.chart_functions import assets_created_per_day
-from roundware.rw.models import Session
-from roundware.rw.models import Tag
 from roundware.rw.chart_functions import sessions_created_per_day
 from roundware.rw.chart_functions import assets_by_question
 from roundware.rw.chart_functions import assets_by_section
+from roundware.rw.models import Tag, LocalizedString
+from roundware.rw.forms import TagCreateFormSet, TagCreateForm
 from roundwared import settings
-from roundwared import db
-from roundwared import convertaudio
-from roundwared import discover_audiolength
 from roundwared import roundexception
-from roundwared import icecast2
-from roundwared import gpsmixer
-from roundwared import rounddbus
 from roundwared import server
+from braces.views import LoginRequiredMixin
+from extra_views import InlineFormSet, ModelFormSetView
+from djangoformsetjs.utils import formset_media_js
 
 
 def main(request):
@@ -89,7 +80,7 @@ def operation_to_function(operation):
     else:
         raise roundexception.RoundException("Invalid operation, " + operation)
 
-from chartit import DataPool, Chart
+
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 
@@ -105,3 +96,17 @@ def chart_views(request):
     assets_by_section_chart = assets_by_section()
 #    return render_to_response("chart_template.html", {'sessionchart': session_created_per_day_chart, 'assetchart': asset_created_per_day_chart})
     return render_to_response("chart_template.html", {'charts': [session_created_per_day_chart, asset_created_per_day_chart, assets_by_question_chart, assets_by_section_chart]})
+
+
+class CreateTagsView(LoginRequiredMixin, ModelFormSetView):
+    model = Tag
+    template_name = 'tags_add_to_category_form.html'
+    extra = 3
+    form_class = TagCreateForm
+    formset_class = TagCreateFormSet
+    success_url = '/admin/rw/tag#footer'  # show new tags at bottom
+
+    class Media:
+        js = formset_media_js
+
+

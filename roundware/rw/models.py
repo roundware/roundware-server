@@ -160,6 +160,9 @@ class Tag(models.Model):
     def __unicode__(self):
             return self.tag_category.name + " : " + self.description
 
+    class Meta:
+        app_label = 'rw'  # necessary for special batch add form
+
 
 class MasterUI(models.Model):
     name = models.CharField(max_length=50)
