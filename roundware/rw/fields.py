@@ -1,7 +1,6 @@
 from django.forms import forms
 from south.modelsinspector import add_introspection_rules
 from validatedfile.fields import ValidatedFileField
-import pyclamav
 
 
 class RWValidatedFileField(ValidatedFileField):
@@ -25,6 +24,7 @@ class RWValidatedFileField(ValidatedFileField):
 
         # next scan with pyclamav
         tmpfile = file.file.name
+        import pyclamav
         has_virus, virus_name = pyclamav.scanfile(tmpfile)
         if has_virus:
             fn = file.name
