@@ -1,0 +1,57 @@
+{% extends "admin/change_form.html" %}
+{% load admin_urls i18n crispy_forms_tags formset_tags %}
+
+{% block extrahead %}
+{{ tag_formset_formset.media }}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumb">
+  <li><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
+  <li><a href="{% url 'admin:app_list' app_label='rw' %}">Rw</a></li>
+  <li>Batch add tags</li>
+  </ul>
+{% endblock %}
+
+{% block content_title %}<a class="navbar-brand">Batch add tags</a>{% endblock %}
+
+{% block content %}
+
+<form id="tag_batch_form" method='post' action=''>
+    <div id="category_field_form">
+        {{ category_form|crispy }}
+    </div>    
+
+    <div id="formset" data-formset-prefix="{{ formset.prefix }}">    
+
+        {% crispy tag_formset_formset tag_formset_formset.form.helper 'bootstrap' %}
+        <div class="form-actions">
+            <input type="button" value="Add More Tags" data-formset-add id="add_more" class="btn"/>
+            <input name="submit" value="Save All" class="btn btn-primary" id="submit-id-submit" type="submit"/>
+        </div>
+
+         <!-- The empty form template. By wrapping this in a <script> tag, the
+        __prefix__ placeholder can easily be replaced in both attributes and
+        any scripts -->
+        <script type="form-template" data-formset-empty-form>
+            {% escapescript %}
+                <tr>
+                    {% for field in tag_formset_formset.empty_form %}
+                        {% include 'bootstrap3/field.html' with tag="th" form_show_labels=False %}
+                    {% endfor %} 
+                </tr>
+            {% endescapescript %}
+        </script>
+    </div>
+</form>
+
+<script language="javascript" type="text/javascript">
+    jQuery(function($) {
+        $("#formset").formset({
+            animateForms: true,
+            body: "tbody",
+            form: "tr",
+        });
+    });
+</script>
+{% endblock %}

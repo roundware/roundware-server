@@ -9,12 +9,14 @@ from roundware.rw.chart_functions import sessions_created_per_day
 from roundware.rw.chart_functions import assets_by_question
 from roundware.rw.chart_functions import assets_by_section
 from roundware.rw.models import Tag, LocalizedString
-from roundware.rw.forms import TagCreateFormSet, TagCreateForm
+from roundware.rw.forms import TagCreateForm
 from roundwared import settings
 from roundwared import roundexception
 from roundwared import server
 from braces.views import LoginRequiredMixin
-from extra_views import InlineFormSet, ModelFormSetView
+from extra_views import (
+    InlineFormSet, ModelFormSetView, NamedFormsetsMixin)
+from extra_views.multi import MultiFormView
 from djangoformsetjs.utils import formset_media_js
 
 
@@ -98,15 +100,26 @@ def chart_views(request):
     return render_to_response("chart_template.html", {'charts': [session_created_per_day_chart, asset_created_per_day_chart, assets_by_question_chart, assets_by_section_chart]})
 
 
-class CreateTagsView(LoginRequiredMixin, ModelFormSetView):
-    model = Tag
+class MultiCreateTagsView(LoginRequiredMixin, MultiFormView):
+    success_url = '/admin/rw/tag'
     template_name = 'tags_add_to_category_form.html'
-    extra = 3
-    form_class = TagCreateForm
-    formset_class = TagCreateFormSet
-    success_url = '/admin/rw/tag#footer'  # show new tags at bottom
+    forms = {'category': MultiFormView.modelform(Tag, TagCreateForm, 
+                         **{'fields': ('tag_category',),
+                            'exclude': ('value','description','data',
+                                        'loc_msg')}
+                         ),
+             'tag_formset': MultiFormView.modelformset(Tag,
+                            **{'extra': 3, 'form': TagCreateForm,
+                               'exclude': ['tag_category'],
+                               'fields': ['value', 'description', 'data', 'loc_msg']}
+                               # 'formset': TagCreateFormSet}
+                            )
+            }
 
-    class Media:
-        js = formset_media_js
+    def get_category_instance(self):
+        return Tag()
+
+    def get_tag_formset_queryset(self):
+        return Tag.objects.none()
 
 
