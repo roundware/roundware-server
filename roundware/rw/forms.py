@@ -25,6 +25,15 @@ class TagCreateForm(forms.ModelForm):
         # self.helper.add_input(Submit('submit', 'Save All'))
         super(TagCreateForm, self).__init__(*args, **kwargs)
 
+    # def is_valid(self):
+    #     """ allow form with only the tag_category field to be considered valid
+    #         since we will only use it to populate tag_category field of other 
+    #         forms in the formset
+    #     """
+    #     # may not be necessary, we'll see
+    #     pass
+
+
     class Meta:
         model = Tag
         fields = ['tag_category']  # formset in multiview adds others
@@ -43,3 +52,15 @@ class TagCreateForm(forms.ModelForm):
 
 # TagLocalizedStringFormset = inlineformset_factory(Tag, LocalizedString,
 #     fields=('localized_string', 'language'), can_delete=True)
+
+
+class BatchTagFormset(BaseModelFormSet):
+
+    def save(self):
+        """ saving is handled by view.  May need to revisit this as we 
+        add inlines.
+        """
+        pass
+
+
+        

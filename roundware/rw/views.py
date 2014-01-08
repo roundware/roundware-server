@@ -9,7 +9,7 @@ from roundware.rw.chart_functions import sessions_created_per_day
 from roundware.rw.chart_functions import assets_by_question
 from roundware.rw.chart_functions import assets_by_section
 from roundware.rw.models import Tag, LocalizedString
-from roundware.rw.forms import TagCreateForm
+from roundware.rw.forms import TagCreateForm, BatchTagFormset
 from roundwared import settings
 from roundwared import roundexception
 from roundwared import server
@@ -111,8 +111,8 @@ class MultiCreateTagsView(LoginRequiredMixin, MultiFormView):
              'tag_formset': MultiFormView.modelformset(Tag,
                             **{'extra': 3, 'form': TagCreateForm,
                                'exclude': ['tag_category'],
-                               'fields': ['value', 'description', 'data', 'loc_msg']}
-                               # 'formset': TagCreateFormSet}
+                               'fields': ['value', 'description', 'data', 'loc_msg'],
+                               'formset': BatchTagFormset}
                             )
             }
 
@@ -122,4 +122,18 @@ class MultiCreateTagsView(LoginRequiredMixin, MultiFormView):
     def get_tag_formset_queryset(self):
         return Tag.objects.none()
 
+    def valid_all(self, valid_forms):
+        """ handle case all forms valid 
+        """
+        category= valid_forms['category']
+        formset= valid_forms['tag_formset']
+        for form in formset.forms:
+            tag = form.save(commit=False)  # doesn't save m2m yet
+            tag.tag_category = category.cleaned_data['tag_category']
+            tag.save()
+            form.save_m2m()
 
+    def invalid_all(self, invalid_forms):
+        """ handle case all forms invalid
+        """
+        self.forms_invalid(invalid_forms)
