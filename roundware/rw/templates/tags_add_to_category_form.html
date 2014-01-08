@@ -19,14 +19,14 @@
 
 <form id="tag_batch_form" method='post' action=''>
     <div id="category_field_form">
-        {{ category_form|crispy }}
+        {{ category_form|crispy:"bootstrap3" }}
     </div>    
 
     <div id="formset" data-formset-prefix="{{ tag_formset_formset.prefix }}">    
 
         {% crispy tag_formset_formset tag_formset_formset.form.helper 'bootstrap' %}
         <div class="form-actions">
-            <input type="button" value="Add More Tags" data-formset-add id="add_more" class="btn"/>
+            <input type="button" value="Add Another Tag" data-formset-add id="add_more" class="btn"/>
             <input name="submit" value="Save All" class="btn btn-primary" id="submit-id-submit" type="submit"/>
         </div>
 
