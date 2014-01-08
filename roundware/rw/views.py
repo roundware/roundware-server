@@ -109,7 +109,7 @@ class MultiCreateTagsView(LoginRequiredMixin, MultiFormView):
                                         'loc_msg')}
                          ),
              'tag_formset': MultiFormView.modelformset(Tag,
-                            **{'extra': 3, 'form': TagCreateForm,
+                            **{'extra': 0, 'form': TagCreateForm,
                                'exclude': ['tag_category'],
                                'fields': ['value', 'description', 'data', 'loc_msg'],
                                'formset': BatchTagFormset}

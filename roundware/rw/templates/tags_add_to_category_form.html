@@ -22,7 +22,7 @@
         {{ category_form|crispy }}
     </div>    
 
-    <div id="formset" data-formset-prefix="{{ formset.prefix }}">    
+    <div id="formset" data-formset-prefix="{{ tag_formset_formset.prefix }}">    
 
         {% crispy tag_formset_formset tag_formset_formset.form.helper 'bootstrap' %}
         <div class="form-actions">
