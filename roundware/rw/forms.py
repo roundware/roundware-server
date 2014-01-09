@@ -10,7 +10,7 @@ from braces.views import LoginRequiredMixin
 from djangoformsetjs.utils import formset_media_js
 
 
-from roundware.rw.models import Tag, LocalizedString
+from roundware.rw.models import Tag, LocalizedString, Language
 
 
 class TagCreateForm(forms.ModelForm):
@@ -25,15 +25,6 @@ class TagCreateForm(forms.ModelForm):
         # self.helper.add_input(Submit('submit', 'Save All'))
         super(TagCreateForm, self).__init__(*args, **kwargs)
 
-    # def is_valid(self):
-    #     """ allow form with only the tag_category field to be considered valid
-    #         since we will only use it to populate tag_category field of other 
-    #         forms in the formset
-    #     """
-    #     # may not be necessary, we'll see
-    #     pass
-
-
     class Meta:
         model = Tag
         fields = ['tag_category']  # formset in multiview adds others
@@ -42,17 +33,17 @@ class TagCreateForm(forms.ModelForm):
             'value': forms.TextInput,
             'description': forms.TextInput,
             'data': forms.TextInput,
-            # 'loc_msg': forms.URLInput,  # temporary comment... will be inline
+            'loc_msg': forms.SelectMultiple,
+        }
+        labels = {
+            # I'm sure this isn't the best way to do this.
+            'loc_msg': "Localized Names <a href=\"/admin/rw/localizedstring/add/\" class=\"add-another\" id=\"add_id_localizedstrings\" onclick=\"return showAddAnotherPopup(this);\"> <img src=\"/static/admin/img/icon_addlink.gif\" alt=\"Add Another\" height=\"10\" width=\"10\"></a>"
         }
 
     class Media:
-        js = formset_media_js
+        js = formset_media_js + ('admin/js/admin/RelatedObjectLookups.js',)
         css = {'all': ('rw/css/tag_batch_add.css',)}
       
-
-# TagLocalizedStringFormset = inlineformset_factory(Tag, LocalizedString,
-#     fields=('localized_string', 'language'), can_delete=True)
-
 
 class BatchTagFormset(BaseModelFormSet):
 
@@ -61,6 +52,16 @@ class BatchTagFormset(BaseModelFormSet):
         add inlines.
         """
         pass
+
+    # XXX TODO: if we decide to add localized messages inline we can use below
+    # as a start.
+    # def add_fields(self, form, index):
+    #     """ add custom fields for entry of localized string text and language.  
+    #         Can't use an inlineformset since the field loc_msg is manytomany.
+    #     """
+    #     super(BatchTagFormset, self).add_fields(form, index)
+    #     form.fields["localized_text"] = forms.CharField()
+    #     form.fields["loc_txt_language"] = forms.ModelChoiceField(Language.objects.all())
 
 
         

@@ -14,3 +14,7 @@
 #formset {
     margin-top: 2em;
 }
+
+.selectmultiple {
+    max-width: 40rem;
+}
