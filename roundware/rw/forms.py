@@ -1,6 +1,7 @@
 # from django.views.generic import CreateView
 from django.forms.models import (modelformset_factory, BaseModelFormSet,                                  
                                  inlineformset_factory)
+from django.core.urlresolvers import reverse
 
 import floppyforms as forms
 from crispy_forms.helper import FormHelper
@@ -9,14 +10,16 @@ from crispy_forms.utils import render_crispy_form
 from braces.views import LoginRequiredMixin
 from djangoformsetjs.utils import formset_media_js
 
-
 from roundware.rw.models import Tag, LocalizedString, Language
+from roundware.rw.widgets import NonAdminRelatedFieldWidgetWrapper
 
 
 class TagCreateForm(forms.ModelForm):
     """ Custom create form for tags allowing batch creation of Tags assigned
         to a TagCategory
     """
+
+    msg_rel = Tag.loc_msg.through
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
@@ -33,12 +36,13 @@ class TagCreateForm(forms.ModelForm):
             'value': forms.TextInput,
             'description': forms.TextInput,
             'data': forms.TextInput,
-            'loc_msg': forms.SelectMultiple,
+            'loc_msg': NonAdminRelatedFieldWidgetWrapper(
+                forms.SelectMultiple(), '/admin/rw/localizedstring/add')
         }
-        labels = {
-            # I'm sure this isn't the best way to do this.
-            'loc_msg': "Localized Names <a href=\"/admin/rw/localizedstring/add/\" class=\"add-another\" id=\"add_id_localizedstrings\" onclick=\"return showAddAnotherPopup(this);\"> <img src=\"/static/admin/img/icon_addlink.gif\" alt=\"Add Another\" height=\"10\" width=\"10\"></a>"
-        }
+        # labels = {
+        #     # I'm sure this isn't the best way to do this.
+        #     'loc_msg': "Localized Names <a href=\"/admin/rw/localizedstring/add/\" class=\"add-another\" id=\"add_id_localizedstrings\" onclick=\"return showAddAnotherPopup(this);\"> <img src=\"/static/admin/img/icon_addlink.gif\" alt=\"Add Another\" height=\"10\" width=\"10\"></a>"
+        # }
 
     class Media:
         js = formset_media_js + ('admin/js/admin/RelatedObjectLookups.js',)
