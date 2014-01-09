@@ -32,7 +32,7 @@ class NonAdminRelatedFieldWidgetWrapper(RelatedFieldWidgetWrapper):
             output.append(u'<br/><a href="%s" class="add-another" id="add_id_%s" '
                           'onclick="return showAddAnotherPopup(this);"> ' % 
                           (self.add_url, name))
-            output.append(u'<img src="%simg/admin/icon_addlink.gif" width="10"'
-                          ' height="10" alt="%s"/></a>' % 
-            (settings.ADMIN_MEDIA_PREFIX, _('Add Another')))
+            output.append(u'<img src="%simg/icon_addlink.gif" width="10"'
+                          ' height="10" alt="%s"/>&nbsp;&nbsp;%s</a>' % 
+            (settings.ADMIN_MEDIA_PREFIX, _('Add Another'), _('Add Another')))
         return mark_safe(u''.join(output))
