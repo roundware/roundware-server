@@ -201,6 +201,10 @@ INSTALLED_APPS = (
     'roundware.notifications',
     'south',
     'validatedfile',
+    'adminplus',
+    'crispy_forms',
+    'floppyforms',
+    'djangoformsetjs',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -257,3 +261,6 @@ CACHES = {
         }
     }
 }
+
+# use Twitter Bootstrap template pack for django-crispy-forms
+CRISPY_TEMPLATE_PACK = 'bootstrap'

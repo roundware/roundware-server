@@ -6,6 +6,7 @@ from django.conf import settings
 
 from roundware.rw.signals import add_asset_to_envelope, create_envelope
 from roundware.rw.filters import AudiolengthListFilter, TagCategoryListFilter
+from roundware.rw.views import MultiCreateTagsView
 
 
 class VoteInline(admin.TabularInline):
@@ -204,6 +205,7 @@ class TagAdmin(admin.ModelAdmin):
     # inlines = [
     #    AssetTagsInline,
     # ]
+    change_list_template = 'admin/tag_change_list.html'
 
 
 class LanguageAdmin(admin.ModelAdmin):
@@ -424,3 +426,4 @@ admin.site.register(Envelope, EnvelopeAdmin)
 admin.site.register(ListeningHistoryItem, ListeningHistoryItemAdmin)
 admin.site.register(Vote, VoteAdmin)
 admin.site.register(RepeatMode, RepeatModeAdmin)
+admin.site.register_view('add_tags', 'Add tags to category', view=MultiCreateTagsView)

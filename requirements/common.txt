@@ -8,3 +8,9 @@ django-cache-utils==0.7.2
 python-magic==0.4.3
 django-validated-file==2.0
 django-admin-bootstrapped==1.6.3
+django-braces==1.2.2
+django-adminplus==0.2.1
+django-crispy-forms==1.4.0
+django-floppyforms==1.1
+django-extra-views==0.6.3
+django-formset-js==0.4.0

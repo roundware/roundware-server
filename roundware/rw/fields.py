@@ -24,7 +24,7 @@ class RWValidatedFileField(ValidatedFileField):
 
         # next scan with pyclamav
         tmpfile = file.file.name
-        import pyclamav
+        import pyclamav  # keep this import here to not slow down streamscript
         has_virus, virus_name = pyclamav.scanfile(tmpfile)
         if has_virus:
             fn = file.name

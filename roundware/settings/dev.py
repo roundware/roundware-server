@@ -7,10 +7,18 @@ except ImportError:
 
 INSTALLED_APPS = INSTALLED_APPS + (
     'discoverage',
+    'debug_toolbar',
 )
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+DEBUG_TOOLBAR_PATCH_SETTINGS = False  # setup debug toolbar explicitly
+CRISPY_FAIL_SILENTLY = not DEBUG
+
+MIDDLEWARE_CLASSES = (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+) + MIDDLEWARE_CLASSES
+
 
 # PROFILING using django-profiler
 PROFILING_SQL_QUERIES = True
