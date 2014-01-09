@@ -15,6 +15,6 @@
     margin-top: 2em;
 }
 
-.selectmultiple {
-    max-width: 40rem;
+select[multiple] {
+    max-width: 50rem;
 }

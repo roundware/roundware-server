@@ -39,10 +39,9 @@ class TagCreateForm(forms.ModelForm):
             'loc_msg': NonAdminRelatedFieldWidgetWrapper(
                 forms.SelectMultiple(), '/admin/rw/localizedstring/add')
         }
-        # labels = {
-        #     # I'm sure this isn't the best way to do this.
-        #     'loc_msg': "Localized Names <a href=\"/admin/rw/localizedstring/add/\" class=\"add-another\" id=\"add_id_localizedstrings\" onclick=\"return showAddAnotherPopup(this);\"> <img src=\"/static/admin/img/icon_addlink.gif\" alt=\"Add Another\" height=\"10\" width=\"10\"></a>"
-        # }
+        labels = {
+            'loc_msg': "Localized Text"
+        }
 
     class Media:
         js = formset_media_js + ('admin/js/admin/RelatedObjectLookups.js',)
