@@ -15,19 +15,33 @@
 #   existing config file on the local machine.
 # * Figure out if we want to allow for the src and dst machines to have different
 #   config and how to deal with that.
+# * some code taken from: http://bash.cyberciti.biz/backup/backup-mysql-database-server-2/
 
-HOST=$1
-AUDIO_DIR=/var/www/reconaudio
-TEMP=`mktemp /tmp/roundware-mirror.XXXXXX`
+# set user@server url for RW instance to be backed up
+# HOST=$1
+HOST=ubuntu@aas.si.edu
 
-/usr/bin/rsync $HOST:$AUDIO_DIR/* $AUDIO_DIR
-/usr/bin/ssh $HOST /usr/bin/mysqldump -uround -pround scapes > $TEMP
-/bin/cat $TEMP | /usr/bin/mysql -uround -pround scapes
-rm $TEMP
-/usr/bin/ssh $HOST /usr/bin/mysqldump -uround -pround recon > $TEMP
-/bin/cat $TEMP | /usr/bin/mysql -uround -pround recon_backup
-rm $TEMP
+# Get data in dd-mm-yyyy format
+NOW="$(date +"%m-%d-%Y")"
 
-/usr/bin/ssh $HOST /usr/bin/mysqldump -uround -pround moms > $TEMP
-/bin/cat $TEMP | /usr/bin/mysql -uround -pround moms
-rm $TEMP
+# Linux bin paths, change this if it can not be autodetected via which command
+MYSQL="$(which mysql)"
+MYSQLDUMP="$(which mysqldump)"
+CHOWN="$(which chown)"
+CHMOD="$(which chmod)"
+GZIP="$(which gzip)"
+
+# directory on HOST where RW files are stored (full path)
+MEDIA_DIR=/var/www/rwmedia
+
+# name backup file with current date
+FILE="sirw-backup.$NOW.gz"
+
+#TEMP=`mktemp /tmp/roundware-mirror.XXXXXX`
+
+# rsync from HOST to local directory
+/usr/bin/rsync -e "ssh -i /home/halsey/.ssh/id_rsa2" -av --ignore-existing ubuntu@aas.si.edu:/var/www/rwmedia/* rwmedia/
+# /usr/bin/rsync $HOST:$MEDIA_DIR/* $MEDIA_DIR
+
+# ssh to remote machine, perform mysqldump and gzip it back to local machine
+/usr/bin/ssh -i /home/halsey/.ssh/id_rsa2 $HOST /usr/bin/mysqldump -uround -pround roundware | /bin/gzip -9 > db/$FILE
