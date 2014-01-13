@@ -8,16 +8,13 @@ from roundware.rw.chart_functions import assets_created_per_day
 from roundware.rw.chart_functions import sessions_created_per_day
 from roundware.rw.chart_functions import assets_by_question
 from roundware.rw.chart_functions import assets_by_section
-from roundware.rw.models import Tag, LocalizedString
+from roundware.rw.models import Tag
 from roundware.rw.forms import TagCreateForm, BatchTagFormset
 from roundwared import settings
 from roundwared import roundexception
 from roundwared import server
 from braces.views import LoginRequiredMixin
-from extra_views import (
-    InlineFormSet, ModelFormSetView, NamedFormsetsMixin)
 from extra_views.multi import MultiFormView
-from djangoformsetjs.utils import formset_media_js
 
 
 def main(request):

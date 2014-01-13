@@ -1,6 +1,6 @@
 # from django.views.generic import CreateView
-from django.forms.models import (modelformset_factory, BaseModelFormSet,                                  
-                                 inlineformset_factory)
+from django.forms.models import BaseModelFormSet
+from django.forms.widgets import Media
 from django.core.urlresolvers import reverse
 
 import floppyforms as forms
@@ -8,8 +8,8 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from crispy_forms.utils import render_crispy_form
 from braces.views import LoginRequiredMixin
-from djangoformsetjs.utils import formset_media_js
 
+from roundware import settings
 from roundware.rw.models import Tag, LocalizedString, Language
 from roundware.rw.widgets import NonAdminRelatedFieldWidgetWrapper
 
@@ -44,6 +44,13 @@ class TagCreateForm(forms.ModelForm):
         }
 
     class Media:
+        # djangoformsetjs is buggy and doesn't actually include a minified
+        # version.  Include our own (and we already get jquery from admin)
+        FORMSET_FULL = settings.STATIC_URL + 'js/jquery.formset.js'
+        FORMSET_MINIFIED = settings.STATIC_URL + 'rw/js/jquery.formset.min.js'
+        formset_js_path = FORMSET_FULL if settings.DEBUG else FORMSET_MINIFIED
+        formset_media_js = (formset_js_path, )
+        formset_media = Media(js=formset_media_js)
         js = formset_media_js + ('admin/js/admin/RelatedObjectLookups.js',)
         css = {'all': ('rw/css/tag_batch_add.css',)}
       
