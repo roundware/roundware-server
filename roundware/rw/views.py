@@ -1,20 +1,34 @@
-from django.http import HttpResponse
 import string
 import os
 import logging
 import json
 import traceback
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from django.template.context import RequestContext
+
+from guardian.core import ObjectPermissionChecker
+from guardian.mixins import PermissionRequiredMixin
+from braces.views import (LoginRequiredMixin, FormValidMessageMixin, 
+                          AjaxResponseMixin)
+from extra_views import InlineFormSet, CreateWithInlinesView, UpdateWithInlinesView
+from extra_views.multi import MultiFormView, FormProvider
+
 from roundware.rw.chart_functions import assets_created_per_day
 from roundware.rw.chart_functions import sessions_created_per_day
 from roundware.rw.chart_functions import assets_by_question
 from roundware.rw.chart_functions import assets_by_section
-from roundware.rw.models import Tag
-from roundware.rw.forms import TagCreateForm, BatchTagFormset
+from roundware.rw.models import Tag, MasterUI, UIMapping, Project
+from roundware.rw.forms import (TagCreateForm, BatchTagFormset, 
+                                # MasterUIForSetupTagUICreateForm,
+                                MasterUIForSetupTagUIEditForm,
+                                MasterUIForSetupTagUISelectForm)
 from roundwared import settings
 from roundwared import roundexception
 from roundwared import server
-from braces.views import LoginRequiredMixin
-from extra_views.multi import MultiFormView
+
 
 
 def main(request):
@@ -97,9 +111,10 @@ def chart_views(request):
     return render_to_response("chart_template.html", {'charts': [session_created_per_day_chart, asset_created_per_day_chart, assets_by_question_chart, assets_by_section_chart]})
 
 
-class MultiCreateTagsView(LoginRequiredMixin, MultiFormView):
+class MultiCreateTagsView(LoginRequiredMixin, FormValidMessageMixin, MultiFormView):
     success_url = '/admin/rw/tag'
     template_name = 'tags_add_to_category_form.html'
+    form_valid_message = 'Tags created!'
     forms = {'category': MultiFormView.modelform(Tag, TagCreateForm, 
                          **{'fields': ('tag_category',),
                             'exclude': ('value','description','data',
@@ -134,3 +149,108 @@ class MultiCreateTagsView(LoginRequiredMixin, MultiFormView):
         """ handle case all forms invalid
         """
         self.forms_invalid(invalid_forms)
+
+
+class UIMappingsInline(InlineFormSet):
+    model = UIMapping
+    fk_name = 'master_ui'
+
+
+class SetupTagUIMixin(LoginRequiredMixin, PermissionRequiredMixin):
+    """ make sure User can modify this MasterUI based on Project,
+        and is logged in.
+    """    
+    permission_required = 'rw.access_project'
+    return_403 = True
+
+    def get_object(self):
+        """ return Project for this MasterUI  as the object to check against
+        """
+        try:
+            return get_object_or_404(Project, masterui=self.kwargs['pk'])
+        except KeyError:
+            return None
+
+
+"""
+class SetupTagUIView(SetupTagUIMixin, UpdateWithInlinesView):
+    form_class = MasterUIForSetupTagUIForm
+    model = MasterUI
+    inlines = [UIMappingsInline, ]
+    template_name = 'setup_tag_ui_form.html'
+
+    # def get_success_url(self):
+    #     return self.object.get_absolute_url()
+"""
+
+
+class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin, 
+                                       MultiFormView):
+    success_url = '.'
+    template_name = 'setup_tag_ui_form.html'
+    forms = {'master_ui_select': FormProvider(
+        MasterUIForSetupTagUISelectForm,
+        context_suffix='form', 
+        init_args={'user': 'get_%s_user'}),
+        'master_ui_edit': MultiFormView.modelform(
+                          MasterUI, 
+                          MasterUIForSetupTagUIEditForm),
+    }
+
+    def get_master_ui_select_user(self):
+        return self.request.user
+
+    def get_master_ui_edit_instance(self):
+        """ for calling with a primary key in the url
+        """
+        if self.kwargs.get('pk'):            
+            return MasterUI.objects.filter(pk=self.kwargs['pk'])[0]
+        else:
+            return MasterUI()
+
+    def post(self, request, *args, **kwargs):
+        """ create or update MasterUI instance
+        """
+        # import pdb; pdb.set_trace()
+        return super(MasterUIMappingsOrganizationView, self).post(request, *args, **kwargs)
+
+
+    def post_ajax(self, request, *args, **kwargs):
+        """ handle post made from selecting MasterUI in 'master_ui_select'
+            form. AJAX posts will only result from modelchoicefield select
+            for MasterUI changing.
+        """
+        edit_form_template = 'setup_tags_ui_edit_form.html'
+        response_dic = {}
+
+        # if modelchoicefield not empty
+        if request.POST.get("master_ui_select-masterui"):
+            id_to_update = request.POST["master_ui_select-masterui"]
+            mui=MasterUI.objects.get(pk=id_to_update)
+            edit_form = MasterUIForSetupTagUIEditForm(instance=mui)
+        else:
+            edit_form = MasterUIForSetupTagUIEditForm()
+
+        response_dic['master_ui_edit_form']=edit_form
+
+        return HttpResponse(render_to_string(edit_form_template, 
+                                             response_dic, 
+                                             RequestContext(request)))
+
+    def valid_all(self, valid_forms):
+        """ handle case all forms valid 
+        """
+        select = valid_forms['master_ui_select']  # don't save anything
+        select  # pyflakes
+        # import pdb; pdb.set_trace()
+        edit = valid_forms['master_ui_edit']
+        mui = edit.save(commit=True)
+
+
+    def invalid_all(self, invalid_forms):
+        """ handle case all forms invalid
+        """
+        self.forms_invalid(invalid_forms)
+
+
+

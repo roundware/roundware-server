@@ -1,17 +1,28 @@
 # from django.views.generic import CreateView
 from django.forms.models import BaseModelFormSet
 from django.forms.widgets import Media
-from django.core.urlresolvers import reverse
 
 import floppyforms as forms
 from crispy_forms.helper import FormHelper
+from crispy_forms.bootstrap import FormActions
 from crispy_forms.layout import Submit
-from crispy_forms.utils import render_crispy_form
-from braces.views import LoginRequiredMixin
+from guardian.shortcuts import get_objects_for_user
 
 from roundware import settings
-from roundware.rw.models import Tag, LocalizedString, Language
+
+from roundware.rw.models import Tag, MasterUI
 from roundware.rw.widgets import NonAdminRelatedFieldWidgetWrapper
+
+
+def get_formset_media_js():
+    """ Don't use djangoformsetjs'.  It doesn't provide a minified version 
+        and we will use Admin's jquery-1.9.1.min.js
+    """
+    FORMSET_FULL = settings.STATIC_URL + 'js/jquery.formset.js'
+    FORMSET_MINIFIED = settings.STATIC_URL + 'rw/js/jquery.formset.min.js'
+    formset_js_path = FORMSET_FULL if settings.DEBUG else FORMSET_MINIFIED
+    formset_media_js = (formset_js_path, )
+    return formset_media_js
 
 
 class TagCreateForm(forms.ModelForm):
@@ -44,21 +55,14 @@ class TagCreateForm(forms.ModelForm):
         }
 
     class Media:
-        # djangoformsetjs is buggy and doesn't actually include a minified
-        # version.  Include our own (and we already get jquery from admin)
-        FORMSET_FULL = settings.STATIC_URL + 'js/jquery.formset.js'
-        FORMSET_MINIFIED = settings.STATIC_URL + 'rw/js/jquery.formset.min.js'
-        formset_js_path = FORMSET_FULL if settings.DEBUG else FORMSET_MINIFIED
-        formset_media_js = (formset_js_path, )
-        formset_media = Media(js=formset_media_js)
-        js = formset_media_js + ('admin/js/admin/RelatedObjectLookups.js',)
+        js = get_formset_media_js() + ('admin/js/admin/RelatedObjectLookups.js',)
         css = {'all': ('rw/css/tag_batch_add.css',)}
       
 
 class BatchTagFormset(BaseModelFormSet):
 
     def save(self):
-        """ saving is handled by view.  May need to revisit this as we 
+        """ saving is handled by view.  May need to revisit this if we 
         add inlines.
         """
         pass
@@ -74,4 +78,93 @@ class BatchTagFormset(BaseModelFormSet):
     #     form.fields["loc_txt_language"] = forms.ModelChoiceField(Language.objects.all())
 
 
+class MasterUIForSetupTagUIFormMixin(object):
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.form_tag = True
+        self.helper.template = 'bootstrap3/whole_uni_form.html'
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        # self.helper.add_input(Submit('submit', 'Save All'))
+        super(MasterUIForSetupTagUIFormMixin, self).__init__(*args, **kwargs)
+
+
+class MasterUIForSetupTagUICreateForm(MasterUIForSetupTagUIFormMixin, 
+                                      forms.ModelForm):
+
+    class Meta:
+        model = MasterUI
+        fields = ['project']
+        widgets = {  # floppyforms requires override orig widgets to use theirs
+            'project': forms.Select,
+        }
+
+
+class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin, 
+                                      forms.Form):
+    """ form for chained select style selection of MasterUIs for editing 
+        form
+    """
+    masterui = forms.ModelChoiceField(
+        queryset=MasterUI.objects.all().order_by('project__name'), 
+        required=False,
+        widget=forms.Select(attrs={"onChange": 'update_MasterUI_edit_form()'}),
+        label='Master UI',
+        help_text = 'Leave blank to add a new Master UI or select one to edit',
+        empty_label="---------")
+
+    def __init__(self, user, *args, **kwargs):
+        super(MasterUIForSetupTagUISelectForm, self).__init__(*args, **kwargs) 
+        self.helper.form_id = 'mui_select_form'
+        self.prefix = 'master_ui_select'
+        self.fields['masterui'].queryset = \
+            MasterUI.objects.filter(project__in=get_objects_for_user(user, 
+            'rw.access_project')).order_by('project__name')
+
+    def form_valid():
+        return 
+        pass
+
+
+class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
+                                    forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(MasterUIForSetupTagUIEditForm, self).__init__(*args, **kwargs)
+        self.helper.form_id = 'mui_edit_form'
+        self.helper.add_input(Submit('submit', 'Save all'))
+        self.prefix = 'master_ui_edit'
+
+    def is_valid(self):
+        # import pdb; pdb.set_trace()
+        return super(MasterUIForSetupTagUIEditForm, self).is_valid()
         
+    class Media:
+        js = get_formset_media_js() + \
+            ('admin/js/admin/RelatedObjectLookups.js', 
+             'rw/js/setup_tag_ui.js', )
+
+    class Meta:
+        model = MasterUI
+        fields = ['project', 'ui_mode', 'tag_category', 'select', 'active', 
+                  'index', 'name', 'header_text_loc', ]
+        widgets = {  # floppyforms requires override orig widgets to use theirs
+            'project': forms.Select,
+            'ui_mode': forms.Select,
+            'tag_category': forms.Select,
+            'select': forms.Select,
+            'active': forms.CheckboxInput,
+            'index': forms.NumberInput,
+            'name': forms.TextInput,
+            'header_text_loc': NonAdminRelatedFieldWidgetWrapper(
+                forms.SelectMultiple(), '/admin/rw/localizedstring/add')
+        }
+        labels = {
+            'ui_mode': 'Mode',
+            'tag_category': 'Category',
+            'select': 'Select Type',
+            'index': 'Ordering',
+            'header_text_loc': "Localized Header Text"
+        }

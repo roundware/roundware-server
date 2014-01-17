@@ -161,7 +161,7 @@ class Tag(models.Model):
             return self.tag_category.name + " : " + self.description
 
     class Meta:
-        app_label = 'rw'  # necessary for special batch add form
+        app_label = 'rw'  # necessary for special tag batch add form
 
 
 class MasterUI(models.Model):
@@ -198,7 +198,7 @@ class MasterUI(models.Model):
         
 
     def __unicode__(self):
-            return str(self.id) + ":" + self.ui_mode.name + ":" + self.name
+            return str(self.id) + ":" + self.project.name + ":" + self.ui_mode.name + ":" + self.name
 
 
 class UIMapping(models.Model):
