@@ -48,7 +48,8 @@ class TagCreateForm(forms.ModelForm):
             'description': forms.TextInput,
             'data': forms.TextInput,
             'loc_msg': NonAdminRelatedFieldWidgetWrapper(
-                forms.SelectMultiple(), '/admin/rw/localizedstring/add')
+                forms.SelectMultiple(attrs={}),
+                '/admin/rw/localizedstring/add')
         }
         labels = {
             'loc_msg': "Localized Text"
@@ -131,10 +132,14 @@ class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin,
 class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
                                     forms.ModelForm):
 
+    id = forms.IntegerField(required=False,  # store pk on MasterUI for update
+                            widget=forms.HiddenInput)
+
     def __init__(self, *args, **kwargs):
         super(MasterUIForSetupTagUIEditForm, self).__init__(*args, **kwargs)
-        self.helper.form_id = 'mui_edit_form'
-        self.helper.add_input(Submit('submit', 'Save all'))
+        self.helper.form_tag = False
+        # self.helper.form_id = 'mui_edit_form'
+        # self.helper.add_input(Submit('submit', 'Save all'))
         self.prefix = 'master_ui_edit'
 
     def is_valid(self):
@@ -148,9 +153,10 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
 
     class Meta:
         model = MasterUI
-        fields = ['project', 'ui_mode', 'tag_category', 'select', 'active', 
+        fields = ['id', 'project', 'ui_mode', 'tag_category', 'select', 'active', 
                   'index', 'name', 'header_text_loc', ]
         widgets = {  # floppyforms requires override orig widgets to use theirs
+            'id': forms.HiddenInput, 
             'project': forms.Select,
             'ui_mode': forms.Select,
             'tag_category': forms.Select,
@@ -159,7 +165,8 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
             'index': forms.NumberInput,
             'name': forms.TextInput,
             'header_text_loc': NonAdminRelatedFieldWidgetWrapper(
-                forms.SelectMultiple(), '/admin/rw/localizedstring/add')
+                forms.SelectMultiple(attrs={}),
+                '/admin/rw/localizedstring/add')
         }
         labels = {
             'ui_mode': 'Mode',

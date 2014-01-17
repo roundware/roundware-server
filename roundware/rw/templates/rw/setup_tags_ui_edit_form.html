@@ -1,0 +1,12 @@
+{% load crispy_forms_tags %}
+
+<form name='mui_edit_form' id='mui_edit_form' method='post'
+ class='form-horizontal'>
+
+    {% crispy master_ui_edit_form master_ui_edit_form.helper %}
+
+    <div class='form-actions'>
+        <input name="submit" value="Save all" class="btn btn-primary" id="submit-id-submit" type="submit">
+    </div>
+    
+</form>

@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
+from django.forms.models import save_instance
 
 from guardian.core import ObjectPermissionChecker
 from guardian.mixins import PermissionRequiredMixin
@@ -113,7 +114,7 @@ def chart_views(request):
 
 class MultiCreateTagsView(LoginRequiredMixin, FormValidMessageMixin, MultiFormView):
     success_url = '/admin/rw/tag'
-    template_name = 'tags_add_to_category_form.html'
+    template_name = 'rw/tags_add_to_category_form.html'
     form_valid_message = 'Tags created!'
     forms = {'category': MultiFormView.modelform(Tag, TagCreateForm, 
                          **{'fields': ('tag_category',),
@@ -220,7 +221,7 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
             form. AJAX posts will only result from modelchoicefield select
             for MasterUI changing.
         """
-        edit_form_template = 'setup_tags_ui_edit_form.html'
+        edit_form_template = 'rw/setup_tags_ui_edit_form.html'
         response_dic = {}
 
         # if modelchoicefield not empty
@@ -231,7 +232,8 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         else:
             edit_form = MasterUIForSetupTagUIEditForm()
 
-        response_dic['master_ui_edit_form']=edit_form
+        response_dic['master_ui_edit_form'] = edit_form
+        response_dic['mui_update_id'] = mui.id
 
         return HttpResponse(render_to_string(edit_form_template, 
                                              response_dic, 
@@ -242,9 +244,16 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         """
         select = valid_forms['master_ui_select']  # don't save anything
         select  # pyflakes
-        # import pdb; pdb.set_trace()
-        edit = valid_forms['master_ui_edit']
-        mui = edit.save(commit=True)
+        form = valid_forms['master_ui_edit']
+        mui_id = form.cleaned_data.get('id')
+        if mui_id:
+            mui = MasterUI.objects.filter(pk=mui_id)[0]
+            # instance isn't constructed yet with data from form so we can't
+            # use form.save() but have to do the following with construct=True
+            save_instance(form, mui, form._meta.fields, 'form changed', True, 
+                          form._meta.exclude, True)
+        else:
+            form.save()
 
 
     def invalid_all(self, invalid_forms):
