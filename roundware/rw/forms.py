@@ -150,6 +150,7 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
         js = get_formset_media_js() + \
             ('admin/js/admin/RelatedObjectLookups.js', 
              'rw/js/setup_tag_ui.js', )
+        css = {'all': ('rw/css/setup_tag_ui.css',)}
 
     class Meta:
         model = MasterUI
