@@ -173,29 +173,24 @@ class SetupTagUIMixin(LoginRequiredMixin, PermissionRequiredMixin):
             return None
 
 
-"""
-class SetupTagUIView(SetupTagUIMixin, UpdateWithInlinesView):
-    form_class = MasterUIForSetupTagUIForm
-    model = MasterUI
-    inlines = [UIMappingsInline, ]
-    template_name = 'setup_tag_ui_form.html'
-
-    # def get_success_url(self):
-    #     return self.object.get_absolute_url()
-"""
-
-
 class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin, 
                                        MultiFormView):
     success_url = '.'
     template_name = 'setup_tag_ui_form.html'
-    forms = {'master_ui_select': FormProvider(
+    forms = {
+        'master_ui_select': FormProvider(
         MasterUIForSetupTagUISelectForm,
         context_suffix='form', 
         init_args={'user': 'get_%s_user'}),
+
         'master_ui_edit': MultiFormView.modelform(
                           MasterUI, 
                           MasterUIForSetupTagUIEditForm),
+        # 'ui_mappings': FormProvider(
+        #                   UIMappingsInlineFormset, 
+        #                   context_suffix='formset',
+        #                   init_args={}),
+           
     }
 
     def get_master_ui_select_user(self):
@@ -229,11 +224,12 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
             id_to_update = request.POST["master_ui_select-masterui"]
             mui=MasterUI.objects.get(pk=id_to_update)
             edit_form = MasterUIForSetupTagUIEditForm(instance=mui)
+            response_dic['mui_update_id'] = mui.id
+
         else:
             edit_form = MasterUIForSetupTagUIEditForm()
 
         response_dic['master_ui_edit_form'] = edit_form
-        response_dic['mui_update_id'] = mui.id
 
         return HttpResponse(render_to_string(edit_form_template, 
                                              response_dic, 
@@ -242,18 +238,36 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
     def valid_all(self, valid_forms):
         """ handle case all forms valid 
         """
+
+        def update_ui_mappings(uimaps, formtags, mui):
+            uimaptags = []
+            for uimap in uimaps:
+                uimaptags.append(uimap.tag)
+                if uimap.tag not in formtags:
+                    uimap.delete()
+            for tag in formtags:
+                if tag not in uimaptags:
+                    uimap = UIMapping(tag=tag, master_ui=mui, active=True, 
+                                      index=1)
+                    uimap.save()
+
         select = valid_forms['master_ui_select']  # don't save anything
         select  # pyflakes
         form = valid_forms['master_ui_edit']
         mui_id = form.cleaned_data.get('id')
+        formtags = form.cleaned_data['ui_mappings_tags']
         if mui_id:
             mui = MasterUI.objects.filter(pk=mui_id)[0]
+            uimaps = UIMapping.objects.select_related('tag').filter(master_ui=mui)
             # instance isn't constructed yet with data from form so we can't
-            # use form.save() but have to do the following with construct=True
+            # use form.save() but have to do the following with construct=True            
             save_instance(form, mui, form._meta.fields, 'form changed', True, 
                           form._meta.exclude, True)
+            update_ui_mappings(uimaps, formtags, mui)
+            
         else:
-            form.save()
+            mui = form.save()
+            update_ui_mappings([], formtags, mui)
 
 
     def invalid_all(self, invalid_forms):

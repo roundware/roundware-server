@@ -1,11 +1,14 @@
-# taken nearly wholesale from 
-# http://dashdrum.com/blog/2012/12/more-relatedfieldwidgetwrapper-the-popup/
-
-from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
+from django.forms import Media
+from django.contrib.admin.widgets import (RelatedFieldWidgetWrapper,
+                                          FilteredSelectMultiple)
+from django.contrib.admin.templatetags.admin_static import static
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
 
+
+# taken nearly wholesale from 
+# http://dashdrum.com/blog/2012/12/more-relatedfieldwidgetwrapper-the-popup/
 
 class NonAdminRelatedFieldWidgetWrapper(RelatedFieldWidgetWrapper):
     """
@@ -36,3 +39,39 @@ class NonAdminRelatedFieldWidgetWrapper(RelatedFieldWidgetWrapper):
                           ' height="10" alt="%s"/>&nbsp;&nbsp;%s</a>' % 
             (settings.ADMIN_MEDIA_PREFIX, _('Add Another'), _('Add Another')))
         return mark_safe(u''.join(output))
+
+
+class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
+
+    @property
+    def media(self):
+        """ add jquery.init.js to get 'django' JQuery namespace 
+            and setup_tag_ui.js which should be in the form class so we 
+            define $.  ugh.
+        """
+        js = ["admin/js/core.js", "admin/js/jquery.init.js", 
+              "/static/rw/js/setup_tag_ui.js", 
+              "admin/js/SelectBox.js", "admin/js/SelectFilter2.js"]
+        return Media(js=[static(path) for path in js])
+
+    def render(self, name, value, attrs=None, choices=()):
+        """ we need to fire SelectFilter.init whenever the html is re-written
+            after AJAX call from selection form
+        """    
+        if attrs is None:
+            attrs = {}
+        attrs['class'] = 'selectfilter'
+        if self.is_stacked:
+            attrs['class'] += 'stacked'
+        output = [super(FilteredSelectMultiple, self).render(
+            name, value, attrs, choices)]
+        output.append('<script type="text/javascript">')
+        output.append('function rewriteFilteredSelect(){')
+        output.append('SelectFilter.init("id_%s", "%s", %s, "%s"); }\n' % (
+            name, self.verbose_name.replace('"', '\\"'),
+            int(self.is_stacked), static('admin/'))
+        )
+        output.append('addEvent(window, "load", function(e) {')
+        output.append('rewriteFilteredSelect()});</script>\n')
+
+        return mark_safe(''.join(output))

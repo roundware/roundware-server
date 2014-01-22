@@ -1,9 +1,10 @@
-from django.conf import settings
+from django.conf import settings  #, urls
 from django.conf.urls import patterns, url, include
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 from adminplus.sites import AdminSitePlus
+from ajax_filtered_fields.views import json_index
 
 from roundware.rw import urls as rw_urls
 
@@ -29,11 +30,14 @@ urlpatterns = patterns('',
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-     url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
 
-     url(r'^rw/', include(rw_urls)),
-)
+    url(r'^rw/', include(rw_urls)),
 
+    # can't use ajax_filtered_fields' urls.py since it relies on old default
+    # urls import
+    url(r'^ajax_filtered_fields/json_index/$', json_index),
+) 
 
 if settings.DEBUG:
     try:

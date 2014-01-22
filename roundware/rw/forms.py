@@ -7,11 +7,13 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.layout import Submit
 from guardian.shortcuts import get_objects_for_user
+from ajax_filtered_fields.forms import ForeignKeyByLetter, ManyToManyByLetter
 
 from roundware import settings
 
-from roundware.rw.models import Tag, MasterUI
-from roundware.rw.widgets import NonAdminRelatedFieldWidgetWrapper
+from roundware.rw.models import Tag, MasterUI, UIMapping
+from roundware.rw.widgets import (NonAdminRelatedFieldWidgetWrapper, 
+                                  SetupTagUIFilteredSelectMultiple)
 
 
 def get_formset_media_js():
@@ -105,8 +107,7 @@ class MasterUIForSetupTagUICreateForm(MasterUIForSetupTagUIFormMixin,
 
 class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin, 
                                       forms.Form):
-    """ form for chained select style selection of MasterUIs for editing 
-        form
+    """ form for selection of MasterUIs for editing form
     """
     masterui = forms.ModelChoiceField(
         queryset=MasterUI.objects.all().order_by('project__name'), 
@@ -125,7 +126,7 @@ class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin,
             'rw.access_project')).order_by('project__name')
 
     def form_valid():
-        return 
+        return True
         pass
 
 
@@ -135,27 +136,40 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
     id = forms.IntegerField(required=False,  # store pk on MasterUI for update
                             widget=forms.HiddenInput)
 
+    ui_mappings_tags = forms.ModelMultipleChoiceField(
+        queryset = Tag.objects.all(),
+        label='Assign tags',
+        required=False,
+        widget=NonAdminRelatedFieldWidgetWrapper(
+            SetupTagUIFilteredSelectMultiple('tags', False), 
+            '/admin/rw/tag/add')
+    )
+
     def __init__(self, *args, **kwargs):
         super(MasterUIForSetupTagUIEditForm, self).__init__(*args, **kwargs)
         self.helper.form_tag = False
-        # self.helper.form_id = 'mui_edit_form'
-        # self.helper.add_input(Submit('submit', 'Save all'))
         self.prefix = 'master_ui_edit'
+        if self.instance.pk:
+            uimaps = UIMapping.objects.select_related('tag').filter(
+                master_ui=self.instance).order_by('index')
+            self.initial['ui_mappings_tags']=[uimap.tag.id for uimap in uimaps]
 
     def is_valid(self):
         # import pdb; pdb.set_trace()
         return super(MasterUIForSetupTagUIEditForm, self).is_valid()
         
     class Media:
+        # load the setup_tag_ui.js in the selectmultiple widget so it loads 
+        # early enough.
         js = get_formset_media_js() + \
-            ('admin/js/admin/RelatedObjectLookups.js', 
-             'rw/js/setup_tag_ui.js', )
+            ('admin/js/admin/RelatedObjectLookups.js', )
+
         css = {'all': ('rw/css/setup_tag_ui.css',)}
 
     class Meta:
         model = MasterUI
         fields = ['id', 'project', 'ui_mode', 'tag_category', 'select', 'active', 
-                  'index', 'name', 'header_text_loc', ]
+                  'index', 'name', 'header_text_loc', 'ui_mappings_tags', ]
         widgets = {  # floppyforms requires override orig widgets to use theirs
             'id': forms.HiddenInput, 
             'project': forms.Select,
@@ -167,12 +181,12 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
             'name': forms.TextInput,
             'header_text_loc': NonAdminRelatedFieldWidgetWrapper(
                 forms.SelectMultiple(attrs={}),
-                '/admin/rw/localizedstring/add')
+                '/admin/rw/localizedstring/add'),
         }
         labels = {
             'ui_mode': 'Mode',
             'tag_category': 'Category',
             'select': 'Select Type',
             'index': 'Ordering',
-            'header_text_loc': "Localized Header Text"
+            'header_text_loc': "Localized Header Text",
         }
