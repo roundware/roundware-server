@@ -6,6 +6,11 @@ from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
 
+from sortedm2m.forms import SortedCheckboxSelectMultiple
+
+
+STATIC_URL = getattr(settings, 'STATIC_URL', settings.MEDIA_URL)
+
 
 # taken nearly wholesale from 
 # http://dashdrum.com/blog/2012/12/more-relatedfieldwidgetwrapper-the-popup/
@@ -75,3 +80,19 @@ class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
         output.append('rewriteFilteredSelect()});</script>\n')
 
         return mark_safe(''.join(output))
+
+
+class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
+
+    class Media:
+        js = (
+            "admin/js/core.js", 
+            "admin/js/jquery.init.js", 
+            "/static/rw/js/setup_tag_ui.js", 
+            "/static/rw/js/sortedmulticheckbox_widget.js",
+            "/static/sortedm2m/jquery-ui.js",
+        )
+        css = {'screen': (
+            STATIC_URL + 'sortedm2m/widget.css',
+        )}
+

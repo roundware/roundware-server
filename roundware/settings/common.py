@@ -205,6 +205,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'floppyforms',
     'djangoformsetjs',
+    'sortedm2m',
 )
 
 # A sample logging configuration. The only tangible logging

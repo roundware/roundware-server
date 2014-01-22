@@ -14,3 +14,4 @@ django-crispy-forms==1.4.0
 django-floppyforms==1.1
 django-extra-views==0.6.3
 django-formset-js==0.4.0
+django-sortedm2m==0.6.1

@@ -235,21 +235,27 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
                                              response_dic, 
                                              RequestContext(request)))
 
+    def update_ui_mappings(self, uimaps, formtags, mui):
+        uimaptags = []
+        for uimap in uimaps:
+            uimaptags.append(uimap.tag)
+            if uimap.tag not in formtags:
+                uimap.delete()
+        for tag in formtags:  
+            index = [i for i,x in enumerate(formtags) if x == tag][0] + 1
+            if tag not in uimaptags:
+                uimap = UIMapping(tag=tag, master_ui=mui, active=True, 
+                                  index=index)
+                uimap.save()
+            else:
+                uimap = UIMapping.objects.filter(tag=tag).distinct()[0]
+                uimap.index = index
+                uimap.save()
+
+
     def valid_all(self, valid_forms):
         """ handle case all forms valid 
         """
-
-        def update_ui_mappings(uimaps, formtags, mui):
-            uimaptags = []
-            for uimap in uimaps:
-                uimaptags.append(uimap.tag)
-                if uimap.tag not in formtags:
-                    uimap.delete()
-            for tag in formtags:
-                if tag not in uimaptags:
-                    uimap = UIMapping(tag=tag, master_ui=mui, active=True, 
-                                      index=1)
-                    uimap.save()
 
         select = valid_forms['master_ui_select']  # don't save anything
         select  # pyflakes
@@ -263,11 +269,11 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
             # use form.save() but have to do the following with construct=True            
             save_instance(form, mui, form._meta.fields, 'form changed', True, 
                           form._meta.exclude, True)
-            update_ui_mappings(uimaps, formtags, mui)
+            self.update_ui_mappings(uimaps, formtags, mui)
             
         else:
             mui = form.save()
-            update_ui_mappings([], formtags, mui)
+            self.update_ui_mappings([], formtags, mui)
 
 
     def invalid_all(self, invalid_forms):

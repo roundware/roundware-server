@@ -1,19 +1,17 @@
 # from django.views.generic import CreateView
 from django.forms.models import BaseModelFormSet
-from django.forms.widgets import Media
 
 import floppyforms as forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.bootstrap import FormActions
-from crispy_forms.layout import Submit
 from guardian.shortcuts import get_objects_for_user
-from ajax_filtered_fields.forms import ForeignKeyByLetter, ManyToManyByLetter
+from sortedm2m.forms import SortedMultipleChoiceField
 
 from roundware import settings
 
 from roundware.rw.models import Tag, MasterUI, UIMapping
 from roundware.rw.widgets import (NonAdminRelatedFieldWidgetWrapper, 
-                                  SetupTagUIFilteredSelectMultiple)
+                                  SetupTagUIFilteredSelectMultiple,
+                                  SetupTagUISortedCheckboxSelectMultiple)
 
 
 def get_formset_media_js():
@@ -136,12 +134,13 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
     id = forms.IntegerField(required=False,  # store pk on MasterUI for update
                             widget=forms.HiddenInput)
 
-    ui_mappings_tags = forms.ModelMultipleChoiceField(
+    ui_mappings_tags = SortedMultipleChoiceField(
         queryset = Tag.objects.all(),
         label='Assign tags',
         required=False,
         widget=NonAdminRelatedFieldWidgetWrapper(
-            SetupTagUIFilteredSelectMultiple('tags', False), 
+            # SetupTagUIFilteredSelectMultiple('tags', False), 
+            SetupTagUISortedCheckboxSelectMultiple(),
             '/admin/rw/tag/add')
     )
 

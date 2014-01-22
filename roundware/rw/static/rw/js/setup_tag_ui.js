@@ -5,7 +5,7 @@ var jQuery = django.jQuery;
 
 function update_MasterUI_edit_form() {
     // update the edit form fields with data for the selected masterui 
-    $form=$('#setup_tag_ui_form'); // not sure why id isn't mui_select_form
+    $form=$('#setup_tag_ui_form');
     var datastring = $form.serialize();
     console.log('datastring:'+ datastring);
     $.ajax({
@@ -17,7 +17,7 @@ function update_MasterUI_edit_form() {
         {
             /* The div contains now the updated form */
             $('#mui_edit_form_wrapper').html(result);
-            rewriteFilteredSelect();
+            rewriteSortedMultiCheckbox();
         }
     });
 
