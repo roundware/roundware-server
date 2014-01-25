@@ -1,11 +1,13 @@
 import gobject
+from roundware.rw.models import Tag
+
 gobject.threads_init()
 import pygst
 pygst.require("0.10")
 import gst
 import logging
 import time
-from roundwared import settings
+from roundwared import settings, asset_sorters
 from roundwared import composition
 from roundwared import icecast2
 from roundwared.server import icecast_mount_point
@@ -98,7 +100,7 @@ class RoundStream:
         self.request = request
         self.listener = request
         self.refresh_recordings()
-        logging.info("Going to play: " \
+        logging.info("Stream modification: Going to play: " \
             + ",".join(self.recordingCollection.get_filenames()) \
             + " Total of " \
             + str(len(self.recordingCollection.get_filenames()))
@@ -109,6 +111,19 @@ class RoundStream:
     # Force the recording collection to get new recordings from the DB
     def refresh_recordings(self):
         self.recordingCollection.update_request(self.request)
+
+        #filter recordings
+        if "tags" in self.request:
+            tag_ids = self.request["tags"]
+            if not hasattr(tag_ids, "__iter__"):
+                tag_ids = tag_ids.split(",")
+
+            tags = Tag.objects.filter(pk__in=tag_ids)
+            for tag in tags:
+                if tag.filter:
+                    logging.debug("Tag with filter found: %s: %s" % (tag, tag.filter))
+                    self.recordingCollection.all_recordings = getattr(asset_sorters, tag.filter)(assets=self.recordingCollection.all_recordings, request=self.request)
+
         for comp in self.compositions:
             comp.move_listener(self.listener)
 

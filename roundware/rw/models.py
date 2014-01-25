@@ -9,8 +9,9 @@ from django.contrib.contenttypes import generic
 from roundware.settings import MEDIA_BASE_URI
 from roundware.rw import fields
 from django.conf import settings
-import datetime
+from datetime import datetime, date, timedelta
 from cache_utils.decorators import cached
+from roundwared.gpsmixer import distance_in_meters
 
 import json
 
@@ -142,6 +143,12 @@ class SelectionMethod(models.Model):
 
 
 class Tag(models.Model):
+    FILTERS = (
+        ("--", "No filter"),
+        ("_within_10km", "Assets within 10km."),
+        ("_ten_most_recent_days", "Assets created within 10 days."),
+    )
+
     tag_category = models.ForeignKey(TagCategory)
     value = models.TextField()
     description = models.TextField()
@@ -149,12 +156,14 @@ class Tag(models.Model):
     loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)
     data = models.TextField(null=True, blank=True)
     relationships = models.ManyToManyField('self', symmetrical=True, related_name='related_to', null=True, blank=True)
+    filter = models.CharField(max_length=255, default="--", null=False, blank=False, choices=FILTERS)
 
     def get_loc(self):
         return "<br />".join(unicode(t) for t in self.loc_msg.all())
     get_loc.short_description = "Localized Names"
     get_loc.name = "Localized Names"
     get_loc.allow_tags = True
+
     def get_relationships(self):
         return [rel['pk'] for rel in self.relationships.all().values('pk')]
 
@@ -309,7 +318,7 @@ class Asset(models.Model):
     submitted = models.BooleanField(default=True)
     project = models.ForeignKey(Project, null=True, blank=False)
 
-    created = models.DateTimeField(default=datetime.datetime.now)
+    created = models.DateTimeField(default=datetime.now)
     audiolength = models.BigIntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, null=True, blank=True)
     language = models.ForeignKey(Language, null=True)
@@ -457,6 +466,10 @@ class Asset(models.Model):
     get_votes.short_description = "Votes"
     get_votes.name = "Votes"
 
+    def distance(self, listener):
+        return distance_in_meters(self.latitude, self.longitude,
+                                  listener['latitude'], listener['longitude'])
+
     @transaction.atomic
     def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
         super(Asset, self).save(force_insert, force_update, using, *args, **kwargs)
@@ -467,7 +480,7 @@ class Asset(models.Model):
 
 class Envelope(models.Model):
     session = models.ForeignKey(Session, default=get_default_session)
-    created = models.DateTimeField(default=datetime.datetime.now)
+    created = models.DateTimeField(default=datetime.now)
     assets = models.ManyToManyField(Asset, blank=True)
 
     def __unicode__(self):

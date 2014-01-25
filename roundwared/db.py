@@ -195,7 +195,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
         tag_ids_per_cat_dict[cat.id] = [tag.id for tag in Tag.objects.filter(tag_category=cat)]
 
 
-    project_recs = Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=l).distinct()
+    project_recs = list(Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=l).distinct())
     for rec in project_recs:
         remove = False
         # all tags for this asset
