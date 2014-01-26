@@ -122,7 +122,7 @@ class RoundStream:
             for tag in tags:
                 if tag.filter:
                     logging.debug("Tag with filter found: %s: %s" % (tag, tag.filter))
-                    self.recordingCollection.all_recordings = getattr(asset_sorters, tag.filter)(assets=self.recordingCollection.all_recordings, request=self.request)
+                    self.recordingCollection.nearby_unplayed_recordings = getattr(asset_sorters, tag.filter)(assets=self.recordingCollection.all_recordings, request=self.request)
 
         for comp in self.compositions:
             comp.move_listener(self.listener)
