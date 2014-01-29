@@ -2,7 +2,7 @@
 //     jQuery = django.jQuery;
 // }
 
-// make this a named function so we can call on AJAX post success
+// make this a named function so we can call on AJAX POST success
 function rewriteSortedMultiCheckbox() {
     $('.sortedm2m').parents('ul').each(function () {
         $(this).addClass('sortedm2m');

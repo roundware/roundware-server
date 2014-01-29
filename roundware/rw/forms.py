@@ -9,7 +9,8 @@ from sortedm2m.forms import SortedMultipleChoiceField
 from roundware import settings
 
 from roundware.rw.models import Tag, MasterUI, UIMapping
-from roundware.rw.widgets import (NonAdminRelatedFieldWidgetWrapper, 
+from roundware.rw.widgets import (NonAdminRelatedFieldWidgetWrapper,
+                                  DummyWidgetWrapper, 
                                   SetupTagUIFilteredSelectMultiple,
                                   SetupTagUISortedCheckboxSelectMultiple)
 
@@ -112,7 +113,7 @@ class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin,
         required=False,
         widget=forms.Select(attrs={"onChange": 'update_MasterUI_edit_form()'}),
         label='Master UI',
-        help_text = 'Leave blank to add a new Master UI or select one to edit',
+        help_text='Leave blank to add a new Master UI or select one to edit',
         empty_label="---------")
 
     def __init__(self, user, *args, **kwargs):
@@ -121,7 +122,8 @@ class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin,
         self.prefix = 'master_ui_select'
         self.fields['masterui'].queryset = \
             MasterUI.objects.filter(project__in=get_objects_for_user(user, 
-            'rw.access_project')).order_by('project__name')
+                                    'rw.access_project')
+                                    ).order_by('project__name')
 
     def form_valid():
         return True
@@ -134,14 +136,22 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
     id = forms.IntegerField(required=False,  # store pk on MasterUI for update
                             widget=forms.HiddenInput)
 
-    ui_mappings_tags = SortedMultipleChoiceField(
-        queryset = Tag.objects.all(),
+    ui_mappings_tags = forms.ModelMultipleChoiceField(
+        queryset=Tag.objects.all(),
         label='Assign tags',
         required=False,
         widget=NonAdminRelatedFieldWidgetWrapper(
-            # SetupTagUIFilteredSelectMultiple('tags', False), 
-            SetupTagUISortedCheckboxSelectMultiple(),
+            SetupTagUIFilteredSelectMultiple('tags', False), 
             '/admin/rw/tag/add')
+    )
+
+    ui_mappings_tag_order = SortedMultipleChoiceField(
+        queryset=UIMapping.objects.all(),
+        label='Order tags',
+        required=False,
+        widget=DummyWidgetWrapper(
+            SetupTagUISortedCheckboxSelectMultiple()
+        )
     )
 
     def __init__(self, *args, **kwargs):
@@ -151,7 +161,8 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
         if self.instance.pk:
             uimaps = UIMapping.objects.select_related('tag').filter(
                 master_ui=self.instance).order_by('index')
-            self.initial['ui_mappings_tags']=[uimap.tag.id for uimap in uimaps]
+            self.initial['ui_mappings_tags'] = [uimap.tag.id for uimap in uimaps]
+            # self.initial['ui_mappings_tag_order'] = []
 
     def is_valid(self):
         # import pdb; pdb.set_trace()
@@ -168,7 +179,9 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
     class Meta:
         model = MasterUI
         fields = ['id', 'project', 'ui_mode', 'tag_category', 'select', 'active', 
-                  'index', 'name', 'header_text_loc', 'ui_mappings_tags', ]
+                  'index', 'name', 'header_text_loc', 
+                  'ui_mappings_tags', 'ui_mappings_tag_order', 
+                  ]
         widgets = {  # floppyforms requires override orig widgets to use theirs
             'id': forms.HiddenInput, 
             'project': forms.Select,

@@ -17,6 +17,7 @@ function update_MasterUI_edit_form() {
         {
             /* The div contains now the updated form */
             $('#mui_edit_form_wrapper').html(result);
+            rewriteFilteredSelect();
             rewriteSortedMultiCheckbox();
         }
     });

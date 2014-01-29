@@ -1,4 +1,4 @@
-from django.forms import Media
+from django.forms import Media, Widget
 from django.contrib.admin.widgets import (RelatedFieldWidgetWrapper,
                                           FilteredSelectMultiple)
 from django.contrib.admin.templatetags.admin_static import static
@@ -46,6 +46,39 @@ class NonAdminRelatedFieldWidgetWrapper(RelatedFieldWidgetWrapper):
         return mark_safe(u''.join(output))
 
 
+class DummyWidgetWrapper(Widget):
+    """ Return a widget.  For some reason, having to use this to get around
+        using the CheckboxFieldRenderer from django.forms.widgets for our 
+        SetupTagUISortedCheckboxSelectMultiple
+    """
+
+    def __init__(self, widget):
+        self.widget = widget
+        self.is_hidden = widget.is_hidden
+        self.needs_multipart_form = widget.needs_multipart_form
+        self.attrs = widget.attrs
+        self.choices = widget.choices
+
+    def render(self, name, value, *args, **kwargs):
+        self.widget.choices = self.choices
+        return self.widget.render(name, value, *args, **kwargs)
+
+    @property
+    def media(self):
+        return self.widget.media
+
+    def build_attrs(self, extra_attrs=None, **kwargs):
+        "Helper function for building an attribute dictionary."
+        self.attrs = self.widget.build_attrs(extra_attrs=None, **kwargs)
+        return self.attrs
+
+    def value_from_datadict(self, data, files, name):
+        return self.widget.value_from_datadict(data, files, name)
+
+    def id_for_label(self, id_):
+        return self.widget.id_for_label(id_)  
+
+
 class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
 
     @property
@@ -83,16 +116,21 @@ class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
 
 
 class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
+      
+    def render(self, name, value, attrs=None, choices=()):
+        return SortedCheckboxSelectMultiple.render(self,
+            name, value, attrs, choices)
 
     class Media:
         js = (
-            "admin/js/core.js", 
-            "admin/js/jquery.init.js", 
-            "/static/rw/js/setup_tag_ui.js", 
+            # "admin/js/core.js", 
+            # "admin/js/jquery.init.js", 
+            # "/static/rw/js/setup_tag_ui.js", 
             "/static/rw/js/sortedmulticheckbox_widget.js",
             "/static/sortedm2m/jquery-ui.js",
         )
         css = {'screen': (
             STATIC_URL + 'sortedm2m/widget.css',
         )}
+
 
