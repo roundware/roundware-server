@@ -12,12 +12,19 @@ function rewriteSortedMultiCheckbox() {
         checkboxes.removeAttr('name');
         $(this).before('<input type="hidden" id="' + id + '" name="' + name + '" />');
         var that = this;
+        var hdn_indexes = $('input#id_master_ui_edit-ui_mappings_tags_indexes');
         var recalculate_value = function () {
             var values = [];
+            var all_vals = [];
             $(that).find(':checked').each(function () {
                 values.push($(this).val());
             });
             $('#' + id).val(values.join(','));
+            // update hidden indexes field
+            $(that).find('input[type=checkbox]').each( function() {
+                all_vals.push($(this).val());
+            })
+            hdn_indexes.val(all_vals.join(','));
         }
         recalculate_value();
         checkboxes.change(recalculate_value);

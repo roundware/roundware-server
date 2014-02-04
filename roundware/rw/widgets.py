@@ -1,11 +1,17 @@
-from django.forms import Media, Widget
+from itertools import chain
+
+from django.forms import Media, Widget, CheckboxInput
 from django.contrib.admin.widgets import (RelatedFieldWidgetWrapper,
                                           FilteredSelectMultiple)
 from django.contrib.admin.templatetags.admin_static import static
 from django.conf import settings
+from django.utils.encoding import force_text
+from django.utils.html import conditional_escape
 from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
+from django.template.loader import render_to_string
 
+# import floppyforms as forms
 from sortedm2m.forms import SortedCheckboxSelectMultiple
 
 
@@ -118,8 +124,46 @@ class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
 class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
       
     def render(self, name, value, attrs=None, choices=()):
-        return SortedCheckboxSelectMultiple.render(self,
-            name, value, attrs, choices)
+        if value is None: value = []
+        has_id = attrs and 'id' in attrs
+        final_attrs = self.build_attrs(attrs, name=name)
+
+        # Normalize to strings
+        str_values = [force_text(v) for v in value] 
+
+        vals = []
+
+        for i, (option_value, option_label) in enumerate(chain(self.choices,
+                                                               choices)):
+            # If an ID attribute was given, add a numeric index as a suffix,
+            # so that the checkboxes don't all have the same ID attribute.
+            if has_id:
+                final_attrs = dict(final_attrs, id='%s_%s' % (attrs['id'], i))
+                label_for = ' for="%s"' % conditional_escape(final_attrs['id'])
+            else:
+                label_for = ''
+
+            cb = CheckboxInput(final_attrs, 
+                check_test=lambda value: value in str_values)
+            option_value = force_text(option_value)
+            rendered_cb = cb.render(name, option_value)
+            option_label = conditional_escape(force_text(option_label))
+            item = {'label_for': label_for, 'rendered_cb': rendered_cb, 
+                    'option_label': option_label, 'option_value': option_value}
+            vals.append(item)
+
+        # re-order `selected` array according str_values which is a set of `option_value`s in the order they should be shown on screen
+        # ordered = []
+        # for value in str_values:
+        #     for val in vals:
+        #         if value == val['option_value']:
+        #             ordered.append(val)
+
+        html = render_to_string(
+            'sortedm2m/sorted_checkbox_select_multiple_widget.html',
+            {'vals': vals, })
+        return mark_safe(html)
+
 
     class Media:
         js = (

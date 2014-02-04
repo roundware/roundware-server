@@ -185,19 +185,15 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
 
         'master_ui_edit': MultiFormView.modelform(
                           MasterUI, 
-                          MasterUIForSetupTagUIEditForm),
-        # 'ui_mappings': FormProvider(
-        #                   UIMappingsInlineFormset, 
-        #                   context_suffix='formset',
-        #                   init_args={}),
-           
+                          MasterUIForSetupTagUIEditForm),           
     }
 
     def get_master_ui_select_user(self):
         return self.request.user
 
     def get_master_ui_edit_instance(self):
-        """ for calling with a primary key in the url
+        """ for calling with a primary key in the url. This is called magically
+            by MultiFormView to get the instance for master_ui_edit form
         """
         if self.kwargs.get('pk'):            
             return MasterUI.objects.filter(pk=self.kwargs['pk'])[0]
@@ -207,9 +203,7 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
     def post(self, request, *args, **kwargs):
         """ create or update MasterUI instance
         """
-        # import pdb; pdb.set_trace()
         return super(MasterUIMappingsOrganizationView, self).post(request, *args, **kwargs)
-
 
     def post_ajax(self, request, *args, **kwargs):
         """ handle post made from selecting MasterUI in 'master_ui_select'
@@ -235,23 +229,25 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
                                              response_dic, 
                                              RequestContext(request)))
 
-    def update_ui_mappings(self, uimaps, formtags, mui):
+    def update_ui_mappings(self, uimaps, formtags, defaults, indexes, mui):
         uimaptags = []
+        default_tags = [df.tag for df in defaults]
         for uimap in uimaps:
             uimaptags.append(uimap.tag)
             if uimap.tag not in formtags:
                 uimap.delete()
         for tag in formtags:  
-            index = [i for i,x in enumerate(formtags) if x == tag][0] + 1
+            index = indexes.index(tag.pk) + 1
+            default = tag in default_tags
             if tag not in uimaptags:
                 uimap = UIMapping(tag=tag, master_ui=mui, active=True, 
-                                  index=index)
+                                  index=index, default=default)
                 uimap.save()
             else:
-                uimap = UIMapping.objects.filter(tag=tag).distinct()[0]
+                uimap = [uim for uim in uimaps if uim.tag == tag][0]
                 uimap.index = index
+                uimap.default = default
                 uimap.save()
-
 
     def valid_all(self, valid_forms):
         """ handle case all forms valid 
@@ -262,19 +258,23 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         form = valid_forms['master_ui_edit']
         mui_id = form.cleaned_data.get('id')
         formtags = form.cleaned_data['ui_mappings_tags']
+        defaults = form.cleaned_data['ui_mappings_tag_order']
+        indexes = form.cleaned_data['ui_mappings_tags_indexes'].split(',')
+        indexes = [UIMapping.objects.select_related('tag').filter(
+                   pk=uimap)[0].tag.pk for uimap in indexes]
         if mui_id:
             mui = MasterUI.objects.filter(pk=mui_id)[0]
-            uimaps = UIMapping.objects.select_related('tag').filter(master_ui=mui)
+            uimaps = UIMapping.objects.select_related(
+                     'tag').filter(master_ui=mui)
             # instance isn't constructed yet with data from form so we can't
             # use form.save() but have to do the following with construct=True            
             save_instance(form, mui, form._meta.fields, 'form changed', True, 
                           form._meta.exclude, True)
-            self.update_ui_mappings(uimaps, formtags, mui)
+            self.update_ui_mappings(uimaps, formtags, defaults, indexes, mui)
             
         else:
             mui = form.save()
-            self.update_ui_mappings([], formtags, mui)
-
+            self.update_ui_mappings([], formtags, defaults, indexes, mui)
 
     def invalid_all(self, invalid_forms):
         """ handle case all forms invalid

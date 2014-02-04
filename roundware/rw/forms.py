@@ -147,12 +147,16 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
 
     ui_mappings_tag_order = SortedMultipleChoiceField(
         queryset=UIMapping.objects.all(),
-        label='Order tags',
+        label='Order and assign default tags',
         required=False,
         widget=DummyWidgetWrapper(
             SetupTagUISortedCheckboxSelectMultiple()
         )
     )
+
+    ui_mappings_tags_indexes = forms.CharField(
+        widget=forms.HiddenInput,
+        required=False)
 
     def __init__(self, *args, **kwargs):
         super(MasterUIForSetupTagUIEditForm, self).__init__(*args, **kwargs)
@@ -163,6 +167,14 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
                 master_ui=self.instance).order_by('index')
             self.initial['ui_mappings_tags'] = [uimap.tag.id for uimap in uimaps]
             # self.initial['ui_mappings_tag_order'] = []
+            self.fields['ui_mappings_tag_order'].queryset = uimaps
+            self.fields['ui_mappings_tag_order'].label_from_instance = \
+                self.get_order_instance_label
+            self.initial['ui_mappings_tag_order'] = [uimap.id for uimap 
+                                                     in uimaps if uimap.default]
+
+    def get_order_instance_label(self, obj):
+        return obj.tag.__unicode__()
 
     def is_valid(self):
         # import pdb; pdb.set_trace()
