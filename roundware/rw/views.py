@@ -183,9 +183,9 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         context_suffix='form', 
         init_args={'user': 'get_%s_user'}),
 
-        'master_ui_edit': MultiFormView.modelform(
-                          MasterUI, 
-                          MasterUIForSetupTagUIEditForm),           
+        'master_ui_edit': MultiFormView.modelform(MasterUI, 
+                          MasterUIForSetupTagUIEditForm),
+
     }
 
     def get_master_ui_select_user(self):
@@ -197,6 +197,9 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         """
         if self.kwargs.get('pk'):            
             return MasterUI.objects.filter(pk=self.kwargs['pk'])[0]
+        elif self.request.POST.get('master_ui_edit-id', None):
+            return MasterUI.objects.filter(
+                pk=self.request.POST['master_ui_edit-id'])[0]
         else:
             return MasterUI()
 
@@ -237,7 +240,10 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
             if uimap.tag not in formtags:
                 uimap.delete()
         for tag in formtags:  
-            index = indexes.index(tag.pk) + 1
+            try:
+                index = indexes.index(tag.pk) + 1
+            except ValueError:
+                index = 1
             default = tag in default_tags
             if tag not in uimaptags:
                 uimap = UIMapping(tag=tag, master_ui=mui, active=True, 
@@ -252,16 +258,18 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
     def valid_all(self, valid_forms):
         """ handle case all forms valid 
         """
-
         select = valid_forms['master_ui_select']  # don't save anything
         select  # pyflakes
         form = valid_forms['master_ui_edit']
         mui_id = form.cleaned_data.get('id')
         formtags = form.cleaned_data['ui_mappings_tags']
         defaults = form.cleaned_data['ui_mappings_tag_order']
-        indexes = form.cleaned_data['ui_mappings_tags_indexes'].split(',')
-        indexes = [UIMapping.objects.select_related('tag').filter(
-                   pk=uimap)[0].tag.pk for uimap in indexes]
+        if form.cleaned_data['ui_mappings_tags_indexes']:
+            indexes = form.cleaned_data['ui_mappings_tags_indexes'].split(',')
+            indexes = [UIMapping.objects.select_related('tag').filter(
+                       pk=uimap)[0].tag.pk for uimap in indexes]
+        else: 
+            indexes = []
         if mui_id:
             mui = MasterUI.objects.filter(pk=mui_id)[0]
             uimaps = UIMapping.objects.select_related(

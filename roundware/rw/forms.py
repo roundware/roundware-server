@@ -146,7 +146,7 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
     )
 
     ui_mappings_tag_order = SortedMultipleChoiceField(
-        queryset=UIMapping.objects.all(),
+        queryset=UIMapping.objects.none(),
         label='Order and assign default tags',
         required=False,
         widget=DummyWidgetWrapper(
@@ -159,9 +159,11 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
         required=False)
 
     def __init__(self, *args, **kwargs):
+
         super(MasterUIForSetupTagUIEditForm, self).__init__(*args, **kwargs)
         self.helper.form_tag = False
         self.prefix = 'master_ui_edit'
+        self.instance = kwargs['instance']
         if self.instance.pk:
             uimaps = UIMapping.objects.select_related('tag').filter(
                 master_ui=self.instance).order_by('index')
