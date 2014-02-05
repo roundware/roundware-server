@@ -210,10 +210,12 @@ def get_config(request):
                     "files_url":project.files_url,
                     "files_version":project.files_version,
                     "audio_stream_bitrate":project.audio_stream_bitrate,
-                    # TODO: following attribute 'demo_stream_enabled' has be moved to the 'session' object
+                    # TODO: following attribute 'demo_stream_enabled' has been moved to the 'session' object
                     "demo_stream_enabled":s.demo_stream_enabled,
                     "demo_stream_url":project.demo_stream_url,
                     "demo_stream_message":demo_stream_message,
+                    "latitude":project.latitude,
+                    "longitude":project.longitude
                     }},
 
             {"server":{
