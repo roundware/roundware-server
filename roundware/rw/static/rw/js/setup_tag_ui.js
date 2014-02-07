@@ -25,4 +25,3 @@ function update_MasterUI_edit_form() {
     //don't submit the form
     return false;
 }
-

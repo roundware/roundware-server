@@ -6,9 +6,12 @@ import traceback
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.shortcuts import render_to_response
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
 from django.forms.models import save_instance
+from django.views.generic.base import TemplateView
+from django.utils.safestring import mark_safe
 
 from guardian.core import ObjectPermissionChecker
 from guardian.mixins import PermissionRequiredMixin
@@ -26,6 +29,7 @@ from roundware.rw.forms import (TagCreateForm, BatchTagFormset,
                                 # MasterUIForSetupTagUICreateForm,
                                 MasterUIForSetupTagUIEditForm,
                                 MasterUIForSetupTagUISelectForm)
+from roundware.rw.widgets import SetupTagUISortedCheckboxSelectMultiple
 from roundwared import settings
 from roundwared import roundexception
 from roundwared import server
@@ -289,5 +293,43 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         """
         self.forms_invalid(invalid_forms)
 
+
+class UpdateTagUIOrder(TemplateView):
+    """ display the widget for the master_ui_edit_tag_order field as updated
+        based on the value of the master_ui_edit_tags field on 
+        MasterUIMappingsOrganizationView edit form.
+    """
+    def __init__(self, **kwargs):
+        self.widget = SetupTagUISortedCheckboxSelectMultiple()
+        
+    def choice_iterator(self):
+        for uimap in self.queryset:
+            yield (uimap.pk, uimap.tag.__unicode__())
+
+    def post(self, request, *args, **kwargs):
+        """ add or remove checkbox items to the order field based on contents
+            of the master_ui_edit_tags field.  UIMappings may not exist 
+            corresponding to the chosen tag.  UIMappings will never exist for 
+            a newly created MasterUI.  
+        """
+
+        tag_vals = [t for t in request.POST.getlist('tags[]')]
+        mui = request.POST.getlist('mui')[0]
+
+        self.queryset = UIMapping.objects.select_related('tag'
+            ).filter(master_ui__pk=mui, tag__pk__in=tag_vals).order_by('index')
+        
+        # if tag id in request is not present in queryset, then we need to 
+        # create a line in the widget for a new empty uimapping.  Store the 
+        # tag id in a hidden field on the widget
+        tags_seen = [int(map.tag.id) for map in self.queryset]
+        tags_unseen = [t for t in tag_vals if int(t) not in tags_seen]
+
+        html = self.widget.render('master_ui_edit-ui_mappings_tag_order',
+                                  [uimap.pk for uimap in self.queryset], 
+                                  attrs={u'id': u'id_master_ui_edit-ui_mappings_tag_order'}, 
+                                  choices=self.choice_iterator(),
+                                  new_maps = tags_unseen,)
+        return HttpResponse(mark_safe(html))
 
 

@@ -14,6 +14,8 @@ from django.template.loader import render_to_string
 # import floppyforms as forms
 from sortedm2m.forms import SortedCheckboxSelectMultiple
 
+from roundware.rw.models import Tag
+
 
 STATIC_URL = getattr(settings, 'STATIC_URL', settings.MEDIA_URL)
 
@@ -110,12 +112,24 @@ class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
         output = [super(FilteredSelectMultiple, self).render(
             name, value, attrs, choices)]
         output.append('<script type="text/javascript">')
-        output.append('function rewriteFilteredSelect(){')
-        output.append('SelectFilter.init("id_%s", "%s", %s, "%s"); }\n' % (
+
+        # import pdb; pdb.set_trace()
+        
+        output.append('function setupTagOrderSelectChange() {\n')
+        output.append('$("select[name=\'master_ui_edit-ui_mappings_tags\']").change(function(){\n')
+        output.append('$(\'#uimap_tag_order_field\').load(\'./update_tag_ui_order #tag_order_inner\', '
+                      '{tags: $.map($(this).find(\'option\'), function(option) {return option.value;}), '
+                      ' mui:%s }, rewriteSortedMultiCheckbox)\n' % '1')
+        output.append('});\n')
+        output.append('};\n')
+
+        output.append('function rewriteFilteredSelect(){\n')
+        output.append('SelectFilter.init("id_%s", "%s", %s, "%s"); \n' % (
             name, self.verbose_name.replace('"', '\\"'),
             int(self.is_stacked), static('admin/'))
         )
-        output.append('addEvent(window, "load", function(e) {')
+        output.append('setupTagOrderSelectChange();};\n')
+        output.append('addEvent(window, "load", function(e) {\n')
         output.append('rewriteFilteredSelect()});</script>\n')
 
         return mark_safe(''.join(output))
@@ -123,15 +137,16 @@ class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
 
 class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
       
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None, choices=(), new_maps=()):
         if value is None: value = []
         has_id = attrs and 'id' in attrs
         final_attrs = self.build_attrs(attrs, name=name)
 
         # Normalize to strings
-        str_values = [force_text(v) for v in value] 
+        str_values = [force_text(v) for v in value]
 
         vals = []
+        last_uimap = 0
 
         for i, (option_value, option_label) in enumerate(chain(self.choices,
                                                                choices)):
@@ -151,13 +166,25 @@ class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
             item = {'label_for': label_for, 'rendered_cb': rendered_cb, 
                     'option_label': option_label, 'option_value': option_value}
             vals.append(item)
+            last_uimap += 1
 
-        # re-order `selected` array according str_values which is a set of `option_value`s in the order they should be shown on screen
-        # ordered = []
-        # for value in str_values:
-        #     for val in vals:
-        #         if value == val['option_value']:
-        #             ordered.append(val)
+        for i, newmap in enumerate(new_maps):
+
+            if has_id:
+                final_attrs = dict(final_attrs, id='%s_%s' % (attrs['id'], 
+                                   i+last_uimap))
+                label_for = ' for="%s"' % conditional_escape(final_attrs['id'])
+            else:
+                label_for = ''
+            cb = CheckboxInput(final_attrs,
+                 check_test = lambda l: False)
+            option_value = 't'+newmap
+            rendered_cb = cb.render(name, option_value)
+            option_label = Tag.objects.filter(pk=newmap)[0].__unicode__()
+            option_label = conditional_escape(force_text(option_label))
+            item = {'label_for': label_for, 'rendered_cb': rendered_cb, 
+                    'option_label': option_label, 'option_value': option_value}
+            vals.append(item)
 
         html = render_to_string(
             'sortedm2m/sorted_checkbox_select_multiple_widget.html',

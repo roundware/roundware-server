@@ -9,6 +9,8 @@ urlpatterns = patterns('',
      url(r'^masteruis/(?P<pk>\d+)/setup_tag_ui/$', 
         views.MasterUIMappingsOrganizationView.as_view()),   
      url(r'^masteruis/setup_tag_ui/$', 
-        views.MasterUIMappingsOrganizationView.as_view()),   
+        views.MasterUIMappingsOrganizationView.as_view()),  
+     url(r'^masteruis/setup_tag_ui/update_tag_ui_order',
+        views.UpdateTagUIOrder.as_view() ), 
 
 )
