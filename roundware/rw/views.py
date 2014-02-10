@@ -238,20 +238,22 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
 
     def update_ui_mappings(self, uimaps, formtags, defaults, indexes, mui):
         uimaptags = []
-        default_tags = [df.tag for df in defaults]
+
+        default_tags = [df.startswith('t') and Tag.objects.filter(pk=df.replace('t',''))[0] or 
+                        UIMapping.objects.filter(pk=df)[0].tag for df in defaults]
         for uimap in uimaps:
             uimaptags.append(uimap.tag)
             if uimap.tag not in formtags:
                 uimap.delete()
         for tag in formtags:  
             try:
-                index = indexes.index(tag.pk) + 1
+                index = indexes.index(str(tag.pk)) + 1
             except ValueError:
                 index = 1
-            default = tag in default_tags
+            is_default = tag in default_tags
             if tag not in uimaptags:
                 uimap = UIMapping(tag=tag, master_ui=mui, active=True, 
-                                  index=index, default=default)
+                                  index=index, default=is_default)
                 uimap.save()
             else:
                 uimap = [uim for uim in uimaps if uim.tag == tag][0]
@@ -267,11 +269,13 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         form = valid_forms['master_ui_edit']
         mui_id = form.cleaned_data.get('id')
         formtags = form.cleaned_data['ui_mappings_tags']
-        defaults = form.cleaned_data['ui_mappings_tag_order']
+
+        defaults = form.data['master_ui_edit-ui_mappings_tag_order'].split(',')
         if form.cleaned_data['ui_mappings_tags_indexes']:
             indexes = form.cleaned_data['ui_mappings_tags_indexes'].split(',')
-            indexes = [UIMapping.objects.select_related('tag').filter(
-                       pk=uimap)[0].tag.pk for uimap in indexes]
+            indexes = [el.startswith('t') and el.replace('t','') or 
+                       UIMapping.objects.select_related('tag').filter(
+                       pk=el)[0].tag.pk for el in indexes]
         else: 
             indexes = []
         if mui_id:
@@ -313,20 +317,26 @@ class UpdateTagUIOrder(TemplateView):
             a newly created MasterUI.  
         """
 
-        tag_vals = [t for t in request.POST.getlist('tags[]')]
+        tag_vals = [Tag.objects.filter(pk=t)[0] for t in request.POST.getlist(
+            'tags[]')]
         mui = request.POST.getlist('mui')[0]
 
-        self.queryset = UIMapping.objects.select_related('tag'
-            ).filter(master_ui__pk=mui, tag__pk__in=tag_vals).order_by('index')
+        if mui:
+            self.queryset = UIMapping.objects.select_related('tag'
+            ).filter(master_ui__pk=mui, tag__in=tag_vals).order_by('index')
+            filtered = self.queryset.filter(default=True)
+        else:  
+            self.queryset = UIMapping.objects.none()
+            filtered = self.queryset
         
         # if tag id in request is not present in queryset, then we need to 
         # create a line in the widget for a new empty uimapping.  Store the 
         # tag id in a hidden field on the widget
-        tags_seen = [int(map.tag.id) for map in self.queryset]
-        tags_unseen = [t for t in tag_vals if int(t) not in tags_seen]
+        tags_seen = [map.tag for map in self.queryset]
+        tags_unseen = [t for t in tag_vals if t not in tags_seen]
 
         html = self.widget.render('master_ui_edit-ui_mappings_tag_order',
-                                  [uimap.pk for uimap in self.queryset], 
+                                  value=[uimap.pk for uimap in filtered], 
                                   attrs={u'id': u'id_master_ui_edit-ui_mappings_tag_order'}, 
                                   choices=self.choice_iterator(),
                                   new_maps = tags_unseen,)

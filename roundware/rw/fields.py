@@ -1,6 +1,7 @@
 from django.forms import forms
 from south.modelsinspector import add_introspection_rules
 from validatedfile.fields import ValidatedFileField
+from sortedm2m.forms import SortedMultipleChoiceField
 
 
 class RWValidatedFileField(ValidatedFileField):
@@ -37,3 +38,14 @@ class RWValidatedFileField(ValidatedFileField):
 
 
 add_introspection_rules([], ["^roundware\.rw\.fields\.RWValidatedFileField"])        
+
+
+class RWTagOrderingSortedMultipleChoiceField(SortedMultipleChoiceField):
+
+    def clean(self, value):
+        """ our hack involves stuffing values starting with t for tags that
+            need to be turned into new UIMappings into this field
+        """
+        value = [v for v in value if not v.startswith('t')]
+        super(RWTagOrderingSortedMultipleChoiceField, self).clean(value)
+        

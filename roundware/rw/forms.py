@@ -4,11 +4,11 @@ from django.forms.models import BaseModelFormSet
 import floppyforms as forms
 from crispy_forms.helper import FormHelper
 from guardian.shortcuts import get_objects_for_user
-from sortedm2m.forms import SortedMultipleChoiceField
 
 from roundware import settings
 
 from roundware.rw.models import Tag, MasterUI, UIMapping
+from roundware.rw import fields
 from roundware.rw.widgets import (NonAdminRelatedFieldWidgetWrapper,
                                   DummyWidgetWrapper, 
                                   SetupTagUIFilteredSelectMultiple,
@@ -145,7 +145,7 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
             '/admin/rw/tag/add')
     )
 
-    ui_mappings_tag_order = SortedMultipleChoiceField(
+    ui_mappings_tag_order = fields.RWTagOrderingSortedMultipleChoiceField(
         queryset=UIMapping.objects.none(),
         label='Order and assign default tags',
         required=False,
@@ -163,8 +163,8 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
         super(MasterUIForSetupTagUIEditForm, self).__init__(*args, **kwargs)
         self.helper.form_tag = False
         self.prefix = 'master_ui_edit'
-        self.instance = kwargs['instance']
-        if self.instance.pk:
+        if kwargs.has_key('instance'):
+            self.instance = kwargs['instance']
             uimaps = UIMapping.objects.select_related('tag').filter(
                 master_ui=self.instance).order_by('index')
             self.initial['ui_mappings_tags'] = [uimap.tag.id for uimap in uimaps]

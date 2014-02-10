@@ -119,7 +119,7 @@ class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
         output.append('$("select[name=\'master_ui_edit-ui_mappings_tags\']").change(function(){\n')
         output.append('$(\'#uimap_tag_order_field\').load(\'./update_tag_ui_order #tag_order_inner\', '
                       '{tags: $.map($(this).find(\'option\'), function(option) {return option.value;}), '
-                      ' mui:%s }, rewriteSortedMultiCheckbox)\n' % '1')
+                      ' mui:$(\'#id_master_ui_select-masterui\').val() }, rewriteSortedMultiCheckbox)\n')
         output.append('});\n')
         output.append('};\n')
 
@@ -178,9 +178,9 @@ class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
                 label_for = ''
             cb = CheckboxInput(final_attrs,
                  check_test = lambda l: False)
-            option_value = 't'+newmap
+            option_value = 't'+str(newmap.id)
             rendered_cb = cb.render(name, option_value)
-            option_label = Tag.objects.filter(pk=newmap)[0].__unicode__()
+            option_label = newmap.__unicode__()
             option_label = conditional_escape(force_text(option_label))
             item = {'label_for': label_for, 'rendered_cb': rendered_cb, 
                     'option_label': option_label, 'option_value': option_value}
