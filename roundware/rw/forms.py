@@ -123,7 +123,7 @@ class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin,
         self.fields['masterui'].queryset = \
             MasterUI.objects.filter(project__in=get_objects_for_user(user, 
                                     'rw.access_project')
-                                    ).order_by('project__name')
+                                    ).order_by('id')
 
     def form_valid():
         return True
