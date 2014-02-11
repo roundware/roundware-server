@@ -109,7 +109,7 @@ class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin,
     """ form for selection of MasterUIs for editing form
     """
     masterui = forms.ModelChoiceField(
-        queryset=MasterUI.objects.all().order_by('project__name'), 
+        queryset=MasterUI.objects.all().order_by('id'), 
         required=False,
         widget=forms.Select(attrs={"onChange": 'update_MasterUI_edit_form()'}),
         label='Master UI',
