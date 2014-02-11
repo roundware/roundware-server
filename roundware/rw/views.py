@@ -258,7 +258,7 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
             else:
                 uimap = [uim for uim in uimaps if uim.tag == tag][0]
                 uimap.index = index
-                uimap.default = default
+                uimap.default = is_default
                 uimap.save()
 
     def valid_all(self, valid_forms):

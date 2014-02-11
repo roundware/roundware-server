@@ -7,7 +7,7 @@ function update_MasterUI_edit_form() {
     // update the edit form fields with data for the selected masterui 
     $form=$('#setup_tag_ui_form');
     var datastring = $form.serialize();
-    console.log('datastring:'+ datastring);
+    //console.log('datastring:'+ datastring);
     $.ajax({
         type: "POST",
         url: $form.attr('action'),
@@ -24,4 +24,10 @@ function update_MasterUI_edit_form() {
 
     //don't submit the form
     return false;
+
 }
+
+$(document).ready( function () {
+    // force WebKit to repaint the assign tags field by measuring it
+    $('#id_master_ui_edit-ui_mappings_tags').hide().show(0);
+});

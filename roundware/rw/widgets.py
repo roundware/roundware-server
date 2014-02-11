@@ -128,6 +128,8 @@ class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
             name, self.verbose_name.replace('"', '\\"'),
             int(self.is_stacked), static('admin/'))
         )
+        # force Webkit redraw
+        output.append('$(\'#div_id_%s .selector\').hide().show(0);\n' % name)
         output.append('setupTagOrderSelectChange();};\n')
         output.append('addEvent(window, "load", function(e) {\n')
         output.append('rewriteFilteredSelect()});</script>\n')
