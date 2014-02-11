@@ -26,8 +26,3 @@ function update_MasterUI_edit_form() {
     return false;
 
 }
-
-$(document).ready( function () {
-    // force WebKit to repaint the assign tags field by measuring it
-    $('#id_master_ui_edit-ui_mappings_tags').hide().show(0);
-});
