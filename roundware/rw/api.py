@@ -1,5 +1,6 @@
 from tastypie.resources import ModelResource
 from roundware.rw.models import Asset, Project, Event, Session
+from roundware.rw.serializers import PrettyJSONSerializer
 
 
 class AssetResource(ModelResource):
@@ -7,6 +8,7 @@ class AssetResource(ModelResource):
         queryset = Asset.objects.all()
         resource_name = "asset"
         allowed_methods = ['get']
+        serializer = PrettyJSONSerializer()
 
 
 class ProjectResource(ModelResource):
@@ -14,6 +16,7 @@ class ProjectResource(ModelResource):
         queryset = Project.objects.all()
         resource_name = "project"
         allowed_methods = ['get']
+        serializer = PrettyJSONSerializer()
 
 
 class EventResource(ModelResource):
@@ -21,6 +24,7 @@ class EventResource(ModelResource):
         queryset = Event.objects.all()
         resource_name = "event"
         allowed_methods = ['get']
+        serializer = PrettyJSONSerializer()
 
 
 class SessionResource(ModelResource):
@@ -28,3 +32,4 @@ class SessionResource(ModelResource):
         queryset = Session.objects.all()
         resource_name = "session"
         allowed_methods = ['get']
+        serializer = PrettyJSONSerializer()
