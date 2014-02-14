@@ -10,7 +10,7 @@ from django.db.models import Q
 
 
 def assets_created_per_day():
-    all_assets = Asset.objects.extra({'created': "date(created)"}).values('created', 'id').filter(submitted__exact=1, project__id__exact=2, created__range=["2012-01-01", "2012-12-31"])
+    all_assets = Asset.objects.extra({'created': "date(created)"}).values('created', 'id').filter(submitted__exact=1, project__id__exact=1, created__range=["2013-01-01", "2014-12-31"])
 
     ds = PivotDataPool(
         series=[
@@ -42,7 +42,7 @@ def assets_created_per_day():
 
 
 def sessions_created_per_day():
-    all_sessions = Session.objects.extra({'starttime': "date(starttime)"}).values('starttime', 'id').filter(project__id__exact=2, starttime__range=["2012-01-01", "2012-12-31"])
+    all_sessions = Session.objects.extra({'starttime': "date(starttime)"}).values('starttime', 'id').filter(project__id__exact=1, starttime__range=["2013-01-01", "2014-12-31"])
     ds = PivotDataPool(
         series=[
                 {'options':{
