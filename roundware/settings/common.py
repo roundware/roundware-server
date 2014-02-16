@@ -199,6 +199,7 @@ INSTALLED_APPS = (
     'roundware.notifications',
     'south',
     'validatedfile',
+    'tastypie',
 )
 
 # A sample logging configuration. The only tangible logging
