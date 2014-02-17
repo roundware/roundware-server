@@ -419,6 +419,9 @@ class Asset(models.Model):
     def norm_audiolength(self):
         if self.audiolength:
             return "%.2f s" % (self.audiolength / 1000000000.0,)
+    def audiolength_in_seconds(self):
+        if self.audiolength:
+            return '%.2f' % round(self.audiolength / 1000000000.0, 2)
     norm_audiolength.short_description = "Audio Length"
     norm_audiolength.name = "Audio Length"
     norm_audiolength.allow_tags = True
