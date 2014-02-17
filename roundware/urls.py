@@ -3,7 +3,7 @@ from django.conf.urls import patterns, url, include
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 from tastypie.api import Api
-from roundware.rw.api import AssetResource, SessionResource, EventResource, ProjectResource
+from roundware.rw.api import AssetResource, SessionResource, EventResource, ProjectResource, ListeningHistoryItemResource
 
 admin.autodiscover()
 
@@ -12,6 +12,7 @@ v1_api.register(AssetResource())
 v1_api.register(ProjectResource())
 v1_api.register(EventResource())
 v1_api.register(SessionResource())
+v1_api.register(ListeningHistoryItemResource())
 
 urlpatterns = patterns('',
     # Examples:

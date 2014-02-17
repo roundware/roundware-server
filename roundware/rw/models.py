@@ -524,6 +524,9 @@ class ListeningHistoryItem(models.Model):
     def norm_duration(self):
         if self.duration:
             return "%.2f s" % (self.duration / 1000000000.0,)
+    def duration_in_seconds(self):
+        if self.duration:
+            return '%.2f' % round(self.duration / 1000000000.0, 2)
     norm_duration.short_description = "Playback Duration"
     norm_duration.name = "Playback Duration"
 

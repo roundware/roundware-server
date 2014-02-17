@@ -1,5 +1,6 @@
 from tastypie.resources import ModelResource
 from tastypie import fields
+from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
 from roundware.rw.serializers import PrettyJSONSerializer
 
 
@@ -67,3 +68,19 @@ class SessionResource(ModelResource):
         }
 
 
+class ListeningHistoryItemResource(ModelResource):
+    session = fields.IntegerField(attribute="session_id")
+    asset = fields.IntegerField(attribute="asset_id")
+    duration_in_seconds = fields.FloatField(attribute="duration_in_seconds")
+
+    class Meta:
+        queryset = ListeningHistoryItem.objects.all()
+        resource_name = "history"
+        allowed_methods = ['get']
+        serializer = PrettyJSONSerializer()
+        filtering = {
+            "duration": ('lte', 'gte'),
+            "server_time"  : ('exact', 'gte', 'lte', 'range'),
+            "session"  : ('exact'),
+            "asset"  : ('exact'),
+        }
