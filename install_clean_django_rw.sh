@@ -11,3 +11,4 @@ sudo cp -r $CODE_PATH/roundware/notifications/migrations $DIST_PATH/roundware/no
 sudo cp -r $CODE_PATH/roundware/rw/migrations $DIST_PATH/roundware/rw/migrations
 sudo cp -r $CODE_PATH/roundware/rw/tests $DIST_PATH/roundware/rw/tests
 sudo cp -r $CODE_PATH/roundwared/tests $DIST_PATH/roundwared/tests
+sudo $CODE_PATH/roundware/manage.py collectstatic --noinput

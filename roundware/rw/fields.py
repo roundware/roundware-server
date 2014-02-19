@@ -1,7 +1,7 @@
 from django.forms import forms
 from south.modelsinspector import add_introspection_rules
 from validatedfile.fields import ValidatedFileField
-import pyclamav
+from sortedm2m.forms import SortedMultipleChoiceField
 
 
 class RWValidatedFileField(ValidatedFileField):
@@ -25,6 +25,7 @@ class RWValidatedFileField(ValidatedFileField):
 
         # next scan with pyclamav
         tmpfile = file.file.name
+        import pyclamav  # keep this import here to not slow down streamscript
         has_virus, virus_name = pyclamav.scanfile(tmpfile)
         if has_virus:
             fn = file.name
@@ -36,4 +37,15 @@ class RWValidatedFileField(ValidatedFileField):
         return data
 
 
-add_introspection_rules([], ["^roundware\.rw\.fields\.RWValidatedFileField"])
+add_introspection_rules([], ["^roundware\.rw\.fields\.RWValidatedFileField"])        
+
+
+class RWTagOrderingSortedMultipleChoiceField(SortedMultipleChoiceField):
+
+    def clean(self, value):
+        """ our hack involves stuffing values starting with t for tags that
+            need to be turned into new UIMappings into this field
+        """
+        value = [v for v in value if not v.startswith('t')]
+        super(RWTagOrderingSortedMultipleChoiceField, self).clean(value)
+        

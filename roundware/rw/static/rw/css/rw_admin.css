@@ -1,0 +1,25 @@
+/* BOOTSTRAPPED ADMIN OVERRIDES */
+.navbar-header {
+    color: #999;
+}
+ul.breadcrumb {
+    margin-top: 20px;
+}
+.pull-left {
+    margin-right: 1em;
+}
+.form-horizontal .control-label {
+    padding-top: 0 !important;
+}
+div.jp-audio ul.jp-controls {
+    width: 100px !important;
+}
+.radio input[type="radio"], 
+.radio-inline input[type="radio"], 
+.checkbox input[type="checkbox"], 
+.checkbox-inline input[type="checkbox"] {
+    margin-left: 0px !important;
+}
+.radio, .checkbox  {
+    padding-left: 0 !important;
+}

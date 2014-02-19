@@ -1,0 +1,31 @@
+{% load crispy_forms_tags %}
+
+<form name='mui_edit_form' id='mui_edit_form' method='post'
+ class='form-horizontal'>
+
+    {% crispy master_ui_edit_form master_ui_edit_form.helper %}
+
+    <div class='form-actions'>
+        <input name="submit" value="Save all" class="btn btn-primary" id="submit-id-submit" type="submit">
+    </div>
+    
+</form>
+
+<script type="text/javascript">
+    // SelectBox redisplay should trigger change
+    SelectBox.redisplay = function(id) {
+        // Repopulate HTML select box from cache
+        var box = document.getElementById(id);
+        box.options.length = 0; // clear all options
+        for (var i = 0, j = SelectBox.cache[id].length; i < j; i++) {
+            var node = SelectBox.cache[id][i];
+            if (node.displayed) {
+                var new_option = new Option(node.text, node.value, false, false);
+                // Shows a tooltip when hovering over the option
+                new_option.setAttribute("title", node.text);
+                box.options[box.options.length] = new_option;
+            }
+        }
+        $(box).trigger('change');
+    }
+</script>

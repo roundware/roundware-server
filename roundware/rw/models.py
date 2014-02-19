@@ -170,6 +170,9 @@ class Tag(models.Model):
     def __unicode__(self):
             return self.tag_category.name + " : " + self.value
 
+    class Meta:
+        app_label = 'rw'  # necessary for special tag batch add form
+
 
 class MasterUI(models.Model):
     name = models.CharField(max_length=50)
@@ -205,7 +208,7 @@ class MasterUI(models.Model):
 
 
     def __unicode__(self):
-            return str(self.id) + ":" + self.ui_mode.name + ":" + self.name
+            return str(self.id) + ":" + self.project.name + ":" + self.ui_mode.name + ":" + self.name
 
 
 class UIMapping(models.Model):

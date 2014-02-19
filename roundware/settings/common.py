@@ -176,8 +176,8 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     #os.path.join(PROJECT_PATH, 'templates')
-    PROJECT_PATH + '/templates',
-    PROJECT_PATH + '/rw/templates',
+    PROJECT_PATH + '/../templates',
+    PROJECT_PATH + '/../rw/templates/rw',
 )
 
 INSTALLED_APPS = (
@@ -188,6 +188,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'roundware.rw',
+    'django_admin_bootstrapped.bootstrap3',
+    'django_admin_bootstrapped',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
@@ -199,6 +201,11 @@ INSTALLED_APPS = (
     'roundware.notifications',
     'south',
     'validatedfile',
+    'adminplus',
+    'crispy_forms',
+    'floppyforms',
+    'djangoformsetjs',
+    'sortedm2m',
     'tastypie',
 )
 
@@ -256,3 +263,6 @@ CACHES = {
         }
     }
 }
+
+# use Twitter Bootstrap template pack for django-crispy-forms
+CRISPY_TEMPLATE_PACK = 'bootstrap'
