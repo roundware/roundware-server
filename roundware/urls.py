@@ -3,12 +3,13 @@ from django.conf.urls import patterns, url, include
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 from tastypie.api import Api
-from roundware.rw.api import AssetResource, SessionResource, EventResource, ProjectResource, ListeningHistoryItemResource
+from roundware.rw.api import AssetResource, SessionResource, EventResource, ProjectResource, ListeningHistoryItemResource, AssetLocationResource
 
 admin.autodiscover()
 
 v1_api = Api(api_name='v1')
 v1_api.register(AssetResource())
+v1_api.register(AssetLocationResource())
 v1_api.register(ProjectResource())
 v1_api.register(EventResource())
 v1_api.register(SessionResource())
@@ -18,6 +19,7 @@ urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'roundware.views.home', name='home'),
 #    url(r'^charts/asset/$', 'rw.views.chart_views'),
+    url(r'^dashboard/asset-map$', 'rw.views.asset_map'),
     url(r'^dashboard/$', 'rw.views.chart_views'),
 
     #TastyPie API URLS

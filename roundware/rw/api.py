@@ -1,3 +1,5 @@
+from tastypie.authentication import SessionAuthentication
+from tastypie.authorization import DjangoAuthorization
 from tastypie.resources import ModelResource
 from tastypie import fields
 from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
@@ -17,13 +19,29 @@ class AssetResource(ModelResource):
         serializer = PrettyJSONSerializer()
         filtering = {
             "mediatype": ('exact', 'startswith',),
-            "submitted": ('exact'),
-            "created"  : ('exact', 'gte', 'lte', 'range'),
-            "project"  : ('exact'),
-            "audiolength"  : ('gte', 'lte'),
-            "language"  : ('exact'),
-            "session"  : ('exact'),
+            "submitted": ('exact',),
+            "created": ('exact', 'gte', 'lte', 'range'),
+            "project": ('exact',),
+            "audiolength": ('gte', 'lte'),
+            "language": ('exact',),
+            "session": ('exact',),
         }
+
+
+class AssetLocationResource(AssetResource):
+    project = fields.IntegerField(attribute="project_id")
+
+    class Meta:
+        queryset = Asset.objects.filter()
+        resource_name = "assetlocation"
+        allowed_methods = ['get', 'patch']
+        fields = ['latitude', 'longitude', 'id', 'filename', 'description']
+        serializer = PrettyJSONSerializer()
+        filtering = {
+            'project': ('exact',)
+        }
+        authentication = SessionAuthentication()
+        authorization = DjangoAuthorization()
 
 
 class ProjectResource(ModelResource):

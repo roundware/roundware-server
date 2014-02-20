@@ -106,3 +106,8 @@ def chart_views(request):
     assets_by_section_chart = assets_by_section()
 #    return render_to_response("chart_template.html", {'sessionchart': session_created_per_day_chart, 'assetchart': asset_created_per_day_chart})
     return render_to_response("chart_template.html", {'charts': [session_created_per_day_chart, asset_created_per_day_chart, assets_by_question_chart, assets_by_section_chart]})
+
+
+@login_required
+def asset_map(request):
+    return render_to_response("asset-map.html")
