@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+        <style type="text/css">
+            html {
+                height: 100%
+                }
+            body {
+                height: 100%;
+                margin: 0;
+                padding: 0
+            }
+            #map-canvas {
+              height: 100%
+            }
+
+            .markerDiv {
+                height: 100%;
+                width: 100%;
+                float: left;
+                padding: 10px 0px;
+            }
+
+            .markerDiv img {
+                margin: 10px 0px;
+            }
+
+            .markerDiv h1 {
+                font-size: 14px;
+                margin: 0px;
+                padding: 0px;
+                width: 100%;
+            }
+
+            .markerDiv h2 {
+                font-size: 12px;
+                margin: 0px;
+                padding: 0px;
+                width: 100%;
+            }
+
+            .markerDiv p {
+                margin: 0px;
+                font-size: 12px;
+                padding: 5px 0px;
+            }
+
+            #main .markerDiv input[type="checkbox"], #main .markerDiv input[type="checkbox"]:checked {
+                visibility: hidden;
+                width: 0px;
+                height: 0px;
+                background: transparent;
+                margin: 0;
+                padding: 0;
+            }
+
+            .markerDiv p a {
+                font-style: italic;
+                font-size: 11px;
+            }
+        </style>
+{#        Add API KEY, if necessary#}
+{#        <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=[API KEY]&sensor=false"></script>#}
+        <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+        <script type="text/javascript" src="/static/dashboard/js/jquery-1.10.2.js"></script>
+  </head>
+    <body>
+        <div id="map-canvas"></div>
+    </body>
+</html>
+<script type="text/javascript">
+    $(document).ready(function() {
+        var url = "/roundware/api/v1/assetlocation/";
+
+        function initialize(){
+            var mapOptions = {
+                zoom: 2,
+                center: new google.maps.LatLng(42, -71)
+            };
+            var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+
+            var points = [];
+
+            var project = getUrlVars()["project"];
+
+            $.ajax({
+                        url: url,
+                        type: "GET",
+                        cached: false,
+                        async: false,
+                        crossDomain: false,
+                        data: {
+                            format: "json",
+                            project: project,
+                            limit: 0
+                        },
+                        dataType: "json",
+                        success: function(data) {
+                            points = data.objects;
+                        }
+                    }
+                );
+
+            /* This markers array contains all the markers, they are stored in the index of the Asset.id */
+            var markers = drawPoints(map, points);
+
+            //  Make an array of the LatLng's of the markers you want to show
+            var bounds = new google.maps.LatLngBounds ();
+            for (var i = 0; i < markers.length; i++) {
+                if (markers[i] != undefined ){
+                    bounds.extend(markers[i].getPosition())
+                }
+            }
+            //  Fit these bounds to the map
+            map.fitBounds (bounds);
+        }
+
+
+        google.maps.event.addDomListener(window, 'load', initialize);
+
+    });
+
+
+    function savePosition(marker, newLocation){
+        var url = "/roundware/api/v1/assetlocation/" + marker.asset_id + "/";
+        newLocation.lat().toFixed(6);
+        newLocation.lng().toFixed(6);
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+                    url: url,
+                    async: true,
+                    type: "patch",
+                    data: JSON.stringify({
+                        latitude: newLocation.lat(),
+                        longitude: newLocation.lng()
+                    }),
+                    contentType: 'application/json',
+                    crossDomain: false,
+                    success: function(data) {
+                    },
+                    beforeSend: function(xhr, settings) {
+                        if (!csrfSafeMethod(settings.type)) {
+                            // Send the token to same-origin, relative URLs only.
+                            // Send the token only if the method warrants CSRF protection
+                            // Using the CSRFToken value acquired earlier
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    }
+                }
+        );
+    }
+
+    function drawPoints(map, objects) {
+        var markers = [];
+        for (var i = 0; i < objects.length; i++) {
+            var assetLocation = new google.maps.LatLng(objects[i].latitude, objects[i].longitude);
+
+            // Create Marker Object
+            var marker = new google.maps.Marker({
+                position: assetLocation,
+                draggable: true,
+                map: map,
+                title: String(objects[i].id),
+                asset_id: objects[i].id
+            });
+
+
+            //Save marker in main array
+            markers[objects[i].id] = marker;
+
+            // add dragable event listener
+            google.maps.event.addListener(marker, 'dragend', function(mouseEvent) {
+                savePosition(this, mouseEvent.latLng);
+            });
+
+            // end this with a slash
+            var MEDIA_BASE_URI = "/rwmedia/";
+            //create popup infoWindow
+            var filename_wav = MEDIA_BASE_URI + objects[i].filename;
+            var filename_mp3 = filename_wav.replace("wav","mp3");
+
+            marker.infoWindow = create_info_window(objects[i].id, objects[i].description, filename_mp3, filename_wav);
+
+            //add click eventlistener to open infoWindow
+            google.maps.event.addListener(marker, 'click', function() {
+                this.infoWindow.open(map, this);
+            });
+        }
+        return markers
+    }
+
+    function getUrlVars()
+    {
+        var vars = [], hash;
+        var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+        for(var i = 0; i < hashes.length; i++)
+        {
+            hash = hashes[i].split('=');
+            vars.push(hash[0]);
+            vars[hash[0]] = hash[1];
+        }
+        return vars;
+    }
+
+    // using jQuery
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    	/**
+	 * return an HTML string to be used as a marker's info window
+	 */
+	function create_info_window(id, description, fn, fnwav)
+	{
+		var marker_div = '<div class="markerDiv">' +
+                'Asset ID: '+ id +
+                '<br />' +
+                    '<audio controls="controls">' +
+                    '<source src="'+ fn +'" type="audio/mpeg" />' +
+                    '<source src="'+ fnwav +'" type="audio/wav" />' +
+                        '<object type="application/x-shockwave-flash" data="/static/dashboard/js/Jplayer.swf" id="audioplayer'+ id +'" height="24" width="290">' +
+                            '<param name="movie" value="/static/dashboard/js/Jplayer.swf">' +
+                            '<param name="FlashVars" value="playerID='+ id +'&amp;soundFile='+ fn +'&titles='+id+'">' +
+                            '<param name="quality" value="high">' +
+                            '<param name="menu" value="false">' +
+                            '<param name="wmode" value="transparent">' +
+                        '</object>' +
+                    '</audio>' +
+                '<div>'+ description +'</div>';
+
+		return new google.maps.InfoWindow({
+			content: marker_div
+		});
+	}
+
+</script>
