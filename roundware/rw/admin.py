@@ -1,14 +1,12 @@
-from django.forms import FileField
 from guardian.admin import GuardedModelAdmin
 from guardian.shortcuts import get_objects_for_user
 from models import *
 from django.contrib import admin
-from django import forms
 from django.conf import settings
 
-from filterspec import TagCategoryFilterSpec, AudioLengthFilterSpec
 from roundware.rw.signals import add_asset_to_envelope, create_envelope
-from django.contrib.contenttypes import generic
+from roundware.rw.filters import AudiolengthListFilter, TagCategoryListFilter
+from roundware.rw.views import MultiCreateTagsView
 
 
 class VoteInline(admin.TabularInline):
@@ -158,12 +156,12 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     readonly_fields = ('location_map', 'audio_player', 'media_display', 'audiolength', 'session', 'created')#, 'longitude', 'latitude')#, 'filename')
     list_display = ('id', 'session', 'submitted', 'project', 'media_link_url', 'mediatype', 'audio_player', 'created',
                     'norm_audiolength', 'get_likes', 'get_flags', 'get_tags', 'weight', 'volume', )
-    list_filter = ('project', 'tags', 'submitted', 'mediatype', 'audiolength', 'created', 'language', )
+    list_filter = ('project', 'submitted', 'mediatype', 'created', 'language', ('audiolength', AudiolengthListFilter), ('tags', TagCategoryListFilter))
     list_editable = ('submitted', 'weight', 'volume')
     save_on_top = True
-    filter_horizontal = ('tags',)
+    filter_horizontal = ('tags','loc_description')
     fieldsets = (
-        ('Media Data', {'fields' : ('mediatype', 'media_display', 'file', 'volume', 'audiolength', 'description')}),
+        ('Media Data', {'fields' : ('mediatype', 'media_display', 'file', 'volume', 'audiolength', 'description', 'loc_description')}),
         (None, {'fields' : ('project', 'language', 'session', 'created', 'weight', 'submitted', 'tags')}),
         ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude')})
     )
@@ -171,24 +169,23 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     class Media:
         css = {
             "all": (
-                "css/jplayer.blue.monday.css",
-                "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css",
-                "css/asset_admin.css"
+                "rw/css/jplayer.blue.monday.css",
+                "http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
+                "rw/css/asset_admin.css"
                 )
             }
         js = (
-                'js/jquery.jplayer.min.js',
-                'js/audio.js',
+                'rw/js/jquery.jplayer.min.js',
+                'rw/js/audio.js',
                 'http://maps.google.com/maps/api/js?sensor=false',
-                'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
-                'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
-                'js/location_map.js',
-                'js/asset_admin.js',
+                'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js',
+                'rw/js/location_map.js',
+                'rw/js/asset_admin.js',
             )
 
 
 class AssetInline(admin.StackedInline):
-    model = Asset    
+    model = Asset
     verbose_name_plural = "Add/edit Assets (click Asset header to show fields)"
     # ct_field = "dj_content_type"
     extra = 0
@@ -196,18 +193,19 @@ class AssetInline(admin.StackedInline):
     readonly_fields = AssetAdmin.readonly_fields
     filter_horizontal = ('tags',)
     # prepopulated_fields = {"session": ("title",)}
-  
+
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'tag_category', 'description', 'get_loc')
-    search_fields = ('description',)
+    search_fields = ('description', 'loc_description')
     list_filter = ('tag_category',)
     ordering = ['id']
-    filter_vertical = ('loc_msg',)
+    filter_vertical = ('loc_msg', 'loc_description')
     filter_horizontal = ('relationships',)
     # inlines = [
     #    AssetTagsInline,
     # ]
+    change_list_template = 'admin/tag_change_list.html'
 
 
 class LanguageAdmin(admin.ModelAdmin):
@@ -353,25 +351,24 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
             formset.save_m2m()
             return instances
         else:
-            return formset.save()  
+            return formset.save()
 
 
     class Media:
         js = (
                 'http://maps.google.com/maps/api/js?sensor=false',
-                'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
-                'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
-                'js/location_map.js',
-                'js/asset_admin.js',
-                'js/envelope_admin.js',
+                'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js',
+                'rw/js/location_map.js',
+                'rw/js/asset_admin.js',
+                'rw/js/envelope_admin.js',
             )
 
         css = {
             "all": (
-                "css/jplayer.blue.monday.css",
-                "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css",
-                "css/asset_admin.css",
-                "css/envelope_admin.css"
+                "rw/css/jplayer.blue.monday.css",
+                "http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
+                "rw/css/asset_admin.css",
+                "rw/css/envelope_admin.css"
             )
         }
 
@@ -394,14 +391,13 @@ class SpeakerAdmin(ProjectProtectedModelAdmin):
     class Media:
         css = {
             "all": (
-                "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css",
+                "http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
             )
         }
         js = (
             'http://maps.google.com/maps/api/js?sensor=false',
-            'https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js',
-            'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js',
-            'js/location_map.js',
+            'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js',
+            'rw/js/location_map.js',
         )
 
 
@@ -430,3 +426,4 @@ admin.site.register(Envelope, EnvelopeAdmin)
 admin.site.register(ListeningHistoryItem, ListeningHistoryItemAdmin)
 admin.site.register(Vote, VoteAdmin)
 admin.site.register(RepeatMode, RepeatModeAdmin)
+admin.site.register_view('add_tags', 'Add tags to category', view=MultiCreateTagsView)

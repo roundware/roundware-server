@@ -1,5 +1,7 @@
+from django.core.cache import cache
+cache #pyflakes, make sure it is imported, for patching in tests
 from django.core.files.storage import FileSystemStorage
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db import models, transaction
 from django.contrib.contenttypes.models import ContentType
@@ -7,13 +9,11 @@ from django.contrib.contenttypes import generic
 from roundware.settings import MEDIA_BASE_URI
 from roundware.rw import fields
 from django.conf import settings
-import datetime
+from datetime import datetime, date, timedelta
 from cache_utils.decorators import cached
+from roundwared.gpsmixer import distance_in_meters
 
-try:
-    import simplejson as json
-except:
-    import json
+import json
 
 import logging
 
@@ -48,20 +48,20 @@ class Project(models.Model):
     longitude = models.FloatField()
     pub_date = models.DateTimeField('date published')
     audio_format = models.CharField(max_length=50)
-    auto_submit = models.BooleanField()
+    auto_submit = models.BooleanField(default=False)
     max_recording_length = models.IntegerField()
-    listen_questions_dynamic = models.BooleanField()
-    speak_questions_dynamic = models.BooleanField()
+    listen_questions_dynamic = models.BooleanField(default=False)
+    speak_questions_dynamic = models.BooleanField(default=False)
     sharing_url = models.CharField(max_length=512)
     sharing_message_loc = models.ManyToManyField(LocalizedString, related_name='sharing_msg_string', null=True, blank=True)
     out_of_range_message_loc = models.ManyToManyField(LocalizedString, related_name='out_of_range_msg_string', null=True, blank=True)
     out_of_range_url = models.CharField(max_length=512)
     recording_radius = models.IntegerField(null=True)
-    listen_enabled = models.BooleanField()
-    geo_listen_enabled = models.BooleanField()
-    speak_enabled = models.BooleanField()
-    geo_speak_enabled = models.BooleanField()
-    reset_tag_defaults_on_startup = models.BooleanField()
+    listen_enabled = models.BooleanField(default=False)
+    geo_listen_enabled = models.BooleanField(default=False)
+    speak_enabled = models.BooleanField(default=False)
+    geo_speak_enabled = models.BooleanField(default=False)
+    reset_tag_defaults_on_startup = models.BooleanField(default=False)
     legal_agreement_loc = models.ManyToManyField(LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
     repeat_mode = models.ForeignKey(RepeatMode, null=True)
     files_url = models.CharField(max_length=512, blank=True)
@@ -71,7 +71,7 @@ class Project(models.Model):
     )
     audio_stream_bitrate = models.CharField(max_length=3, choices=BITRATE_CHOICES, default='128')
     ordering = models.CharField(max_length=16, choices=[('by_like', 'by_like'), ('by_weight', 'by_weight'), ('random', 'random')], default='random')
-    demo_stream_enabled = models.BooleanField()
+    demo_stream_enabled = models.BooleanField(default=False)
     demo_stream_url = models.CharField(max_length=512, blank=True)
     demo_stream_message_loc = models.ManyToManyField(LocalizedString, related_name='demo_stream_msg_string', null=True, blank=True)
 
@@ -80,13 +80,23 @@ class Project(models.Model):
 
     @cached(60*60)
     def get_tag_cats_by_ui_mode(self, ui_mode):
-        """ Return TagCategories for this project for specified UIMode 
+        """ Return TagCategories for this project for specified UIMode
             by name, like 'listen' or 'speak'.
-            Pass name of UIMode.
+            Pass name of UIMode. MasterUI must be active
         """
         logging.debug('inside get_tag_cats_by_ui_mode... not from cache')
-        master_uis = MasterUI.objects.select_related('tag_category').filter(project=self, ui_mode__name=ui_mode)
+        master_uis = MasterUI.objects.select_related('tag_category').filter(project=self, ui_mode__name=ui_mode, active=True)
         return [mui.tag_category for mui in master_uis]
+
+    @cached(60*60)
+    def is_continuous(self):
+        try:
+            if self.repeat_mode.mode == settings.CONTINUOUS_REPEAT_MODE:
+                return True
+            else:
+                return False
+        except AttributeError:
+            return False
 
 
     class Meta:
@@ -133,23 +143,35 @@ class SelectionMethod(models.Model):
 
 
 class Tag(models.Model):
+    FILTERS = (
+        ("--", "No filter"),
+        ("_within_10km", "Assets within 10km."),
+        ("_ten_most_recent_days", "Assets created within 10 days."),
+    )
+
     tag_category = models.ForeignKey(TagCategory)
     value = models.TextField()
     description = models.TextField()
+    loc_description = models.ManyToManyField(LocalizedString, null=True, blank=True, related_name='tag_desc')
     loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)
     data = models.TextField(null=True, blank=True)
     relationships = models.ManyToManyField('self', symmetrical=True, related_name='related_to', null=True, blank=True)
+    filter = models.CharField(max_length=255, default="--", null=False, blank=False, choices=FILTERS)
 
     def get_loc(self):
         return "<br />".join(unicode(t) for t in self.loc_msg.all())
     get_loc.short_description = "Localized Names"
     get_loc.name = "Localized Names"
     get_loc.allow_tags = True
+
     def get_relationships(self):
         return [rel['pk'] for rel in self.relationships.all().values('pk')]
 
     def __unicode__(self):
-            return self.tag_category.name + " : " + self.description
+            return self.tag_category.name + " : " + self.value
+
+    class Meta:
+        app_label = 'rw'  # necessary for special tag batch add form
 
 
 class MasterUI(models.Model):
@@ -171,16 +193,22 @@ class MasterUI(models.Model):
     def toTagDictionary(self):
         return {'name': self.name, 'code': self.tag_category.name, 'select': self.select.name, 'order': self.index}
 
-    def save(self):
-        # invalidate cached value for tag categories by ui_mode for the 
+    def save(self, *args, **kwargs):
+        # invalidate cached value for tag categories for all ui_modes for the
         # associated project.
         logging.debug("invalidating Project.get_tags_by_ui_mode for project "
                      " %s and UIMode %s" %(self.project, self.ui_mode.name))
-        super(MasterUI, self).save()
-        Project.get_tag_cats_by_ui_mode.invalidate(self.project, str(self.ui_mode.name))
+        try:
+            old_instance = MasterUI.objects.get(pk=self.pk)
+            old_ui_mode = old_instance.ui_mode.name
+            Project.get_tag_cats_by_ui_mode.invalidate(old_ui_mode)
+        except ObjectDoesNotExist:
+            pass
+        super(MasterUI, self).save(*args, **kwargs)
+
 
     def __unicode__(self):
-            return str(self.id) + ":" + self.ui_mode.name + ":" + self.name
+            return str(self.id) + ":" + self.project.name + ":" + self.ui_mode.name + ":" + self.name
 
 
 class UIMapping(models.Model):
@@ -212,7 +240,7 @@ class Audiotrack(models.Model):
     maxpanpos = models.FloatField()
     minpanduration = models.FloatField()
     maxpanduration = models.FloatField()
-    repeatrecordings = models.BooleanField()
+    repeatrecordings = models.BooleanField(default=False)
 
     def norm_minduration(self):
         if self.minduration:
@@ -278,7 +306,7 @@ class Asset(models.Model):
         'photo': settings.ALLOWED_IMAGE_MIME_TYPES,
         'text': settings.ALLOWED_TEXT_MIME_TYPES,
     }
-                        
+
     session = models.ForeignKey(Session, null=True, blank=True, default=get_default_session)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
@@ -293,22 +321,24 @@ class Asset(models.Model):
     submitted = models.BooleanField(default=True)
     project = models.ForeignKey(Project, null=True, blank=False)
 
-    created = models.DateTimeField(default=datetime.datetime.now)
+    created = models.DateTimeField(default=datetime.now)
     audiolength = models.BigIntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, null=True, blank=True)
     language = models.ForeignKey(Language, null=True)
     weight = models.IntegerField(choices=[(i, i) for i in range(0, 100)], default=50)
     mediatype = models.CharField(max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
     description = models.TextField(max_length=2048, blank=True)
+    loc_description = models.ManyToManyField(LocalizedString, null=True, blank=True)
 
     # enables inline adding/editing of Assets in Envelope Admin.
     # creates a relationship of an Asset to the Envelope, in which it was
     # initially added
     initialenvelope = models.ForeignKey('Envelope', null=True)
 
-    tags.tag_category_filter = True
-
-    audiolength.audio_length_filter = True
+    # no more FilterSpec in Django >= 1.4
+    # tags.tag_category_filter = True
+    # audiolength.audio_length_filter = True
+    audiolength.verbose_name = 'audio file length'
 
     def __init__(self, *args, **kwargs):
         super(Asset, self).__init__(*args, **kwargs)
@@ -324,9 +354,9 @@ class Asset(models.Model):
             self.validate_filetype_for_mediatype(self.file.file.content_type)
 
     def validate_filetype_for_mediatype(self, content_type):
-        """ content_type of file uploaded must be valid for mediatype 
-        selected.  For now, just trusts the content_type coming through HTTP.  
-        To be sure would need to examine the file. 
+        """ content_type of file uploaded must be valid for mediatype
+        selected.  For now, just trusts the content_type coming through HTTP.
+        To be sure would need to examine the file.
         """
         if content_type not in self.MEDIATYPE_CONTENT_TYPES[self.mediatype]:
             raise ValidationError(
@@ -334,7 +364,7 @@ class Asset(models.Model):
                     NON_FIELD_ERRORS:
                     (u"File type %s not supported for asset mediatype %s"
                     % (content_type, self.mediatype),)
-                }   
+                }
             )
 
     def media_display(self):
@@ -361,7 +391,7 @@ class Asset(models.Model):
         image_src = "%s%s" % (MEDIA_BASE_URI, self.filename)
         return """<div data-filename="%s" class="media-display image-file"><a href="%s" target="imagepop"
                ><img src="%s" alt="%s" title="%s"/></a></div>""" % (
-                self.filename, image_src, image_src, 
+                self.filename, image_src, image_src,
                 self.description, "click for full image")
     image_display.short_name = "image"
     image_display.allow_tags = True
@@ -392,6 +422,9 @@ class Asset(models.Model):
     def norm_audiolength(self):
         if self.audiolength:
             return "%.2f s" % (self.audiolength / 1000000000.0,)
+    def audiolength_in_seconds(self):
+        if self.audiolength:
+            return '%.2f' % round(self.audiolength / 1000000000.0, 2)
     norm_audiolength.short_description = "Audio Length"
     norm_audiolength.name = "Audio Length"
     norm_audiolength.allow_tags = True
@@ -439,7 +472,11 @@ class Asset(models.Model):
     get_votes.short_description = "Votes"
     get_votes.name = "Votes"
 
-    @transaction.commit_on_success
+    def distance(self, listener):
+        return distance_in_meters(self.latitude, self.longitude,
+                                  listener['latitude'], listener['longitude'])
+
+    @transaction.atomic
     def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
         super(Asset, self).save(force_insert, force_update, using, *args, **kwargs)
 
@@ -449,7 +486,7 @@ class Asset(models.Model):
 
 class Envelope(models.Model):
     session = models.ForeignKey(Session, default=get_default_session)
-    created = models.DateTimeField(default=datetime.datetime.now)
+    created = models.DateTimeField(default=datetime.now)
     assets = models.ManyToManyField(Asset, blank=True)
 
     def __unicode__(self):
@@ -458,7 +495,7 @@ class Envelope(models.Model):
 
 class Speaker(models.Model):
     project = models.ForeignKey(Project)
-    activeyn = models.BooleanField()
+    activeyn = models.BooleanField(default=False)
     code = models.CharField(max_length=10)
     latitude = models.FloatField()
     longitude = models.FloatField()
@@ -490,6 +527,9 @@ class ListeningHistoryItem(models.Model):
     def norm_duration(self):
         if self.duration:
             return "%.2f s" % (self.duration / 1000000000.0,)
+    def duration_in_seconds(self):
+        if self.duration:
+            return '%.2f' % round(self.duration / 1000000000.0, 2)
     norm_duration.short_description = "Playback Duration"
     norm_duration.name = "Playback Duration"
 
@@ -510,5 +550,3 @@ class Vote(models.Model):
 def get_field_names_from_model(model):
     """Pass in a model class. Return list of strings of field names"""
     return [f.name for f in model._meta.fields]
-
-

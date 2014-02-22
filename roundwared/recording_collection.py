@@ -1,13 +1,18 @@
 #MODES: True Shuffle, Random cycle N times
 
 import logging
-import random
 import threading
-from profiling import profile
+import asset_sorters
+try:
+    from profiling import profile
+except ImportError:
+    pass
+from roundware.rw.models import Tag
 from roundwared import gpsmixer
 from roundware.rw import models
 from roundwared import db
-from operator import itemgetter, attrgetter
+from operator import itemgetter
+from roundwared.asset_sorters import order_assets_randomly, order_assets_by_like, order_assets_by_weight
 
 
 class RecordingCollection:
@@ -55,7 +60,7 @@ class RecordingCollection:
 #           index = random.randint(0, len(self.nearby_unplayed_recordings) - 1)
             index = 0
             recording = self.nearby_unplayed_recordings.pop(index)
-            logging.debug("RecordingCollection: get_recording: Got " + recording.filename)
+            logging.debug("RecordingCollection: get_recording: Got " + str(recording.filename))
             self.nearby_played_recordings.append(recording)
         elif len(self.nearby_played_recordings) > 0:
             logging.debug("!!!!!!!!!!!!!!!!!get_recording 1")
@@ -63,7 +68,7 @@ class RecordingCollection:
             p = models.Project.objects.get(id=int(self.request['project_id']))
             logging.debug("!!!!!!!!!!!!!!!!!get_recording 2 - repeatmode:" + p.repeat_mode.mode)
             #do this only if project setting calls for it
-            if p.repeat_mode.id == 2:
+            if p.is_continuous():
                 logging.debug("!!!!!!!!!!!!!!!!!get_recording continuous mode")
                 self.all_recordings = db.get_recordings(self.request)
                 self.far_recordings = self.all_recordings
@@ -76,7 +81,7 @@ class RecordingCollection:
                           + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
                 index = 0
                 recording = self.nearby_unplayed_recordings.pop(index)
-                logging.debug("POST UPDATE RecordingCollection: get_recording: Got " + recording.filename)
+                logging.debug("POST UPDATE RecordingCollection: get_recording: Got " + str(recording.filename))
                 self.nearby_played_recordings.append(recording)
             else:
                 logging.debug("!!!!!!!!!!!!!!!!!get_recording stop mode")
@@ -139,48 +144,49 @@ class RecordingCollection:
 
         logging.debug('Ordering is: ' + self.ordering)
         if self.ordering == 'random':
-            random.shuffle(new_nearby_unplayed_recordings)
+            new_nearby_unplayed_recordings = \
+                order_assets_randomly(new_nearby_unplayed_recordings)
         elif self.ordering == 'by_like':
             new_nearby_unplayed_recordings = \
-                self.order_assets_by_like(new_nearby_unplayed_recordings)
+                order_assets_by_like(new_nearby_unplayed_recordings)
         elif self.ordering == 'by_weight':
             new_nearby_unplayed_recordings = \
-                self.order_assets_by_weight(new_nearby_unplayed_recordings)
+                order_assets_by_weight(new_nearby_unplayed_recordings)
 
         self.far_recordings = new_far_recordings
         self.nearby_unplayed_recordings = new_nearby_unplayed_recordings
         self.nearby_played_recordings = new_nearby_played_recordings
 
-    def order_assets_by_like(self, assets):
-        unplayed = []
-        for asset in assets:
-            count = models.Asset.get_likes(asset)
-            unplayed.append((count, asset))
-        logging.info('Unordered: ' +
-                     str([(u[0], u[1].filename) for u in unplayed]))
-        unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
-        logging.info('Ordered by like: ' +
-                     str([(u[0], u[1].filename) for u in unplayed]))
-        return [x[1] for x in unplayed]
+    # Moved to roundwared/asset_sorters
+    # def order_assets_by_like(self, assets):
+    #     unplayed = []
+    #     for asset in assets:
+    #         count = models.Asset.get_likes(asset)
+    #         unplayed.append((count, asset))
+    #     logging.info('Unordered: ' +
+    #                  str([(u[0], u[1].filename) for u in unplayed]))
+    #     unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
+    #     logging.info('Ordered by like: ' +
+    #                  str([(u[0], u[1].filename) for u in unplayed]))
+    #     return [x[1] for x in unplayed]
 
-    def order_assets_by_weight(self, assets):
-        unplayed = []
-        for asset in assets:
-            weight = asset.weight
-            unplayed.append((weight, asset))
-        logging.debug('Unordered: ' +
-                      str([(u[0], u[1].filename) for u in unplayed]))
-        unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
-        logging.debug('Ordered by weighting: ' +
-                      str([(u[0], u[1].filename) for u in unplayed]))
-        return [x[1] for x in unplayed]
+    # def order_assets_by_weight(self, assets):
+    #     unplayed = []
+    #     for asset in assets:
+    #         weight = asset.weight
+    #         unplayed.append((weight, asset))
+    #     logging.debug('Unordered: ' +
+    #                   str([(u[0], u[1].filename) for u in unplayed]))
+    #     unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
+    #     logging.debug('Ordered by weighting: ' +
+    #                   str([(u[0], u[1].filename) for u in unplayed]))
+    #     return [x[1] for x in unplayed]
 
     #True if the listener and recording are close enough to be heard.
     def is_nearby(self, listener, recording):
         if listener.has_key('latitude') \
             and listener['latitude'] \
             and listener['longitude']:
-
             distance = gpsmixer.distance_in_meters(
                 listener['latitude'], listener['longitude'],
                 recording.latitude, recording.longitude)

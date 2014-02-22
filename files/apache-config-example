@@ -7,6 +7,7 @@
   DocumentRoot /home/ubuntu/roundware-server/roundware/
   Alias /media /home/ubuntu/python/django/contrib/admin/media
   Alias /rwmedia /var/www/rwmedia
+  Alias /static /home/ubuntu/roundware-server/static
   RewriteEngine On
   RewriteRule ^/(rwmedia.*)$ /$1 [QSA,L,PT]
   RewriteRule ^/(media.*)$ /$1 [QSA,L,PT]
@@ -60,7 +61,8 @@
     </Directory>
 
 
-FastCGIExternalServer /home/ubuntu/roundware-server/roundware/mysite.fcgi -host 127.0.0.1:3033
+FastCGIExternalServer /home/ubuntu/roundware-server/roundware/mysite.fcgi -host 127.0.0.1:3033 -idle-timeout 90
+
 #          SetHandler fastcgi-script
 #     </Files>
 
@@ -71,5 +73,10 @@ FastCGIExternalServer /home/ubuntu/roundware-server/roundware/mysite.fcgi -host 
 #     FastCgiServer /var/www/roundware/scapes.py -processes 4 -socket /tmp/fcgi2.sock
 #     FastCgiServer /var/www/roundware/roundware.py -processes 4 -socket /tmp/fcgi.sock
 
+# ensure CORS is enabled
+# this works on rwdev, but throws apache restart error on more modern installs
+# not sure if CORS is automatically enabled so this is unnecessary; will test later
+# Header set Access-Control-Allow-Origin "*"
+# Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept"
 
 </VirtualHost>

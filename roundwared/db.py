@@ -24,7 +24,10 @@
 
 import logging
 import datetime
-from profiling import profile
+try:
+    from profiling import profile
+except ImportError:
+    pass
 from roundwared import settings
 from roundwared import roundexception
 from roundware import settings as rw_settings
@@ -42,15 +45,19 @@ from cache_utils.decorators import cached
 
 
 # @profile(stats=True)
-def get_config_tag_json(p, s):
+def get_config_tag_json(p=None, s=None):
+    if s is None and p is None:
+        raise roundexception.RoundException("Must pass either a project or "
+                                            "a session")
     lingo = Language.objects.filter(language_code='en')[0]
-    if s != None:
+    if s is not None:
         p = s.project
         lingo = s.language
 
     m = MasterUI.objects.filter(project=p)
     response = []
     modes = {}
+
     for masterui in m:
         if masterui.active:
             mappings = UIMapping.objects.filter(master_ui=masterui, active=True)
@@ -65,6 +72,11 @@ def get_config_tag_json(p, s):
 
             default = []
             for mapping in mappings:
+                temp_desc = ""
+                loc_desc = ""
+                temp_desc = mapping.tag.loc_description.filter(language=lingo)
+                if temp_desc:
+                    loc_desc = temp_desc[0].localized_string
                 if mapping.default:
                     default.append(mapping.tag.id)
                 #masterOptionsList.append(mapping.toTagDictionary())
@@ -73,6 +85,8 @@ def get_config_tag_json(p, s):
 
                 masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'data': mapping.tag.data,
                                           'relationships': mapping.tag.get_relationships(),
+                                          'description': mapping.tag.description, 'shortcode': mapping.tag.value,
+                                          'loc_description': loc_desc,
                                           'value': mapping.tag.loc_msg.filter(language=lingo)[0].localized_string})
             masterD["options"] = masterOptionsList
             masterD["defaults"] = default
@@ -92,6 +106,10 @@ def get_recordings(request):
     recs = []
     p = None
     s = None
+
+    # TODO XXX: passing a project_id is actually useless in terms of this method
+    # but get_recording will fail without one in the request.  This will always get
+    # the project from the session, and fail if no session is passed.
     if request.has_key("project_id") and hasattr(request["project_id"], "__iter__") and len(request["project_id"]) > 0:
         logging.debug("get_recordings: got project_id: " + str(request["project_id"][0]))
         p = Project.objects.get(id=request["project_id"][0])
@@ -107,21 +125,23 @@ def get_recordings(request):
         logging.debug("get_recordings: got session_id: " + str(request["session_id"]))
         s = Session.objects.select_related('project', 'language').get(id=request["session_id"])
         p = s.project
+    elif not request.has_key("session_id") or len(request["session_id"]) == 0:
+        # must raise error if no session passed because it will otherwise error below
+        # XXX TODO: or, fix this to match desired functionality
+        raise roundexception.RoundException("get_recordings must be passed a session id")
+
 
     # this first check checks whether tags is a list of numbers.
     if request.has_key("tags") and hasattr(request["tags"], "__iter__") and len(request["tags"]) > 0:
         logging.debug("get_recordings: got " + str(len(request["tags"])) + "tags.")
-        #recs = Asset.objects.filter(project=p, submitted=True, tags__in=request["tags"])
         recs = filter_recs_for_tags(p, request["tags"], s.language)
     # this second check checks whether tags is a string representation of a list of numbers.
     elif request.has_key("tags") and not hasattr(request["tags"], "__iter__"):
         logging.debug("get_recordings: tags supplied: " + request["tags"])
-        #recs = Asset.objects.filter(project=p,submitted=True, tags__in=request["tags"].split(","))
         recs = filter_recs_for_tags(p, request["tags"].split(","), s.language)
     else:
         logging.debug("get_recordings: no tags supplied")
         if s != None:
-            recs = Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=s.language).distinct()
             recs = filter_recs_for_tags(p, get_default_tags_for_project(p, s), s.language)
 
     logging.debug("db: get_recordings: got " + str(len(recs)) + " recordings from db for project " + str(p.id))
@@ -157,40 +177,65 @@ def get_default_tags_for_project(p, s):
 # @profile(stats=True)
 @cached(60*1)
 def filter_recs_for_tags(p, tagids_from_request, l):
-    """ Return Assets containing at least one matching tag in each available 
+    """ Return Assets containing at least one matching tag in _each_ available
     tag category with the tags supplied in tagids_from_request.
+    i.e., an Asset, to be returned, must match at least one tag from each
+    category.  It won't be returned if it has a tag from one tagcategory
+    but not another.
     """
     logging.debug("filter_recs_for_tags enter")
 
     recs = []
     tag_ids_per_cat_dict = {}
     # project_cats = TagCategory.objects.filter()
+
     project_cats = p.get_tag_cats_by_ui_mode(rw_settings.LISTEN_UIMODE)
     for cat in project_cats:
+        # for each tag category a list of all of the tags with that cat
         tag_ids_per_cat_dict[cat.id] = [tag.id for tag in Tag.objects.filter(tag_category=cat)]
 
 
-    project_recs = Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=l).distinct()
+    project_recs = list(Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=l).distinct())
     for rec in project_recs:
         remove = False
+        # all tags for this asset
         rec_tag_ids = [tag.id for tag in rec.tags.all()]
         for cat in project_cats:
             if remove:
+                # don't return this asset, stop looking through tagcats
                 break
-            #tags_per_category = Tag.objects.filter(tag_category=cat)
+            # all of this tagcategory's tags
             tags_per_category = tag_ids_per_cat_dict[cat.id]
+            # any tag ids passed in the request that are in this tagcategory
             tag_ids_for_this_cat_from_request = filter(lambda x: x in tags_per_category, tagids_from_request)
-            tag_ids_for_this_cat_from_rec = filter(lambda x: x in tags_per_category, rec_tag_ids)
-            # if the asset has any tags from this category, make sure at least one match with exists, else remove
+
+            # any tag ids of this asset that are in this tagcategory
+            tag_ids_for_this_cat_from_asset = filter(lambda x: x in tags_per_category, rec_tag_ids)
+
+            # if no tags passed in request are in this category, then
+            # look at next category.
+
+            # if any tags passed in request are in this category, then
+            # make sure any asset returned has at least one tag in this category
+            # e.g., pass tag id 1 in request.  if tag id 1 is in this category, then
+            # any asset returned must have at least one tag for this category
             if len(tag_ids_for_this_cat_from_request) > 0:
                 found = False
-                if len(tag_ids_for_this_cat_from_rec) > 0:
+                # if this asset has any tags in this category, ...
+                if len(tag_ids_for_this_cat_from_asset) > 0:
+                    # then look through tags in this category from request...
                     for t in tag_ids_for_this_cat_from_request:
-                        if t in tag_ids_for_this_cat_from_rec:
+                        # for a tag on this asset
+                        if t in tag_ids_for_this_cat_from_asset:
                             found = True
                             break
                 if not found:
                     remove = True
+
+        # if no tags passed in request are in any of the project categories,
+        # return this asset.  or, if the asset does have a tag in this category,
+        # return it.
+
         if not remove:
             recs.append(rec)
     logging.debug("\n\n\nfilter_recs_for_tags returned %s Assets \n\n\n" % (len(recs)))
@@ -271,9 +316,11 @@ def cleanup_history_for_session(session_id):
 
 
 def get_current_streaming_asset(session_id):
-    l = ListeningHistoryItem.objects.filter(session=session_id).order_by('-starttime')[0]
-    return l
-
+    try:
+        l = ListeningHistoryItem.objects.filter(session=session_id).order_by('-starttime')[0]
+        return l
+    except IndexError:
+        return None
 
 def get_asset(asset_id):
     return Asset.objects.get(id=asset_id)

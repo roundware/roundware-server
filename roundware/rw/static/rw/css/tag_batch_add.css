@@ -1,0 +1,20 @@
+
+#category_field_form {
+    font-size: 1.6rem;
+    padding-left: 0.5rem;
+}
+
+#category_field_form label {
+    font-weight: bold;
+    font-size: 1.6rem;
+    float: left;
+    margin-right: 1.2rem;
+}
+
+#formset {
+    margin-top: 2em;
+}
+
+select[multiple] {
+    max-width: 50rem;
+}

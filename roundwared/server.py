@@ -6,7 +6,10 @@ import json
 import uuid
 import datetime
 import psutil
-from profiling import profile
+try:
+    from profiling import profile
+except ImportError:
+    pass
 from roundwared import settings
 from roundwared import db
 from roundwared import convertaudio
@@ -207,10 +210,12 @@ def get_config(request):
                     "files_url":project.files_url,
                     "files_version":project.files_version,
                     "audio_stream_bitrate":project.audio_stream_bitrate,
-                    # TODO: following attribute 'demo_stream_enabled' has be moved to the 'session' object
+                    # TODO: following attribute 'demo_stream_enabled' has been moved to the 'session' object
                     "demo_stream_enabled":s.demo_stream_enabled,
                     "demo_stream_url":project.demo_stream_url,
                     "demo_stream_message":demo_stream_message,
+                    "latitude":project.latitude,
+                    "longitude":project.longitude
                     }},
 
             {"server":{
@@ -249,23 +254,23 @@ def get_available_assets(request):
     request.  If asset_id is passed, ignore other filters and return single
     asset.  If multiple, comma-separated values for asset_id are passed, ignore
     other filters and return all those assets.  If envelope_id is passed, ignore
-    other filters and return all assets in that envelope.  If multiple, 
+    other filters and return all assets in that envelope.  If multiple,
     comma-separated values for envelope_id are passed, ignore
     other filters and return all those assets.  Returns localized
     value for tag strings on asset by asset basis unless a specific language
     code is passed. Fall back to English if necessary."""
-    
+
 
     def _get_best_localized_string(asset, tag, best_lang_id):
         """ Return localized string with specified language code.
             If that's not available, look for a language field on the model and
-            use that.  If that's not available, fall back to English. 
+            use that.  If that's not available, fall back to English.
         """
         try:
             localization = tag.loc_msg.get(language=best_lang_id)
         except models.LocalizedString.DoesNotExist:
             # try object's specified language
-            asset_lang =  asset.language
+            asset_lang = asset.language
             if asset_lang and retlng != asset_lang:
                 localization = tag.loc_msg.get(language=asset_lang)
             else:
@@ -310,24 +315,28 @@ def get_available_assets(request):
         extras[str(k)] = str(v)
 
     # if a language (code) is specified, use that
-    # otherwise, return localized value specific to Asset    
+    # otherwise, return localized value specific to Asset
     qry_retlng = None
     if language:
         try:
             qry_retlng = models.Language.objects.get(language_code=language)
+            lng_id = models.Language.objects.get(language_code=language)
         except models.Language.DoesNotExist:
             raise roundexception.RoundException(
                 "Specified language code does not exist."
             )
+    else:
+        # default to Emglish if no language parameter present
+        lng_id = 1
 
     if project_id or asset_id or envelope_id:
-        
+
         # by asset
         if asset_id:
             # ignore all other filter criteria
             assets = models.Asset.objects.filter(id__in=asset_id.split(','))
-        
-        # by envelope    
+
+        # by envelope
         elif envelope_id:
             assets = []
             envelopes = models.Envelope.objects.filter(id__in=envelope_id.split(','))
@@ -336,12 +345,12 @@ def get_available_assets(request):
                 for a in e_assets:
                     if a not in assets:
                         assets.append(a)
-        
+
         # by project
         elif project_id:
             project = models.Project.objects.get(id=project_id)
             kw['project__exact'] = project
-            
+
             assets = models.Asset.objects.filter(**kw)
             if tag_ids:
                 if tagbool and str(tagbool).lower() == 'or':
@@ -380,6 +389,11 @@ def get_available_assets(request):
         assets_list = []
 
         for asset in assets:
+            temp_desc = ""
+            loc_desc = ""
+            temp_desc = asset.loc_description.filter(language=lng_id)
+            if temp_desc:
+                loc_desc = temp_desc[0].localized_string
             if asset.mediatype in asset_media_types:
                 assets_info['number_of_assets'][asset.mediatype] +=1
             if not qry_retlng:
@@ -394,6 +408,9 @@ def get_available_assets(request):
                      longitude=asset.longitude,
                      audio_length=asset.audiolength,
                      submitted=asset.submitted,
+                     mediatype=asset.mediatype,
+                     description=asset.description,
+                     loc_description=loc_desc,
                      project=asset.project.name,
                      language=asset.language.language_code,
                      tags=[dict(
@@ -408,7 +425,7 @@ def get_available_assets(request):
 
     else:
         raise roundexception.RoundException("This operation requires that you "
-            "pass a project_id, asset_id, or envelope_id")            
+            "pass a project_id, asset_id, or envelope_id")
 
 def log_event(request):
 
@@ -567,18 +584,20 @@ def add_asset_to_envelope(request):
 
 def get_parameter_from_request(request, name, required):
     ret = None
-    if request.POST.has_key(name):
-        ret = request.POST.get(name)
-    elif request.GET.has_key(name):
-        ret = request.GET.get(name)
-    else:
-        if required:
-            raise roundexception.RoundException(name + " is required for this operation")
+    try:
+        ret = request.POST[name]
+    except (KeyError, AttributeError):
+        try:
+            ret = request.GET[name]
+        except (KeyError, AttributeError):
+            if required:
+                raise roundexception.RoundException(name + " is required for this operation")
     return ret
 
 
 # @profile(stats=True)
 def request_stream(request):
+
     request_form = request.GET
     try:
         hostname_without_port = str(settings.config["external_host_name_without_port"])
@@ -592,6 +611,7 @@ def request_stream(request):
     project = session.project
 
     if session.demo_stream_enabled:
+        # return {"success": "demo_stream_enabled"}
         msg = "demo_stream_message"
         try:
             msg = project.demo_stream_message_loc.filter(language=session.language)[0].localized_string
@@ -639,12 +659,13 @@ def request_stream(request):
         except:
             pass
 
-        if project.out_of_range_url:
-            url = project.out_of_range_url
-        else:
-            url = "http://" + hostname_without_port + ":" + \
-                        str(settings.config["icecast_port"]) + \
-                        "/outofrange.mp3"
+        # if project.out_of_range_url: all projects must have an out
+        # of range url
+        url = project.out_of_range_url
+        # else:
+        #     url = "http://" + hostname_without_port + ":" + \
+        #                 str(settings.config["icecast_port"]) + \
+        #                 "/outofrange.mp3"
 
         return {
             'stream_url': url,
@@ -704,6 +725,35 @@ def heartbeat(request):
 
 def current_version(request):
     return {"version": "2.0"}
+
+def get_events(request):
+    form = request.GET
+    session_id = form.get('session_id', None)
+    events = models.Event.objects.filter(session=session_id)
+    # event_types = models.Event.objects.values_list('event_type').distinct()
+    events_info = {}
+    events_info['number_of_events'] = 0
+    # for etype in event_types:
+    #     events_info['number_of_events'][etype]= 0
+    events_list = []
+    if form.has_key('session_id'):
+        for e in events:
+            events_list.append(
+                dict(event_id=e.id,
+                     session_id=e.session_id,
+                     event_type=e.event_type,
+                     latitude=e.latitude,
+                     longitude=e.longitude,
+                     data=e.data,
+                     tags=e.tags,
+                     server_time=str(e.server_time),
+                     )
+            )
+            events_info['number_of_events'] +=1
+        events_info['events'] = events_list
+        return events_info
+    else:
+        return {"error": "no session_id!!"}
 
 #END 2.0 Protocol
 

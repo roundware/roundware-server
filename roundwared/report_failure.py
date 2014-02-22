@@ -9,7 +9,7 @@ from email.Encoders import encode_base64
 
 def send_email():
     fromaddr = "roundwarnings@gmail.com"
-    toaddrs = ["mike.machenry@gmail.com", "halsey@halseyburgund.com"]
+    toaddrs = ["mike.machenry@gmail.com", "halsey@halseyburgund.com", "bryanlandia@gmail.com"]
     msg = MIMEMultipart()
     msg['From'] = fromaddr
     msg['To'] = ",".join(toaddrs)
