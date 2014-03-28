@@ -223,7 +223,7 @@ class AssetInline(admin.StackedInline):
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'tag_category', 'description', 'get_loc')
-    search_fields = ('description', 'loc_description')
+    search_fields = ('description',)
     list_filter = ('tag_category',)
     ordering = ['id']
     filter_vertical = ('loc_msg', 'loc_description')
