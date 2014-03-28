@@ -1,11 +1,11 @@
-# ROUNDWARE
-# a participatory, location-aware media platform
+#***********************************************************************************#
 
-# Copyright (C) 2008-2013 Halsey Solutions, LLC
+# ROUNDWARE
+# a contributory, location-aware media platform
+
+# Copyright (C) 2008-2014 Halsey Solutions, LLC
 # with contributions from:
-# Mike MacHenry
-# Ben McAllister (listenfaster.com)
-# Halsey Burgund (halseyburgund.com)
+# Mike MacHenry, Ben McAllister, Jule Slootbeek and Halsey Burgund (halseyburgund.com)
 # http://roundware.org | contact@roundware.org
 
 # This program is free software: you can redistribute it and/or modify
@@ -16,10 +16,12 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+
+#***********************************************************************************#
 
 
 import logging
