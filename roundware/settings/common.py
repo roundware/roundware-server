@@ -45,7 +45,7 @@ ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/pjpeg
 ALLOWED_TEXT_MIME_TYPES = ['text/plain', 'text/html', 'application/xml', ]
 ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES + ALLOWED_TEXT_MIME_TYPES
 
- # session_id assigned to files that are uploaded through the admin
+# session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
 DEFAULT_SESSION_ID = "-1"
 API_URL = "http://roundware.com/roundware/"
@@ -85,7 +85,7 @@ DATABASES = {
 
 # copy this to local_settings.py and uncomment.
 # only requests to this domain will be allowed
-# ALLOWED_HOSTS = ['roundware.org',]
+ALLOWED_HOSTS = ['roundware-server',]
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
