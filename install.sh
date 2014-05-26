@@ -9,10 +9,14 @@ SOURCE_PATH=`pwd`
 CODE_PATH="/home/ubuntu/roundware-server"
 INSTALL_PATH="/usr/local/lib/python2.7/dist-packages"
 MEDIA_PATH="/var/www/rwmedia"
+MYSQL_ROOT="password"
 
 # Enable multiverse repository
 add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) multiverse"
 apt-get update
+
+echo "mysql-server mysql-server/root_password password $MYSQL_ROOT" | debconf-set-selections
+echo "mysql-server mysql-server/root_password_again password $MYSQL_ROOT" | debconf-set-selections
 
 # Install required packages
 apt-get install -y python-mysqldb python-configobj mysql-server icecast2 ffmpeg apache2 \
@@ -43,9 +47,8 @@ cp $SOURCE_PATH/files/freshclam.conf /etc/clamav/freshclam.conf
 freshclam
 
 # Setup MySQL database
-echo "create database roundware" | mysql -uroot -p
-echo "create user 'round'@'localhost' identified by 'round'" | mysql -uroot -p
-echo "grant all privileges on roundware.* to 'round'@'localhost' with grant option" | mysql -uroot -p
+echo "create database IF NOT EXISTS roundware;" | mysql -uroot -p$MYSQL_ROOT
+echo "grant all privileges on roundware.* to 'round'@'localhost' with grant option;" | mysql -uroot -p$MYSQL_ROOT
 
 mkdir -p /var/www/rwmedia
 chown www-data:www-data /var/www/rwmedia
@@ -84,4 +87,6 @@ rm -f /etc/apache2/sites-available/roundware
 ln -s $CODE_PATH/files/apache-config-example-wsgi /etc/apache2/sites-available/roundware
 a2ensite roundware
 service apache2 restart
+
+echo "Done!"
 
