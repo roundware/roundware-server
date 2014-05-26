@@ -2,9 +2,9 @@ import os
 import sys
 import site
 
-CODE_ROOT = '/media/sf_roundware-server'
+CODE_ROOT = '/home/ubuntu/roundware-server/roundware/'
 PROJECT_ROOT = os.path.join(CODE_ROOT, 'roundware')
-SITE_PACKAGES = '/home/jule/.virtualenvs/againfaster/lib/python2.6/site-packages'
+SITE_PACKAGES = '/usr/lib/python2.7/dist-packages/'
 
 sys.stdout = sys.stderr
 
