@@ -1,13 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 # Installer for Roundware Server (http://www.roundware.org/)
 # Tested with Ubuntu 12.04 LTS
 
 # Enable exit on error
 set -e
+set -v
 
+PROJECT="roundware-server"
 SOURCE_PATH=`pwd`
 CODE_PATH="/home/ubuntu/roundware-server"
-INSTALL_PATH="/usr/local/lib/python2.7/dist-packages"
+VENV_PATH="/usr/pythonenv"
+INSTALL_PATH="$VENV_PATH/$PROJECT/lib/python2.7/site-packages"
 MEDIA_PATH="/var/www/rwmedia"
 MYSQL_ROOT="password"
 
@@ -38,13 +41,30 @@ if [ $SOURCE_PATH != $CODE_PATH ]; then
   cp -R $SOURCE_PATH/. $CODE_PATH
 fi
 
+# Install upgrade pip
+#pip install -U pip
+
+# Create the pythonenv directory
+mkdir -p $VENV_PATH
+
+# Create the virtual environment
+cd $VENV_PATH
+virtualenv --system-site-packages $PROJECT
+
+# Activate the environment
+source $VENV_PATH/$PROJECT/bin/activate
+
+# Install upgrade pip
+pip install -U pip
+
+
 # Install RoundWare requirements
 pip install -r $CODE_PATH/requirements.txt
 
 # use our configurations for ClamAV
 cp $SOURCE_PATH/files/freshclam.conf /etc/clamav/freshclam.conf
 # update ClamAV with latest viruses/malware detection
-freshclam
+#freshclam
 
 # Setup MySQL database
 echo "create database IF NOT EXISTS roundware;" | mysql -uroot -p$MYSQL_ROOT

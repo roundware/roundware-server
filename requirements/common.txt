@@ -16,4 +16,6 @@ django-extra-views==0.6.3
 django-formset-js==0.4.0
 django-sortedm2m==0.6.1
 django-tastypie==0.11.0
+--allow-external django-ajax-filtered-fields
+--allow-unverified django-ajax-filtered-fields
 django-ajax-filtered-fields==0.5
