@@ -5,7 +5,7 @@
   DocumentRoot /home/ubuntu/roundware-server/roundware/
   Alias /media /usr/pythonenv/roundware-server/lib/python2.7/site-packages/django/contrib/admin/media
   Alias /audio /var/www/rwaudio
-  Alias /static /home/ubuntu/roundware-server/roundware/static
+  Alias /static /home/ubuntu/roundware-server/static
 
   RewriteEngine On
   RewriteRule ^/(audio.*)$ /$1 [QSA,L,PT]
