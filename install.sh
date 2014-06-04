@@ -23,7 +23,7 @@ echo "mysql-server mysql-server/root_password_again password $MYSQL_ROOT" | debc
 
 # Install required packages
 apt-get install -y python-mysqldb python-configobj mysql-server icecast2 ffmpeg apache2 \
-pacpl gstreamer0.10-gnomevfs python-dbus libapache2-mod-wsgi python-gst0.10 python-django \
+pacpl gstreamer0.10-gnomevfs python-dbus libapache2-mod-wsgi python-gst0.10 \
 python-flup gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 gstreamer0.10-plugins-base \
 gstreamer0.10-plugins-bad gstreamer0.10-plugins-good gstreamer0.10-plugins-bad-multiverse \
 gstreamer0.10-plugins-ugly libavcodec-extra-53 python-pip gstreamer-tools python-setuptools \
@@ -42,7 +42,10 @@ if [ $SOURCE_PATH != $CODE_PATH ]; then
 fi
 
 # Install upgrade pip
-#pip install -U pip
+pip install -U pip
+
+# Install upgrade virtualenv
+pip install -U virtualenv
 
 # Create the pythonenv directory
 mkdir -p $VENV_PATH
@@ -56,7 +59,6 @@ source $VENV_PATH/$PROJECT/bin/activate
 
 # Install upgrade pip
 pip install -U pip
-
 
 # Install RoundWare requirements
 pip install -r $CODE_PATH/requirements.txt
