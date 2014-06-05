@@ -70,7 +70,7 @@ cp $SOURCE_PATH/files/freshclam.conf /etc/clamav/freshclam.conf
 
 # Setup MySQL database
 echo "create database IF NOT EXISTS roundware;" | mysql -uroot -p$MYSQL_ROOT
-echo "grant all privileges on roundware.* to 'round'@'localhost' with grant option;" | mysql -uroot -p$MYSQL_ROOT
+echo "grant all privileges on roundware.* to 'round'@'localhost' identified by 'password';" | mysql -uroot -p$MYSQL_ROOT
 
 mkdir -p /var/www/rwmedia
 chown www-data:www-data /var/www/rwmedia
