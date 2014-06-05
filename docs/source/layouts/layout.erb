@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+
+		<title><%= current_page.data.page_title ? " #{current_page.data.page_title} - " : "" %>Roundware Documentation</title>
+
+		<!-- meta -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<!-- lib styles -->
+		<%= stylesheet_link_tag "bootstrap", "rw" %>
+
+		<!-- lib js -->
+		<%= javascript_include_tag "jquery" %>
+		<%= javascript_include_tag "modernizr" %>
+		<%= javascript_include_tag "bootstrap.min" %>
+		<%= javascript_include_tag "backstretch" %>
+		<%= javascript_include_tag "rw" %>
+
+		<!-- fonts -->
+		<link href='http://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
+		<script type="text/javascript" src="http://use.typekit.net/xfs6zus.js"></script>
+		<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+		<!-- Google analytics -->
+		<script type="text/javascript">
+
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', 'UA-15091924-1']);
+			_gaq.push(['_trackPageview']);
+
+			(function() {
+			 var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			 ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+			 })();
+
+		 </script>
+	</head>
+	<body>
+		<!-- wrap everything -->
+		<div class="wrapper">
+
+			<!-- nav -->
+
+			<nav class="docs">
+			<!-- Roundware logo -->
+			<a class="rw-docs-logo" href="/">Roundware Documentation</a>
+			<!-- nav -->
+			<ul class="pull-right unstyled">
+				<!-- <li class="pill">
+					<a href="http://www.amazon.com/gp/product/1449335837/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&camp=1789&creative=9325&creativeASIN=1449335837&linkCode=as2&tag=vagrant-20">
+						Vagrant Book
+					</a>
+				</li> -->
+				<li><a href="http://roundware.org">Home</a></li>
+			</ul>
+			</nav>
+
+			<div class="page docs docs-home">
+				<div class="container">
+					<div class="row">
+
+						<div class="sidebar span3">
+							<!-- get the sidebar nav -->
+							<!-- side nav docs -->
+							<aside class="sidebar-nav">
+
+							<div class="toggle hidden-desktop">
+								<div class="open-close open"></div>
+								<a href="#">Contents</a>
+							</div>
+
+							<ul class="unstyled">
+								<li<%= sidebar_current("overview") %>><a href="/docs/">Overview</a></li>
+
+								<li<%= sidebar_current("why") %>><a href="/docs/why-roundware/index.html">Why Roundware?</a></li>
+
+								<li<%= sidebar_current("installation") %>><a href="/docs/installation/index.html">Installation</a></li>
+								<% if sidebar_section == "installation" %>
+<!-- 								<ul class="sub unstyled">
+									<li<%= sidebar_current("installation-backwards-compatibility") %>><a href="/docs/installation/backwards-compatibility.html">Backwards Compatibility</a></li>
+									<li<%= sidebar_current("installation-upgrading") %>><a href="/docs/installation/upgrading.html">Upgrading</a></li>
+									<li<%= sidebar_current("installation-upgrading-1-0") %>><a href="/docs/installation/upgrading-from-1-0.html">Upgrading from 1.0.x</a></li>
+									<li<%= sidebar_current("installation-uninstallation") %>><a href="/docs/installation/uninstallation.html">Uninstallation</a></li>
+								</ul> -->
+								<% end %>
+
+								<!-- <li<%= sidebar_current("gettingstarted") %>><a href="/docs/getting-started/index.html">Getting Started</a></li>
+								<% if sidebar_section == "gettingstarted" %>
+								<ul class="sub unstyled">
+									<li<%= sidebar_current("gettingstarted-projectsetup") %>><a href="/docs/getting-started/project_setup.html">Project Setup</a></li>
+									<li<%= sidebar_current("gettingstarted-boxes") %>><a href="/docs/getting-started/boxes.html">Boxes</a></li>
+									<li<%= sidebar_current("gettingstarted-up") %>><a href="/docs/getting-started/up.html">Up and SSH</a></li>
+								</ul>
+								<% end %> -->
+
+								<li<%= sidebar_current("api") %>><a href="/docs/api/index.html">API</a></li>
+								<% if sidebar_section == "api" %>
+								<ul class="sub unstyled nocap">
+									<li<%= sidebar_current("api-get-config") %>><a href="/docs/api/get_config.html">get_config</a></li>
+									<li<%= sidebar_current("api-get-tags") %>><a href="/docs/api/get_tags.html">get_tags</a></li>
+									<li<%= sidebar_current("api-request-stream") %>><a href="/docs/api/request_stream.html">request_stream</a></li>
+									<li<%= sidebar_current("api-modify-stream") %>><a href="/docs/api/modify_stream.html">modify_stream</a></li>
+									<li<%= sidebar_current("api-log-event") %>><a href="/docs/api/log_event.html">log_event</a></li>
+									<li<%= sidebar_current("api-heartbeat") %>><a href="/docs/api/heartbeat.html">heartbeat</a></li>
+									<li<%= sidebar_current("api-create-envelope") %>><a href="/docs/api/create_envelope.html">create_envelope</a></li>
+									<li<%= sidebar_current("api-add-asset-to-envelope") %>><a href="/docs/api/add_asset_to_envelope.html">add_asset_to_envelope</a></li>
+									<li<%= sidebar_current("api-vote-asset") %>><a href="/docs/api/vote_asset.html">vote_asset</a></li>
+									<li<%= sidebar_current("api-play-asset-in-stream") %>><a href="/docs/api/play_asset_in_stream.html">play_asset_in_stream</a></li>
+									<li<%= sidebar_current("api-skip-ahead") %>><a href="/docs/api/skip_ahead.html">skip_ahead</a></li>
+									<li<%= sidebar_current("api-get-available-assets") %>><a href="/docs/api/get_available_assets.html">get_available_assets</a></li>
+									<li<%= sidebar_current("api-get-asset-info") %>><a href="/docs/api/get_asset_info.html">get_asset_info</a></li>
+									<li<%= sidebar_current("api-tastypie") %>><a href="/docs/api/tastypie.html">TastyPie</a></li>
+								</ul>
+								<% end %>
+
+								<li <%= sidebar_current("setup") %>><a href="/docs/setup/index.html">Setup</a></li>
+								<% if sidebar_section == "setup" %>
+								<ul class="sub unstyled">
+									<li<%= sidebar_current("setup-project") %>><a href="/docs/setup/project.html">Project</a></li>
+									<li<%= sidebar_current("setup-speaker") %>><a href="/docs/setup/speaker.html">Speakers</a></li>
+									<li<%= sidebar_current("setup-audiotrack") %>><a href="/docs/setup/audiotrack.html">Audiotracks</a></li>
+									<li<%= sidebar_current("setup-modes") %>><a href="/docs/setup/mode.html">Modes</a></li>
+									<li<%= sidebar_current("setup-tags") %>><a href="/docs/setup/tag.html">Tags</a></li>
+									<li<%= sidebar_current("setup-language") %>><a href="/docs/setup/language.html">Languages</a></li>
+									<li<%= sidebar_current("setup-config") %>><a href="/docs/setup/config.html">Config File</a></li>
+									<li<%= sidebar_current("setup-settings") %>><a href="/docs/setup/settings.html">Django Settings</a></li>
+									<li<%= sidebar_current("setup-testing") %>><a href="/docs/setup/testing.html">Basic Testing</a></li>
+								</ul>
+								<% end %>
+
+								<li <%= sidebar_current("terminology") %>><a href="/docs/terminology/index.html">Terminology</a></li>
+								<% if sidebar_section == "terminology" %>
+								<% end %>
+
+								<li<%= sidebar_current("architecture") %>><a href="/docs/architecture/index.html">Architecture</a></li>
+								<% if sidebar_section == "architecture" %>
+								<% end %>
+
+								<li <%= sidebar_current("tags") %>><a href="/docs/tags/index.html">Tags</a></li>
+								<% if sidebar_section == "tags" %>
+								<ul class="sub unstyled">
+									<li<%= sidebar_current("tags-relationships") %>><a href="/docs/tags/relationships.html">Relationships</a></li>
+									<li<%= sidebar_current("tags-data") %>><a href="/docs/tags/data.html">Data Field Usage</a></li>
+								</ul>
+								<% end %>
+
+								<li<%= sidebar_current("ios") %>><a href="/docs/ios/index.html">iOS Client</a></li>
+								<% if sidebar_section == "ios" %>
+								<ul class="sub unstyled">
+									<li<%= sidebar_current("ios-basic") %>><a href="/docs/ios/basic_usage.html">Basic Usage</a></li>
+									<li<%= sidebar_current("ios-webviews") %>><a href="/docs/ios/webviews.html">Webviews</a></li>
+								</ul>
+								<% end %>
+
+								<li<%= sidebar_current("android") %>><a href="/docs/android/index.html">Android Client</a></li>
+								<% if sidebar_section == "android" %>
+								<ul class="sub unstyled">
+									<li<%= sidebar_current("android-basic") %>><a href="/docs/android/basic_usage.html">Basic Usage</a></li>
+									<li<%= sidebar_current("android-webviews") %>><a href="/docs/android/webviews.html">Webviews</a></li>
+								</ul>
+								<% end %>
+
+								<li<%= sidebar_current("web") %>><a href="/docs/web/index.html">Web</a></li>
+								<% if sidebar_section == "web" %>
+								<ul class="sub unstyled">
+									<li<%= sidebar_current("web-listen") %>><a href="/docs/web/listen.html">Listen</a></li>
+									<li<%= sidebar_current("web-speak") %>><a href="/docs/web/speak.html">Speak</a></li>
+									<li<%= sidebar_current("web-share") %>><a href="/docs/web/share.html">Share</a></li>
+									<li<%= sidebar_current("web-voice-map") %>><a href="/docs/web/voice_map.html">Voice Map</a></li>
+									<li<%= sidebar_current("web-listen-map") %>><a href="/docs/web/listen_map.html">Listen Map</a></li>
+									<li<%= sidebar_current("web-session-map") %>><a href="/docs/web/session_map.html">Session Map</a></li>
+									<li<%= sidebar_current("web-dashboard") %>><a href="/docs/web/dashboard.html">Dashboard</a></li>
+								</ul>
+								<% end %>
+
+								<li<%= sidebar_current("other") %>><a href="/docs/other/index.html">Other</a></li>
+								<% if sidebar_section == "other" %>
+								<ul class="sub unstyled">
+									<li<%= sidebar_current("other-debugging") %>><a href="/docs/other/other.html">Other Stuff</a></li>
+									<li<%= sidebar_current("other-envvars") %>><a href="/docs/other/more.html">More Other Stuff</a></li>
+								</ul>
+								<% end %>
+							</ul>
+							</aside> <!-- /.sidebar -->
+						</div> <!-- /.sidebar -->
+
+						<div class="page-contents span9">
+							<div class="page-background"></div>
+
+							<!-- start page content -->
+							<div class="row">
+								<div class="span8 offset1">
+									<%= yield %>
+								</div> <!-- /.span8 -->
+							</div> <!-- /.row -->
+						</div> <!-- /.page-contents -->
+					</div> <!-- /.row -->
+				</div> <!-- /.container -->
+			</div> <!-- /.page -->
+
+			<!-- footer -->
+			<footer>
+			<div class="container">
+				<div class="row">
+					<div class="span12">
+
+						<ul class="unstyled footer-nav">
+							<!-- <li><a href="http://docs.vagrantup.com/">Documentation</a></li> -->
+							<li><a href="http://www.roundware.org/">About</a></li>
+							<li><a href="http://www.roundware.org/contact/">Contact</a></li>
+							<a href="https://github.com/hburgund/roundware-server">
+								<li class="button inline-button">Clone on Github</li>
+							</a>
+						</ul>
+
+						<!-- <ul class="unstyled logos">
+							<a href="http://www.vagrantup.com">
+								<li class="vagrant-logo-monochrome"></li>
+							</a>
+							<li><span>by</span></li>
+							<a href="http://www.hashicorp.com">
+								<li class="hashi-logo-monochrome "></li>
+							</a>
+						</ul>  --><!-- /span -->
+
+					</div> <!-- /span -->
+				</div> <!-- /row -->
+
+				<div class="row">
+					<h6 class="legal">
+						&#169; 2014 Halsey Solutions, LLC
+					</h6>
+				</div> <!-- row -->
+			</div> <!-- container -->
+			</footer>
+
+			<!-- close .wrapper -->
+		</div>
+
+		<!-- load scripts -->
+		<!-- load full-width image into any div with class="big-background -->
+		<script>
+			$(".big-background").backstretch("assets/photos/full_width.jpg");
+		</script>
+	</body>
+</html>
