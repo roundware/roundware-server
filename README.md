@@ -8,8 +8,8 @@ For more information about Roundware functionalities and projects that use the p
 
 Roundware includes an install.sh to handle installation of the software and it's dependencies. Further configuration is required, but the majority of the process is automated:
 
-   user@machine:~/roundware-server $ sudo ./install.sh
-
+    user@machine:~/roundware-server $ sudo ./install.sh
+   
 ## Vagrant
 
 A VagrantFile is included for local development and testing with [Vagrant](http://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/). Usage:
