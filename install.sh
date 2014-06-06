@@ -104,7 +104,7 @@ $CODE_PATH/roundware/manage.py collectstatic --noinput
 
 # Initialize database with syncdb and default_auth_data.json
 $CODE_PATH/roundware/manage.py syncdb --noinput
-$CODE_PATH/roundware/manage.py loaddata fixtures/default_auth_data.json
+$CODE_PATH/roundware/manage.py loaddata $CODE_PATH/roundware/fixtures/default_auth_data.json
 $CODE_PATH/roundware/manage.py migrate roundware.rw
 $CODE_PATH/roundware/manage.py migrate roundware.notifications
 # TODO: Other migrations?
