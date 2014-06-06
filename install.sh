@@ -42,9 +42,6 @@ if [ $SOURCE_PATH != $CODE_PATH ]; then
   cp -R $SOURCE_PATH/. $CODE_PATH
 fi
 
-# Install upgrade pip
-pip install -U pip
-
 # Install upgrade virtualenv
 pip install -U virtualenv
 
@@ -73,6 +70,11 @@ cp $SOURCE_PATH/files/freshclam.conf /etc/clamav/freshclam.conf
 echo "create database IF NOT EXISTS roundware;" | mysql -uroot -p$MYSQL_ROOT
 echo "grant all privileges on roundware.* to 'round'@'localhost' identified by 'round';" | mysql -uroot -p$MYSQL_ROOT
 
+# Initialize database with syncdb and default_auth_data.json
+$CODE_PATH/roundware/manage.py syncdb --noinput
+$CODE_PATH/roundware/manage.py loaddata fixtures/default_auth_data.json
+
+# File/directory configurations
 mkdir -p /var/www/rwmedia
 chown www-data:www-data /var/www/rwmedia
 mkdir -p /var/www/.gnome2
@@ -117,4 +119,3 @@ cp $CODE_PATH/files/etc-icecast2-icecast.xml /etc/icecast2/icecast.xml
 service icecast2 restart
 
 echo "Done!"
-
