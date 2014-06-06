@@ -70,17 +70,12 @@ cp $SOURCE_PATH/files/freshclam.conf /etc/clamav/freshclam.conf
 echo "create database IF NOT EXISTS roundware;" | mysql -uroot -p$MYSQL_ROOT
 echo "grant all privileges on roundware.* to 'round'@'localhost' identified by 'round';" | mysql -uroot -p$MYSQL_ROOT
 
-# Initialize database with syncdb and default_auth_data.json
-$CODE_PATH/roundware/manage.py syncdb --noinput
-$CODE_PATH/roundware/manage.py loaddata fixtures/default_auth_data.json
 
 # File/directory configurations
 mkdir -p /var/www/rwmedia
-chown www-data:www-data /var/www/rwmedia
-mkdir -p /var/www/.gnome2
-chown www-data:www-data /var/www/.gnome2
+chown ubuntu:ubuntu /var/www/rwmedia
 touch /var/log/roundware
-chown www-data:www-data /var/log/roundware
+chown ubuntu:ubuntu /var/log/roundware
 mkdir -p /etc/roundware
 mkdir -p $CODE_PATH/static
 chown www-data:www-data $CODE_PATH/static
@@ -107,10 +102,18 @@ cp -r $CODE_PATH/roundware/rw/tests $INSTALL_PATH/roundware/rw/tests
 cp -r $CODE_PATH/roundwared/tests $INSTALL_PATH/roundwared/tests
 $CODE_PATH/roundware/manage.py collectstatic --noinput
 
+# Initialize database with syncdb and default_auth_data.json
+$CODE_PATH/roundware/manage.py syncdb --noinput
+$CODE_PATH/roundware/manage.py loaddata $CODE_PATH/roundware/fixtures/default_auth_data.json
+$CODE_PATH/roundware/manage.py migrate roundware.rw
+$CODE_PATH/roundware/manage.py migrate roundware.notifications
+# TODO: Other migrations?
+
 # Setup apache
 rm -f /etc/apache2/sites-available/roundware
 ln -s $CODE_PATH/files/apache-config-example-wsgi /etc/apache2/sites-available/roundware
 a2ensite roundware
+a2dissite 000-default
 service apache2 restart
 
 # Setup icecast

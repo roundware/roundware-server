@@ -85,7 +85,7 @@ DATABASES = {
 
 # copy this to local_settings.py and uncomment.
 # only requests to this domain will be allowed
-ALLOWED_HOSTS = ['roundware-server',]
+ALLOWED_HOSTS = ['*',]
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
