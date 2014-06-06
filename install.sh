@@ -112,6 +112,7 @@ $CODE_PATH/roundware/manage.py collectstatic --noinput
 rm -f /etc/apache2/sites-available/roundware
 ln -s $CODE_PATH/files/apache-config-example-wsgi /etc/apache2/sites-available/roundware
 a2ensite roundware
+a2dissite 000-default
 service apache2 restart
 
 # Setup icecast
