@@ -73,14 +73,15 @@ echo "grant all privileges on roundware.* to 'round'@'localhost' identified by '
 # Initialize database with syncdb and default_auth_data.json
 $CODE_PATH/roundware/manage.py syncdb --noinput
 $CODE_PATH/roundware/manage.py loaddata fixtures/default_auth_data.json
+$CODE_PATH/roundware/manage.py migrate roundware.rw
+$CODE_PATH/roundware/manage.py migrate roundware.notifications
+# TODO: Other migrations?
 
 # File/directory configurations
 mkdir -p /var/www/rwmedia
-chown www-data:www-data /var/www/rwmedia
-mkdir -p /var/www/.gnome2
-chown www-data:www-data /var/www/.gnome2
+chown ubuntu:ubuntu /var/www/rwmedia
 touch /var/log/roundware
-chown www-data:www-data /var/log/roundware
+chown ubuntu:ubuntu /var/log/roundware
 mkdir -p /etc/roundware
 mkdir -p $CODE_PATH/static
 chown www-data:www-data $CODE_PATH/static
