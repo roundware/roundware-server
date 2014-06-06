@@ -70,12 +70,6 @@ cp $SOURCE_PATH/files/freshclam.conf /etc/clamav/freshclam.conf
 echo "create database IF NOT EXISTS roundware;" | mysql -uroot -p$MYSQL_ROOT
 echo "grant all privileges on roundware.* to 'round'@'localhost' identified by 'round';" | mysql -uroot -p$MYSQL_ROOT
 
-# Initialize database with syncdb and default_auth_data.json
-$CODE_PATH/roundware/manage.py syncdb --noinput
-$CODE_PATH/roundware/manage.py loaddata fixtures/default_auth_data.json
-$CODE_PATH/roundware/manage.py migrate roundware.rw
-$CODE_PATH/roundware/manage.py migrate roundware.notifications
-# TODO: Other migrations?
 
 # File/directory configurations
 mkdir -p /var/www/rwmedia
@@ -107,6 +101,13 @@ cp -r $CODE_PATH/roundware/rw/migrations $INSTALL_PATH/roundware/rw/migrations
 cp -r $CODE_PATH/roundware/rw/tests $INSTALL_PATH/roundware/rw/tests
 cp -r $CODE_PATH/roundwared/tests $INSTALL_PATH/roundwared/tests
 $CODE_PATH/roundware/manage.py collectstatic --noinput
+
+# Initialize database with syncdb and default_auth_data.json
+$CODE_PATH/roundware/manage.py syncdb --noinput
+$CODE_PATH/roundware/manage.py loaddata fixtures/default_auth_data.json
+$CODE_PATH/roundware/manage.py migrate roundware.rw
+$CODE_PATH/roundware/manage.py migrate roundware.notifications
+# TODO: Other migrations?
 
 # Setup apache
 rm -f /etc/apache2/sites-available/roundware
