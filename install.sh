@@ -4,7 +4,6 @@
 
 # Enable exit on error
 set -e
-set -v
 
 PROJECT="roundware-server"
 SOURCE_PATH=`pwd`
@@ -18,16 +17,18 @@ MYSQL_ROOT="password"
 add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) multiverse"
 apt-get update
 
+# Set MySQL root password
 echo "mysql-server mysql-server/root_password password $MYSQL_ROOT" | debconf-set-selections
 echo "mysql-server mysql-server/root_password_again password $MYSQL_ROOT" | debconf-set-selections
 
-# Install required packages
-apt-get install -y python-mysqldb python-configobj mysql-server icecast2 ffmpeg apache2 \
-pacpl gstreamer0.10-gnomevfs python-dbus libapache2-mod-wsgi python-gst0.10 \
-python-flup gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 gstreamer0.10-plugins-base \
-gstreamer0.10-plugins-bad gstreamer0.10-plugins-good gstreamer0.10-plugins-bad-multiverse \
-gstreamer0.10-plugins-ugly libavcodec-extra-53 python-pip gstreamer-tools python-setuptools \
-python-profiler libmagic1 clamav-daemon python-clamav python-lxml python-dev python-pycurl
+# Install required packages non-interactive
+DEBIAN_FRONTEND=noninteractive apt-get install -y python-mysqldb python-configobj mysql-server \
+icecast2 ffmpeg apache2 pacpl gstreamer0.10-gnomevfs python-dbus libapache2-mod-wsgi \
+python-gst0.10 python-flup gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 \
+gstreamer0.10-plugins-base gstreamer0.10-plugins-bad gstreamer0.10-plugins-good \
+gstreamer0.10-plugins-bad-multiverse gstreamer0.10-plugins-ugly libavcodec-extra-53 \
+python-pip gstreamer-tools python-setuptools python-profiler libmagic1 clamav-daemon \
+python-clamav python-lxml python-dev python-pycurl
 
 # Enable Apache rewrite module
 a2enmod rewrite
@@ -70,17 +71,17 @@ cp $SOURCE_PATH/files/freshclam.conf /etc/clamav/freshclam.conf
 
 # Setup MySQL database
 echo "create database IF NOT EXISTS roundware;" | mysql -uroot -p$MYSQL_ROOT
-echo "grant all privileges on roundware.* to 'round'@'localhost' identified by 'password';" | mysql -uroot -p$MYSQL_ROOT
+echo "grant all privileges on roundware.* to 'round'@'localhost' identified by 'round';" | mysql -uroot -p$MYSQL_ROOT
 
 mkdir -p /var/www/rwmedia
 chown www-data:www-data /var/www/rwmedia
 mkdir -p /var/www/.gnome2
 chown www-data:www-data /var/www/.gnome2
 touch /var/log/roundware
-chown www-data /var/log/roundware
+chown www-data:www-data /var/log/roundware
 mkdir -p /etc/roundware
 mkdir -p $CODE_PATH/static
-chown www-data $CODE_PATH/static
+chown www-data:www-data $CODE_PATH/static
 # copy default RW config file into place - don't forget to edit!
 cp $CODE_PATH/files/sample-config /etc/roundware/rw
 # copy test audio file to correct location
@@ -109,6 +110,11 @@ rm -f /etc/apache2/sites-available/roundware
 ln -s $CODE_PATH/files/apache-config-example-wsgi /etc/apache2/sites-available/roundware
 a2ensite roundware
 service apache2 restart
+
+# Setup icecast
+cp $CODE_PATH/files/etc-default-icecast2 /etc/default/icecast2
+cp $CODE_PATH/files/etc-icecast2-icecast.xml /etc/icecast2/icecast.xml
+service icecast2 restart
 
 echo "Done!"
 
