@@ -1,13 +1,13 @@
 # ************************************************************
 # Sequel Pro SQL dump
-# Version 4004
+# Version 4096
 #
 # http://www.sequelpro.com/
 # http://code.google.com/p/sequel-pro/
 #
-# Host: 54.235.157.130 (MySQL 5.5.31-0ubuntu0.12.04.1)
+# Host: 192.168.30.12 (MySQL 5.5.35-0ubuntu0.12.04.2)
 # Database: roundware
-# Generation Time: 2013-05-04 14:32:22 +0000
+# Generation Time: 2014-06-03 19:06:13 +0000
 # ************************************************************
 
 
@@ -37,10 +37,11 @@ CREATE TABLE `rw_asset` (
   `created` datetime NOT NULL,
   `audiolength` bigint(20) DEFAULT NULL,
   `language_id` int(11) DEFAULT NULL,
-  `file` varchar(100) DEFAULT NULL,
+  `file` varchar(100) NOT NULL DEFAULT '/var/www/rwmedia/rw_test_audio1.wav',
   `weight` int(11) NOT NULL,
   `mediatype` varchar(16) NOT NULL,
   `description` longtext NOT NULL,
+  `initialenvelope_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `rw_asset_6b4dc4c3` (`session_id`),
   KEY `rw_asset_499df97c` (`project_id`),
@@ -53,12 +54,31 @@ CREATE TABLE `rw_asset` (
 LOCK TABLES `rw_asset` WRITE;
 /*!40000 ALTER TABLE `rw_asset` DISABLE KEYS */;
 
-INSERT INTO `rw_asset` (`id`, `session_id`, `latitude`, `longitude`, `filename`, `volume`, `submitted`, `project_id`, `created`, `audiolength`, `language_id`, `file`, `weight`, `mediatype`, `description`)
+INSERT INTO `rw_asset` (`id`, `session_id`, `latitude`, `longitude`, `filename`, `volume`, `submitted`, `project_id`, `created`, `audiolength`, `language_id`, `file`, `weight`, `mediatype`, `description`, `initialenvelope_id`)
 VALUES
-	(1,2891,42.354856,-71.066119,'rw_test_audio1.wav',1,1,1,'2012-07-24 18:06:40',30000000000,1,'',50,'audio','');
+	(1,2891,28.2562653919411,-58.94140825,'rw_test_audio1.wav',1,1,1,'2012-07-24 18:06:40',30000000000,1,'',50,'audio','',NULL);
 
 /*!40000 ALTER TABLE `rw_asset` ENABLE KEYS */;
 UNLOCK TABLES;
+
+
+# Dump of table rw_asset_loc_description
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `rw_asset_loc_description`;
+
+CREATE TABLE `rw_asset_loc_description` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `asset_id` int(11) NOT NULL,
+  `localizedstring_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `rw_asset_loc_description_asset_id_30aea39a_uniq` (`asset_id`,`localizedstring_id`),
+  KEY `rw_asset_loc_description_a64c0c36` (`asset_id`),
+  KEY `rw_asset_loc_description_f2fd4c16` (`localizedstring_id`),
+  CONSTRAINT `asset_id_refs_id_27a2eee3` FOREIGN KEY (`asset_id`) REFERENCES `rw_asset` (`id`),
+  CONSTRAINT `localizedstring_id_refs_id_1dfa14d` FOREIGN KEY (`localizedstring_id`) REFERENCES `rw_localizedstring` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 
 
 # Dump of table rw_asset_tags
@@ -83,9 +103,9 @@ LOCK TABLES `rw_asset_tags` WRITE;
 
 INSERT INTO `rw_asset_tags` (`id`, `asset_id`, `tag_id`)
 VALUES
-	(5,1,3),
-	(6,1,5),
-	(4,1,8);
+	(2,1,3),
+	(3,1,5),
+	(1,1,8);
 
 /*!40000 ALTER TABLE `rw_asset_tags` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -124,7 +144,7 @@ LOCK TABLES `rw_audiotrack` WRITE;
 
 INSERT INTO `rw_audiotrack` (`id`, `project_id`, `minvolume`, `maxvolume`, `minduration`, `maxduration`, `mindeadair`, `maxdeadair`, `minfadeintime`, `maxfadeintime`, `minfadeouttime`, `maxfadeouttime`, `minpanpos`, `maxpanpos`, `minpanduration`, `maxpanduration`, `repeatrecordings`)
 VALUES
-	(1,1,1,1,20000000000,40000000000,3000000000,6000000000,100000000,500000000,100000000,2000000000,0,0,5000000000,10000000000,0);
+	(1,1,1,1,5000000000,10000000000,1000000000,3000000000,100000000,500000000,100000000,2000000000,0,0,5000000000,10000000000,0);
 
 /*!40000 ALTER TABLE `rw_audiotrack` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -210,7 +230,7 @@ LOCK TABLES `rw_event` WRITE;
 
 INSERT INTO `rw_event` (`id`, `server_time`, `client_time`, `session_id`, `event_type`, `data`, `latitude`, `longitude`, `tags`, `operationid`, `udid`)
 VALUES
-	(61607,'2013-05-04 10:30:22',NULL,4807,'modify_stream',NULL,NULL,NULL,NULL,NULL,NULL);
+	(10,'2013-12-24 22:29:44',NULL,2891,'request_stream',NULL,NULL,NULL,NULL,NULL,NULL);
 
 /*!40000 ALTER TABLE `rw_event` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -270,15 +290,6 @@ CREATE TABLE `rw_listeninghistoryitem` (
   CONSTRAINT `session_id_refs_id_7131cf26` FOREIGN KEY (`session_id`) REFERENCES `rw_session` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-LOCK TABLES `rw_listeninghistoryitem` WRITE;
-/*!40000 ALTER TABLE `rw_listeninghistoryitem` DISABLE KEYS */;
-
-INSERT INTO `rw_listeninghistoryitem` (`id`, `session_id`, `asset_id`, `starttime`, `duration`)
-VALUES
-	(16284,4807,1,'2013-05-04 10:30:34',30000000000);
-
-/*!40000 ALTER TABLE `rw_listeninghistoryitem` ENABLE KEYS */;
-UNLOCK TABLES;
 
 
 # Dump of table rw_localizedstring
@@ -320,7 +331,16 @@ VALUES
 	(50,'Echa un vistazo a este impresionante grabación que hice usando Roundware!',2),
 	(53,'Herein should be the brief legal agreement that participants need to agree to in order to make and submit a recording to a Roundware project.',1),
 	(54,'En esto debería ser el acuerdo escrito legal que los participantes deben ponerse de acuerdo a fin de realizar y presentar una grabación a un proyecto Roundware.',2),
-	(55,'This Roundware project is currently using a demo stream.  You will not be able to filter your audio as a result.',1);
+	(55,'What genders do you want to listen to?',1),
+	(56,'¿Qué géneros Qué quieres escuchar?',2),
+	(57,'Curator',1),
+	(58,'recent recordings',1),
+	(59,'nearby recordings',1),
+	(60,'Who do you want to hear?',1),
+	(61,'Who are you?',1),
+	(62,'What do you want to talk about?',1),
+	(63,'What do you want to listen to?',1),
+	(64,'What gender are you?',1);
 
 /*!40000 ALTER TABLE `rw_localizedstring` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -356,14 +376,48 @@ LOCK TABLES `rw_masterui` WRITE;
 
 INSERT INTO `rw_masterui` (`id`, `name`, `ui_mode_id`, `tag_category_id`, `select_id`, `active`, `index`, `project_id`)
 VALUES
-	(1,'Gender',1,3,3,1,1,1),
-	(3,'Question',1,2,3,1,3,1),
-	(4,'Gender',2,3,1,1,1,1),
-	(6,'Question',2,2,1,1,3,1),
-	(7,'User Type',1,4,3,1,1,1),
-	(8,'User Type',2,4,1,1,1,1);
+	(1,'What genders do you want to listen to?',1,3,3,1,1,1),
+	(3,'What do you want to listen to?',1,2,3,1,3,1),
+	(4,'What gender are you?',2,3,1,1,1,1),
+	(6,'What do you want to talk about?',2,2,1,1,3,1),
+	(7,'Who do you want to hear?',1,4,3,1,2,1),
+	(8,'Who are you?',2,4,1,1,2,1);
 
 /*!40000 ALTER TABLE `rw_masterui` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+# Dump of table rw_masterui_header_text_loc
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `rw_masterui_header_text_loc`;
+
+CREATE TABLE `rw_masterui_header_text_loc` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `masterui_id` int(11) NOT NULL,
+  `localizedstring_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `rw_masterui_header_text_loc_masterui_id_6f0abb51_uniq` (`masterui_id`,`localizedstring_id`),
+  KEY `rw_masterui_header_text_loc_65df905c` (`masterui_id`),
+  KEY `rw_masterui_header_text_loc_566c66f7` (`localizedstring_id`),
+  CONSTRAINT `localizedstring_id_refs_id_3e5f99fb` FOREIGN KEY (`localizedstring_id`) REFERENCES `rw_localizedstring` (`id`),
+  CONSTRAINT `masterui_id_refs_id_5a739c30` FOREIGN KEY (`masterui_id`) REFERENCES `rw_masterui` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+LOCK TABLES `rw_masterui_header_text_loc` WRITE;
+/*!40000 ALTER TABLE `rw_masterui_header_text_loc` DISABLE KEYS */;
+
+INSERT INTO `rw_masterui_header_text_loc` (`id`, `masterui_id`, `localizedstring_id`)
+VALUES
+	(3,1,55),
+	(2,1,56),
+	(7,3,63),
+	(8,4,64),
+	(6,6,62),
+	(4,7,60),
+	(5,8,61);
+
+/*!40000 ALTER TABLE `rw_masterui_header_text_loc` ENABLE KEYS */;
 UNLOCK TABLES;
 
 
@@ -408,7 +462,7 @@ LOCK TABLES `rw_project` WRITE;
 
 INSERT INTO `rw_project` (`id`, `name`, `latitude`, `longitude`, `pub_date`, `audio_format`, `auto_submit`, `max_recording_length`, `listen_questions_dynamic`, `speak_questions_dynamic`, `sharing_url`, `out_of_range_url`, `recording_radius`, `listen_enabled`, `geo_listen_enabled`, `speak_enabled`, `geo_speak_enabled`, `reset_tag_defaults_on_startup`, `repeat_mode_id`, `audio_stream_bitrate`, `files_version`, `files_url`, `ordering`, `demo_stream_enabled`, `demo_stream_url`)
 VALUES
-	(1,'Test Project',42.354856,-71.066119,'2011-12-06 16:06:32','mp3',0,30,0,0,'http://roundware.org/r/eid=[id]','http://scapesaudio.dyndns.org:8000/mg_outofrange.mp3',20,1,1,1,1,1,1,'128','1','http://roundware.org/webview/wv.zip','random',0,'http://scapesaudio.dyndns.org:8000/scapes1.mp3');
+	(1,'Test Project',45,-59,'2011-12-06 16:06:32','mp3',1,30,0,0,'http://roundware.org/r/eid=[id]','http://scapesaudio.dyndns.org:8000/mg_outofrange.mp3',20,1,0,1,1,1,1,'128','1','http://roundware.org/webview/rw.zip','random',1,'http://scapesaudio.dyndns.org:8000/scapes1.mp3');
 
 /*!40000 ALTER TABLE `rw_project` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -436,8 +490,8 @@ LOCK TABLES `rw_project_demo_stream_message_loc` WRITE;
 
 INSERT INTO `rw_project_demo_stream_message_loc` (`id`, `project_id`, `localizedstring_id`)
 VALUES
-	(15,1,48),
-	(16,1,55);
+	(44,1,47),
+	(43,1,48);
 
 /*!40000 ALTER TABLE `rw_project_demo_stream_message_loc` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -465,8 +519,8 @@ LOCK TABLES `rw_project_legal_agreement_loc` WRITE;
 
 INSERT INTO `rw_project_legal_agreement_loc` (`id`, `project_id`, `localizedstring_id`)
 VALUES
-	(83,1,53),
-	(84,1,54);
+	(108,1,53),
+	(109,1,54);
 
 /*!40000 ALTER TABLE `rw_project_legal_agreement_loc` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -494,8 +548,8 @@ LOCK TABLES `rw_project_out_of_range_message_loc` WRITE;
 
 INSERT INTO `rw_project_out_of_range_message_loc` (`id`, `project_id`, `localizedstring_id`)
 VALUES
-	(86,1,47),
-	(85,1,48);
+	(111,1,47),
+	(110,1,48);
 
 /*!40000 ALTER TABLE `rw_project_out_of_range_message_loc` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -523,8 +577,8 @@ LOCK TABLES `rw_project_sharing_message_loc` WRITE;
 
 INSERT INTO `rw_project_sharing_message_loc` (`id`, `project_id`, `localizedstring_id`)
 VALUES
-	(83,1,49),
-	(84,1,50);
+	(108,1,49),
+	(109,1,50);
 
 /*!40000 ALTER TABLE `rw_project_sharing_message_loc` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -592,6 +646,7 @@ CREATE TABLE `rw_session` (
   `language_id` int(11) DEFAULT NULL,
   `client_type` varchar(128) DEFAULT NULL,
   `client_system` varchar(128) DEFAULT NULL,
+  `demo_stream_enabled` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `rw_session_499df97c` (`project_id`),
   KEY `rw_session_7ab48146` (`language_id`),
@@ -602,11 +657,10 @@ CREATE TABLE `rw_session` (
 LOCK TABLES `rw_session` WRITE;
 /*!40000 ALTER TABLE `rw_session` DISABLE KEYS */;
 
-INSERT INTO `rw_session` (`id`, `device_id`, `starttime`, `stoptime`, `project_id`, `language_id`, `client_type`, `client_system`)
+INSERT INTO `rw_session` (`id`, `device_id`, `starttime`, `stoptime`, `project_id`, `language_id`, `client_type`, `client_system`, `demo_stream_enabled`)
 VALUES
-	(-1,'manual_upload','2013-02-02 13:15:44','2013-02-02 13:15:45',1,1,'',''),
-	(2891,'e87e8199-01c9-4151-ae96-d704b61323e7','2012-08-27 00:11:48','2012-08-27 00:15:52',1,1,NULL,NULL),
-	(4807,'0de85dde-80c0-4dc2-82bb-875dbad08720','2013-05-02 20:27:36',NULL,1,1,'iPhone Simulator','iPhone OS-6.1');
+	(-10,'session-for-admin-uploads','2014-01-25 13:44:49',NULL,1,1,NULL,NULL,0),
+	(2891,'e87e8199-01c9-4151-ae96-d704b61323e7','2012-08-27 00:11:48','2012-08-27 00:15:52',1,1,NULL,NULL,0);
 
 /*!40000 ALTER TABLE `rw_session` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -640,7 +694,7 @@ LOCK TABLES `rw_speaker` WRITE;
 
 INSERT INTO `rw_speaker` (`id`, `project_id`, `activeyn`, `code`, `latitude`, `longitude`, `maxdistance`, `mindistance`, `maxvolume`, `minvolume`, `uri`, `backupuri`)
 VALUES
-	(1,1,1,'1',42.355709,-71.057205,1000,100,0.5,0.5,'http://scapesaudio.dyndns.org:8000/scapes1.mp3','http://scapesaudio.dyndns.org:8000/scapes1.mp3');
+	(1,1,1,'1',42.132059,-99.103302,20000,10000,0.5,0.5,'http://scapesaudio.dyndns.org:8000/scapes1.mp3','http://scapesaudio.dyndns.org:8000/scapes1.mp3');
 
 /*!40000 ALTER TABLE `rw_speaker` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -657,6 +711,7 @@ CREATE TABLE `rw_tag` (
   `value` longtext NOT NULL,
   `description` longtext NOT NULL,
   `data` longtext,
+  `filter` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `rw_tag_1f0789df` (`tag_category_id`),
   CONSTRAINT `tag_category_id_refs_id_194541f7` FOREIGN KEY (`tag_category_id`) REFERENCES `rw_tagcategory` (`id`)
@@ -665,17 +720,49 @@ CREATE TABLE `rw_tag` (
 LOCK TABLES `rw_tag` WRITE;
 /*!40000 ALTER TABLE `rw_tag` DISABLE KEYS */;
 
-INSERT INTO `rw_tag` (`id`, `tag_category_id`, `value`, `description`, `data`)
+INSERT INTO `rw_tag` (`id`, `tag_category_id`, `value`, `description`, `data`, `filter`)
 VALUES
-	(3,3,'','male',''),
-	(4,3,'','female',''),
-	(5,2,'filler','Why are you using Roundware?\r\n',''),
-	(8,4,'filler','Artist',''),
-	(9,4,'','Visitor',''),
-	(21,6,'','Leave feedback',''),
-	(22,2,'','Respond to something you\'ve heard.','');
+	(3,3,'male','male','','--'),
+	(4,3,'female','female','','--'),
+	(5,2,'Why RW?','Why are you using Roundware?\r\n','','--'),
+	(8,4,'Artist','Artist','','--'),
+	(9,4,'Visitor','Visitor','','--'),
+	(21,6,'feedback','Leave feedback','','--'),
+	(22,2,'respond','Respond to something you\'ve heard.','','--'),
+	(23,4,'curator','curator','class=tag-one','--'),
+	(24,7,'recent','recent','','_ten_most_recent_days'),
+	(25,7,'nearby','nearby','','_within_10km');
 
 /*!40000 ALTER TABLE `rw_tag` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+# Dump of table rw_tag_loc_description
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `rw_tag_loc_description`;
+
+CREATE TABLE `rw_tag_loc_description` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tag_id` int(11) NOT NULL,
+  `localizedstring_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `rw_tag_loc_description_tag_id_b1f7076_uniq` (`tag_id`,`localizedstring_id`),
+  KEY `rw_tag_loc_description_5659cca2` (`tag_id`),
+  KEY `rw_tag_loc_description_f2fd4c16` (`localizedstring_id`),
+  CONSTRAINT `localizedstring_id_refs_id_20d1f27d` FOREIGN KEY (`localizedstring_id`) REFERENCES `rw_localizedstring` (`id`),
+  CONSTRAINT `tag_id_refs_id_f0c4aaf` FOREIGN KEY (`tag_id`) REFERENCES `rw_tag` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+LOCK TABLES `rw_tag_loc_description` WRITE;
+/*!40000 ALTER TABLE `rw_tag_loc_description` DISABLE KEYS */;
+
+INSERT INTO `rw_tag_loc_description` (`id`, `tag_id`, `localizedstring_id`)
+VALUES
+	(5,24,58),
+	(4,25,59);
+
+/*!40000 ALTER TABLE `rw_tag_loc_description` ENABLE KEYS */;
 UNLOCK TABLES;
 
 
@@ -701,22 +788,67 @@ LOCK TABLES `rw_tag_loc_msg` WRITE;
 
 INSERT INTO `rw_tag_loc_msg` (`id`, `tag_id`, `localizedstring_id`)
 VALUES
-	(1,3,5),
-	(2,3,6),
-	(4,4,7),
-	(3,4,8),
-	(5,5,9),
-	(6,5,10),
-	(7,8,15),
-	(8,8,16),
-	(10,9,17),
-	(9,9,18),
-	(12,21,41),
-	(11,21,42),
-	(14,22,43),
-	(13,22,44);
+	(62,3,5),
+	(63,3,6),
+	(65,4,7),
+	(64,4,8),
+	(66,5,9),
+	(67,5,10),
+	(69,8,15),
+	(68,8,16),
+	(70,9,17),
+	(71,9,18),
+	(72,21,41),
+	(73,21,42),
+	(74,22,43),
+	(75,22,44),
+	(76,23,57),
+	(77,24,58),
+	(61,25,59);
 
 /*!40000 ALTER TABLE `rw_tag_loc_msg` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+# Dump of table rw_tag_relationships
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `rw_tag_relationships`;
+
+CREATE TABLE `rw_tag_relationships` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_tag_id` int(11) NOT NULL,
+  `to_tag_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `rw_tag_relationships_from_tag_id_12e376df_uniq` (`from_tag_id`,`to_tag_id`),
+  KEY `rw_tag_relationships_335d9ea3` (`from_tag_id`),
+  KEY `rw_tag_relationships_27bf15b0` (`to_tag_id`),
+  CONSTRAINT `from_tag_id_refs_id_5da427d` FOREIGN KEY (`from_tag_id`) REFERENCES `rw_tag` (`id`),
+  CONSTRAINT `to_tag_id_refs_id_5da427d` FOREIGN KEY (`to_tag_id`) REFERENCES `rw_tag` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+LOCK TABLES `rw_tag_relationships` WRITE;
+/*!40000 ALTER TABLE `rw_tag_relationships` DISABLE KEYS */;
+
+INSERT INTO `rw_tag_relationships` (`id`, `from_tag_id`, `to_tag_id`)
+VALUES
+	(90,3,3),
+	(106,3,4),
+	(108,3,5),
+	(110,3,8),
+	(112,3,9),
+	(114,3,21),
+	(116,3,22),
+	(118,3,23),
+	(105,4,3),
+	(107,5,3),
+	(109,8,3),
+	(111,9,3),
+	(113,21,3),
+	(115,22,3),
+	(117,23,3);
+
+/*!40000 ALTER TABLE `rw_tag_relationships` ENABLE KEYS */;
 UNLOCK TABLES;
 
 
@@ -740,7 +872,8 @@ VALUES
 	(2,'question',''),
 	(3,'gender',''),
 	(4,'usertype',''),
-	(6,'admin','');
+	(6,'admin',''),
+	(7,'channel','');
 
 /*!40000 ALTER TABLE `rw_tagcategory` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -770,11 +903,11 @@ LOCK TABLES `rw_uimapping` WRITE;
 
 INSERT INTO `rw_uimapping` (`id`, `master_ui_id`, `index`, `tag_id`, `default`, `active`)
 VALUES
-	(1,1,1,3,1,1),
-	(2,1,2,4,1,1),
+	(1,1,2,3,1,1),
+	(2,1,1,4,1,1),
 	(5,3,1,5,1,1),
-	(8,4,1,3,1,1),
-	(9,4,2,4,0,1),
+	(8,4,2,3,1,1),
+	(9,4,1,4,0,1),
 	(12,6,1,5,1,1),
 	(15,7,1,8,1,1),
 	(16,7,2,9,1,1),
