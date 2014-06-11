@@ -657,7 +657,7 @@ def request_stream(request):
         }
 
     elif is_listener_in_range_of_stream(request_form, project):
-        command = ['/usr/local/bin/streamscript', '--session_id', str(session.id), '--project_id', str(project.id)]
+        command = ['/usr/pythonenv/roundware-server/bin/streamscript', '--session_id', str(session.id), '--project_id', str(project.id)]
         for p in ['latitude', 'longitude', 'audio_format']:
             if request_form.has_key(p) and request_form[p]:
                 command.extend(['--' + p, request_form[p].replace("\t", ",")])

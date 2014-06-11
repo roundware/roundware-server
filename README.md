@@ -15,7 +15,7 @@ Roundware includes an install.sh to handle installation of the software and it's
 A VagrantFile is included for local development and testing with [Vagrant](http://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/). Usage:
 
     user@machine:~/roundware-server $ vagrant up
-	user@machine:~/roundware-server $ vagrant ssh
+    user@machine:~/roundware-server $ vagrant ssh
 	
 Vagrant will forward port the virtual machine port 80(Apache) to the host 8080, and VM port 8000(Icecase) to host 8000. Roundware will be accessible via a web browser at http://127.0.0.1:8080/admin/
 
@@ -156,7 +156,7 @@ Roundware has a default config file as well as the option of having project-spec
     heartbeat_timeout = 200
     # recording radius in meters
     recording_radius = 10
-    external_host_name_without_port = http://example.com
+    external_host_name_without_port = example.com
 
 You need to edit the default config file to change `external_host_name_without_port` to the URL of your RW server or else RW will return stream URLs with the incorrect server.
 You should also go over the other parameters in the config just to make sure they correspond to your setup, such as the database info.

@@ -51,7 +51,7 @@ DEFAULT_SESSION_ID = "-1"
 API_URL = "http://roundware.com/roundware/"
 MANAGERS = ADMINS
 # change this to the proper id for AnonymousUser in database for Guardian
-ANONYMOUS_USER_ID = 0
+ANONYMOUS_USER_ID = -1
 # settings for notifications module
 # this is the email account from which notifications will be sent
 EMAIL_HOST = 'smtp.gmail.com'
