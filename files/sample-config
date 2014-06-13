@@ -33,5 +33,7 @@ heartbeat_timeout = 200
 recording_repeat_count = 2
 # radius in meters - system wide setting 
 recording_radius = 1
-external_host_name_without_port = rw.externalhost.com
+
+external_host_name_without_port = example.com
+
 demo_stream_cpu_limit = 50.0
