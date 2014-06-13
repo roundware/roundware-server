@@ -1,6 +1,7 @@
 -r ./common.txt
 
-django-profiler==1.1
+django-debug-toolbar
+django-profiler==2.0
 
 #testing.  
 django-discoverage==1.0.0

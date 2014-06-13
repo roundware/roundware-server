@@ -29,7 +29,7 @@ LOGGING['handlers'].update({
         'formatter': 'verbose'
     },
     'profile_logfile': {
-        'filename': '../../rwprofiling',
+        'filename': 'rwprofiling',
         'level': 'DEBUG',
         'class': 'logging.FileHandler',
         'formatter': 'verbose'
