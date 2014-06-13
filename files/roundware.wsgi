@@ -2,10 +2,10 @@ import os
 import sys
 import site
 
-SITE_PACKAGES = '/usr/pythonenv/roundware-server/lib/python2.7/site-packages/'
-PROJECT_ROOT = '/home/ubuntu/roundware-server/'
-CODE_ROOT = '/home/ubuntu/roundware-server/roundware/'
-ACTIVATE_VENV = '/usr/pythonenv/roundware-server/bin/activate_this.py'
+SITE_PACKAGES = '/var/www/roundware/lib/python2.7/site-packages/'
+PROJECT_ROOT = '/var/www/roundware/source/'
+CODE_ROOT = '/var/www/roundware/source/roundware/'
+ACTIVATE_VENV = '/var/www/roundware/bin/activate_this.py'
 
 sys.stdout = sys.stderr
 

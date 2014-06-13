@@ -5,7 +5,7 @@ from south.v2 import SchemaMigration
 from django.db import models
 from django.core.files import File
 
-default_file = File(open('/var/www/rwmedia/rw_test_audio1.wav'))
+default_file = File(open('/var/www/roundware/rwmedia/rw_test_audio1.wav'))
 
 class Migration(SchemaMigration):
 

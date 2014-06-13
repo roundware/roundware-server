@@ -25,7 +25,7 @@ root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
 ######## ROUNDWARE SPECIFIC SETTINGS ###########
 # url base for media files
-MEDIA_BASE_URI = "http://roundware.org/rwmedia/" 
+MEDIA_BASE_URI = "/rwmedia/"
 # external url where audio files can be accessed
 AUDIO_FILE_URI = MEDIA_BASE_URI # + "audio"
 # external url where video files can be accessed
@@ -34,7 +34,7 @@ VIDEO_FILE_URI = AUDIO_FILE_URI #MEDIA_BASE_URI + "video"
 IMAGE_FILE_URI = AUDIO_FILE_URI #MEDIA_BASE_URI + "img"
 
 MEDIA_ROOT = ''
-MEDIA_BASE_DIR = "/var/www/rwmedia/"
+MEDIA_BASE_DIR = "/var/www/roundware/rwmedia/"
 # internal path name to media file directories
 AUDIO_FILE_DIR = MEDIA_BASE_DIR #+ "audio"
 VIDEO_FILE_DIR = MEDIA_BASE_DIR #+ "video"
@@ -48,14 +48,14 @@ ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES + ALLOW
 # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
 DEFAULT_SESSION_ID = "-1"
-API_URL = "http://roundware.com/roundware/"
+API_URL = "http://example.com/roundware/"
 MANAGERS = ADMINS
 # change this to the proper id for AnonymousUser in database for Guardian
 ANONYMOUS_USER_ID = -1
 # settings for notifications module
 # this is the email account from which notifications will be sent
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'email@gmail.com'
+EMAIL_HOST = 'smtp.example.com'
+EMAIL_HOST_USER = 'email@example.com'
 EMAIL_HOST_PASSWORD = 'password'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
@@ -76,10 +76,10 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
 
         'NAME': 'roundware',                      # Or path to database file if using sqlite3.
-        'USER': 'round',                      # Not used with sqlite3.
-        'PASSWORD': 'round',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'USER': 'round',
+        'PASSWORD': 'round',
+        'HOST': '',
+        'PORT': '',
     }
 }
 
@@ -112,12 +112,12 @@ USE_L10N = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/var/www/roundware/rwmedia'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = ''
+MEDIA_URL = '/rwmedia/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
@@ -125,7 +125,7 @@ MEDIA_URL = ''
 # This should be the path to the 'static' directory at the root of the 
 # roundware-server installation.
 # Example: "/home/ubuntu/roundware-server/static/"
-STATIC_ROOT = "/home/ubuntu/roundware-server/static"
+STATIC_ROOT = "/var/www/roundware/static/"
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -190,7 +190,6 @@ INSTALLED_APPS = (
     'roundware.rw',
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
-    # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
