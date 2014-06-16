@@ -1,3 +1,6 @@
 .vagrant
 vagrant_ansible_inventory_default
 
+build
+static
+local_settings.py
