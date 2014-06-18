@@ -24,8 +24,11 @@
 #***********************************************************************************#
 
 
-from django.conf import settings  #, urls
+from django.conf import settings
 from django.conf.urls import patterns, url, include
+
+# Loading static files for debug mode
+from django.conf.urls.static import static
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -78,7 +81,7 @@ urlpatterns = patterns('',
     # can't use ajax_filtered_fields' urls.py since it relies on old default
     # urls import
     url(r'^ajax_filtered_fields/json_index/$', json_index),
-) 
+) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     try:

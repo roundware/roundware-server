@@ -26,7 +26,7 @@
 
 import time
 import subprocess
-import os
+import os, sys
 import logging
 import json
 import uuid
@@ -657,7 +657,9 @@ def request_stream(request):
         }
 
     elif is_listener_in_range_of_stream(request_form, project):
-        command = ['/usr/pythonenv/roundware-server/bin/streamscript', '--session_id', str(session.id), '--project_id', str(project.id)]
+        roundwared_directory = os.path.dirname(os.path.realpath(__file__))
+
+        command = [roundwared_directory + '/rwstreamd.py', '--session_id', str(session.id), '--project_id', str(project.id)]
         for p in ['latitude', 'longitude', 'audio_format']:
             if request_form.has_key(p) and request_form[p]:
                 command.extend(['--' + p, request_form[p].replace("\t", ",")])
@@ -679,7 +681,7 @@ def request_stream(request):
                 icecast_mount_point(session.id, audio_format),
         }
     else:
-        msg = "This application is designed to be used in specific geographic locations.  Apparently your phone thinks you are not at one of those locations, so you will hear a sample audio stream instead of the real deal.  If you think your phone is incorrect, please restart Scapes and it will probably work.  Thanks for checking it out!"
+        msg = "This application is designed to be used in specific geographic locations. Apparently your phone thinks you are not at one of those locations, so you will hear a sample audio stream instead of the real deal. If you think your phone is incorrect, please restart Scapes and it will probably work. Thanks for checking it out!"
         try:
             msg = project.out_of_range_message_loc.filter(language=session.language)[0].localized_string
         except:
@@ -788,16 +790,20 @@ def get_events(request):
 
 def apache_safe_daemon_subprocess(command):
     logging.debug(str(command))
-    DEVNULL_OUT = open(os.devnull, 'w')
-    DEVNULL_IN = open(os.devnull, 'r')
+    env = os.environ.copy()
+    env['PYTHONPATH'] = ":".join(sys.path)
+
+    # TODO: A method to get the stdout/stderr data which doesn't deadlock
     proc = subprocess.Popen(
         command,
         close_fds=True,
-        stdin=DEVNULL_IN,
-        stdout=DEVNULL_OUT,
-        stderr=DEVNULL_OUT,
+        #stdout=subprocess.PIPE,
+        #stderr=subprocess.PIPE,
+        env=env,
     )
-    proc.wait()
+    #(stdout, stderr) = proc.communicate()
+    #logging.debug("subprocess_stdout: " + stdout)
+    #logging.debug("subprocess_stdout: " + stderr)
 
 
 # Loops until the give stream is present and ready to be listened to.
@@ -806,13 +812,16 @@ def wait_for_stream(sessionid, audio_format):
     admin = icecast2.Admin(settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"]),
                            settings.config["icecast_username"],
                            settings.config["icecast_password"])
-    retries_left = 1000
+    # Stream wait timeout in seconds
+    timeout = 30
+    # Number of retries timeout/(time to wait between retries)
+    retries_left = timeout/0.1
+
     while not admin.stream_exists(icecast_mount_point(sessionid, audio_format)):
-        if retries_left > 0:
-            retries_left -= 1
-        else:
-            raise roundexception.RoundException("Stream timedout on creation")
         time.sleep(0.1)
+        retries_left -= 1
+        if retries_left < 0:
+            raise roundexception.RoundException("Stream timeout on creation")
 
 
 def stream_exists(sessionid, audio_format):
