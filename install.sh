@@ -117,7 +117,6 @@ cp $CODE_PATH/files/freshclam.conf /etc/clamav/freshclam.conf
 echo "create database IF NOT EXISTS roundware;" | mysql -uroot -p$MYSQL_ROOT
 echo "grant all privileges on roundware.* to 'round'@'localhost' identified by 'round';" | mysql -uroot -p$MYSQL_ROOT
 
-
 # File/directory configurations
 mkdir -p $MEDIA_PATH
 mkdir -p $STATIC_PATH
@@ -126,16 +125,13 @@ chown $USERNAME:$USERNAME /var/log/roundware
 # copy default RW config file into place - don't forget to edit!
 mkdir -p /etc/roundware
 cp $CODE_PATH/files/sample-config /etc/roundware/rw
-# copy test audio file to correct location
+# copy test audio file to media storage
 cp $CODE_PATH/files/rw_test_audio1.wav $MEDIA_PATH
 # install correct shout2send gstreamer plugin
-#mv /usr/lib/i386-linux-gnu/gstreamer-0.10/libgstshout2.so /usr/lib/i386-linux-gnu/gstreamer-0.10/libgstshout2.so.old
-#cp $CODE_PATH/files/32-bit/libgstshout2.so /usr/lib/i386-linux-gnu/gstreamer-0.10/libgstshout2.so
 mv /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so.old
 cp $CODE_PATH/files/64-bit/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so
 
 # Install Roundware
-python $CODE_PATH/setup.py install
 $CODE_PATH/roundware/manage.py collectstatic --noinput
 
 # Set $USERNAME to own all files

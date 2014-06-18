@@ -26,7 +26,7 @@
 
 import time
 import subprocess
-import os
+import os, sys
 import logging
 import json
 import uuid
@@ -659,7 +659,7 @@ def request_stream(request):
     elif is_listener_in_range_of_stream(request_form, project):
         roundwared_directory = os.path.dirname(os.path.realpath(__file__))
 
-        command = [roundwared_directory + 'rwstreamd.py', '--session_id', str(session.id), '--project_id', str(project.id)]
+        command = [roundwared_directory + '/rwstreamd.py', '--session_id', str(session.id), '--project_id', str(project.id)]
         for p in ['latitude', 'longitude', 'audio_format']:
             if request_form.has_key(p) and request_form[p]:
                 command.extend(['--' + p, request_form[p].replace("\t", ",")])
@@ -790,16 +790,20 @@ def get_events(request):
 
 def apache_safe_daemon_subprocess(command):
     logging.debug(str(command))
-    DEVNULL_OUT = open(os.devnull, 'w')
-    DEVNULL_IN = open(os.devnull, 'r')
+    env = os.environ.copy()
+    env['PYTHONPATH'] = ":".join(sys.path)
+
+    # TODO: A method to get the stdout/stderr data which doesn't deadlock
     proc = subprocess.Popen(
         command,
         close_fds=True,
-        stdin=DEVNULL_IN,
-        stdout=DEVNULL_OUT,
-        stderr=DEVNULL_OUT,
+        #stdout=subprocess.PIPE,
+        #stderr=subprocess.PIPE,
+        env=env,
     )
-    proc.wait()
+    #(stdout, stderr) = proc.communicate()
+    #logging.debug("subprocess_stdout: " + stdout)
+    #logging.debug("subprocess_stdout: " + stderr)
 
 
 # Loops until the give stream is present and ready to be listened to.
@@ -810,7 +814,7 @@ def wait_for_stream(sessionid, audio_format):
                            settings.config["icecast_password"])
     # Stream wait timeout in seconds
     timeout = 30
-    # Number of retries timeout/(time to wait between checks)
+    # Number of retries timeout/(time to wait between retries)
     retries_left = timeout/0.1
 
     while not admin.stream_exists(icecast_mount_point(sessionid, audio_format)):
