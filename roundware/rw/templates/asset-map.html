@@ -225,12 +225,12 @@
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
     }
 
-    	/**
-	 * return an HTML string to be used as a marker's info window
-	 */
-	function create_info_window(id, description, fn, fnwav)
-	{
-		var marker_div = '<div class="markerDiv">' +
+        /**
+     * return an HTML string to be used as a marker's info window
+     */
+    function create_info_window(id, description, fn, fnwav)
+    {
+        var marker_div = '<div class="markerDiv">' +
                 'Asset ID: '+ id +
                 '<br />' +
                     '<audio controls="controls">' +
@@ -246,9 +246,9 @@
                     '</audio>' +
                 '<div>'+ description +'</div>';
 
-		return new google.maps.InfoWindow({
-			content: marker_div
-		});
-	}
+        return new google.maps.InfoWindow({
+            content: marker_div
+        });
+    }
 
 </script>
