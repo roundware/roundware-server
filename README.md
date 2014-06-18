@@ -1,23 +1,42 @@
 # ROUNDWARE INSTALLATION GUIDE
 ## Overview
 
-Roundware is a client-server system. The server runs on Ubuntu Linux, version 12.04 LTS Precise Pangolin and clients are available for iOS, Android and HTML5 browsers. This document outlines the steps required to setup a Roundware server with a basic installation that can be accessed through any of these clients.
-For more information about Roundware functionalities and projects that use the platform, please check out:[roundware.org](http://roundware.org "Roundware")
+Roundware is a client-server system. The server runs using Apache HTTP Server and mod_wsgi on Ubuntu Linux 12.04 LTS Precise Pangolin and clients are available for iOS, Android and HTML5 browsers. This document outlines the steps required to setup a basic Roundware server that can be accessed through any of these clients.
+
+For more information about Roundware functionalities and projects that use the platform, please check out: [roundware.org](http://roundware.org "Roundware")
 
 ## Basic Installation
 
-Roundware includes an install.sh to handle installation of the software and it's dependencies. Further configuration is required, but the majority of the process is automated:
+Roundware includes an *install.sh* to handle installation of the software and it's dependencies. The majority of the process is automated. Further configuration is required for a production system, application specific details are below.
 
-    user@machine:~/roundware-server $ sudo ./install.sh
-   
+    user@server:~ $ git clone https://github.com/hburgund/roundware-server.git
+    user@server:~ $ cd roundware-server
+    user@server:~/roundware-server $ sudo ./install.sh
+
+The installation process creates a *roundware* user as project owner. su to that user to load the required virtual environment:
+
+    sudo su - roundware
+
 ## Vagrant
 
 A VagrantFile is included for local development and testing with [Vagrant](http://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/). Usage:
 
-    user@machine:~/roundware-server $ vagrant up
-    user@machine:~/roundware-server $ vagrant ssh
-	
-Vagrant will forward port the virtual machine port 80(Apache) to the host 8080, and VM port 8000(Icecase) to host 8000. Roundware will be accessible via a web browser at http://127.0.0.1:8080/admin/
+    user@local-machine:~ $ git clone https://github.com/hburgund/roundware-server.git
+    user@local-machine:~ $ cd roundware-server
+    user@local-machine:~/roundware-server $ vagrant up
+    user@local-machine:~/roundware-server $ vagrant ssh
+    (roundware)vagrant@roundware-server:~$ ./runserver.sh
+
+Notes:
+
+ * The installation process uses the default *vagrant* user as project owner.
+ * The install script relies on the Vagrant default fileshare of host:~/roundware-server to vm:/vagrant for installation and development.
+ * There are multiple port forwards from the host to the VM:
+   * VM:80->host:8080 for Apache hosting the demo "live" environment available at http://127.0.0.1:8080/
+   * VM:8888->host:8888 for the manage.py runserver development webserver available at http://127.0.0.1:8888/
+   * VM:8000->host:8000 for Icecast.
+ * Initialize the test Roundware stream at: http://127.0.0.1:8888/roundware/?operation=request_stream&session_id=2891 then access it with an audio stream player at: http://127.0.0.1:8000/stream2891.mp3
+ * Edit the development environment code on your local machine, then refresh to see the changes reflected in the virtual machine.
 
 ## Icecast
 
@@ -58,19 +77,17 @@ To verify that icecast is up and running go to `http://example.com:8000` to see 
 
 ## MySQL
 
-Roundware uses MySQL and requires a dedicated database with a dedicated user. 
+Roundware uses MySQL and requires a dedicated database with a dedicated user.
 
 You may change the database name and account info to fit your needs, but if you do, be sure to change the Roundware config (`/etc/roundware/rw`) and the Django settings (`roundware-server/roundware/settings.py`) to reflect your changes.
 
 ## Apache
 
-Apache must be configured to use [mod_wsgi](http://www.modwsgi.org) to host Roundware. A default config is included at `roundware-server/files/apache-config-example-wsgi`. If manually installing on a clean 12.04 machine, this file can simply be copied to the Apache configuration directory, though there are several changes that should be made to reflect your environment. Look for the following lines in the `apache-config-example-wsgi`, and change them to reflect the location to which you've installed Roundware.
+Apache must be configured to use [mod_wsgi](http://www.modwsgi.org) to host Roundware. A default config is included at `roundware-server/files/apache-config-example-wsgi`. If manually installing on a clean 12.04 machine, this file can simply be copied to the Apache configuration directory, though there are several changes that should be made to reflect your environment.
 
 ### Configure Django, the Python framework Roundware uses.
 
-Reset the Django database by running the resetDb.sh script:
-
-    user@machine:~/roundware-server/roundware$ sh resetDB.sh
+    (roundware)user@machine:~/roundware-server/roundware$ ./manage.py syncdb
 
 *Note - this script may prompt for the username and password for your database. If you changed these values from the defaults when creating the Roundware DB, the changes must be reflected here.*
 You'll be asked if you want to create a superuser like so:
@@ -82,11 +99,11 @@ Answer yes, and provide the default values for username ('round') and password (
 
 If you have a fixture data file, you can populate your database with this data by running the Django command:
 
-    user@machine:~/roundware-server/roundware$ Python manage.py loaddata <path_to_fixture>
+    (roundware)user@machine:~/roundware-server/roundware$ ./manage.py loaddata <path_to_fixture>
 
 The base Roundware install package includes a standard DB fixture file to populate a default database with the basic data you will need to test your installation. That can be installed similarly, if you so choose:
 
-    user@machine:~/roundware-server/roundware$ Python manage.py loaddata rw/fixtures/base_rw.json
+    (roundware)user@machine:~/roundware-server/roundware$ ./manage.py loaddata rw/fixtures/base_rw.json
 
 Make some edits to the Django settings file, `roundware/settings.py`:
 
