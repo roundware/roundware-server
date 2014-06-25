@@ -149,16 +149,10 @@ def vote_asset(request):
     v.save()
     return {"success": True}
 
-#2.0 Protocol
-
-
 # @profile(stats=True)
 def get_config(request):
     form = request.GET
-    try:
-        hostname_without_port = str(settings.config["external_host_name_without_port"])
-    except KeyError:
-        raise roundexception.RoundException("Roundware configuration file is missing 'external_host_name_without_port' key. ")
+
     #check params
     if not form.has_key('project_id'):
         raise roundexception.RoundException("a project_id is required for this operation")
@@ -178,14 +172,28 @@ def get_config(request):
         except:
             pass
 
-    s = models.Session(device_id=device_id, starttime=datetime.datetime.now(), project=project, language=l)
-    if form.has_key('client_type'):
-        s.client_type = form.get('client_type')
-    if form.has_key('client_system'):
-        s.client_system = form.get('client_system')
+    # Get current available CPU as percentage.
+    cpu_idle = psutil.cpu_times_percent().idle
+    # Demo stream is enabled if enabled project wide or CPU idle is less than CPU limit (default 50%.)
+    demo_stream_enabled = project.demo_stream_enabled or cpu_idle < float(settings.config["demo_stream_cpu_limit"])
+
+    # Create a new session if new_session is not equal 'false'
+    create_new_session = form.get('new_session') != 'false'
+
+    session_id = 0
+    if create_new_session:
+        s = models.Session(device_id=device_id, starttime=datetime.datetime.now(), project=project, language=l)
+        if form.has_key('client_type'):
+            s.client_type = form.get('client_type')
+        if form.has_key('client_system'):
+            s.client_system = form.get('client_system')
+        s.demo_stream_enabled = demo_stream_enabled
 
 
-    sharing_url = str.format("http://{0}/roundware/?operation=view_envelope&envelopeid=[id]", hostname_without_port)
+        s.save()
+        session_id = s.id
+        db.log_event('start_session', s.id, None)
+
     sharing_message = "none set"
     out_of_range_message = "none set"
     legal_agreement = "none set"
@@ -207,49 +215,41 @@ def get_config(request):
     except:
         pass
 
-    cpu_idle = psutil.cpu_times_percent().idle
-    s.demo_stream_enabled = project.demo_stream_enabled or cpu_idle < float(settings.config["demo_stream_cpu_limit"])
-
-    s.save()
-    session_id = s.id
-
     response = [
-            {"device":{"device_id": device_id}},
-            {"session":{"session_id": session_id}},
-            {"project":{
-                    "project_id":project.id,
-                    "project_name":project.name,
-                    "audio_format":project.audio_format,
-                    "max_recording_length":project.max_recording_length,
-                    "recording_radius":project.recording_radius,
-                    "sharing_message":sharing_message,
-                    "out_of_range_message":out_of_range_message,
-                    "sharing_url":project.sharing_url,
-                    "listen_questions_dynamic":project.listen_questions_dynamic,
-                    "speak_questions_dynamic":project.speak_questions_dynamic,
-                    "listen_enabled":project.listen_enabled,
-                    "geo_listen_enabled":project.geo_listen_enabled,
-                    "speak_enabled":project.speak_enabled,
-                    "geo_speak_enabled":project.geo_speak_enabled,
-                    "reset_tag_defaults_on_startup":project.reset_tag_defaults_on_startup,
-                    "legal_agreement":legal_agreement,
-                    "files_url":project.files_url,
-                    "files_version":project.files_version,
-                    "audio_stream_bitrate":project.audio_stream_bitrate,
-                    # TODO: following attribute 'demo_stream_enabled' has been moved to the 'session' object
-                    "demo_stream_enabled":s.demo_stream_enabled,
-                    "demo_stream_url":project.demo_stream_url,
-                    "demo_stream_message":demo_stream_message,
-                    "latitude":project.latitude,
-                    "longitude":project.longitude
-                    }},
-
-            {"server":{
-                    "version": "2.0"}},
-            {"speakers":[dict(d) for d in speakers]},
-            {"audiotracks":[dict(d) for d in audiotracks]}
+        {"device":{"device_id": device_id}},
+        {"session":{"session_id": session_id}},
+        {"project":{
+            "project_id":project.id,
+            "project_name":project.name,
+            "audio_format":project.audio_format,
+            "max_recording_length":project.max_recording_length,
+            "recording_radius":project.recording_radius,
+            "sharing_message":sharing_message,
+            "out_of_range_message":out_of_range_message,
+            "sharing_url":project.sharing_url,
+            "listen_questions_dynamic":project.listen_questions_dynamic,
+            "speak_questions_dynamic":project.speak_questions_dynamic,
+            "listen_enabled":project.listen_enabled,
+            "geo_listen_enabled":project.geo_listen_enabled,
+            "speak_enabled":project.speak_enabled,
+            "geo_speak_enabled":project.geo_speak_enabled,
+            "reset_tag_defaults_on_startup":project.reset_tag_defaults_on_startup,
+            "legal_agreement":legal_agreement,
+            "files_url":project.files_url,
+            "files_version":project.files_version,
+            "audio_stream_bitrate":project.audio_stream_bitrate,
+            "demo_stream_enabled":demo_stream_enabled,
+            "demo_stream_url":project.demo_stream_url,
+            "demo_stream_message":demo_stream_message,
+            "latitude":project.latitude,
+            "longitude":project.longitude
+            }
+        },
+        {"server":{"version": "2.0"}},
+        {"speakers":[dict(d) for d in speakers]},
+        {"audiotracks":[dict(d) for d in audiotracks]}
     ]
-    db.log_event('start_session', session_id, None)
+
     return response
 
 
@@ -804,7 +804,6 @@ def apache_safe_daemon_subprocess(command):
     #(stdout, stderr) = proc.communicate()
     #logging.debug("subprocess_stdout: " + stdout)
     #logging.debug("subprocess_stdout: " + stderr)
-
 
 # Loops until the give stream is present and ready to be listened to.
 def wait_for_stream(sessionid, audio_format):
