@@ -141,12 +141,8 @@ chown $USERNAME:$USERNAME -R $WWW_PATH
 # Initialize database with syncdb and default_auth_data.json
 $CODE_PATH/roundware/manage.py syncdb --noinput
 $CODE_PATH/roundware/manage.py loaddata $CODE_PATH/roundware/fixtures/default_auth_data.json
-$CODE_PATH/roundware/manage.py migrate roundware.rw
-$CODE_PATH/roundware/manage.py migrate roundware.notifications
-$CODE_PATH/roundware/manage.py migrate guardian
+$CODE_PATH/roundware/manage.py migrate
 mysql -uroot -p$MYSQL_ROOT roundware < $CODE_PATH/files/rw_base.sql
-
-# TODO: Tastypie migration?
 
 # Setup apache
 
