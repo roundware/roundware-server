@@ -752,19 +752,23 @@ def heartbeat(request):
 
 
 def current_version(request):
+    """
+    Returns the current API version number
+    """
     return {"version": "2.0"}
 
 def get_events(request):
+    """
+    Return all events for the specified session_id
+    """
     form = request.GET
-    session_id = form.get('session_id', None)
-    events = models.Event.objects.filter(session=session_id)
-    # event_types = models.Event.objects.values_list('event_type').distinct()
-    events_info = {}
-    events_info['number_of_events'] = 0
-    # for etype in event_types:
-    #     events_info['number_of_events'][etype]= 0
-    events_list = []
-    if form.has_key('session_id'):
+    if 'session_id' in form:
+        session = models.Session.objects.get(id=form['session_id'])
+        events = models.Event.objects.filter(session=form['session_id'])
+        events_info = {}
+        events_info['number_of_events'] = 0
+        events_list = []
+
         for e in events:
             events_list.append(
                 dict(event_id=e.id,
@@ -778,10 +782,12 @@ def get_events(request):
                      )
             )
             events_info['number_of_events'] +=1
+
         events_info['events'] = events_list
+        events_info['project_id'] = session.project.id
         return events_info
     else:
-        return {"error": "no session_id!!"}
+        return {"error": "no session_id"}
 
 #END 2.0 Protocol
 
