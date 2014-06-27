@@ -47,8 +47,8 @@ ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES + ALLOW
 
 # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
-DEFAULT_SESSION_ID = "-1"
-API_URL = "http://example.com/roundware/"
+DEFAULT_SESSION_ID = "-10"
+API_URL = "http://127.0.0.1/roundware/"
 MANAGERS = ADMINS
 # change this to the proper id for AnonymousUser in database for Guardian
 ANONYMOUS_USER_ID = -1
