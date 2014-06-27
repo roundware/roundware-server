@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Session Map</title>
+<style type="text/css">
+    html { height: 100% }
+    body { height: 100%; margin: 0; padding: 0; font-family: "Helvetica Neue"; }
+    #session-form {
+        position: absolute;
+        left: 100px;
+        top: 5px;
+        z-index: 100;
+        font-size: 30px;
+        background-color: rgba(255,255,255,0.8);
+        padding: 5px 10px;
+        border-radius: 10px;
+    }
+    #session_id { font-size: 30px; width: 150px;}
+    #map-canvas { height: 100%; display: none;  }
+    #waiting { height: 100%; width: 100%; position: relative; }
+    #waiting h1 {
+        position: relative;
+        top: 40%;
+        text-align: center;
+    }
+</style>
+
+</head>
+<body>
+<div id="session-form">Session ID: <input type="number" id="session_id" /></div>
+<div id="map-canvas"></div>
+<div id="waiting"><h1>Enter a Session ID...</h1></div>
+
+<script type="text/javascript" src="rw/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false&libraries=geometry&callback=initialize"></script>
+<script type="text/javascript" src="rw/listen-map.js"></script>
+<script type="text/javascript" src="rw/session-map.js"></script>
+
+<script type="text/javascript">
+
+//
+// The Google Maps API script tag includes a callback to initialize, a function that
+// pulls the session_id parameter out of the URL and uses it to initialize a
+// Roundware.SessionMap object and call its map() function.
+
+// lookup a key in the URL query string and return its value, or empty string if the
+// key can't be found.
+//
+// @param name string: name of the key to search for
+//
+// ripped from http://stackoverflow.com/questions/1403888/get-escaped-url-parameter
+Roundware.get_url_parameter = function(name) {
+    return decodeURIComponent(
+        (location.search.match(RegExp("[?&]"+name+"=([^&]*)"))||[,""])[1]
+    );
+};
+
+
+
+function initialize()
+{
+    // pull project_id from the URL if available, or default to 7
+    var project_id = Roundware.get_url_parameter('project_id') || 7;
+
+    var sm = new Roundware.SessionMap({
+        project_id : project_id,
+        url: "http://roundware-int.exploratorium.edu/roundware"
+        });
+    sm.main(Roundware.get_url_parameter('session_id'));
+};
+</script>
+
+</body>
+</html>
