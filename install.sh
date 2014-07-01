@@ -89,7 +89,7 @@ python-gst0.10 python-flup gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 \
 gstreamer0.10-plugins-base gstreamer0.10-plugins-bad gstreamer0.10-plugins-good \
 gstreamer0.10-plugins-bad-multiverse gstreamer0.10-plugins-ugly libavcodec-extra-53 \
 python-pip gstreamer-tools python-setuptools python-profiler libmagic1 clamav-daemon \
-python-clamav python-lxml python-dev python-pycurl
+python-clamav python-lxml python-dev python-pycurl mediainfo
 
 # Install/upgrade virtualenv
 pip install -U virtualenv
