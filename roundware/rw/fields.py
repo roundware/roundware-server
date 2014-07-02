@@ -47,18 +47,7 @@ class RWValidatedFileField(ValidatedFileField):
         # http headers and by peeking in the file
         data = super(RWValidatedFileField, self).clean(*args, **kwargs)
 
-        file = data.file
-
-        # next scan with pyclamav
-        tmpfile = file.file.name
-        import pyclamav  # keep this import here to not slow down streamscript
-        has_virus, virus_name = pyclamav.scanfile(tmpfile)
-        if has_virus:
-            fn = file.name
-            raise forms.ValidationError(
-                'The file %s you uploaded appears to contain a virus or be'
-                'malware (%s).' % (fn, virus_name)
-            )
+        # ClamAV scan was here. See: https://github.com/hburgund/roundware-server/issues/107
 
         return data
 
@@ -74,4 +63,3 @@ class RWTagOrderingSortedMultipleChoiceField(SortedMultipleChoiceField):
         """
         value = [v for v in value if not v.startswith('t')]
         super(RWTagOrderingSortedMultipleChoiceField, self).clean(value)
-        
