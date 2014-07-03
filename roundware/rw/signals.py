@@ -32,8 +32,6 @@ from django.conf import settings
 
 API_URL = getattr(settings, "API_URL")
 
-logger = logging.getLogger(name=__file__)
-
 def create_envelope(instance, **kwargs):
     """
     Called before the Asset is saved.
@@ -50,7 +48,7 @@ def create_envelope(instance, **kwargs):
     content = json.loads(result.read())
 
     if 'error_message' in content:
-        logger.info("error message is pre_save: %s" % content['error_message'])
+        logging.info("error message is pre_save: %s" % content['error_message'])
         return
         #get the envelope Id from the return message
     instance.ENVELOPE_ID = content['envelope_id']
@@ -67,5 +65,5 @@ def add_asset_to_envelope(instance, **kwargs):
     content = json.loads(result.read())
 
     if 'error_message' in content:
-        logger.info("error message is post_save: %s" % content['error_message'])
+        logging.info("error message is post_save: %s" % content['error_message'])
         return

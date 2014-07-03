@@ -43,8 +43,6 @@ import json
 
 import logging
 
-logger = logging.getLogger(name=__file__)
-
 
 class Language(models.Model):
     language_code = models.CharField(max_length=10)
