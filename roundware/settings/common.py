@@ -217,7 +217,14 @@ LOGGING = {
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/roundware',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
@@ -226,13 +233,24 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        # The roundware system logger.
+        'roundware': {
+            'level': 'INFO',
+            'handlers': ['mail_admins', 'file'],
+        },
+        # The roundwared stream manager logger.
+        'roundwared': {
+            'level': 'INFO',
+            'handlers': ['mail_admins', 'file'],
+        },
     },
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
+            'format' : "[%(asctime)s] %(levelname)s <%(name)s:%(lineno)s> %(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
-            'format': '%(levelname)s %(module)s %(message)s'
+            'format': '%(levelname)s %(message)s'
         },
     },
 }

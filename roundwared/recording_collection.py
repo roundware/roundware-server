@@ -40,6 +40,7 @@ from roundwared import db
 from operator import itemgetter
 from roundwared.asset_sorters import order_assets_randomly, order_assets_by_like, order_assets_by_weight
 
+logger = logging.getLogger(__name__)
 
 class RecordingCollection:
     ######################################################################
@@ -49,7 +50,7 @@ class RecordingCollection:
         self.radius = radius
         self.stream = stream
         self.request = request
-        logging.debug("RecordingCollection init - request: " + str(request))
+        logger.debug("RecordingCollection init - request: " + str(request))
         # these are lists of model.Recording objects ie [rec1,rec2,etc]
         self.all_recordings = []
         self.far_recordings = []
@@ -62,14 +63,14 @@ class RecordingCollection:
     # Updates the request stored in the collection.
     # @profile(stats=True)
     def update_request(self, request):
-        logging.debug("update_request")
+        logger.debug("update_request")
         self.lock.acquire()
         self.all_recordings = db.get_recordings(request)
         self.far_recordings = self.all_recordings
         self.nearby_played_recordings = []
         self.nearby_unplayed_recordings = []
         self.update_nearby_recordings(request)
-        logging.debug("update_request: all_recordings count: " + str(len(self.all_recordings))
+        logger.debug("update_request: all_recordings count: " + str(len(self.all_recordings))
                       + ", far_recordings count: " + str(len(self.far_recordings))
                       + ", nearby_played_recordings count: " + str(len(self.nearby_played_recordings))
                       + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
@@ -78,54 +79,54 @@ class RecordingCollection:
     # Gets a new recording to play.
     # @profile(stats=True)
     def get_recording(self):
-        logging.debug("Recording Collection: Getting a recording from the bucket.")
+        logger.debug("Recording Collection: Getting a recording from the bucket.")
         self.lock.acquire()
         recording = None
-        logging.debug("Recording Collection: we have " + str(len(self.nearby_unplayed_recordings)) + " unplayed recs.")
+        logger.debug("Recording Collection: we have " + str(len(self.nearby_unplayed_recordings)) + " unplayed recs.")
         if len(self.nearby_unplayed_recordings) > 0:
 #           index = random.randint(0, len(self.nearby_unplayed_recordings) - 1)
             index = 0
             recording = self.nearby_unplayed_recordings.pop(index)
-            logging.debug("RecordingCollection: get_recording: Got " + str(recording.filename))
+            logger.debug("RecordingCollection: get_recording: Got " + str(recording.filename))
             self.nearby_played_recordings.append(recording)
         elif len(self.nearby_played_recordings) > 0:
-            logging.debug("!!!!!!!!!!!!!!!!!get_recording 1")
-            logging.debug("!!!!!!!!!!!!!!!!!get_recording request:  " + str(self.request))
+            logger.debug("get_recording 1")
+            logger.debug("get_recording request:  " + str(self.request))
             p = models.Project.objects.get(id=int(self.request['project_id']))
-            logging.debug("!!!!!!!!!!!!!!!!!get_recording 2 - repeatmode:" + p.repeat_mode.mode)
+            logger.debug("get_recording 2 - repeatmode:" + p.repeat_mode.mode)
             #do this only if project setting calls for it
             if p.is_continuous():
-                logging.debug("!!!!!!!!!!!!!!!!!get_recording continuous mode")
+                logger.debug("get_recording continuous mode")
                 self.all_recordings = db.get_recordings(self.request)
                 self.far_recordings = self.all_recordings
                 self.nearby_played_recordings = []
                 self.nearby_unplayed_recordings = []
                 self.update_nearby_recordings(self.request)
-                logging.debug("GET_RECORDING UPDATE: all_recordings count: " + str(len(self.all_recordings))
+                logger.debug("GET_RECORDING UPDATE: all_recordings count: " + str(len(self.all_recordings))
                           + ", far_recordings count: " + str(len(self.far_recordings))
                           + ", nearby_played_recordings count: " + str(len(self.nearby_played_recordings))
                           + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
                 index = 0
                 recording = self.nearby_unplayed_recordings.pop(index)
-                logging.debug("POST UPDATE RecordingCollection: get_recording: Got " + str(recording.filename))
+                logger.debug("POST UPDATE RecordingCollection: get_recording: Got " + str(recording.filename))
                 self.nearby_played_recordings.append(recording)
             else:
-                logging.debug("!!!!!!!!!!!!!!!!!get_recording stop mode")
+                logger.debug("get_recording stop mode")
 
         self.lock.release()
         return recording
 
     def add_recording(self, asset_id):
         self.lock.acquire()
-        logging.debug("add_recording enter - asset id: " + str(asset_id))
+        logger.debug("add_recording enter - asset id: " + str(asset_id))
         a = models.Asset.objects.get(id=str(asset_id))
         self.nearby_unplayed_recordings.insert(0, a)
-        logging.debug("add_recording exit")
+        logger.debug("add_recording exit")
         self.lock.release()
 
     #Updates the collection of recordings according to a new listener position.
     def move_listener(self, listener):
-        #logging.debug("move_listener")
+        # logger.debug("move_listener")
         self.lock.acquire()
         self.update_nearby_recordings(listener)
         self.lock.release()
@@ -168,7 +169,7 @@ class RecordingCollection:
             else:
                 new_far_recordings.append(r)
 
-        logging.debug('Ordering is: ' + self.ordering)
+        logger.debug('Ordering is: ' + self.ordering)
         if self.ordering == 'random':
             new_nearby_unplayed_recordings = \
                 order_assets_randomly(new_nearby_unplayed_recordings)
@@ -189,10 +190,10 @@ class RecordingCollection:
     #     for asset in assets:
     #         count = models.Asset.get_likes(asset)
     #         unplayed.append((count, asset))
-    #     logging.info('Unordered: ' +
+    #     logger.info('Unordered: ' +
     #                  str([(u[0], u[1].filename) for u in unplayed]))
     #     unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
-    #     logging.info('Ordered by like: ' +
+    #     logger.info('Ordered by like: ' +
     #                  str([(u[0], u[1].filename) for u in unplayed]))
     #     return [x[1] for x in unplayed]
 
@@ -201,10 +202,10 @@ class RecordingCollection:
     #     for asset in assets:
     #         weight = asset.weight
     #         unplayed.append((weight, asset))
-    #     logging.debug('Unordered: ' +
+    #     logger.debug('Unordered: ' +
     #                   str([(u[0], u[1].filename) for u in unplayed]))
     #     unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
-    #     logging.debug('Ordered by weighting: ' +
+    #     logger.debug('Ordered by weighting: ' +
     #                   str([(u[0], u[1].filename) for u in unplayed]))
     #     return [x[1] for x in unplayed]
 

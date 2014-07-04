@@ -42,7 +42,7 @@ from roundwared.gpsmixer import distance_in_meters
 import json
 
 import logging
-
+logger = logging.getLogger(__name__)
 
 class Language(models.Model):
     language_code = models.CharField(max_length=10)
@@ -108,7 +108,7 @@ class Project(models.Model):
             by name, like 'listen' or 'speak'.
             Pass name of UIMode. MasterUI must be active
         """
-        logging.debug('inside get_tag_cats_by_ui_mode... not from cache')
+        logger.debug('inside get_tag_cats_by_ui_mode... not from cache')
         master_uis = MasterUI.objects.select_related('tag_category').filter(project=self, ui_mode__name=ui_mode, active=True)
         return [mui.tag_category for mui in master_uis]
 
@@ -220,7 +220,7 @@ class MasterUI(models.Model):
     def save(self, *args, **kwargs):
         # invalidate cached value for tag categories for all ui_modes for the
         # associated project.
-        logging.debug("invalidating Project.get_tags_by_ui_mode for project "
+        logger.debug("invalidating Project.get_tags_by_ui_mode for project "
                      " %s and UIMode %s" %(self.project, self.ui_mode.name))
         try:
             old_instance = MasterUI.objects.get(pk=self.pk)

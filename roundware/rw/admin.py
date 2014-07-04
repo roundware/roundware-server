@@ -370,6 +370,8 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
             instance.ENVELOPE_ID = formset.instance.id
             add_asset_to_envelope(instance=instance)
 
+        logger.debug("Saving envelope")
+
         if formset.model == Asset:
             instances = formset.save(commit=False)
             map(set_session, instances)

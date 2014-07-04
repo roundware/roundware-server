@@ -31,7 +31,7 @@ import os
 from roundwared import roundexception
 
 configdir = "/etc/roundware"
-default_configfile = "/etc/roundwared"
+default_configfile = "/etc/roundware/rw"
 configstring = """
     icecast_port        = integer(1, 65535, default=8000)
     icecast_host        = string(default=localhost)
@@ -39,14 +39,14 @@ configstring = """
     icecast_password    = string(default=roundice)
     icecast_source_username = string(default=source)
     icecast_source_password = string(default=roundice)
-    audio_dir       = string(default=/home/halsey/round/audio)
-    upload_dir      = string(default=/var/www/reconaudio)
+    audio_dir       = string(default=/var/www/rwmedia)
+    upload_dir      = string(default=/var/www/rwmedia)
     flv_upload_dir      = string(default=/usr/lib/red5/webapps/oflaDemo/streams)
     log_file        = string(default=/var/log/roundware)
     dbuser          = string(default=round)
     dbpasswd        = string(default=round)
-    dbname          = string(default=round)
-    num_pan_steps       = integer(1, default=200) # discreate steps
+    dbname          = string(default=roundware)
+    num_pan_steps       = integer(1, default=200) # discrete steps
     stereo_pan_interval = integer(1, default=10) # milliseconds
     ping_interval       = integer(1, default=10000) # milliseconds
     master_volume       = float(0.0, default=3)
@@ -54,7 +54,7 @@ configstring = """
     heartbeat_timeout   = integer(1, 3600, default=30)
     recording_repeat_count  = integer(0, default = 2)
     recording_radius    = integer(0, 6378100, default=16)
-    external_host_name_without_port = string(default=rw.externalhost.com)
+    external_host_name_without_port = string(default=example.com)
     demo_stream_cpu_limit = float(0.0,100.0,default=50.0)
 """
 
