@@ -5,7 +5,7 @@ from django.db.models.signals import post_save, post_delete
 from roundware.notifications.models import ActionNotification, ENABLED_MODELS
 
 __author__ = 'jule'
-logger = logging.getLogger("notifications")
+logger = logging.getLogger(__name__)
 
 def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
     #get the type of model from the sender

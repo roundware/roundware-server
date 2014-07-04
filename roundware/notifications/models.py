@@ -9,7 +9,7 @@ from guardian.models import UserObjectPermission
 from roundware.rw.models import Project
 import logging
 
-logger = logging.getLogger("notifications")
+logger = logging.getLogger(__name__)
 
 ENABLED_MODELS = (
     (0, "Asset"),

@@ -29,6 +29,7 @@ import urllib2
 import logging
 import pycurl
 
+logger = logging.getLogger(__name__)
 
 class Admin:
     def __init__(self, host, username, password):
@@ -74,12 +75,12 @@ class Admin:
     def update_metadata(self, asset_id, session_id):
         c = pycurl.Curl()
         c.setopt(pycurl.USERPWD, "admin:roundice")
-        logging.debug("update metadata - enter")
+        logger.debug("update metadata - enter")
         sysString = "http://" + self.__host + "/admin/metadata.xsl?mount=/stream" + str(session_id) + ".mp3&mode=updinfo&charset=UTF-8&song=assetid" + str(asset_id) + ""
         c.setopt(pycurl.URL, sysString)
-        logging.debug("update metadata - sysString: " + sysString)
+        logger.debug("update metadata - sysString: " + sysString)
         c.perform()
-        logging.debug("update metadata - returning")
+        logger.debug("update metadata - returning")
 
 
         #r = os.system(sysString)

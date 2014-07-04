@@ -23,7 +23,6 @@
 
 #***********************************************************************************#
 
-
 import time
 import subprocess
 import os, sys
@@ -46,6 +45,8 @@ from roundwared import gpsmixer
 from roundwared import rounddbus
 from roundware.rw import models
 from roundware import settings as rw_settings
+
+logger = logging.getLogger(__name__)
 
 def check_for_single_audiotrack(session_id):
     ret = False
@@ -522,7 +523,7 @@ def add_asset_to_envelope(request):
 
     if fileitem.name:
         #copy the file to a unique name (current time and date)
-        logging.debug("Processing " + fileitem.name)
+        logger.debug("Processing " + fileitem.name)
         (filename_prefix, filename_extension) = \
             os.path.splitext(fileitem.name)
         fn = time.strftime("%Y%m%d-%H%M%S") + filename_extension
@@ -714,7 +715,7 @@ def modify_stream(request):
         project = session.project
         if form.has_key('language'):
             try:
-                logging.debug("modify_stream: language: " + form['language'])
+                logger.debug("modify_stream: language: " + form['language'])
                 l = models.Language.objects.filter(language_code=form['language'])[0]
                 session.language = l
                 session.save()
@@ -795,7 +796,7 @@ def get_events(request):
 
 
 def apache_safe_daemon_subprocess(command):
-    logging.debug(str(command))
+    logger.debug(str(command))
     env = os.environ.copy()
     env['PYTHONPATH'] = ":".join(sys.path)
 
@@ -808,12 +809,12 @@ def apache_safe_daemon_subprocess(command):
         env=env,
     )
     #(stdout, stderr) = proc.communicate()
-    #logging.debug("subprocess_stdout: " + stdout)
-    #logging.debug("subprocess_stdout: " + stderr)
+    # logger.debug("subprocess_stdout: " + stdout)
+    # logger.debug("subprocess_stdout: " + stderr)
 
 # Loops until the give stream is present and ready to be listened to.
 def wait_for_stream(sessionid, audio_format):
-    logging.debug("waiting " + str(sessionid) + audio_format)
+    logger.debug("waiting " + str(sessionid) + audio_format)
     admin = icecast2.Admin(settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"]),
                            settings.config["icecast_username"],
                            settings.config["icecast_password"])
@@ -830,7 +831,7 @@ def wait_for_stream(sessionid, audio_format):
 
 
 def stream_exists(sessionid, audio_format):
-    logging.debug("checking for existence of " + str(sessionid) + audio_format)
+    logger.debug("checking for existence of " + str(sessionid) + audio_format)
     admin = icecast2.Admin(settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"]),
                            settings.config["icecast_username"],
                            settings.config["icecast_password"])

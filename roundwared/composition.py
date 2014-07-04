@@ -45,7 +45,7 @@ from roundwared import db
 STATE_PLAYING = 0
 STATE_DEAD_AIR = 1
 STATE_WAITING = 2
-
+logger = logging.getLogger(__name__)
 
 class Composition:
     ######################################################################
@@ -53,9 +53,9 @@ class Composition:
     ######################################################################
     def __init__(self, parent, pipeline, adder, comp_settings, recordingColl):
         self.parent = parent
-        #logging.debug("---------Composition init")
-        #logging.debug("---------Composition init: self.parent class: " + self.parent.__class__.__name__)
-        #logging.debug("---------Composition init: self.parent.sessionid: " + str(self.parent.sessionid))
+        # logger.debug("---------Composition init")
+        # logger.debug("---------Composition init: self.parent class: " + self.parent.__class__.__name__)
+        # logger.debug("---------Composition init: self.parent.sessionid: " + str(self.parent.sessionid))
         self.pipeline = pipeline
         self.adder = adder
         self.comp_settings = comp_settings
@@ -150,7 +150,7 @@ class Composition:
             (self.comp_settings.maxvolume - \
                 self.comp_settings.minvolume))
 
-        logging.debug(str.format("self.current_recording.filename: {0}, start: {1}, duration: {2}, fadein: {3}, fadeout: {4}, volume: {5}",
+        logger.debug(str.format("self.current_recording.filename: {0}, start: {1}, duration: {2}, fadein: {3}, fadeout: {4}, volume: {5}",
                                  self.current_recording.filename, start, duration, fadein, fadeout, volume))
 
         self.roundfilesrc = roundfilesrc.RoundFileSrc(
@@ -165,19 +165,19 @@ class Composition:
         (ret, cur, pen) = self.pipeline.get_state()
         self.roundfilesrc.set_state(cur)
         self.state = STATE_PLAYING
-        #logging.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
+        # logger.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
         #self.parent.sink.taginjector.set_property("tags","title=\"asset_id=456\"")
-        #logging.debug("trying...")
-        #logging.debug("---------Composition add")
-        #logging.debug("---------Composition add: self.parent class: " + self.parent.__class__.__name__)
-        #logging.debug("---------Composition add: self.recording class: " + self.current_recording.__class__.__name__)
-        #logging.debug("---------Composition add: self.parent.sessionid: " + str(self.parent.sessionid))
+        # logger.debug("trying...")
+        # logger.debug("---------Composition add")
+        # logger.debug("---------Composition add: self.parent class: " + self.parent.__class__.__name__)
+        # logger.debug("---------Composition add: self.recording class: " + self.current_recording.__class__.__name__)
+        # logger.debug("---------Composition add: self.parent.sessionid: " + str(self.parent.sessionid))
         #placeholder for refactor after we upgrade and fix taginject issue
         db.add_asset_to_session_history_and_update_metadata(self.current_recording.id, self.parent.sessionid, duration)
-        #logging.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
-        #logging.debug("---------Composition add: self.parent.sink.shout class: " + self.parent.sink.shout.__class__.__name__)
+        # logger.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
+        # logger.debug("---------Composition add: self.parent.sink.shout class: " + self.parent.sink.shout.__class__.__name__)
         #self.parent.sink.shout.set_property("streamname","asset" + str(self.current_recording.id))
-        #logging.debug("made it!!!")
+        # logger.debug("made it!!!")
 
     def event_probe(self, pad, event):
         if event.type == gst.EVENT_EOS:
@@ -219,22 +219,22 @@ class Composition:
             settings.config["stereo_pan_interval"]
 
     def skip_ahead(self):
-        logging.debug("skip_ahead 1")
+        logger.debug("skip_ahead 1")
         fadeoutnsecs = random.randint(
             self.comp_settings.minfadeouttime,
             self.comp_settings.maxfadeouttime)
         if self.roundfilesrc != None and not self.roundfilesrc.fading:
             self.roundfilesrc.fade_out(fadeoutnsecs)
-            logging.debug("skip_ahead 2")
+            logger.debug("skip_ahead 2")
             #1st arg is in milliseconds
             #1000000000
             #gobject.timeout_add(fadeoutnsecs/gst.MSECOND, self.clean_up_wait_and_play)
-            logging.debug("skip_ahead 3")
+            logger.debug("skip_ahead 3")
             self.clean_up_wait_and_play()
         else:
-            logging.debug("skip_ahead: no roundfilesrc")
+            logger.debug("skip_ahead: no roundfilesrc")
 
     def play_asset(self, asset_id):
-        logging.debug("Composition play asset: " + str(asset_id))
+        logger.debug("Composition play asset: " + str(asset_id))
         self.recordingCollection.add_recording(asset_id)
         self.skip_ahead()

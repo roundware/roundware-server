@@ -31,6 +31,7 @@ pygst.require("0.10")
 import gst
 import logging
 
+logger = logging.getLogger(__name__)
 
 class RoundFileSrc (gst.Bin):
     def __init__(self, uri, start, duration, fadein, fadeout, volume):
@@ -84,14 +85,14 @@ class RoundFileSrc (gst.Bin):
     def fade_out(self, nsecs):
         self.fading = True
         pos_int = self.wavparse.query_position(gst.FORMAT_TIME, None)[0]
-        logging.debug("fade_out: got position: " + str(pos_int))
+        logger.debug("fade_out: got position: " + str(pos_int))
         self.controller.set_interpolation_mode(
                     "volume", gst.INTERPOLATE_LINEAR)
         if (self.duration - pos_int) > nsecs:
             self.controller.set("volume", pos_int, self.clip_volume)
             self.controller.set("volume", pos_int + nsecs, 0)
         else:
-            logging.debug("fade_out: letting it play out.")
+            logger.debug("fade_out: letting it play out.")
 
     def pan_to(self, pos):
         self.audiopanorama.set_property("panorama", pos)

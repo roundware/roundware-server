@@ -34,7 +34,7 @@ import math
 import httplib
 import urlparse
 from roundwared import gnomevfsmp3src
-
+logger = logging.getLogger(__name__)
 
 class GPSMixer (gst.Bin):
     def __init__(self, listener, speakers):
@@ -47,35 +47,35 @@ class GPSMixer (gst.Bin):
         ghostpad = gst.GhostPad("src", pad)
         self.add_pad(ghostpad)
         addersinkpad = self.adder.get_request_pad('sink%d')
-        logging.debug("adding blank src.")
+        logger.debug("adding blank src.")
         blanksrc = BlankAudioSrc2()
         self.add(blanksrc)
         srcpad = blanksrc.get_pad('src')
         srcpad.link(addersinkpad)
-        logging.debug("adding blank src - ADDED")
-        logging.debug("iterating through " + str(len(speakers)) + " speakers.")
+        logger.debug("adding blank src - ADDED")
+        logger.debug("iterating through " + str(len(speakers)) + " speakers.")
         for speaker in speakers:
             vol = calculate_volume(speaker, listener)
             uri = None
             if check_stream(speaker.uri):
                 uri = speaker.uri
-                logging.debug("taking normal uri: " + uri)
+                logger.debug("taking normal uri: " + uri)
             elif check_stream(speaker.backupuri):
                 uri = speaker.backupuri
-                logging.warning("Stream " + speaker.uri \
+                logger.warning("Stream " + speaker.uri \
                     + " is not a valid audio/mpeg stream." \
                     + " using backup.")
             else:
-                logging.warning("Stream " + speaker.uri \
+                logger.warning("Stream " + speaker.uri \
                     + " and backup " \
                     #+ speaker['backupuri'] \
                     + " are not valid audio/mpeg streams." \
                     + " Not adding anything.")
                 continue
 
-            logging.debug("vol is " + str(vol) + " for uri " + uri)
+            logger.debug("vol is " + str(vol) + " for uri " + uri)
             if vol > 0:
-                logging.debug("adding to bin")
+                logger.debug("adding to bin")
                 src = gnomevfsmp3src.GnomeVFSMP3Src(uri, vol)
                 self.add(src)
                 srcpad = src.get_pad('src')
@@ -83,7 +83,7 @@ class GPSMixer (gst.Bin):
                 srcpad.link(addersinkpad)
                 self.sources.append(src)
             else:
-                logging.debug("appending")
+                logger.debug("appending")
                 self.sources.append(None)
             self.speakers.append(speaker)
         self.move_listener(listener)
@@ -92,14 +92,14 @@ class GPSMixer (gst.Bin):
         self.listener = new_listener
         for i in range(len(self.speakers)):
             vol = calculate_volume(self.speakers[i], self.listener)
-            logging.debug("gpsmixer: move_listener: source # " + str(i) + " has a volume of " + str(vol))
+            logger.debug("gpsmixer: move_listener: source # " + str(i) + " has a volume of " + str(vol))
             if vol > 0:
                 if self.sources[i] == None:
-                    logging.debug("gpsmixer: move_listener: allocating new source")
+                    logger.debug("gpsmixer: move_listener: allocating new source")
                     tempsrc = gnomevfsmp3src.GnomeVFSMP3Src(self.speakers[i].uri, vol)
-                    logging.debug("gpsmixer: move_listener: replacing old slot in source array")
+                    logger.debug("gpsmixer: move_listener: replacing old slot in source array")
                     self.sources[i] = tempsrc
-                    logging.debug("gpsmixer: move_listener: adding speaker: " + str(self.speakers[i].id))
+                    logger.debug("gpsmixer: move_listener: adding speaker: " + str(self.speakers[i].id))
                     self.add(self.sources[i])
                     #self.set_state(gst.STATE_PLAYING)
 
@@ -107,32 +107,32 @@ class GPSMixer (gst.Bin):
                     addersinkpad = self.adder.get_request_pad('sink%d')
                     srcpad.link(addersinkpad)
                     self.sources[i].set_state(gst.STATE_PLAYING)
-                    logging.debug("gpsmixer: move_listener: adding speaker SUCCESS")
+                    logger.debug("gpsmixer: move_listener: adding speaker SUCCESS")
                     #self.set_state(gst.STATE_PLAYING)
                 else:
-                    logging.debug("already added, setting vol: " + str(vol))
+                    logger.debug("already added, setting vol: " + str(vol))
                     self.sources[i].set_volume(vol)
 
             else:
-                logging.debug("gpsmixer: move_listener: checking if speaker is already added, prior to removal")
+                logger.debug("gpsmixer: move_listener: checking if speaker is already added, prior to removal")
                 if self.sources[i] != None:
                     self.sources[i].set_volume(vol)
-                    logging.debug("gpsmixer: move_listener: removing speaker: " + str(self.speakers[i].id))
+                    logger.debug("gpsmixer: move_listener: removing speaker: " + str(self.speakers[i].id))
                     src_to_remove = self.sources[i].get_pad('src')
-                    logging.debug("gpsmixer: move_listener: removing speaker1")
+                    logger.debug("gpsmixer: move_listener: removing speaker1")
                     #src_to_remove.set_blocked(True)
-                    logging.debug("gpsmixer: move_listener: removing speaker2")
+                    logger.debug("gpsmixer: move_listener: removing speaker2")
                     #we crash whenever we set state to NULL, either here or after unlinking
                     #self.sources[i].set_state(gst.STATE_NULL)
-                    logging.debug("gpsmixer: move_listener: removing speaker3")
+                    logger.debug("gpsmixer: move_listener: removing speaker3")
                     sinkpad = self.adder.get_request_pad("sink%d")
-                    logging.debug("gpsmixer: move_listener: removing speaker4")
+                    logger.debug("gpsmixer: move_listener: removing speaker4")
                     src_to_remove.unlink(sinkpad)
-                    logging.debug("gpsmixer: move_listener: removing speaker5")
+                    logger.debug("gpsmixer: move_listener: removing speaker5")
                     self.adder.release_request_pad(sinkpad)
-                    logging.debug("gpsmixer: move_listener: removing speaker6")
+                    logger.debug("gpsmixer: move_listener: removing speaker6")
                     #self.remove(self.sources[i])
-                    logging.debug("gpsmixer: move_listener: removing speaker - SUCCESS")
+                    logger.debug("gpsmixer: move_listener: removing speaker - SUCCESS")
                     #self.sources[i] = None
                     #self.set_state(gst.STATE_PLAYING)
 
@@ -154,7 +154,7 @@ def calculate_volume(speaker, listener):
             2,
             lg(distance / speaker.mindistance))
         vol = speaker.maxvolume / vol_frac
-    #logging.debug(
+    # logger.debug(
         #"Speaker: id=" + str(speaker.id) + \
         #" uri=" + speaker.uri + \
         #" distance=" + str(distance) + \
@@ -171,7 +171,7 @@ def distance_in_meters(lat1, lon1, lat2, lon2):
 
 
 def distance_in_km(lat1, lon1, lat2, lon2):
-    #logging.debug(str.format("distance_in_km: lat1: {0}, lon1: {1}, lat2: {2}, lon2: {3}", lat1, lon1, lat2, lon2))
+    # logger.debug(str.format("distance_in_km: lat1: {0}, lon1: {1}, lat2: {2}, lon2: {3}", lat1, lon1, lat2, lon2))
     R = 6371
     dLat = math.radians(lat2 - lat1)
     dLon = math.radians(lon2 - lon1)

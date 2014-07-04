@@ -88,8 +88,8 @@ icecast2 ffmpeg apache2 pacpl gstreamer0.10-gnomevfs python-dbus libapache2-mod-
 python-gst0.10 python-flup gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 \
 gstreamer0.10-plugins-base gstreamer0.10-plugins-bad gstreamer0.10-plugins-good \
 gstreamer0.10-plugins-bad-multiverse gstreamer0.10-plugins-ugly libavcodec-extra-53 \
-python-pip gstreamer-tools python-setuptools python-profiler libmagic1 clamav-daemon \
-python-clamav python-lxml python-dev python-pycurl
+python-pip gstreamer-tools python-setuptools python-profiler libmagic1 python-lxml \
+python-dev python-pycurl mediainfo
 
 # Install/upgrade virtualenv
 pip install -U virtualenv
@@ -107,11 +107,6 @@ pip install -U pip
 
 # Install RoundWare requirements
 pip install -r $CODE_PATH/requirements.txt
-
-# use our configurations for ClamAV
-cp $CODE_PATH/files/freshclam.conf /etc/clamav/freshclam.conf
-# update ClamAV with latest viruses/malware detection
-#freshclam
 
 # Setup MySQL database
 echo "create database IF NOT EXISTS roundware;" | mysql -uroot -p$MYSQL_ROOT

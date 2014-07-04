@@ -27,7 +27,7 @@
 import os
 import sys
 import logging
-
+logger = logging.getLogger(__name__)
 
 def create_daemon(function, pidfile=False):
     # create - fork 1
@@ -36,7 +36,7 @@ def create_daemon(function, pidfile=False):
             #os._exit(0) # exit father...
             sys.exit(0)
     except OSError, error:
-        logging.critical('fork #1 failed: %d (%s)' % (error.errno, error.strerror))
+        logger.critical('fork #1 failed: %d (%s)' % (error.errno, error.strerror))
         #os._exit(1)
         sys.exit(1)
 
@@ -49,7 +49,7 @@ def create_daemon(function, pidfile=False):
     try:
         pid = os.fork()
         if pid > 0:
-            logging.debug('Daemon PID %d' % pid)
+            logger.debug('Daemon PID %d' % pid)
             if pidfile:
                 pidfile = open(pidfile, "w")
                 pidfile.write(str(pid) + "\n")
@@ -57,7 +57,7 @@ def create_daemon(function, pidfile=False):
             #os._exit(0)
             sys.exit(0)
     except OSError, error:
-        logging.critical('fork #2 failed: %d (%s)' % (error.errno, error.strerror))
+        logger.critical('fork #2 failed: %d (%s)' % (error.errno, error.strerror))
         #os._exit(1)
         sys.exit(1)
 

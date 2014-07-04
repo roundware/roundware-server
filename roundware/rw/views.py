@@ -64,7 +64,7 @@ from roundware.rw.widgets import SetupTagUISortedCheckboxSelectMultiple
 from roundwared import settings
 from roundwared import roundexception
 from roundwared import server
-
+logger = logging.getLogger(__name__)
 
 
 def main(request):
@@ -78,23 +78,16 @@ def catch_errors(request):
             config_file = request.GET['config']
         settings.initialize_config(os.path.join('/etc/roundware/', config_file))
 
-        logging.basicConfig(
-            filename=settings.config["log_file"],
-            filemode="a",
-            level=logging.DEBUG,
-            format='%(asctime)s %(filename)s:%(lineno)d %(levelname)s %(message)s',
-            )
-
         if request.GET.has_key('operation'):
             function = operation_to_function(request.GET['operation'])
         elif request.POST.has_key('operation'):
             function = operation_to_function(request.POST['operation'])
         return function(request)
     except roundexception.RoundException as e:
-        logging.error(str(e) + traceback.format_exc())
+        logger.error(str(e) + traceback.format_exc())
         return {"error_message": str(e)}
     except:
-        logging.error(
+        logger.error(
             "An uncaught exception was raised. See traceback for details." + \
             traceback.format_exc())
         return {

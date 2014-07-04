@@ -31,8 +31,7 @@ import urllib2
 from django.conf import settings
 
 API_URL = getattr(settings, "API_URL")
-
-logger = logging.getLogger(name=__file__)
+logger = logging.getLogger(__name__)
 
 def create_envelope(instance, **kwargs):
     """

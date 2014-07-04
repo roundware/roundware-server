@@ -47,8 +47,8 @@ ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES + ALLOW
 
 # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
-DEFAULT_SESSION_ID = "-1"
-API_URL = "http://example.com/roundware/"
+DEFAULT_SESSION_ID = "-10"
+API_URL = "http://127.0.0.1/roundware/"
 MANAGERS = ADMINS
 # change this to the proper id for AnonymousUser in database for Guardian
 ANONYMOUS_USER_ID = -1
@@ -191,10 +191,8 @@ INSTALLED_APPS = (
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
     'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 
-    #this will allow for google maps integration in the admin
     'guardian',
     'chartit',
     'roundware.notifications',
@@ -219,7 +217,14 @@ LOGGING = {
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/roundware',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
@@ -228,10 +233,21 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        # The roundware system logger.
+        'roundware': {
+            'level': 'INFO',
+            'handlers': ['mail_admins', 'file'],
+        },
+        # The roundwared stream manager logger.
+        'roundwared': {
+            'level': 'INFO',
+            'handlers': ['mail_admins', 'file'],
+        },
     },
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'format' : "[%(asctime)s] %(levelname)s <%(name)s:%(lineno)s> %(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
             'format': '%(levelname)s %(message)s'

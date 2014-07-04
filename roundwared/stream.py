@@ -42,23 +42,24 @@ from roundwared import recording_collection
 from roundware.rw import models
 from roundwared import db
 
+logger = logging.getLogger(__name__)
 
 class RoundStream:
     ######################################################################
     # PUBLIC
     ######################################################################
     def __init__(self, sessionid, audio_format, request):
-        logging.debug("begin stream")
+        logger.debug("begin stream")
         self.sessionid = sessionid
         self.request = request
         self.bitrate = request["audio_stream_bitrate"]
-        logging.debug("Roundstream init: bitrate: {0}".format(self.bitrate))
-        logging.debug("Roundstream init: getting session id")
+        logger.debug("Roundstream init: bitrate: {0}".format(self.bitrate))
+        logger.debug("Roundstream init: getting session id")
         session = models.Session.objects.select_related('project').get(id=sessionid)
-        logging.debug("Roundstream init: got session, getting project radius")
+        logger.debug("Roundstream init: got session, getting project radius")
         self.radius = session.project.recording_radius
         self.ordering = session.project.ordering
-        logging.debug("Roundstream init: got session, got project radius: " + str(self.radius))
+        logger.debug("Roundstream init: got session, got project radius: " + str(self.radius))
         if self.radius == None:
             self.radius = settings.config["recording_radius"]
 
@@ -79,7 +80,7 @@ class RoundStream:
                     self, request, self.radius, str(self.ordering))
 
     def start(self):
-        logging.info("Serving stream" + str(self.sessionid))
+        logger.info("Serving stream" + str(self.sessionid))
 
         self.pipeline = gst.Pipeline()
         self.adder = gst.element_factory_make("adder")
@@ -87,7 +88,7 @@ class RoundStream:
         self.pipeline.add(self.adder, self.sink)
         self.adder.link(self.sink)
 
-        logging.info("Stream: start: Going to play: " \
+        logger.info("Stream: start: Going to play: " \
             + ",".join(self.recordingCollection.get_filenames()) \
             + " Total of " \
             + str(len(self.recordingCollection.get_filenames()))
@@ -105,12 +106,12 @@ class RoundStream:
 
     def play_asset(self, request):
         asset_id = request['asset_id'][0]
-        logging.debug("!!!!!!!!!! Stream Play asset: " + str(asset_id))
+        logger.debug("!!!!!!!!!! Stream Play asset: " + str(asset_id))
         for comp in self.compositions:
             comp.play_asset(asset_id)
 
     def skip_ahead(self):
-        logging.debug("!!!!!!!!!!Skip ahead")
+        logger.debug("!!!!!!!!!!Skip ahead")
         for comp in self.compositions:
             comp.skip_ahead()
 
@@ -119,14 +120,14 @@ class RoundStream:
     # when the client last sent any message.
     def heartbeat(self):
         self.activity_timestamp = time.time()
-        #logging.debug("update time="+str(self.activity_timestamp))
+        # logger.debug("update time="+str(self.activity_timestamp))
 
     def modify_stream(self, request):
         self.heartbeat()
         self.request = request
         self.listener = request
         self.refresh_recordings()
-        logging.info("Stream modification: Going to play: " \
+        logger.info("Stream modification: Going to play: " \
             + ",".join(self.recordingCollection.get_filenames()) \
             + " Total of " \
             + str(len(self.recordingCollection.get_filenames()))
@@ -147,7 +148,7 @@ class RoundStream:
             tags = Tag.objects.filter(pk__in=tag_ids)
             for tag in tags:
                 if tag.filter:
-                    logging.debug("Tag with filter found: %s: %s" % (tag, tag.filter))
+                    logger.debug("Tag with filter found: %s: %s" % (tag, tag.filter))
                     self.recordingCollection.nearby_unplayed_recordings = getattr(asset_sorters, tag.filter)(assets=self.recordingCollection.all_recordings, request=self.request)
 
         for comp in self.compositions:
@@ -155,16 +156,16 @@ class RoundStream:
 
     def move_listener(self, listener):
         if listener['latitude'] != False and listener['longitude'] != False:
-            logging.debug("stream: move_listener: recvd lat and long, moving...")
+            logger.debug("stream: move_listener: recvd lat and long, moving...")
             self.heartbeat()
             self.listener = listener
-            logging.debug("move_listener("
+            logger.debug("move_listener("
                 + str(listener['latitude']) + ","
                 + str(listener['longitude']) + ")")
             if self.gps_mixer:
                 self.gps_mixer.move_listener(listener)
             self.recordingCollection.move_listener(listener)
-            #logging.info("Stream: move_listener: Going to play: " \
+            # logger.info("Stream: move_listener: Going to play: " \
                 #+ ",".join(self.recordingCollection.get_filenames()) \
                 #+ " Total of " \
                 #+ str(len(self.recordingCollection.get_filenames()))
@@ -172,7 +173,7 @@ class RoundStream:
             for comp in self.compositions:
                 comp.move_listener(listener)
         else:
-            logging.debug("stream: move_listener: no lat and long.  returning...")
+            logger.debug("stream: move_listener: no lat and long.  returning...")
 
     ######################################################################
     # PRIVATE
@@ -206,7 +207,7 @@ class RoundStream:
     def add_voice_compositions(self):
         p = models.Project.objects.get(id=self.request["project_id"])
         c = models.Audiotrack.objects.filter(project=p)
-        logging.debug("Stream: add_voice_compositions: got composition: " + str(c))
+        logger.debug("Stream: add_voice_compositions: got composition: " + str(c))
         self.compositions = []
         for t in c:
             self.compositions.append(composition.Composition(self,
@@ -233,14 +234,14 @@ class RoundStream:
                         #[c])
 
     def get_message(self, bus, message):
-        #logging.debug(message.src.get_name() + str(message.type))
+        # logger.debug(message.src.get_name() + str(message.type))
         if message.type == gst.MESSAGE_ERROR:
             err, debug = message.parse_error()
             if err.message == "Could not read from resource.":
-                logging.warning("Error reading file: " \
+                logger.warning("Error reading file: " \
                     + message.src.get_property("location"))
             else:
-                logging.error("Error on " + str(self.sessionid) \
+                logger.error("Error on " + str(self.sessionid) \
                     + " from " + message.src.get_name() + \
                     ": " + str(err) + " debug: " + debug)
                 self.cleanup()
@@ -248,7 +249,7 @@ class RoundStream:
             prev, new, pending = message.parse_state_changed()
             if message.src == self.pipeline \
                 and new == gst.STATE_PLAYING:
-                logging.debug("Announcing " + str(self.sessionid) \
+                logger.debug("Announcing " + str(self.sessionid) \
                         + " is playing")
                 gobject.timeout_add(
                     settings.config["ping_interval"],
@@ -258,7 +259,7 @@ class RoundStream:
 
     def cleanup(self):
         db.log_event("cleanup_session", self.sessionid, None)
-        logging.debug("Cleaning up" + str(self.sessionid))
+        logger.debug("Cleaning up" + str(self.sessionid))
 
         #db.cleanup_history_for_session(self.sessionid)
         if self.pipeline:
@@ -289,16 +290,16 @@ class RoundStream:
         listeners = self.icecast_admin.get_client_count(
             icecast_mount_point(
                 self.sessionid, self.audio_format))
-        #logging.debug("Number of listeners: " + str(listeners))
+        # logger.debug("Number of listeners: " + str(listeners))
         if self.last_listener_count == 0 and listeners == 0:
-            #logging.info("Detected noone listening.")
+            # logger.info("Detected noone listening.")
             return False
         else:
             self.last_listener_count = listeners
             return True
 
     def is_activity_timestamp_recent(self):
-        #logging.debug("check now=" + str(time.time()) \
+        # logger.debug("check now=" + str(time.time()) \
         #   + " time=" + str(self.activity_timestamp) \
         #   + " diff=" + str(time.time() - self.activity_timestamp))
         return time.time() - self.activity_timestamp < settings.config["heartbeat_timeout"]
@@ -347,7 +348,7 @@ class RoundStreamSink (gst.Bin):
                     "audio/x-raw-int,rate=44100,channels=2,width=16,depth=16,signed=(boolean)true"))
             lame = gst.element_factory_make("lame")
             lame.set_property("bitrate", int(bitrate))
-            logging.debug("roundstreamsink: bitrate: " + str(int(bitrate)))
+            logger.debug("roundstreamsink: bitrate: " + str(int(bitrate)))
             self.add(lame)
             #gst.element_link_many(volume, lame, self.taginjector, shout2send)
             gst.element_link_many(volume, lame, shout2send)

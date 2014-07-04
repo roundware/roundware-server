@@ -44,7 +44,7 @@ from roundware.rw.models import UIMapping
 from roundware.rw.models import ListeningHistoryItem
 from roundwared import icecast2
 from cache_utils.decorators import cached
-
+logger = logging.getLogger(__name__)
 
 # @profile(stats=True)
 def get_config_tag_json(p=None, s=None):
@@ -104,7 +104,7 @@ def get_config_tag_json(p=None, s=None):
 @cached(30)
 def get_recordings(request):
 
-    logging.debug("get_recordings: got request: " + str(request))
+    logger.debug("get_recordings: got request: " + str(request))
     recs = []
     p = None
     s = None
@@ -113,18 +113,18 @@ def get_recordings(request):
     # but get_recording will fail without one in the request.  This will always get
     # the project from the session, and fail if no session is passed.
     if request.has_key("project_id") and hasattr(request["project_id"], "__iter__") and len(request["project_id"]) > 0:
-        logging.debug("get_recordings: got project_id: " + str(request["project_id"][0]))
+        logger.debug("get_recordings: got project_id: " + str(request["project_id"][0]))
         p = Project.objects.get(id=request["project_id"][0])
     elif request.has_key("project_id") and not hasattr(request["project_id"], "__iter__"):
-        logging.debug("get_recordings: got project_id: " + str(request["project_id"]))
+        logger.debug("get_recordings: got project_id: " + str(request["project_id"]))
         p = Project.objects.get(id=request["project_id"])
 
     if request.has_key("session_id") and hasattr(request["session_id"], "__iter__") and len(request["session_id"]) > 0:
-        logging.debug("get_recordings: got session_id: " + str(request["session_id"][0]))
+        logger.debug("get_recordings: got session_id: " + str(request["session_id"][0]))
         s = Session.objects.select_related('project', 'language').get(id=request["session_id"][0])
         p = s.project
     elif request.has_key("session_id") and not hasattr(request["session_id"], "__iter__"):
-        logging.debug("get_recordings: got session_id: " + str(request["session_id"]))
+        logger.debug("get_recordings: got session_id: " + str(request["session_id"]))
         s = Session.objects.select_related('project', 'language').get(id=request["session_id"])
         p = s.project
     elif not request.has_key("session_id") or len(request["session_id"]) == 0:
@@ -135,18 +135,18 @@ def get_recordings(request):
 
     # this first check checks whether tags is a list of numbers.
     if request.has_key("tags") and hasattr(request["tags"], "__iter__") and len(request["tags"]) > 0:
-        logging.debug("get_recordings: got " + str(len(request["tags"])) + "tags.")
+        logger.debug("get_recordings: got " + str(len(request["tags"])) + "tags.")
         recs = filter_recs_for_tags(p, request["tags"], s.language)
     # this second check checks whether tags is a string representation of a list of numbers.
     elif request.has_key("tags") and not hasattr(request["tags"], "__iter__"):
-        logging.debug("get_recordings: tags supplied: " + request["tags"])
+        logger.debug("get_recordings: tags supplied: " + request["tags"])
         recs = filter_recs_for_tags(p, request["tags"].split(","), s.language)
     else:
-        logging.debug("get_recordings: no tags supplied")
+        logger.debug("get_recordings: no tags supplied")
         if s != None:
             recs = filter_recs_for_tags(p, get_default_tags_for_project(p, s), s.language)
 
-    logging.debug("db: get_recordings: got " + str(len(recs)) + " recordings from db for project " + str(p.id))
+    logger.debug("db: get_recordings: got " + str(len(recs)) + " recordings from db for project " + str(p.id))
     return recs
 
 
@@ -185,7 +185,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     category.  It won't be returned if it has a tag from one tagcategory
     but not another.
     """
-    logging.debug("filter_recs_for_tags enter")
+    logger.debug("filter_recs_for_tags enter")
 
     recs = []
     tag_ids_per_cat_dict = {}
@@ -240,7 +240,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
 
         if not remove:
             recs.append(rec)
-    logging.debug("\n\n\nfilter_recs_for_tags returned %s Assets \n\n\n" % (len(recs)))
+    logger.debug("\n\n\nfilter_recs_for_tags returned %s Assets \n\n\n" % (len(recs)))
     return recs
 # form args:
 #event_type <string>
@@ -287,20 +287,20 @@ def log_event(event_type, session_id, form):
 
 
 def add_asset_to_session_history_and_update_metadata(asset_id, session_id, duration):
-    logging.debug("!!!!add_recording_to_session_history called with recording " + str(asset_id) + " session_id: " + str(session_id) + " duration: " + str(int(duration)))
+    logger.debug("!!!!add_recording_to_session_history called with recording " + str(asset_id) + " session_id: " + str(session_id) + " duration: " + str(int(duration)))
     admin = icecast2.Admin(settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"]),
                            settings.config["icecast_username"],
                            settings.config["icecast_password"])
-    logging.debug("add_asset_to_session_history_and_update_metadata: got admin")
+    logger.debug("add_asset_to_session_history_and_update_metadata: got admin")
     admin.update_metadata(asset_id, session_id)
-    logging.debug("add_asset_to_session_history_and_update_metadata: returned!")
+    logger.debug("add_asset_to_session_history_and_update_metadata: returned!")
 
     #import pycurl
     #c = pycurl.Curl()
     #c.setopt(pycurl.USERPWD, "admin:roundice")
-    #logging.debug("add_asset_to_session_history_and_update_metadata - enter")
+    # logger.debug("add_asset_to_session_history_and_update_metadata - enter")
     #sysString = "http://" + settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"])  + "/admin/metadata.xsl?mount=/stream" + str(session_id) + ".mp3&mode=updinfo&charset=UTF-8&song=assetid" + str(asset.id)
-    #logging.debug("add_asset_to_session_history_and_update_metadataa - sysString: "+ sysString)
+    # logger.debug("add_asset_to_session_history_and_update_metadataa - sysString: "+ sysString)
     #c.setopt(pycurl.URL, sysString)
     #c.perform()
     s = Session.objects.get(id=session_id)
@@ -309,7 +309,7 @@ def add_asset_to_session_history_and_update_metadata(asset_id, session_id, durat
         hist = ListeningHistoryItem(session=s, asset=ass, starttime=datetime.datetime.now(), duration=int(duration))
         hist.save()
     except:
-        logging.debug("failed to save listening history!")
+        logger.debug("failed to save listening history!")
     return True
 
 
