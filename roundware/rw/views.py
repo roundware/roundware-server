@@ -116,6 +116,7 @@ def operation_to_function(operation):
         "get_config": server.get_config,
         "get_tags": server.get_tags_for_project,
         "modify_stream": server.modify_stream,
+        "move_listener": server.move_listener,
         "get_current_streaming_asset": server.get_current_streaming_asset,
         "get_asset_info": server.get_asset_info,
         "get_available_assets": server.get_available_assets,
