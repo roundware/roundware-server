@@ -25,7 +25,8 @@
 
 import time
 import subprocess
-import os, sys
+import os
+import sys
 import logging
 import json
 import uuid
@@ -48,6 +49,7 @@ from roundware import settings as rw_settings
 
 logger = logging.getLogger(__name__)
 
+
 def check_for_single_audiotrack(session_id):
     ret = False
     session = models.Session.objects.select_related('project').get(id=session_id)
@@ -56,7 +58,7 @@ def check_for_single_audiotrack(session_id):
         ret = True
     return ret
 
-#2.1 Protocol additions AS 1.2
+# 2.1 Protocol additions AS 1.2
 
 
 def get_current_streaming_asset(request):
@@ -92,6 +94,7 @@ def get_asset_info(request):
     else:
         return {"user_error_message": "asset not found"}
 
+
 def play_asset_in_stream(request):
     form = request.GET
     # add skipped asset_id to form in order to track which asset is played
@@ -122,6 +125,7 @@ def skip_ahead(request):
     rounddbus.emit_stream_signal(int(form['session_id']), "skip_ahead", "")
     return {"success": True}
 
+
 def vote_asset(request):
     form = request.GET
     db.log_event("vote_asset", int(form['session_id']), form)
@@ -151,10 +155,12 @@ def vote_asset(request):
     return {"success": True}
 
 # @profile(stats=True)
+
+
 def get_config(request):
     form = request.GET
 
-    #check params
+    # check params
     if not form.has_key('project_id'):
         raise roundexception.RoundException("a project_id is required for this operation")
     project = models.Project.objects.get(id=form.get('project_id'))
@@ -190,7 +196,6 @@ def get_config(request):
             s.client_system = form.get('client_system')
         s.demo_stream_enabled = demo_stream_enabled
 
-
         s.save()
         session_id = s.id
         db.log_event('start_session', s.id, None)
@@ -217,38 +222,38 @@ def get_config(request):
         pass
 
     response = [
-        {"device":{"device_id": device_id}},
-        {"session":{"session_id": session_id}},
-        {"project":{
-            "project_id":project.id,
-            "project_name":project.name,
-            "audio_format":project.audio_format,
-            "max_recording_length":project.max_recording_length,
-            "recording_radius":project.recording_radius,
-            "sharing_message":sharing_message,
-            "out_of_range_message":out_of_range_message,
-            "sharing_url":project.sharing_url,
-            "listen_questions_dynamic":project.listen_questions_dynamic,
-            "speak_questions_dynamic":project.speak_questions_dynamic,
-            "listen_enabled":project.listen_enabled,
-            "geo_listen_enabled":project.geo_listen_enabled,
-            "speak_enabled":project.speak_enabled,
-            "geo_speak_enabled":project.geo_speak_enabled,
-            "reset_tag_defaults_on_startup":project.reset_tag_defaults_on_startup,
-            "legal_agreement":legal_agreement,
-            "files_url":project.files_url,
-            "files_version":project.files_version,
-            "audio_stream_bitrate":project.audio_stream_bitrate,
-            "demo_stream_enabled":demo_stream_enabled,
-            "demo_stream_url":project.demo_stream_url,
-            "demo_stream_message":demo_stream_message,
-            "latitude":project.latitude,
-            "longitude":project.longitude
-            }
+        {"device": {"device_id": device_id}},
+        {"session": {"session_id": session_id}},
+        {"project": {
+            "project_id": project.id,
+            "project_name": project.name,
+            "audio_format": project.audio_format,
+            "max_recording_length": project.max_recording_length,
+            "recording_radius": project.recording_radius,
+            "sharing_message": sharing_message,
+            "out_of_range_message": out_of_range_message,
+            "sharing_url": project.sharing_url,
+            "listen_questions_dynamic": project.listen_questions_dynamic,
+            "speak_questions_dynamic": project.speak_questions_dynamic,
+            "listen_enabled": project.listen_enabled,
+            "geo_listen_enabled": project.geo_listen_enabled,
+            "speak_enabled": project.speak_enabled,
+            "geo_speak_enabled": project.geo_speak_enabled,
+            "reset_tag_defaults_on_startup": project.reset_tag_defaults_on_startup,
+            "legal_agreement": legal_agreement,
+            "files_url": project.files_url,
+            "files_version": project.files_version,
+            "audio_stream_bitrate": project.audio_stream_bitrate,
+            "demo_stream_enabled": demo_stream_enabled,
+            "demo_stream_url": project.demo_stream_url,
+            "demo_stream_message": demo_stream_message,
+            "latitude": project.latitude,
+            "longitude": project.longitude
+        }
         },
-        {"server":{"version": "2.0"}},
-        {"speakers":[dict(d) for d in speakers]},
-        {"audiotracks":[dict(d) for d in audiotracks]}
+        {"server": {"version": "2.0"}},
+        {"speakers": [dict(d) for d in speakers]},
+        {"audiotracks": [dict(d) for d in audiotracks]}
     ]
 
     return response
@@ -269,11 +274,11 @@ def get_tags_for_project(request):
     return db.get_config_tag_json(p, s)
 
 
-#get_available_assets
-#args (project_id, [latitude], [longitude], [radius], [tagids,], [tagbool], [language], [asset_id,...], [envelope_id,...], [...])
-#can pass additional parameters matching name of fields on Asset
-#example: http://localhost/roundware/?operation=get_available_assets
-#returns Dictionary
+# get_available_assets
+# args (project_id, [latitude], [longitude], [radius], [tagids,], [tagbool], [language], [asset_id,...], [envelope_id,...], [...])
+# can pass additional parameters matching name of fields on Asset
+# example: http://localhost/roundware/?operation=get_available_assets
+# returns Dictionary
 # @profile(stats=True)
 def get_available_assets(request):
     """Return JSON serializable dictionary with the number of matching assets
@@ -286,7 +291,6 @@ def get_available_assets(request):
     other filters and return all those assets.  Returns localized
     value for tag strings on asset by asset basis unless a specific language
     code is passed. Fall back to English if necessary."""
-
 
     def _get_best_localized_string(asset, tag, best_lang_id):
         """ Return localized string with specified language code.
@@ -315,7 +319,7 @@ def get_available_assets(request):
 
     known_params = ['project_id', 'latitude', 'longitude',
                     'tag_ids', 'tagbool', 'radius', 'language', 'asset_id',
-                    'envelope_id' ]
+                    'envelope_id']
     project_id = get_parameter_from_request(request, 'project_id', None)
     asset_id = get_parameter_from_request(request, 'asset_id', None)
     envelope_id = get_parameter_from_request(request, 'envelope_id', None)
@@ -335,8 +339,8 @@ def get_available_assets(request):
     asset_fields = models.get_field_names_from_model(models.Asset)
     asset_media_types = [tup[0] for tup in models.Asset.ASSET_MEDIA_TYPES]
     extraparams = [(param[0], param[1]) for param in form.items()
-                if param[0] not in known_params and
-                param[0] in asset_fields]
+                   if param[0] not in known_params and
+                   param[0] in asset_fields]
     extras = {}
     for k, v in extraparams:
         extras[str(k)] = str(v)
@@ -399,8 +403,8 @@ def get_available_assets(request):
                     radius = project.recording_radius
                     if not radius:
                         raise roundexception.RoundException("Project does not "
-                            "specify a radius and no radius parameter passed to "
-                            "operation.")
+                                                            "specify a radius and no radius parameter passed to "
+                                                            "operation.")
                 radius = float(radius)
                 for asset in assets:
                     distance = gpsmixer.distance_in_meters(
@@ -412,7 +416,7 @@ def get_available_assets(request):
         assets_info = {}
         assets_info['number_of_assets'] = {}
         for mtype in asset_media_types:
-            assets_info['number_of_assets'][mtype]= 0
+            assets_info['number_of_assets'][mtype] = 0
         assets_list = []
 
         for asset in assets:
@@ -422,9 +426,9 @@ def get_available_assets(request):
             if temp_desc:
                 loc_desc = temp_desc[0].localized_string
             if asset.mediatype in asset_media_types:
-                assets_info['number_of_assets'][asset.mediatype] +=1
+                assets_info['number_of_assets'][asset.mediatype] += 1
             if not qry_retlng:
-                retlng = asset.language # can be None
+                retlng = asset.language  # can be None
             else:
                 retlng = qry_retlng
             assets_list.append(
@@ -452,7 +456,8 @@ def get_available_assets(request):
 
     else:
         raise roundexception.RoundException("This operation requires that you "
-            "pass a project_id, asset_id, or envelope_id")
+                                            "pass a project_id, asset_id, or envelope_id")
+
 
 def log_event(request):
 
@@ -465,14 +470,16 @@ def log_event(request):
 
     return {"success": True}
 
-#create_envelope
-#args: (operation, session_id, [tags])
-#example: http://localhost/roundware/?operation=create_envelope&sessionid=1&tags=1,2
-#returns envelope_id, sharing_messsage
-#example:
+# create_envelope
+# args: (operation, session_id, [tags])
+# example: http://localhost/roundware/?operation=create_envelope&sessionid=1&tags=1,2
+# returns envelope_id, sharing_messsage
+# example:
 #{"envelope_id": 2}
 
 # @profile(stats=True)
+
+
 def create_envelope(request):
     form = request.GET
     if not form.has_key('session_id'):
@@ -486,21 +493,23 @@ def create_envelope(request):
 
     return {"envelope_id": env.id}
 
-#add_asset_to_envelope (POST method)
+# add_asset_to_envelope (POST method)
 #args (operation, envelope_id, file, latitude, longitude, [tagids])
-#example: http://localhost/roundware/?operation=add_asset_to_envelope
+# example: http://localhost/roundware/?operation=add_asset_to_envelope
 # OR
-#add_asset_to_envelope (GET method)
-#args (operation, envelope_id, asset_id) #asset_id must point to an Asset that exists in the database
-#returns success bool
+# add_asset_to_envelope (GET method)
+# args (operation, envelope_id, asset_id) #asset_id must point to an Asset that exists in the database
+# returns success bool
 #{"success": true}
 # @profile(stats=True)
+
+
 def add_asset_to_envelope(request):
 
-    #get asset_id from the GET request
+    # get asset_id from the GET request
     asset_id = get_parameter_from_request(request, 'asset_id', False)
     asset = None
-    #grab the Asset from the database, if an asset_id has been passed in
+    # grab the Asset from the database, if an asset_id has been passed in
     if asset_id:
         try:
             asset = models.Asset.objects.get(pk=asset_id)
@@ -514,15 +523,15 @@ def add_asset_to_envelope(request):
     db.log_event("start_upload", session.id, request.GET)
 
     fileitem = request.FILES.get('file') if not asset else asset.file
-    #get mediatype from the GET request
+    # get mediatype from the GET request
     mediatype = get_parameter_from_request(request, 'mediatype', False) if not asset else asset.mediatype
-    #if mediatype parameter not passed, set to 'audio'
-    #this ensures backwards compatibility
+    # if mediatype parameter not passed, set to 'audio'
+    # this ensures backwards compatibility
     if mediatype is None:
         mediatype = "audio"
 
     if fileitem.name:
-        #copy the file to a unique name (current time and date)
+        # copy the file to a unique name (current time and date)
         logger.debug("Processing " + fileitem.name)
         (filename_prefix, filename_extension) = \
             os.path.splitext(fileitem.name)
@@ -530,26 +539,26 @@ def add_asset_to_envelope(request):
         fileout = open(os.path.join(settings.config["upload_dir"], fn), 'wb')
         fileout.write(fileitem.file.read())
         fileout.close()
-        #delete the uploaded original after the copy has been made
+        # delete the uploaded original after the copy has been made
         if asset:
             asset.file.delete()
             # re-assign file to asset
             asset.file.name = fn
             asset.filename = fn
             asset.save()
-        #make sure everything is in wav form only if mediatype is audio
+        # make sure everything is in wav form only if mediatype is audio
         if mediatype == "audio":
             newfilename = convertaudio.convert_uploaded_file(fn)
         else:
             newfilename = fn
         if newfilename:
-            #create the new asset if request comes in from a source other
-            #than the django admin interface
+            # create the new asset if request comes in from a source other
+            # than the django admin interface
             if not asset:
-                #get location data from request
+                # get location data from request
                 latitude = get_parameter_from_request(request, 'latitude', False)
                 longitude = get_parameter_from_request(request, 'longitude', False)
-                #if no location data in request, default to project latitude and longitude
+                # if no location data in request, default to project latitude and longitude
                 if not latitude:
                     latitude = session.project.latitude
                 if not longitude:
@@ -582,19 +591,19 @@ def add_asset_to_envelope(request):
                                      mediatype=mediatype,
                                      volume=1.0,
                                      language=session.language,
-                                     project = session.project)
+                                     project=session.project)
                 asset.file.name = fn
                 asset.save()
                 for t in tagset:
                     asset.tags.add(t)
-            #if the request comes from the django admin interface
-            #update the Asset with the right information
+            # if the request comes from the django admin interface
+            # update the Asset with the right information
             else:
-                #update asset with session
+                # update asset with session
                 asset.session = session
                 asset.filename = newfilename
 
-            #get the audiolength of the file only if mediatype is audio and update the Asset
+            # get the audiolength of the file only if mediatype is audio and update the Asset
             if mediatype == "audio":
                 discover_audiolength.discover_and_set_audiolength(asset, newfilename)
                 asset.save()
@@ -677,9 +686,9 @@ def request_stream(request):
         wait_for_stream(session.id, audio_format)
 
         return {
-            "stream_url": "http://" + hostname_without_port + ":" + \
-                str(settings.config["icecast_port"]) + \
-                icecast_mount_point(session.id, audio_format),
+            "stream_url": "http://" + hostname_without_port + ":" +
+            str(settings.config["icecast_port"]) +
+            icecast_mount_point(session.id, audio_format),
         }
     else:
         msg = "This application is designed to be used in specific geographic locations. Apparently your phone thinks you are not at one of those locations, so you will hear a sample audio stream instead of the real deal. If you think your phone is incorrect, please restart Scapes and it will probably work. Thanks for checking it out!"
@@ -702,6 +711,8 @@ def request_stream(request):
         }
 
 # @profile(stats=True)
+
+
 def modify_stream(request):
     success = False
     msg = ""
@@ -758,6 +769,7 @@ def current_version(request):
     """
     return {"version": "2.0"}
 
+
 def get_events(request):
     """
     Return all events for the specified session_id
@@ -782,7 +794,7 @@ def get_events(request):
                      server_time=str(e.server_time),
                      )
             )
-            events_info['number_of_events'] +=1
+            events_info['number_of_events'] += 1
 
         events_info['events'] = events_list
         events_info['project_id'] = session.project.id
@@ -790,9 +802,9 @@ def get_events(request):
     else:
         return {"error": "no session_id"}
 
-#END 2.0 Protocol
+# END 2.0 Protocol
 
-#2.0 Helper methods
+# 2.0 Helper methods
 
 
 def apache_safe_daemon_subprocess(command):
@@ -804,8 +816,8 @@ def apache_safe_daemon_subprocess(command):
     proc = subprocess.Popen(
         command,
         close_fds=True,
-        #stdout=subprocess.PIPE,
-        #stderr=subprocess.PIPE,
+        # stdout=subprocess.PIPE,
+        # stderr=subprocess.PIPE,
         env=env,
     )
     #(stdout, stderr) = proc.communicate()
@@ -813,6 +825,8 @@ def apache_safe_daemon_subprocess(command):
     # logger.debug("subprocess_stdout: " + stderr)
 
 # Loops until the give stream is present and ready to be listened to.
+
+
 def wait_for_stream(sessionid, audio_format):
     logger.debug("waiting " + str(sessionid) + audio_format)
     admin = icecast2.Admin(settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"]),
@@ -821,7 +835,7 @@ def wait_for_stream(sessionid, audio_format):
     # Stream wait timeout in seconds
     timeout = 30
     # Number of retries timeout/(time to wait between retries)
-    retries_left = timeout/0.1
+    retries_left = timeout / 0.1
 
     while not admin.stream_exists(icecast_mount_point(sessionid, audio_format)):
         time.sleep(0.1)
@@ -844,7 +858,7 @@ def is_listener_in_range_of_stream(form, proj):
     speakers = models.Speaker.objects.filter(project=proj, activeyn=True)
 
     for speaker in speakers:
-        #only do this if latitude and longitude are included, return False otherwise
+        # only do this if latitude and longitude are included, return False otherwise
         distance = gpsmixer.distance_in_meters(
             float(form['latitude']),
             float(form['longitude']),
@@ -854,7 +868,7 @@ def is_listener_in_range_of_stream(form, proj):
             return True
     return False
 
-#END 2.0 Helper methods
+# END 2.0 Helper methods
 
 
 def form_to_request(form):

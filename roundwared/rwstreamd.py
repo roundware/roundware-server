@@ -10,6 +10,7 @@ from roundwared import roundgetopt
 from roundwared.stream import RoundStream
 from roundwared import rounddbus
 
+
 def listofint(s):
     return map(int, s.split(','))
 
@@ -27,14 +28,17 @@ options_data = [
 logger = logging.getLogger(__name__)
 
 # @profile
-def main ():
+
+
+def main():
     opts = roundgetopt.getopts(options_data)
     if opts.has_key('configfile'):
         settings.initialize_config(opts["configfile"])
     request = cmdline_opts_to_request(opts)
-    def thunk ():
+
+    def thunk():
         logger.debug("request is...")
-        logger.debug (request)
+        logger.debug(request)
         start_stream(opts["session_id"], opts["audio_format"], request)
 
     if opts["foreground"]:
@@ -42,7 +46,8 @@ def main ():
     else:
         daemon.create_daemon(thunk, False)
 
-def start_stream (sessionid, audio_format, request):
+
+def start_stream(sessionid, audio_format, request):
     try:
         logger.info("Starting stream " + str(sessionid))
         current_stream = RoundStream(
@@ -52,9 +57,10 @@ def start_stream (sessionid, audio_format, request):
     except:
         logger.error(traceback.format_exc())
 
-def cmdline_opts_to_request (opts):
+
+def cmdline_opts_to_request(opts):
     request = {}
-    for p in ['project_id', 'session_id','latitude', 'longitude', 'audio_stream_bitrate']:
+    for p in ['project_id', 'session_id', 'latitude', 'longitude', 'audio_stream_bitrate']:
         request[p] = opts[p]
     # logger.debug("cmdline_opts_to_request - session: " + str(request['session_id']))
     return request

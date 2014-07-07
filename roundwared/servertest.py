@@ -28,7 +28,7 @@ import db
 import json
 #print(json.dumps(db.get_config_tag_json_for_project(1), indent=4))
 #print(db.get_recordings({'project_id':1,'latitude':1, 'longitude':1, 'tags':[1,3,6]}))
-#db.add_asset_to_session_history_and_update_metadata(1,1)
+# db.add_asset_to_session_history_and_update_metadata(1,1)
 
 
 import string
@@ -54,13 +54,13 @@ import operator
 import pycurl
 
 #l1 = Language(language_code = 'en')
-#l1.save()
+# l1.save()
 
 #l2 = Language(language_code = 'es')
-#l2.save()
+# l2.save()
 
 #request = {'latitude': False, 'project_id': 1, 'longitude': False}
-#db.get_recordings(request)
+# db.get_recordings(request)
 p = Project.objects.get(id=1)
 s = Session.objects.get(id=2210)
 db.get_default_tags_for_project(p, s)
@@ -102,7 +102,7 @@ def migrate_tag_and_project_msgs():
             proj.out_of_range_message = ""
             proj.save()
 
-#migrate_tag_and_project_msgs()
+# migrate_tag_and_project_msgs()
 
 
 def localize_all_assets_to_en():

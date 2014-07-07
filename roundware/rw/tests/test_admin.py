@@ -22,10 +22,10 @@ def str_to_class(str):
 class TestAssetAdmin(RWTestCase, WebTest):
 
     def setUp(self):
-        super(type(self), TestAssetAdmin).setUp(self) 
+        super(type(self), TestAssetAdmin).setUp(self)
         self.client = Client()
         self.user = mommy.make_recipe('rw.basic_user', is_staff=True,
-                    is_superuser=True)
+                                      is_superuser=True)
         self.user.set_password('foo')
         self.user.save()
         self.username = self.user.username
@@ -33,15 +33,15 @@ class TestAssetAdmin(RWTestCase, WebTest):
         self.tagcat1 = mommy.make(TagCategory, name='tagcat1')
         self.tagcat2 = mommy.make(TagCategory, name='tagcat2')
         self.tagcat3 = mommy.make(TagCategory, name='tagcat3')
-        self.tag1 = mommy.make(Tag, tag_category=self.tagcat1, 
+        self.tag1 = mommy.make(Tag, tag_category=self.tagcat1,
                                description='tag1')
-        self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, 
+        self.tag2 = mommy.make(Tag, tag_category=self.tagcat2,
                                description='tag2')
-        self.asset1 = mommy.make(Asset, id=1989081234, tags=[self.tag1], 
+        self.asset1 = mommy.make(Asset, id=1989081234, tags=[self.tag1],
                                  audiolength=10)
         self.asset2 = mommy.make(Asset, id=2987123432, tags=[self.tag2],
                                  audiolength=50000000000)
-        self.asset3 = mommy.make(Asset, id=312343214134, tags=[], 
+        self.asset3 = mommy.make(Asset, id=312343214134, tags=[],
                                  audiolength=60000000001)
 
     def _login(self, username, password):
@@ -119,6 +119,7 @@ class TestAssetAdmin(RWTestCase, WebTest):
 
 
 class TestProtectedAdmin(RWTestCase):
+
     """
     Test that the ProjectProtected helper classes prevent a user from viewing
     objects for which he does not have a access_project permission on the
@@ -128,13 +129,13 @@ class TestProtectedAdmin(RWTestCase):
     def setUp(self):
         super(type(self), TestProtectedAdmin).setUp(self)
 
-        self.user = mommy.make_recipe('rw.basic_user',is_staff=True)
+        self.user = mommy.make_recipe('rw.basic_user', is_staff=True)
         # self.user.is_staff = True
         self.site = AdminSite
         self.permitted_project = mommy.make('rw.Project', name='permitted')
         self.excluded_project = mommy.make('rw.Project', name='excluded')
-        self.ui_mode = mommy.make('rw.UIMode') 
-        self.default_session = mommy.make_recipe('rw.default_session')   
+        self.ui_mode = mommy.make('rw.UIMode')
+        self.default_session = mommy.make_recipe('rw.default_session')
         self.default_session_id = self.default_session.id
         self.tag_category = mommy.make('rw.TagCategory')
         self.tag = mommy.make('rw.Tag')
@@ -147,7 +148,7 @@ class TestProtectedAdmin(RWTestCase):
         self.user.save()
         self.request = FakeRequest()
         self.request.user = self.user
-        
+
     def make_test_objects(self, model_class):
         pass
 
@@ -155,7 +156,7 @@ class TestProtectedAdmin(RWTestCase):
         pass
 
     def make_protected_test_objects_func(self, parent_class,
-                                    permitted_parent, excluded_parent):
+                                         permitted_parent, excluded_parent):
         def make_test_objects(model_class):
             permitted_object = model_class(**{parent_class: permitted_parent})
             excluded_object = model_class(**{parent_class: excluded_parent})
@@ -192,35 +193,34 @@ class TestProtectedAdmin(RWTestCase):
             self.assertIn("permitted", project_names)
             self.assertNotIn("excluded", project_names)
 
-
     def test_protected_model_admin(self):
         """
         Test permissions on models that have a direct link to a project
         """
         protected_model_test_data = [
             ['Session', [['starttime', '1999-01-01']]],
-            ['MasterUI', [['ui_mode_id', self.ui_mode.id], 
-                ['tag_category_id', self.tag_category.id],
-                ['select_id', self.selection_method.id], ['index', 3],
-                ['min_volume', 3], ]],
+            ['MasterUI', [['ui_mode_id', self.ui_mode.id],
+                          ['tag_category_id', self.tag_category.id],
+                          ['select_id', self.selection_method.id], ['index', 3],
+                          ['min_volume', 3], ]],
             ['Audiotrack', [['minvolume', 1], ['maxvolume', 2],
-                ['minduration', 3], ['maxduration', 4],
-                ['mindeadair', 1], ['maxdeadair', 4],
-                ['minfadeintime', 1], ['maxfadeintime', 2],
-                ['minfadeouttime', 1], ['maxfadeouttime', 2],
-                ['minpanpos', 1], ['maxpanpos', 2],
-                ['minpanduration', 1], ['maxpanduration', 2]]],
+                            ['minduration', 3], ['maxduration', 4],
+                            ['mindeadair', 1], ['maxdeadair', 4],
+                            ['minfadeintime', 1], ['maxfadeintime', 2],
+                            ['minfadeouttime', 1], ['maxfadeouttime', 2],
+                            ['minpanpos', 1], ['maxpanpos', 2],
+                            ['minpanduration', 1], ['maxpanduration', 2]]],
             ['Speaker', [['latitude', 1], ['longitude', 2],
-                ['mindistance', 1], ['maxdistance', 2],
-                ['minvolume', 1], ['maxvolume', 2]]],
+                         ['mindistance', 1], ['maxdistance', 2],
+                         ['minvolume', 1], ['maxvolume', 2]]],
             ['Asset']
         ]
 
         make_test_objects = self.make_protected_test_objects_func('project',
-                self.permitted_project, self.excluded_project)
+                                                                  self.permitted_project, self.excluded_project)
         get_project_names = lambda qs: [q.project.name for q in qs]
         self._test_protected_model_admin(make_test_objects,
-            get_project_names, protected_model_test_data)
+                                         get_project_names, protected_model_test_data)
 
     def test_protected_asset_model_admin(self):
         """
@@ -229,18 +229,18 @@ class TestProtectedAdmin(RWTestCase):
         """
         protected_asset_model_test_data = [
             ['Vote', [['session_id', self.default_session_id]]],
-            ['ListeningHistoryItem',[['session_id', self.default_session_id],
-                ['starttime', "1111-11-11"]]]
+            ['ListeningHistoryItem', [['session_id', self.default_session_id],
+                                      ['starttime', "1111-11-11"]]]
         ]
 
         permitted_asset = Asset.objects.create(project=self.permitted_project)
         excluded_asset = Asset.objects.create(project=self.excluded_project)
 
         make_test_objects = self.make_protected_test_objects_func('asset',
-            permitted_asset, excluded_asset)
+                                                                  permitted_asset, excluded_asset)
         get_project_names = lambda qs: [q.asset.project.name for q in qs]
         self._test_protected_model_admin(make_test_objects,
-            get_project_names, protected_asset_model_test_data)
+                                         get_project_names, protected_asset_model_test_data)
 
     def test_protected_session_model_admin(self):
         """
@@ -252,18 +252,17 @@ class TestProtectedAdmin(RWTestCase):
             ['Envelope']
         ]
 
-        extra_params = {'starttime' : '1111-11-11'}
+        extra_params = {'starttime': '1111-11-11'}
         permitted_session = Session.objects.create(project=self.permitted_project,
-            **extra_params)
+                                                   **extra_params)
         excluded_session = Session.objects.create(project=self.excluded_project,
-            **extra_params)
+                                                  **extra_params)
 
         make_test_objects = self.make_protected_test_objects_func('session',
-            permitted_session, excluded_session)
+                                                                  permitted_session, excluded_session)
         get_project_names = lambda qs: [q.session.project.name for q in qs]
         self._test_protected_model_admin(make_test_objects,
-            get_project_names, protected_session_model_test_data)
-
+                                         get_project_names, protected_session_model_test_data)
 
     def test_projected_ui_model_admin(self):
         """
@@ -271,22 +270,21 @@ class TestProtectedAdmin(RWTestCase):
         a MasterUI object.
         """
         protected_ui_model_data = [
-            ['UIMapping',[['index', 1], ['tag_id', self.tag.id]]]
+            ['UIMapping', [['index', 1], ['tag_id', self.tag.id]]]
         ]
 
         extra_params = {
-            'ui_mode_id' : self.ui_mode.id,
-            'tag_category_id' : self.tag_category.id,
-            'select_id' : self.selection_method.id,
-            'index' : 3
+            'ui_mode_id': self.ui_mode.id,
+            'tag_category_id': self.tag_category.id,
+            'select_id': self.selection_method.id,
+            'index': 3
         }
 
         permitted_ui_master = MasterUI.objects.create(project=self.permitted_project, **extra_params)
-        excluded_ui_master = MasterUI.objects.create(project=self.excluded_project,  **extra_params)
+        excluded_ui_master = MasterUI.objects.create(project=self.excluded_project, **extra_params)
 
         make_test_objects = self.make_protected_test_objects_func('master_ui',
-            permitted_ui_master, excluded_ui_master)
+                                                                  permitted_ui_master, excluded_ui_master)
         get_project_names = lambda qs: [q.master_ui.project.name for q in qs]
         self._test_protected_model_admin(make_test_objects,
-            get_project_names, protected_ui_model_data)
-
+                                         get_project_names, protected_ui_model_data)

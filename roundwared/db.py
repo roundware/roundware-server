@@ -47,6 +47,8 @@ from cache_utils.decorators import cached
 logger = logging.getLogger(__name__)
 
 # @profile(stats=True)
+
+
 def get_config_tag_json(p=None, s=None):
     if s is None and p is None:
         raise roundexception.RoundException("Must pass either a project or "
@@ -81,9 +83,9 @@ def get_config_tag_json(p=None, s=None):
                     loc_desc = temp_desc[0].localized_string
                 if mapping.default:
                     default.append(mapping.tag.id)
-                #masterOptionsList.append(mapping.toTagDictionary())
-                #def toTagDictionary(self):
-                    #return {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
+                # masterOptionsList.append(mapping.toTagDictionary())
+                # def toTagDictionary(self):
+                    # return {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
 
                 masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'data': mapping.tag.data,
                                           'relationships': mapping.tag.get_relationships(),
@@ -132,7 +134,6 @@ def get_recordings(request):
         # XXX TODO: or, fix this to match desired functionality
         raise roundexception.RoundException("get_recordings must be passed a session id")
 
-
     # this first check checks whether tags is a list of numbers.
     if request.has_key("tags") and hasattr(request["tags"], "__iter__") and len(request["tags"]) > 0:
         logger.debug("get_recordings: got " + str(len(request["tags"])) + "tags.")
@@ -177,7 +178,7 @@ def get_default_tags_for_project(p, s):
 #queryset = BlogPost.objects.filter(reduce(operator.or_, q_objects))
 
 # @profile(stats=True)
-@cached(60*1)
+@cached(60 * 1)
 def filter_recs_for_tags(p, tagids_from_request, l):
     """ Return Assets containing at least one matching tag in _each_ available
     tag category with the tags supplied in tagids_from_request.
@@ -195,7 +196,6 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     for cat in project_cats:
         # for each tag category a list of all of the tags with that cat
         tag_ids_per_cat_dict[cat.id] = [tag.id for tag in Tag.objects.filter(tag_category=cat)]
-
 
     project_recs = list(Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=l).distinct())
     for rec in project_recs:
@@ -243,8 +243,8 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     logger.debug("\n\n\nfilter_recs_for_tags returned %s Assets \n\n\n" % (len(recs)))
     return recs
 # form args:
-#event_type <string>
-#session_id <integer>
+# event_type <string>
+# session_id <integer>
 #[client_time] <string using RFC822 format>
 #[latitude] <float?>
 #[longitude] <float?>
@@ -255,7 +255,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
 def log_event(event_type, session_id, form):
     s = Session.objects.get(id=session_id)
     if s == None:
-        raise roundexception.RoundException("failed to access session " + str(session_id));
+        raise roundexception.RoundException("failed to access session " + str(session_id))
     client_time = None
     latitude = None
     longitude = None
@@ -302,7 +302,7 @@ def add_asset_to_session_history_and_update_metadata(asset_id, session_id, durat
     #sysString = "http://" + settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"])  + "/admin/metadata.xsl?mount=/stream" + str(session_id) + ".mp3&mode=updinfo&charset=UTF-8&song=assetid" + str(asset.id)
     # logger.debug("add_asset_to_session_history_and_update_metadataa - sysString: "+ sysString)
     #c.setopt(pycurl.URL, sysString)
-    #c.perform()
+    # c.perform()
     s = Session.objects.get(id=session_id)
     ass = Asset.objects.get(id=asset_id)
     try:
@@ -323,6 +323,7 @@ def get_current_streaming_asset(session_id):
         return l
     except IndexError:
         return None
+
 
 def get_asset(asset_id):
     return Asset.objects.get(id=asset_id)

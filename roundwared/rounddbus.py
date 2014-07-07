@@ -71,6 +71,7 @@ class StreamSignalEmmiter(dbus.service.Object):
         dbus.service.Object.__init__(self, bus, OBJECT_PATH)
 
     @dbus.service.signal(dbus_interface=INTERFACE, signature='iss')
-    def round_stream_control(self, sessionid, operation, args): pass
+    def round_stream_control(self, sessionid, operation, args):
+        pass
 
 global_emitter = StreamSignalEmmiter()

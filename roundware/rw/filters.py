@@ -34,6 +34,7 @@ from roundware.rw.models import Tag, TagCategory
 
 
 class AudiolengthListFilter(DateFieldListFilter):
+
     """ Provide a filter by audiolength, grouped by ranges.
     """
     # Use DateFieldListFilter base class since it gives us gt/lt ranges
@@ -84,6 +85,7 @@ class AudiolengthListFilter(DateFieldListFilter):
 
 
 class TagCategoryListFilter(RelatedFieldListFilter):
+
     """ Adds filtering by TagCategory, based on tags on Asset.  If a
     TagCategory is clicked the filter list displays specific tags in that
     TagCategory.

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 ENABLED_MODELS = (
     (0, "Asset"),
-#    (1, "Project"),
+    #    (1, "Project"),
 )
 
 ENABLED_ACTIONS = (
@@ -21,6 +21,7 @@ ENABLED_ACTIONS = (
     (1, "edit"),
     (2, "delete"),
 )
+
 
 class ModelNotification(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -30,10 +31,11 @@ class ModelNotification(models.Model):
     active = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return "%(model)s (%(project)s)" % {'model' : ENABLED_MODELS[self.model][1], 'project' : self.project}
+        return "%(model)s (%(project)s)" % {'model': ENABLED_MODELS[self.model][1], 'project': self.project}
 
     def get_absolute_url(self):
         return urlresolvers.reverse("admin:%s_%s_change" % (self._meta.app_label, self._meta.model_name), args=(self.id,))
+
 
 class ActionNotification(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -59,19 +61,19 @@ class ActionNotification(models.Model):
         Notify the associated users when the notification triggers
         """
         message = self.message
-        #include a link to the admin page if the object is being added or edited
-        if self.action in [0,1]:
-            link = "http://%(domain)s%(abs)s" % {'domain' : Site.objects.get_current().domain,
-                                                 'abs' : urlresolvers.reverse("admin:%s_%s_change" % ("rw", ENABLED_MODELS[self.notification.model][1].lower()), args=(ref,))}
+        # include a link to the admin page if the object is being added or edited
+        if self.action in [0, 1]:
+            link = "http://%(domain)s%(abs)s" % {'domain': Site.objects.get_current().domain,
+                                                 'abs': urlresolvers.reverse("admin:%s_%s_change" % ("rw", ENABLED_MODELS[self.notification.model][1].lower()), args=(ref,))}
             message = "%s\n%s" % (self.message, link)
 
-        #create the email object
+        # create the email object
         email = EmailMultiAlternatives(
             subject=self.subject,
             body=message,
             from_email=getattr(settings, "EMAIL_HOST_USER", "info@localhost"),
-            #only send to users who have permissions through django-guardian to access the associated project
-            #TODO: this only works when the ModelNotification points to a 'Asset' will need to be adjusted when additional models are to be added.
+            # only send to users who have permissions through django-guardian to access the associated project
+            # TODO: this only works when the ModelNotification points to a 'Asset' will need to be adjusted when additional models are to be added.
             to=[user.email for user in self.who.all() if UserObjectPermission.objects.filter(user=user,
                                                                                              permission__codename="access_project",
                                                                                              object_pk=self.notification.project.pk) or user.is_superuser],
@@ -80,4 +82,4 @@ class ActionNotification(models.Model):
         self.last_sent_reference = ref
         self.save()
         ret = email.send()
-        logger.info("Email Sent: %(email)s, %(ret)s" % {'email' : email.to, 'ret' : ret})
+        logger.info("Email Sent: %(email)s, %(ret)s" % {'email': email.to, 'ret': ret})

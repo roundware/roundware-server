@@ -24,7 +24,7 @@
 #***********************************************************************************#
 
 
-#MODES: True Shuffle, Random cycle N times
+# MODES: True Shuffle, Random cycle N times
 
 import logging
 import threading
@@ -42,10 +42,12 @@ from roundwared.asset_sorters import order_assets_randomly, order_assets_by_like
 
 logger = logging.getLogger(__name__)
 
+
 class RecordingCollection:
     ######################################################################
     # Public
     ######################################################################
+
     def __init__(self, stream, request, radius, ordering='random'):
         self.radius = radius
         self.stream = stream
@@ -71,9 +73,9 @@ class RecordingCollection:
         self.nearby_unplayed_recordings = []
         self.update_nearby_recordings(request)
         logger.debug("update_request: all_recordings count: " + str(len(self.all_recordings))
-                      + ", far_recordings count: " + str(len(self.far_recordings))
-                      + ", nearby_played_recordings count: " + str(len(self.nearby_played_recordings))
-                      + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
+                     + ", far_recordings count: " + str(len(self.far_recordings))
+                     + ", nearby_played_recordings count: " + str(len(self.nearby_played_recordings))
+                     + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
         self.lock.release()
 
     # Gets a new recording to play.
@@ -84,7 +86,7 @@ class RecordingCollection:
         recording = None
         logger.debug("Recording Collection: we have " + str(len(self.nearby_unplayed_recordings)) + " unplayed recs.")
         if len(self.nearby_unplayed_recordings) > 0:
-#           index = random.randint(0, len(self.nearby_unplayed_recordings) - 1)
+            #           index = random.randint(0, len(self.nearby_unplayed_recordings) - 1)
             index = 0
             recording = self.nearby_unplayed_recordings.pop(index)
             logger.debug("RecordingCollection: get_recording: Got " + str(recording.filename))
@@ -94,7 +96,7 @@ class RecordingCollection:
             logger.debug("get_recording request:  " + str(self.request))
             p = models.Project.objects.get(id=int(self.request['project_id']))
             logger.debug("get_recording 2 - repeatmode:" + p.repeat_mode.mode)
-            #do this only if project setting calls for it
+            # do this only if project setting calls for it
             if p.is_continuous():
                 logger.debug("get_recording continuous mode")
                 self.all_recordings = db.get_recordings(self.request)
@@ -103,9 +105,9 @@ class RecordingCollection:
                 self.nearby_unplayed_recordings = []
                 self.update_nearby_recordings(self.request)
                 logger.debug("GET_RECORDING UPDATE: all_recordings count: " + str(len(self.all_recordings))
-                          + ", far_recordings count: " + str(len(self.far_recordings))
-                          + ", nearby_played_recordings count: " + str(len(self.nearby_played_recordings))
-                          + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
+                             + ", far_recordings count: " + str(len(self.far_recordings))
+                             + ", nearby_played_recordings count: " + str(len(self.nearby_played_recordings))
+                             + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
                 index = 0
                 recording = self.nearby_unplayed_recordings.pop(index)
                 logger.debug("POST UPDATE RecordingCollection: get_recording: Got " + str(recording.filename))
@@ -124,7 +126,7 @@ class RecordingCollection:
         logger.debug("add_recording exit")
         self.lock.release()
 
-    #Updates the collection of recordings according to a new listener position.
+    # Updates the collection of recordings according to a new listener position.
     def move_listener(self, listener):
         # logger.debug("move_listener")
         self.lock.acquire()
@@ -209,11 +211,11 @@ class RecordingCollection:
     #                   str([(u[0], u[1].filename) for u in unplayed]))
     #     return [x[1] for x in unplayed]
 
-    #True if the listener and recording are close enough to be heard.
+    # True if the listener and recording are close enough to be heard.
     def is_nearby(self, listener, recording):
         if listener.has_key('latitude') \
-            and listener['latitude'] \
-            and listener['longitude']:
+                and listener['latitude'] \
+                and listener['longitude']:
             distance = gpsmixer.distance_in_meters(
                 listener['latitude'], listener['longitude'],
                 recording.latitude, recording.longitude)

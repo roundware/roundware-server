@@ -33,6 +33,7 @@ from models import TagCategory, Tag
 
 
 class TagCategoryFilterSpec(RelatedFilterSpec):
+
     """
     Adds filtering by first char (alphabetic style) of values in the admin
     filter sidebar. Set the alphabetic filter in the model field attribute
@@ -40,6 +41,7 @@ class TagCategoryFilterSpec(RelatedFilterSpec):
 
     my_model_field.alphabetic_filter = True
     """
+
     def __init__(self, f, request, params, model, model_admin, *args, **kwargs):
         super(TagCategoryFilterSpec, self).__init__(f, request, params, model, model_admin, *args, **kwargs)
 
@@ -79,7 +81,7 @@ class TagCategoryFilterSpec(RelatedFilterSpec):
 
     def title(self):
         return _('%(field_name)s') %\
-               {'field_name': self.field.verbose_name}
+            {'field_name': self.field.verbose_name}
 
 # registering the filter
 FilterSpec.filter_specs.insert(0, (lambda f: getattr(f, 'tag_category_filter', False),
@@ -92,6 +94,7 @@ from datetime import datetime
 
 
 class AudioLengthFilterSpec(DateFieldFilterSpec):
+
     """
     Adds filtering by future and previous values in the admin
     filter sidebar. Set the is_active_filter filter in the model field attribute 'is_active_filter'.
@@ -116,7 +119,7 @@ class AudioLengthFilterSpec(DateFieldFilterSpec):
             (_('50s - 60s'), {'%s__gte' % self.field.name: 50000000000,
                               '%s__lt' % self.field.name: 60000000000}),
             (_('60s +'), {'%s__gte' % self.field.name: 60000000000})
-            )
+        )
 
     def title(self):
         return "Audio File Length"

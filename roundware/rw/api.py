@@ -71,6 +71,7 @@ class AssetLocationResource(AssetResource):
 
 
 class ProjectResource(ModelResource):
+
     class Meta:
         queryset = Project.objects.all()
         resource_name = "project"
@@ -88,8 +89,8 @@ class EventResource(ModelResource):
         serializer = PrettyJSONSerializer()
         filtering = {
             "event_type": ('exact', 'startswith',),
-            "server_time"  : ('exact', 'gte', 'lte', 'range'),
-            "session"  : ('exact'),
+            "server_time": ('exact', 'gte', 'lte', 'range'),
+            "session": ('exact'),
         }
 
 
@@ -104,11 +105,11 @@ class SessionResource(ModelResource):
         serializer = PrettyJSONSerializer()
         filtering = {
             "client_type": ('exact', 'contains',),
-            "client_system"  : ('exact', 'contains'),
-            "starttime"  : ('exact', 'gte', 'lte', 'range'),
-            "demo_stream_enabled"  : ('exact'),
-            "project"  : ('exact'),
-            "language"  : ('exact'),
+            "client_system": ('exact', 'contains'),
+            "starttime": ('exact', 'gte', 'lte', 'range'),
+            "demo_stream_enabled": ('exact'),
+            "project": ('exact'),
+            "language": ('exact'),
         }
 
 
@@ -124,7 +125,7 @@ class ListeningHistoryItemResource(ModelResource):
         serializer = PrettyJSONSerializer()
         filtering = {
             "duration": ('lte', 'gte'),
-            "server_time"  : ('exact', 'gte', 'lte', 'range'),
-            "session"  : ('exact'),
-            "asset"  : ('exact'),
+            "server_time": ('exact', 'gte', 'lte', 'range'),
+            "session": ('exact'),
+            "asset": ('exact'),
         }

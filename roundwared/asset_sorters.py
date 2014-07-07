@@ -31,16 +31,17 @@ from roundware.rw import models
 from datetime import date, timedelta
 logger = logging.getLogger(__name__)
 
+
 def order_assets_by_like(assets):
     unplayed = []
     for asset in assets:
         count = models.Asset.get_likes(asset)
         unplayed.append((count, asset))
     logger.info('Ordering Assets by Like. Input: ' +
-                 str([(u[0], u[1].filename) for u in unplayed]))
+                str([(u[0], u[1].filename) for u in unplayed]))
     unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
     logger.info('Ordering Assets by Like. Output: ' +
-                 str([(u[0], u[1].filename) for u in unplayed]))
+                str([(u[0], u[1].filename) for u in unplayed]))
     return [x[1] for x in unplayed]
 
 
@@ -50,10 +51,10 @@ def order_assets_by_weight(assets):
         weight = asset.weight
         unplayed.append((weight, asset))
     logger.debug('Ordering Assets by Weight. Input: ' +
-                  str([(u[0], u[1].filename) for u in unplayed]))
+                 str([(u[0], u[1].filename) for u in unplayed]))
     unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
     logger.debug('Ordering Assets by Weight. Output: ' +
-                  str([(u[0], u[1].filename) for u in unplayed]))
+                 str([(u[0], u[1].filename) for u in unplayed]))
     return [x[1] for x in unplayed]
 
 

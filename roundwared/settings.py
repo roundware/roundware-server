@@ -85,7 +85,7 @@ config = read_configfile(default_configfile)
 # If there is no existing config at the default location, write one out if there is write permission.
 (dir, relativefilename) = os.path.split(default_configfile)
 if (os.access(default_configfile, os.F_OK) and os.access(default_configfile, os.W_OK)) \
-    or (not os.access(default_configfile, os.F_OK) and os.access(dir, os.W_OK)):
+        or (not os.access(default_configfile, os.F_OK) and os.access(dir, os.W_OK)):
     config.write()
 
 # mode is compressor or expander

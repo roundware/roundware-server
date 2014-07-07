@@ -33,6 +33,7 @@ R = 6371.0  # The radius of the Earth
 
 
 class GPSPosn:
+
     def __init__(self, latitude, longitude):
         self.latitude = latitude
         self.longitude = longitude
@@ -59,14 +60,14 @@ class GPSPosn:
         lat1 = math.radians(self.latitude)
         lon1 = math.radians(self.longitude)
 
-        lat2 = math.asin( \
-            math.sin(lat1) * math.cos(dist) \
-            + math.cos(lat1) * math.sin(dist) \
+        lat2 = math.asin(
+            math.sin(lat1) * math.cos(dist)
+            + math.cos(lat1) * math.sin(dist)
             * math.cos(brng))
-        lon2 = lon1 + math.atan2( \
-            math.sin(brng) * math.sin(dist) \
-            * math.cos(lat1), \
-            math.cos(dist) - math.sin(lat1) \
+        lon2 = lon1 + math.atan2(
+            math.sin(brng) * math.sin(dist)
+            * math.cos(lat1),
+            math.cos(dist) - math.sin(lat1)
             * math.sin(lat2))
         lon2 = (lon2 + 3 * math.pi) % (2 * math.pi) - math.pi
         return GPSPosn(math.degrees(lat2), math.degrees(lon2))
@@ -77,10 +78,10 @@ class GPSPosn:
         lat1 = math.radians(self.latitude)
         lat2 = math.radians(posn.latitude)
         dLon = math.radians(posn.longitude - self.longitude)
-        y = math.sin(dLon) * math.cos(lat2);
+        y = math.sin(dLon) * math.cos(lat2)
         x = math.cos(lat1) * math.sin(lat2) \
             - math.sin(lat1) * math.cos(lat2) \
-            * math.cos(dLon);
+            * math.cos(dLon)
         brng = math.atan2(y, x)
         return (math.degrees(brng) + 360) % 360
 

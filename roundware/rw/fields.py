@@ -31,11 +31,13 @@ from sortedm2m.forms import SortedMultipleChoiceField
 
 
 class RWValidatedFileField(ValidatedFileField):
+
     """
     Same as FileField, but you can specify:
         * content_types - list containing allowed content_types.
         Example: ['application/pdf', 'image/jpeg']
     """
+
     def __init__(self, content_types=None, **kwargs):
         if content_types:
             self.content_types = content_types
@@ -52,7 +54,7 @@ class RWValidatedFileField(ValidatedFileField):
         return data
 
 
-add_introspection_rules([], ["^roundware\.rw\.fields\.RWValidatedFileField"])        
+add_introspection_rules([], ["^roundware\.rw\.fields\.RWValidatedFileField"])
 
 
 class RWTagOrderingSortedMultipleChoiceField(SortedMultipleChoiceField):

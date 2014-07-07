@@ -88,7 +88,7 @@ def catch_errors(request):
         return {"error_message": str(e)}
     except:
         logger.error(
-            "An uncaught exception was raised. See traceback for details." + \
+            "An uncaught exception was raised. See traceback for details." +
             traceback.format_exc())
         return {
             "error_message": "An uncaught exception was raised. See traceback for details.",
@@ -146,17 +146,17 @@ class MultiCreateTagsView(LoginRequiredMixin, FormValidMessageMixin, MultiFormVi
     template_name = 'rw/tags_add_to_category_form.html'
     form_valid_message = 'Tags created!'
     forms = {'category': MultiFormView.modelform(Tag, TagCreateForm,
-                         **{'fields': ('tag_category',),
-                            'exclude': ('value','description','data',
-                                        'loc_msg')}
-                         ),
+                                                 **{'fields': ('tag_category',),
+                                                    'exclude': ('value', 'description', 'data',
+                                                                'loc_msg')}
+                                                 ),
              'tag_formset': MultiFormView.modelformset(Tag,
-                            **{'extra': 2, 'form': TagCreateForm,
-                               'exclude': ['tag_category'],
-                               'fields': ['value', 'description', 'data', 'loc_msg'],
-                               'formset': BatchTagFormset}
-                            )
-            }
+                                                       **{'extra': 2, 'form': TagCreateForm,
+                                                          'exclude': ['tag_category'],
+                                                          'fields': ['value', 'description', 'data', 'loc_msg'],
+                                                           'formset': BatchTagFormset}
+                                                       )
+             }
 
     def get_category_instance(self):
         return Tag()
@@ -167,8 +167,8 @@ class MultiCreateTagsView(LoginRequiredMixin, FormValidMessageMixin, MultiFormVi
     def valid_all(self, valid_forms):
         """ handle case all forms valid
         """
-        category= valid_forms['category']
-        formset= valid_forms['tag_formset']
+        category = valid_forms['category']
+        formset = valid_forms['tag_formset']
         for form in formset.forms:
             tag = form.save(commit=False)  # doesn't save m2m yet
             tag.tag_category = category.cleaned_data['tag_category']
@@ -187,6 +187,7 @@ class UIMappingsInline(InlineFormSet):
 
 
 class SetupTagUIMixin(LoginRequiredMixin, PermissionRequiredMixin):
+
     """ make sure User can modify this MasterUI based on Project,
         and is logged in.
     """
@@ -208,12 +209,12 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
     template_name = 'setup_tag_ui_form.html'
     forms = {
         'master_ui_select': FormProvider(
-        MasterUIForSetupTagUISelectForm,
-        context_suffix='form',
-        init_args={'user': 'get_%s_user'}),
+            MasterUIForSetupTagUISelectForm,
+            context_suffix='form',
+            init_args={'user': 'get_%s_user'}),
 
         'master_ui_edit': MultiFormView.modelform(MasterUI,
-                          MasterUIForSetupTagUIEditForm),
+                                                  MasterUIForSetupTagUIEditForm),
 
     }
 
@@ -248,7 +249,7 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         # if modelchoicefield not empty
         if request.POST.get("master_ui_select-masterui"):
             id_to_update = request.POST["master_ui_select-masterui"]
-            mui=MasterUI.objects.get(pk=id_to_update)
+            mui = MasterUI.objects.get(pk=id_to_update)
             edit_form = MasterUIForSetupTagUIEditForm(instance=mui)
             response_dic['mui_update_id'] = mui.id
 
@@ -264,7 +265,7 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
     def update_ui_mappings(self, uimaps, formtags, defaults, indexes, mui):
         uimaptags = []
 
-        default_tags = [df.startswith('t') and Tag.objects.filter(pk=df.replace('t',''))[0] or
+        default_tags = [df.startswith('t') and Tag.objects.filter(pk=df.replace('t', ''))[0] or
                         UIMapping.objects.filter(pk=df)[0].tag for df in defaults]
         for uimap in uimaps:
             uimaptags.append(uimap.tag)
@@ -298,7 +299,7 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         defaults = form.data['master_ui_edit-ui_mappings_tag_order'].split(',')
         if form.cleaned_data['ui_mappings_tags_indexes']:
             indexes = form.cleaned_data['ui_mappings_tags_indexes'].split(',')
-            indexes = [el.startswith('t') and el.replace('t','') or
+            indexes = [el.startswith('t') and el.replace('t', '') or
                        UIMapping.objects.select_related('tag').filter(
                        pk=el)[0].tag.pk for el in indexes]
         else:
@@ -306,7 +307,7 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         if mui_id:
             mui = MasterUI.objects.filter(pk=mui_id)[0]
             uimaps = UIMapping.objects.select_related(
-                     'tag').filter(master_ui=mui)
+                'tag').filter(master_ui=mui)
             # instance isn't constructed yet with data from form so we can't
             # use form.save() but have to do the following with construct=True
             save_instance(form, mui, form._meta.fields, 'form changed', True,
@@ -324,10 +325,12 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
 
 
 class UpdateTagUIOrder(TemplateView):
+
     """ display the widget for the master_ui_edit_tag_order field as updated
         based on the value of the master_ui_edit_tags field on
         MasterUIMappingsOrganizationView edit form.
     """
+
     def __init__(self, **kwargs):
         self.widget = SetupTagUISortedCheckboxSelectMultiple()
 
@@ -348,7 +351,7 @@ class UpdateTagUIOrder(TemplateView):
 
         if mui:
             self.queryset = UIMapping.objects.select_related('tag'
-            ).filter(master_ui__pk=mui, tag__in=tag_vals).order_by('index')
+                                                             ).filter(master_ui__pk=mui, tag__in=tag_vals).order_by('index')
             filtered = self.queryset.filter(default=True)
         else:
             self.queryset = UIMapping.objects.none()
@@ -364,7 +367,7 @@ class UpdateTagUIOrder(TemplateView):
                                   value=[uimap.pk for uimap in filtered],
                                   attrs={u'id': u'id_master_ui_edit-ui_mappings_tag_order'},
                                   choices=self.choice_iterator(),
-                                  new_maps = tags_unseen,)
+                                  new_maps=tags_unseen,)
         return HttpResponse(mark_safe(html))
 
 
