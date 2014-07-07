@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     opts = roundgetopt.getopts(options_data)
-    if opts.has_key('configfile'):
+    if 'configfile' in opts:
         settings.initialize_config(opts["configfile"])
     request = cmdline_opts_to_request(opts)
 

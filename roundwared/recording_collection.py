@@ -223,8 +223,7 @@ class RecordingCollection:
 
     # True if the listener and recording are close enough to be heard.
     def is_nearby(self, listener, recording):
-        if listener.has_key('latitude') \
-                and listener['latitude'] \
+        if 'latitude' in listener and listener['latitude'] \
                 and listener['longitude']:
             distance = gpsmixer.distance_in_meters(
                 listener['latitude'], listener['longitude'],

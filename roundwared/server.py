@@ -65,7 +65,7 @@ def check_for_single_audiotrack(session_id):
 
 def get_current_streaming_asset(request):
     form = request.GET
-    if not form.has_key('session_id'):
+    if 'session_id' not in form:
         raise roundexception.RoundException(
             "a session_id is required for this operation")
     if check_for_single_audiotrack(form.get('session_id')) != True:
@@ -84,7 +84,7 @@ def get_current_streaming_asset(request):
 
 def get_asset_info(request):
     form = request.GET
-    if not form.has_key('asset_id'):
+    if 'asset_id' not in form:
         raise roundexception.RoundException(
             "an asset_id is required for this operation")
 
@@ -110,13 +110,13 @@ def play_asset_in_stream(request):
     arg_hack = json.dumps(request)
     db.log_event("play_asset_in_stream", int(form['session_id']), form)
 
-    if not form.has_key('session_id'):
+    if 'session_id' not in form:
         raise roundexception.RoundException(
             "a session_id is required for this operation")
     if check_for_single_audiotrack(form.get('session_id')) != True:
         raise roundexception.RoundException(
             "this operation is only valid for projects with 1 audiotrack")
-    if not form.has_key('asset_id'):
+    if 'asset_id' not in form:
         raise roundexception.RoundException(
             "an asset_id is required for this operation")
     rounddbus.emit_stream_signal(
@@ -128,7 +128,7 @@ def skip_ahead(request):
     form = request.GET
     db.log_event("skip_ahead", int(form['session_id']), form)
 
-    if not form.has_key('session_id'):
+    if 'session_id' not in form:
         raise roundexception.RoundException(
             "a session_id is required for this operation")
     if check_for_single_audiotrack(form.get('session_id')) != True:
@@ -142,13 +142,13 @@ def vote_asset(request):
     form = request.GET
     db.log_event("vote_asset", int(form['session_id']), form)
 
-    if not form.has_key('session_id'):
+    if 'session_id' not in form:
         raise roundexception.RoundException(
             "a session_id is required for this operation")
-    if not form.has_key('asset_id'):
+    if 'asset_id' not in form:
         raise roundexception.RoundException(
             "an asset_id is required for this operation")
-    if not form.has_key('vote_type'):
+    if 'vote_type' not in form:
         raise roundexception.RoundException(
             "a vote_type is required for this operation")
     if check_for_single_audiotrack(form.get('session_id')) != True:
@@ -163,7 +163,7 @@ def vote_asset(request):
         asset = models.Asset.objects.get(id=int(form.get('asset_id')))
     except:
         raise roundexception.RoundException("asset not found.")
-    if not form.has_key('value'):
+    if 'value' not in form:
         v = models.Vote(
             asset=asset, session=session, type=form.get('vote_type'))
     else:
@@ -179,7 +179,7 @@ def get_config(request):
     form = request.GET
 
     # check params
-    if not form.has_key('project_id'):
+    if 'project_id' not in form:
         raise roundexception.RoundException(
             "a project_id is required for this operation")
     project = models.Project.objects.get(id=form.get('project_id'))
@@ -188,13 +188,13 @@ def get_config(request):
     audiotracks = models.Audiotrack.objects.filter(
         project=form.get('project_id')).values()
 
-    if not form.has_key('device_id') or (form.has_key('device_id') and form['device_id'] == ""):
+    if 'device_id' not in form or ('device_id' in form and form['device_id'] == ""):
         device_id = str(uuid.uuid4())
     else:
         device_id = form.get('device_id')
 
     l = models.Language.objects.filter(language_code='en')[0]
-    if form.has_key('language') or (form.has_key('language') and form['language'] == ""):
+    if 'language' in form or ('language' in form and form['language'] == ""):
         try:
             l = models.Language.objects.filter(
                 language_code=form.get('language'))[0]
@@ -215,9 +215,9 @@ def get_config(request):
     if create_new_session:
         s = models.Session(
             device_id=device_id, starttime=datetime.datetime.now(), project=project, language=l)
-        if form.has_key('client_type'):
+        if 'client_type' in form:
             s.client_type = form.get('client_type')
-        if form.has_key('client_system'):
+        if 'client_system' in form:
             s.client_system = form.get('client_system')
         s.demo_stream_enabled = demo_stream_enabled
 
@@ -293,13 +293,13 @@ def get_tags_for_project(request):
     form = request.GET
     p = None
     s = None
-    if not form.has_key('project_id') and not form.has_key('session_id'):
+    if 'project_id' not in form and 'session_id' not in form:
         raise roundexception.RoundException(
             "either a project_id or session_id is required for this operation")
 
-    if form.has_key('project_id'):
+    if 'project_id' in form:
         p = models.Project.objects.get(id=form.get('project_id'))
-    if form.has_key('session_id'):
+    if 'session_id' in form:
         s = models.Session.objects.get(id=form.get('session_id'))
     return db.get_config_tag_json(p, s)
 
@@ -496,10 +496,10 @@ def get_available_assets(request):
 def log_event(request):
 
     form = request.GET
-    if not form.has_key('session_id'):
+    if 'session_id' not in form:
         raise roundexception.RoundException(
             "a session_id is required for this operation")
-    if not form.has_key('event_type'):
+    if 'event_type' not in form:
         raise roundexception.RoundException(
             "an event_type is required for this operation")
     db.log_event(form.get('event_type'), form.get('session_id'), form)
@@ -518,7 +518,7 @@ def log_event(request):
 
 def create_envelope(request):
     form = request.GET
-    if not form.has_key('session_id'):
+    if 'session_id' not in form:
         raise roundexception.RoundException(
             "a session_id is required for this operation")
     s = models.Session.objects.get(id=form.get('session_id'))
@@ -728,15 +728,15 @@ def request_stream(request):
         command = [roundwared_directory + '/rwstreamd.py',
                    '--session_id', str(session.id), '--project_id', str(project.id)]
         for p in ['latitude', 'longitude', 'audio_format']:
-            if request_form.has_key(p) and request_form[p]:
+            if p in request_form and request_form[p]:
                 command.extend(['--' + p, request_form[p].replace("\t", ",")])
-        if request_form.has_key('config'):
+        if 'config' in request_form:
             command.extend(
                 ['--configfile', os.path.join(settings.configdir, request_form['config'])])
         else:
             command.extend(
                 ['--configfile', os.path.join(settings.configdir, 'rw')])
-        if request_form.has_key('audio_stream_bitrate'):
+        if 'audio_stream_bitrate' in request_form:
             command.extend(
                 ['--audio_stream_bitrate', str(request_form['audio_stream_bitrate'])])
 
@@ -782,11 +782,11 @@ def modify_stream(request):
     arg_hack = json.dumps(request)
     db.log_event("modify_stream", int(form['session_id']), form)
 
-    if form.has_key('session_id'):
+    if 'session_id' in form:
         session = models.Session.objects.select_related(
             'project').get(id=form['session_id'])
         project = session.project
-        if form.has_key('language'):
+        if 'language' in form:
             try:
                 logger.debug("modify_stream: language: " + form['language'])
                 l = models.Language.objects.filter(
@@ -940,12 +940,12 @@ def is_listener_in_range_of_stream(form, proj):
 def form_to_request(form):
     request = {}
     for p in ['project_id', 'session_id', 'asset_id']:
-        if form.has_key(p) and form[p]:
+        if p in form and form[p]:
             request[p] = map(int, form[p].split("\t"))
         else:
             request[p] = []
     for p in ['tags']:
-        if form.has_key(p) and form[p]:
+        if p in form and form[p]:
             # make sure we don't have blank values from trailing commas
             p_list = [v for v in form[p].split(",") if v != ""]
             request[p] = map(int, p_list)
@@ -953,7 +953,7 @@ def form_to_request(form):
             request[p] = []
 
     for p in ['latitude', 'longitude']:
-        if form.has_key(p) and form[p]:
+        if p in form and form[p]:
             request[p] = float(form[p])
         else:
             request[p] = False

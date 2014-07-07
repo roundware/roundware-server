@@ -27,23 +27,26 @@ root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 # url base for media files
 MEDIA_BASE_URI = "/rwmedia/"
 # external url where audio files can be accessed
-AUDIO_FILE_URI = MEDIA_BASE_URI # + "audio"
+AUDIO_FILE_URI = MEDIA_BASE_URI  # + "audio"
 # external url where video files can be accessed
-VIDEO_FILE_URI = AUDIO_FILE_URI #MEDIA_BASE_URI + "video"
+VIDEO_FILE_URI = AUDIO_FILE_URI  # MEDIA_BASE_URI + "video"
 # external url where image files can be accessed
-IMAGE_FILE_URI = AUDIO_FILE_URI #MEDIA_BASE_URI + "img"
+IMAGE_FILE_URI = AUDIO_FILE_URI  # MEDIA_BASE_URI + "img"
 
 MEDIA_ROOT = ''
 MEDIA_BASE_DIR = "/var/www/roundware/rwmedia/"
 # internal path name to media file directories
-AUDIO_FILE_DIR = MEDIA_BASE_DIR #+ "audio"
-VIDEO_FILE_DIR = MEDIA_BASE_DIR #+ "video"
-IMAGE_FILE_DIR = MEDIA_BASE_DIR #+ "img"
+AUDIO_FILE_DIR = MEDIA_BASE_DIR  # + "audio"
+VIDEO_FILE_DIR = MEDIA_BASE_DIR  # + "video"
+IMAGE_FILE_DIR = MEDIA_BASE_DIR  # + "img"
 
-ALLOWED_AUDIO_MIME_TYPES = ['audio/x-wav', 'audio/wav', 'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',  'audio/mp3',  ]
-ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/pjpeg', ]
+ALLOWED_AUDIO_MIME_TYPES = ['audio/x-wav', 'audio/wav',
+                            'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',  'audio/mp3', ]
+ALLOWED_IMAGE_MIME_TYPES = [
+    'image/jpeg', 'image/gif', 'image/png', 'image/pjpeg', ]
 ALLOWED_TEXT_MIME_TYPES = ['text/plain', 'text/html', 'application/xml', ]
-ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES + ALLOWED_TEXT_MIME_TYPES
+ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + \
+    ALLOWED_IMAGE_MIME_TYPES + ALLOWED_TEXT_MIME_TYPES
 
 # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
@@ -68,14 +71,18 @@ STOP_REPEAT_MODE = "stop"
 
 ######## END ROUNDWARE SPECIFIC SETTINGS #########
 
-#change this to reflect your environment
-#JSS: this will always set PROJECT_PATH to the directory in which settings.py is contained
+# change this to reflect your environment
+# JSS: this will always set PROJECT_PATH to the directory in which
+# settings.py is contained
 PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or
+        # 'oracle'.
+        'ENGINE': 'django.db.backends.mysql',
 
-        'NAME': 'roundware',                      # Or path to database file if using sqlite3.
+        # Or path to database file if using sqlite3.
+        'NAME': 'roundware',
         'USER': 'round',
         'PASSWORD': 'round',
         'HOST': '',
@@ -85,7 +92,7 @@ DATABASES = {
 
 # copy this to local_settings.py and uncomment.
 # only requests to this domain will be allowed
-ALLOWED_HOSTS = ['*',]
+ALLOWED_HOSTS = ['*', ]
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -122,7 +129,7 @@ MEDIA_URL = '/rwmedia/'
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
-# This should be the path to the 'static' directory at the root of the 
+# This should be the path to the 'static' directory at the root of the
 # roundware-server installation.
 # Example: "/home/ubuntu/roundware-server/static/"
 STATIC_ROOT = "/var/www/roundware/static/"
@@ -148,7 +155,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -158,7 +165,7 @@ SECRET_KEY = '2am)ks1i88hss27e7uri%$#v4717ms6p869)2%cc*w7oe61q6^'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    #     'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -246,8 +253,8 @@ LOGGING = {
     },
     'formatters': {
         'verbose': {
-            'format' : "[%(asctime)s] %(levelname)s <%(name)s:%(lineno)s> %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
+            'format': "[%(asctime)s] %(levelname)s <%(name)s:%(lineno)s> %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
             'format': '%(levelname)s %(message)s'

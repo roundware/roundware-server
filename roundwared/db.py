@@ -98,7 +98,7 @@ def get_config_tag_json(p=None, s=None):
                                           'value': mapping.tag.loc_msg.filter(language=lingo)[0].localized_string})
             masterD["options"] = masterOptionsList
             masterD["defaults"] = default
-            if not modes.has_key(masterui.ui_mode.name):
+            if masterui.ui_mode.name not in modes:
                 modes[masterui.ui_mode.name] = [masterD, ]
             else:
                 modes[masterui.ui_mode.name].append(masterD)
@@ -118,41 +118,41 @@ def get_recordings(request):
     # TODO XXX: passing a project_id is actually useless in terms of this method
     # but get_recording will fail without one in the request.  This will always get
     # the project from the session, and fail if no session is passed.
-    if request.has_key("project_id") and hasattr(request["project_id"], "__iter__") and len(request["project_id"]) > 0:
+    if "project_id" in request and hasattr(request["project_id"], "__iter__") and len(request["project_id"]) > 0:
         logger.debug(
             "get_recordings: got project_id: " + str(request["project_id"][0]))
         p = Project.objects.get(id=request["project_id"][0])
-    elif request.has_key("project_id") and not hasattr(request["project_id"], "__iter__"):
+    elif "project_id" in request and not hasattr(request["project_id"], "__iter__"):
         logger.debug(
             "get_recordings: got project_id: " + str(request["project_id"]))
         p = Project.objects.get(id=request["project_id"])
 
-    if request.has_key("session_id") and hasattr(request["session_id"], "__iter__") and len(request["session_id"]) > 0:
+    if "project_id" in request and hasattr(request["session_id"], "__iter__") and len(request["session_id"]) > 0:
         logger.debug(
             "get_recordings: got session_id: " + str(request["session_id"][0]))
         s = Session.objects.select_related(
             'project', 'language').get(id=request["session_id"][0])
         p = s.project
-    elif request.has_key("session_id") and not hasattr(request["session_id"], "__iter__"):
+    elif "project_id" in request and not hasattr(request["session_id"], "__iter__"):
         logger.debug(
             "get_recordings: got session_id: " + str(request["session_id"]))
         s = Session.objects.select_related(
             'project', 'language').get(id=request["session_id"])
         p = s.project
-    elif not request.has_key("session_id") or len(request["session_id"]) == 0:
+    elif "project_id" not in request or len(request["session_id"]) == 0:
         # must raise error if no session passed because it will otherwise error below
         # XXX TODO: or, fix this to match desired functionality
         raise roundexception.RoundException(
             "get_recordings must be passed a session id")
 
     # this first check checks whether tags is a list of numbers.
-    if request.has_key("tags") and hasattr(request["tags"], "__iter__") and len(request["tags"]) > 0:
+    if "tags" in request and hasattr(request["tags"], "__iter__") and len(request["tags"]) > 0:
         logger.debug(
             "get_recordings: got " + str(len(request["tags"])) + "tags.")
         recs = filter_recs_for_tags(p, request["tags"], s.language)
     # this second check checks whether tags is a string representation of a
     # list of numbers.
-    elif request.has_key("tags") and not hasattr(request["tags"], "__iter__"):
+    elif "tags" in request and not hasattr(request["tags"], "__iter__"):
         logger.debug("get_recordings: tags supplied: " + request["tags"])
         recs = filter_recs_for_tags(p, request["tags"].split(","), s.language)
     else:
@@ -284,15 +284,15 @@ def log_event(event_type, session_id, form):
     tags = None
     data = None
     if form != None:
-        if form.has_key("client_time"):
+        if "client_time" in form:
             client_time = form["client_time"]
-        if form.has_key("latitude"):
+        if "latitude" in form:
             latitude = form["latitude"]
-        if form.has_key("longitude"):
+        if "longitude" in form:
             longitude = form["longitude"]
-        if form.has_key("tags"):
+        if "tags" in form:
             tags = form["tags"]
-        if form.has_key("data"):
+        if "data" in form:
             data = form["data"]
 
     e = Event(session=s,

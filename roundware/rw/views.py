@@ -75,14 +75,14 @@ def main(request):
 def catch_errors(request):
     try:
         config_file = "rw"
-        if request.GET.has_key('config'):
+        if 'config' in request.GET:
             config_file = request.GET['config']
         settings.initialize_config(
             os.path.join('/etc/roundware/', config_file))
 
-        if request.GET.has_key('operation'):
+        if 'operation' in request.GET:
             function = operation_to_function(request.GET['operation'])
-        elif request.POST.has_key('operation'):
+        elif 'operation' in request.POST:
             function = operation_to_function(request.POST['operation'])
         return function(request)
     except roundexception.RoundException as e:
@@ -120,7 +120,7 @@ def operation_to_function(operation):
         "get_events": server.get_events,
     }
     key = string.lower(operation)
-    if operations.has_key(key):
+    if key in operations:
         return operations[key]
     else:
         raise roundexception.RoundException("Invalid operation, " + operation)

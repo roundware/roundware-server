@@ -193,7 +193,7 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
         super(MasterUIForSetupTagUIEditForm, self).__init__(*args, **kwargs)
         self.helper.form_tag = False
         self.prefix = 'master_ui_edit'
-        if kwargs.has_key('instance'):
+        if 'instance' in kwargs:
             self.instance = kwargs['instance']
             uimaps = UIMapping.objects.select_related('tag').filter(
                 master_ui=self.instance).order_by('index')
