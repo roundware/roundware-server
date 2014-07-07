@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -57,11 +58,13 @@ class RoundStream:
         self.bitrate = request["audio_stream_bitrate"]
         logger.debug("Roundstream init: bitrate: {0}".format(self.bitrate))
         logger.debug("Roundstream init: getting session id")
-        session = models.Session.objects.select_related('project').get(id=sessionid)
+        session = models.Session.objects.select_related(
+            'project').get(id=sessionid)
         logger.debug("Roundstream init: got session, getting project radius")
         self.radius = session.project.recording_radius
         self.ordering = session.project.ordering
-        logger.debug("Roundstream init: got session, got project radius: " + str(self.radius))
+        logger.debug(
+            "Roundstream init: got session, got project radius: " + str(self.radius))
         if self.radius == None:
             self.radius = settings.config["recording_radius"]
 
@@ -72,7 +75,8 @@ class RoundStream:
         self.gps_mixer = None
         self.main_loop = gobject.MainLoop()
         self.icecast_admin = icecast2.Admin(
-            settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"]),
+            settings.config["icecast_host"] + ":" +
+            str(settings.config["icecast_port"]),
             settings.config["icecast_username"],
             settings.config["icecast_password"])
         self.heartbeat()
@@ -86,7 +90,8 @@ class RoundStream:
 
         self.pipeline = gst.Pipeline()
         self.adder = gst.element_factory_make("adder")
-        self.sink = RoundStreamSink(self.sessionid, self.audio_format, self.bitrate)
+        self.sink = RoundStreamSink(
+            self.sessionid, self.audio_format, self.bitrate)
         self.pipeline.add(self.adder, self.sink)
         self.adder.link(self.sink)
 
@@ -150,15 +155,18 @@ class RoundStream:
             tags = Tag.objects.filter(pk__in=tag_ids)
             for tag in tags:
                 if tag.filter:
-                    logger.debug("Tag with filter found: %s: %s" % (tag, tag.filter))
-                    self.recordingCollection.nearby_unplayed_recordings = getattr(asset_sorters, tag.filter)(assets=self.recordingCollection.all_recordings, request=self.request)
+                    logger.debug("Tag with filter found: %s: %s" %
+                                 (tag, tag.filter))
+                    self.recordingCollection.nearby_unplayed_recordings = getattr(asset_sorters, tag.filter)(
+                        assets=self.recordingCollection.all_recordings, request=self.request)
 
         for comp in self.compositions:
             comp.move_listener(self.listener)
 
     def move_listener(self, listener):
         if listener['latitude'] != False and listener['longitude'] != False:
-            logger.debug("stream: move_listener: recvd lat and long, moving...")
+            logger.debug(
+                "stream: move_listener: recvd lat and long, moving...")
             self.heartbeat()
             self.listener = listener
             logger.debug("move_listener("
@@ -175,7 +183,8 @@ class RoundStream:
             for comp in self.compositions:
                 comp.move_listener(listener)
         else:
-            logger.debug("stream: move_listener: no lat and long.  returning...")
+            logger.debug(
+                "stream: move_listener: no lat and long.  returning...")
 
     ######################################################################
     # PRIVATE
@@ -193,7 +202,8 @@ class RoundStream:
 
     def add_music_source(self):
         p = models.Project.objects.get(id=self.request["project_id"])
-        speakers = models.Speaker.objects.filter(project=p).filter(activeyn=True)
+        speakers = models.Speaker.objects.filter(
+            project=p).filter(activeyn=True)
         # FIXME: We might need to unconditionally add blankaudio.
         # what happens if the only speaker is out of range? I think
         # it'll be fine but test this.
@@ -209,7 +219,8 @@ class RoundStream:
     def add_voice_compositions(self):
         p = models.Project.objects.get(id=self.request["project_id"])
         c = models.Audiotrack.objects.filter(project=p)
-        logger.debug("Stream: add_voice_compositions: got composition: " + str(c))
+        logger.debug(
+            "Stream: add_voice_compositions: got composition: " + str(c))
         self.compositions = []
         for t in c:
             self.compositions.append(composition.Composition(self,
@@ -334,8 +345,10 @@ class RoundStreamSink (gst.Bin):
         volume = gst.element_factory_make("volume")
         volume.set_property("volume", settings.config["master_volume"])
         shout2send = gst.element_factory_make("shout2send")
-        shout2send.set_property("username", settings.config["icecast_source_username"])
-        shout2send.set_property("password", settings.config["icecast_source_password"])
+        shout2send.set_property(
+            "username", settings.config["icecast_source_username"])
+        shout2send.set_property(
+            "password", settings.config["icecast_source_password"])
         #shout2send.set_property("username", "source")
         #shout2send.set_property("password", "roundice")
         shout2send.set_property("mount",

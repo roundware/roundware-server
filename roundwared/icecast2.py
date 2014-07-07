@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -37,12 +38,14 @@ class Admin:
     def __init__(self, host, username, password):
         self.__host = host
         auth_handler = urllib2.HTTPBasicAuthHandler()
-        auth_handler.add_password('Icecast2 Server', self.__host, username, password)
+        auth_handler.add_password(
+            'Icecast2 Server', self.__host, username, password)
         opener = urllib2.build_opener(auth_handler)
         urllib2.install_opener(opener)
 
     def get_mount_list(self):
-        result = self.process_xml("/admin/listmounts", "//icestats/source/@mount")
+        result = self.process_xml(
+            "/admin/listmounts", "//icestats/source/@mount")
         if result:
             return result
         else:
@@ -83,7 +86,9 @@ class Admin:
         c = pycurl.Curl()
         c.setopt(pycurl.USERPWD, "admin:roundice")
         logger.debug("update metadata - enter")
-        sysString = "http://" + self.__host + "/admin/metadata.xsl?mount=/stream" + str(session_id) + ".mp3&mode=updinfo&charset=UTF-8&song=assetid" + str(asset_id) + ""
+        sysString = "http://" + self.__host + "/admin/metadata.xsl?mount=/stream" + \
+            str(session_id) + \
+            ".mp3&mode=updinfo&charset=UTF-8&song=assetid" + str(asset_id) + ""
         c.setopt(pycurl.URL, sysString)
         logger.debug("update metadata - sysString: " + sysString)
         c.perform()

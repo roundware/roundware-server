@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -43,12 +44,14 @@ class TagCategoryFilterSpec(RelatedFilterSpec):
     """
 
     def __init__(self, f, request, params, model, model_admin, *args, **kwargs):
-        super(TagCategoryFilterSpec, self).__init__(f, request, params, model, model_admin, *args, **kwargs)
+        super(TagCategoryFilterSpec, self).__init__(
+            f, request, params, model, model_admin, *args, **kwargs)
 
         self.lookup_kwarg = '%s__tag_category__name__iexact' % f.name
         self.lookup_val = request.GET.get(self.lookup_kwarg, None)
         # getting the first char of values
-        self.lookup_choices = list(cat.name for cat in TagCategory.objects.all())
+        self.lookup_choices = list(
+            cat.name for cat in TagCategory.objects.all())
         self.lookup_choices.sort()
 
         if "tags__tag_category__name__iexact" in request.GET:
@@ -64,7 +67,8 @@ class TagCategoryFilterSpec(RelatedFilterSpec):
             self.lookup_kwarg = '%s__tag_category__name__iexact' % f.name
             self.lookup_val = request.GET.get(self.lookup_kwarg, None)
             # getting the first char of values
-            self.lookup_choices = list(cat.name for cat in TagCategory.objects.all())
+            self.lookup_choices = list(
+                cat.name for cat in TagCategory.objects.all())
             self.lookup_choices.sort()
 
     def choices(self, cl):
@@ -103,7 +107,8 @@ class AudioLengthFilterSpec(DateFieldFilterSpec):
     """
 
     def __init__(self, f, request, params, model, model_admin, *args, **kwargs):
-        super(AudioLengthFilterSpec, self).__init__(f, request, params, model, model_admin, *args, **kwargs)
+        super(AudioLengthFilterSpec, self).__init__(
+            f, request, params, model, model_admin, *args, **kwargs)
         today = datetime.now()
         self.links = (
             (_('Any'), {}),
@@ -126,4 +131,5 @@ class AudioLengthFilterSpec(DateFieldFilterSpec):
 
         # Register the filter
 
-FilterSpec.filter_specs.insert(0, (lambda f: getattr(f, 'audio_length_filter', False), AudioLengthFilterSpec))
+FilterSpec.filter_specs.insert(
+    0, (lambda f: getattr(f, 'audio_length_filter', False), AudioLengthFilterSpec))

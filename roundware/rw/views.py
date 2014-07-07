@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -76,7 +77,8 @@ def catch_errors(request):
         config_file = "rw"
         if request.GET.has_key('config'):
             config_file = request.GET['config']
-        settings.initialize_config(os.path.join('/etc/roundware/', config_file))
+        settings.initialize_config(
+            os.path.join('/etc/roundware/', config_file))
 
         if request.GET.has_key('operation'):
             function = operation_to_function(request.GET['operation'])
@@ -132,12 +134,15 @@ from django.contrib.auth.decorators import login_required
 def chart_views(request):
 
     asset_created_per_day_chart = assets_created_per_day()
-#    return render_to_response("chart_template.html", {'assetchart': asset_created_per_day_chart})
+# return render_to_response("chart_template.html", {'assetchart':
+# asset_created_per_day_chart})
 
     session_created_per_day_chart = sessions_created_per_day()
     assets_by_question_chart = assets_by_question()
     assets_by_section_chart = assets_by_section()
-#    return render_to_response("chart_template.html", {'sessionchart': session_created_per_day_chart, 'assetchart': asset_created_per_day_chart})
+# return render_to_response("chart_template.html", {'sessionchart':
+# session_created_per_day_chart, 'assetchart':
+# asset_created_per_day_chart})
     return render_to_response("chart_template.html", {'charts': [session_created_per_day_chart, asset_created_per_day_chart, assets_by_question_chart, assets_by_section_chart]})
 
 
@@ -365,7 +370,8 @@ class UpdateTagUIOrder(TemplateView):
 
         html = self.widget.render('master_ui_edit-ui_mappings_tag_order',
                                   value=[uimap.pk for uimap in filtered],
-                                  attrs={u'id': u'id_master_ui_edit-ui_mappings_tag_order'},
+                                  attrs={
+                                      u'id': u'id_master_ui_edit-ui_mappings_tag_order'},
                                   choices=self.choice_iterator(),
                                   new_maps=tags_unseen,)
         return HttpResponse(mark_safe(html))

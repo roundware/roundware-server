@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -72,7 +73,8 @@ def _within_10km(*args, **kwargs):
     else:
         raise TypeError("Function requires assets=[] and request=")
 
-    returning_assets = ([asset for asset in assets if asset.distance(listener) <= 10000])
+    returning_assets = (
+        [asset for asset in assets if asset.distance(listener) <= 10000])
     return returning_assets
 
 
@@ -82,6 +84,7 @@ def _ten_most_recent_days(*args, **kwargs):
     else:
         raise TypeError("Function requires assets=[]")
 
-    returning_assets = ([asset for asset in assets if date(asset.created.year, asset.created.month, asset.created.day) >= (date.today() - timedelta(10))])
+    returning_assets = ([asset for asset in assets if date(
+        asset.created.year, asset.created.month, asset.created.day) >= (date.today() - timedelta(10))])
     logger.debug("returning filtered assets: %s" % (returning_assets,))
     return returning_assets

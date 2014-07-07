@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -31,12 +32,12 @@ from roundware.rw import views
 urlpatterns = patterns(
     '',
     url(r'^tags/batch_add$', views.MultiCreateTagsView.as_view()),
-    # url(r'^masteruis/(?P<pk>\d+)/setup_tag_ui/$', 
-    #    views.SetupTagUIView.as_view()),   
-    url(r'^masteruis/(?P<pk>\d+)/setup_tag_ui/$', 
-        views.MasterUIMappingsOrganizationView.as_view()),   
+    # url(r'^masteruis/(?P<pk>\d+)/setup_tag_ui/$',
+    #    views.SetupTagUIView.as_view()),
+    url(r'^masteruis/(?P<pk>\d+)/setup_tag_ui/$',
+        views.MasterUIMappingsOrganizationView.as_view()),
     url(r'^masteruis/setup_tag_ui/$',
-        views.MasterUIMappingsOrganizationView.as_view()),  
+        views.MasterUIMappingsOrganizationView.as_view()),
     url(r'^masteruis/setup_tag_ui/update_tag_ui_order',
         views.UpdateTagUIOrder.as_view()),
 )

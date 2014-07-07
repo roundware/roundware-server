@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -64,9 +65,11 @@ def get_config_tag_json(p=None, s=None):
 
     for masterui in m:
         if masterui.active:
-            mappings = UIMapping.objects.filter(master_ui=masterui, active=True)
+            mappings = UIMapping.objects.filter(
+                master_ui=masterui, active=True)
             if masterui.header_text_loc.all():
-                ht = masterui.header_text_loc.filter(language=lingo)[0].localized_string
+                ht = masterui.header_text_loc.filter(
+                    language=lingo)[0].localized_string
             else:
                 ht = ""
             #masterD = masterui.toTagDictionary()
@@ -85,7 +88,8 @@ def get_config_tag_json(p=None, s=None):
                     default.append(mapping.tag.id)
                 # masterOptionsList.append(mapping.toTagDictionary())
                 # def toTagDictionary(self):
-                    # return {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
+                    # return
+                    # {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
 
                 masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'data': mapping.tag.data,
                                           'relationships': mapping.tag.get_relationships(),
@@ -115,39 +119,50 @@ def get_recordings(request):
     # but get_recording will fail without one in the request.  This will always get
     # the project from the session, and fail if no session is passed.
     if request.has_key("project_id") and hasattr(request["project_id"], "__iter__") and len(request["project_id"]) > 0:
-        logger.debug("get_recordings: got project_id: " + str(request["project_id"][0]))
+        logger.debug(
+            "get_recordings: got project_id: " + str(request["project_id"][0]))
         p = Project.objects.get(id=request["project_id"][0])
     elif request.has_key("project_id") and not hasattr(request["project_id"], "__iter__"):
-        logger.debug("get_recordings: got project_id: " + str(request["project_id"]))
+        logger.debug(
+            "get_recordings: got project_id: " + str(request["project_id"]))
         p = Project.objects.get(id=request["project_id"])
 
     if request.has_key("session_id") and hasattr(request["session_id"], "__iter__") and len(request["session_id"]) > 0:
-        logger.debug("get_recordings: got session_id: " + str(request["session_id"][0]))
-        s = Session.objects.select_related('project', 'language').get(id=request["session_id"][0])
+        logger.debug(
+            "get_recordings: got session_id: " + str(request["session_id"][0]))
+        s = Session.objects.select_related(
+            'project', 'language').get(id=request["session_id"][0])
         p = s.project
     elif request.has_key("session_id") and not hasattr(request["session_id"], "__iter__"):
-        logger.debug("get_recordings: got session_id: " + str(request["session_id"]))
-        s = Session.objects.select_related('project', 'language').get(id=request["session_id"])
+        logger.debug(
+            "get_recordings: got session_id: " + str(request["session_id"]))
+        s = Session.objects.select_related(
+            'project', 'language').get(id=request["session_id"])
         p = s.project
     elif not request.has_key("session_id") or len(request["session_id"]) == 0:
         # must raise error if no session passed because it will otherwise error below
         # XXX TODO: or, fix this to match desired functionality
-        raise roundexception.RoundException("get_recordings must be passed a session id")
+        raise roundexception.RoundException(
+            "get_recordings must be passed a session id")
 
     # this first check checks whether tags is a list of numbers.
     if request.has_key("tags") and hasattr(request["tags"], "__iter__") and len(request["tags"]) > 0:
-        logger.debug("get_recordings: got " + str(len(request["tags"])) + "tags.")
+        logger.debug(
+            "get_recordings: got " + str(len(request["tags"])) + "tags.")
         recs = filter_recs_for_tags(p, request["tags"], s.language)
-    # this second check checks whether tags is a string representation of a list of numbers.
+    # this second check checks whether tags is a string representation of a
+    # list of numbers.
     elif request.has_key("tags") and not hasattr(request["tags"], "__iter__"):
         logger.debug("get_recordings: tags supplied: " + request["tags"])
         recs = filter_recs_for_tags(p, request["tags"].split(","), s.language)
     else:
         logger.debug("get_recordings: no tags supplied")
         if s != None:
-            recs = filter_recs_for_tags(p, get_default_tags_for_project(p, s), s.language)
+            recs = filter_recs_for_tags(
+                p, get_default_tags_for_project(p, s), s.language)
 
-    logger.debug("db: get_recordings: got " + str(len(recs)) + " recordings from db for project " + str(p.id))
+    logger.debug("db: get_recordings: got " + str(len(recs)) +
+                 " recordings from db for project " + str(p.id))
     return recs
 
 
@@ -164,7 +179,8 @@ def get_default_tags_for_project(p, s):
     default = []
     for masterui in m:
         if masterui.active:
-            mappings = UIMapping.objects.filter(master_ui=masterui, active=True)
+            mappings = UIMapping.objects.filter(
+                master_ui=masterui, active=True)
             for mapping in mappings:
                 if mapping.default:
                     default.append(mapping.tag.id)
@@ -195,9 +211,11 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     project_cats = p.get_tag_cats_by_ui_mode(rw_settings.LISTEN_UIMODE)
     for cat in project_cats:
         # for each tag category a list of all of the tags with that cat
-        tag_ids_per_cat_dict[cat.id] = [tag.id for tag in Tag.objects.filter(tag_category=cat)]
+        tag_ids_per_cat_dict[cat.id] = [
+            tag.id for tag in Tag.objects.filter(tag_category=cat)]
 
-    project_recs = list(Asset.objects.filter(project=p, submitted=True, audiolength__gt=1000, language=l).distinct())
+    project_recs = list(Asset.objects.filter(
+        project=p, submitted=True, audiolength__gt=1000, language=l).distinct())
     for rec in project_recs:
         remove = False
         # all tags for this asset
@@ -209,10 +227,12 @@ def filter_recs_for_tags(p, tagids_from_request, l):
             # all of this tagcategory's tags
             tags_per_category = tag_ids_per_cat_dict[cat.id]
             # any tag ids passed in the request that are in this tagcategory
-            tag_ids_for_this_cat_from_request = filter(lambda x: x in tags_per_category, tagids_from_request)
+            tag_ids_for_this_cat_from_request = filter(
+                lambda x: x in tags_per_category, tagids_from_request)
 
             # any tag ids of this asset that are in this tagcategory
-            tag_ids_for_this_cat_from_asset = filter(lambda x: x in tags_per_category, rec_tag_ids)
+            tag_ids_for_this_cat_from_asset = filter(
+                lambda x: x in tags_per_category, rec_tag_ids)
 
             # if no tags passed in request are in this category, then
             # look at next category.
@@ -240,7 +260,8 @@ def filter_recs_for_tags(p, tagids_from_request, l):
 
         if not remove:
             recs.append(rec)
-    logger.debug("\n\n\nfilter_recs_for_tags returned %s Assets \n\n\n" % (len(recs)))
+    logger.debug(
+        "\n\n\nfilter_recs_for_tags returned %s Assets \n\n\n" % (len(recs)))
     return recs
 # form args:
 # event_type <string>
@@ -255,7 +276,8 @@ def filter_recs_for_tags(p, tagids_from_request, l):
 def log_event(event_type, session_id, form):
     s = Session.objects.get(id=session_id)
     if s == None:
-        raise roundexception.RoundException("failed to access session " + str(session_id))
+        raise roundexception.RoundException(
+            "failed to access session " + str(session_id))
     client_time = None
     latitude = None
     longitude = None
@@ -287,7 +309,8 @@ def log_event(event_type, session_id, form):
 
 
 def add_asset_to_session_history_and_update_metadata(asset_id, session_id, duration):
-    logger.debug("!!!!add_recording_to_session_history called with recording " + str(asset_id) + " session_id: " + str(session_id) + " duration: " + str(int(duration)))
+    logger.debug("!!!!add_recording_to_session_history called with recording " +
+                 str(asset_id) + " session_id: " + str(session_id) + " duration: " + str(int(duration)))
     admin = icecast2.Admin(settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"]),
                            settings.config["icecast_username"],
                            settings.config["icecast_password"])
@@ -306,7 +329,8 @@ def add_asset_to_session_history_and_update_metadata(asset_id, session_id, durat
     s = Session.objects.get(id=session_id)
     ass = Asset.objects.get(id=asset_id)
     try:
-        hist = ListeningHistoryItem(session=s, asset=ass, starttime=datetime.datetime.now(), duration=int(duration))
+        hist = ListeningHistoryItem(
+            session=s, asset=ass, starttime=datetime.datetime.now(), duration=int(duration))
         hist.save()
     except:
         logger.debug("failed to save listening history!")
@@ -319,7 +343,8 @@ def cleanup_history_for_session(session_id):
 
 def get_current_streaming_asset(session_id):
     try:
-        l = ListeningHistoryItem.objects.filter(session=session_id).order_by('-starttime')[0]
+        l = ListeningHistoryItem.objects.filter(
+            session=session_id).order_by('-starttime')[0]
         return l
     except IndexError:
         return None

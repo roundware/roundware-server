@@ -11,8 +11,10 @@ logger = logging.getLogger(__name__)
 def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
     # get the type of model from the sender
     object_string = sender._meta.object_name.lower()
-    logger.info("caught add or edit %s, created: %s" % (object_string, created))
-    # check whether the model is represented as being able to handle notifications
+    logger.info("caught add or edit %s, created: %s" %
+                (object_string, created))
+    # check whether the model is represented as being able to handle
+    # notifications
     objects = [i[0] for i in ENABLED_MODELS if i[1].lower() == object_string]
     if objects:
         # 0 = add
@@ -20,8 +22,11 @@ def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
         action = 0 if created else 1
         logger.info("%s %s", object_string, instance.id)
         object_int = objects[0]
-        # find the time between this notifications and the last time this notification was sent
-        date_diff = datetime.datetime.now() - datetime.timedelta(seconds=getattr(settings, "NOTIFICATIONS_TIME_BETWEEN", 30))
+        # find the time between this notifications and the last time this
+        # notification was sent
+        date_diff = datetime.datetime.now() - \
+            datetime.timedelta(
+                seconds=getattr(settings, "NOTIFICATIONS_TIME_BETWEEN", 30))
         # get the enabled notifications
         notifications = ActionNotification.objects.filter(
             notification__model=object_int,
@@ -42,7 +47,8 @@ def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
                 if action == 1 and ActionNotification.objects.filter(
                         notification__model=object_int,
                         last_sent_reference=instance.pk,
-                        last_sent_time__gte=datetime.datetime.now() - datetime.timedelta(seconds=2),
+                        last_sent_time__gte=datetime.datetime.now(
+                        ) - datetime.timedelta(seconds=2),
                         action=0):
                     return
                 n.notify(ref=instance.id)

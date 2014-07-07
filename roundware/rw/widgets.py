@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -144,7 +145,8 @@ class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
         # import pdb; pdb.set_trace()
 
         output.append('function setupTagOrderSelectChange() {\n')
-        output.append('$("select[name=\'master_ui_edit-ui_mappings_tags\']").change(function(){\n')
+        output.append(
+            '$("select[name=\'master_ui_edit-ui_mappings_tags\']").change(function(){\n')
         output.append('$(\'#uimap_tag_order_field\').load(\'./update_tag_ui_order #tag_order_inner\', '
                       '{tags: $.map($(this).find(\'option\'), function(option) {return option.value;}), '
                       ' mui:$(\'#id_master_ui_select-masterui\').val() }, rewriteSortedMultiCheckbox)\n')

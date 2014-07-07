@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -37,7 +38,8 @@ def create_daemon(function, pidfile=False):
             # os._exit(0) # exit father...
             sys.exit(0)
     except OSError, error:
-        logger.critical('fork #1 failed: %d (%s)' % (error.errno, error.strerror))
+        logger.critical('fork #1 failed: %d (%s)' %
+                        (error.errno, error.strerror))
         # os._exit(1)
         sys.exit(1)
 
@@ -58,7 +60,8 @@ def create_daemon(function, pidfile=False):
             # os._exit(0)
             sys.exit(0)
     except OSError, error:
-        logger.critical('fork #2 failed: %d (%s)' % (error.errno, error.strerror))
+        logger.critical('fork #2 failed: %d (%s)' %
+                        (error.errno, error.strerror))
         # os._exit(1)
         sys.exit(1)
 

@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -84,7 +85,8 @@ class TagCreateForm(forms.ModelForm):
         }
 
     class Media:
-        js = get_formset_media_js() + ('admin/js/admin/RelatedObjectLookups.js',)
+        js = get_formset_media_js() + \
+            ('admin/js/admin/RelatedObjectLookups.js',)
         css = {'all': ('rw/css/tag_batch_add.css',)}
 
 
@@ -195,7 +197,8 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
             self.instance = kwargs['instance']
             uimaps = UIMapping.objects.select_related('tag').filter(
                 master_ui=self.instance).order_by('index')
-            self.initial['ui_mappings_tags'] = [uimap.tag.id for uimap in uimaps]
+            self.initial['ui_mappings_tags'] = [
+                uimap.tag.id for uimap in uimaps]
             # self.initial['ui_mappings_tag_order'] = []
             self.fields['ui_mappings_tag_order'].queryset = uimaps
             self.fields['ui_mappings_tag_order'].label_from_instance = \

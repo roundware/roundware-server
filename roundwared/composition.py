@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -175,7 +176,8 @@ class Composition:
         # logger.debug("---------Composition add: self.recording class: " + self.current_recording.__class__.__name__)
         # logger.debug("---------Composition add: self.parent.sessionid: " + str(self.parent.sessionid))
         # placeholder for refactor after we upgrade and fix taginject issue
-        db.add_asset_to_session_history_and_update_metadata(self.current_recording.id, self.parent.sessionid, duration)
+        db.add_asset_to_session_history_and_update_metadata(
+            self.current_recording.id, self.parent.sessionid, duration)
         # logger.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
         # logger.debug("---------Composition add: self.parent.sink.shout class: " + self.parent.sink.shout.__class__.__name__)
         #self.parent.sink.shout.set_property("streamname","asset" + str(self.current_recording.id))

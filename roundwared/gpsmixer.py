@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -94,14 +95,19 @@ class GPSMixer (gst.Bin):
         self.listener = new_listener
         for i in range(len(self.speakers)):
             vol = calculate_volume(self.speakers[i], self.listener)
-            logger.debug("gpsmixer: move_listener: source # " + str(i) + " has a volume of " + str(vol))
+            logger.debug(
+                "gpsmixer: move_listener: source # " + str(i) + " has a volume of " + str(vol))
             if vol > 0:
                 if self.sources[i] == None:
-                    logger.debug("gpsmixer: move_listener: allocating new source")
-                    tempsrc = gnomevfsmp3src.GnomeVFSMP3Src(self.speakers[i].uri, vol)
-                    logger.debug("gpsmixer: move_listener: replacing old slot in source array")
+                    logger.debug(
+                        "gpsmixer: move_listener: allocating new source")
+                    tempsrc = gnomevfsmp3src.GnomeVFSMP3Src(
+                        self.speakers[i].uri, vol)
+                    logger.debug(
+                        "gpsmixer: move_listener: replacing old slot in source array")
                     self.sources[i] = tempsrc
-                    logger.debug("gpsmixer: move_listener: adding speaker: " + str(self.speakers[i].id))
+                    logger.debug(
+                        "gpsmixer: move_listener: adding speaker: " + str(self.speakers[i].id))
                     self.add(self.sources[i])
                     # self.set_state(gst.STATE_PLAYING)
 
@@ -109,17 +115,20 @@ class GPSMixer (gst.Bin):
                     addersinkpad = self.adder.get_request_pad('sink%d')
                     srcpad.link(addersinkpad)
                     self.sources[i].set_state(gst.STATE_PLAYING)
-                    logger.debug("gpsmixer: move_listener: adding speaker SUCCESS")
+                    logger.debug(
+                        "gpsmixer: move_listener: adding speaker SUCCESS")
                     # self.set_state(gst.STATE_PLAYING)
                 else:
                     logger.debug("already added, setting vol: " + str(vol))
                     self.sources[i].set_volume(vol)
 
             else:
-                logger.debug("gpsmixer: move_listener: checking if speaker is already added, prior to removal")
+                logger.debug(
+                    "gpsmixer: move_listener: checking if speaker is already added, prior to removal")
                 if self.sources[i] != None:
                     self.sources[i].set_volume(vol)
-                    logger.debug("gpsmixer: move_listener: removing speaker: " + str(self.speakers[i].id))
+                    logger.debug(
+                        "gpsmixer: move_listener: removing speaker: " + str(self.speakers[i].id))
                     src_to_remove = self.sources[i].get_pad('src')
                     logger.debug("gpsmixer: move_listener: removing speaker1")
                     # src_to_remove.set_blocked(True)
@@ -134,7 +143,8 @@ class GPSMixer (gst.Bin):
                     self.adder.release_request_pad(sinkpad)
                     logger.debug("gpsmixer: move_listener: removing speaker6")
                     # self.remove(self.sources[i])
-                    logger.debug("gpsmixer: move_listener: removing speaker - SUCCESS")
+                    logger.debug(
+                        "gpsmixer: move_listener: removing speaker - SUCCESS")
                     #self.sources[i] = None
                     # self.set_state(gst.STATE_PLAYING)
 

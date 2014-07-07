@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -37,14 +38,19 @@ def convert_uploaded_file(filename):
     upload_dir = get_upload_directory(filename_extension)
     filepath = os.path.join(upload_dir, filename)
     if not os.path.exists(filepath):
-        raise roundexception.RoundException("Uploaded file not found: " + filepath)
+        raise roundexception.RoundException(
+            "Uploaded file not found: " + filepath)
     elif filename_extension == '.caf':
-        convert_audio_file(upload_dir, filename_prefix, filename_extension, 'wav')
-        convert_audio_file(settings.config["audio_dir"], filename_prefix, '.wav', 'mp3')
+        convert_audio_file(
+            upload_dir, filename_prefix, filename_extension, 'wav')
+        convert_audio_file(
+            settings.config["audio_dir"], filename_prefix, '.wav', 'mp3')
         return filename_prefix + '.wav'
     else:
-        convert_audio_file(upload_dir, filename_prefix, filename_extension, 'wav')
-        convert_audio_file(upload_dir, filename_prefix, filename_extension, 'mp3')
+        convert_audio_file(
+            upload_dir, filename_prefix, filename_extension, 'wav')
+        convert_audio_file(
+            upload_dir, filename_prefix, filename_extension, 'mp3')
         return filename_prefix + '.wav'
 
 
@@ -58,9 +64,11 @@ def convert_audio_file(upload_dir, filename_prefix, filename_extension, dst_type
                 os.path.join(settings.config["audio_dir"], filename_prefix + filename_extension))
     else:
         if filename_extension == '.caf':
-            os.system("/usr/bin/pacpl --to " + dst_type + " --outdir " + settings.config["audio_dir"] + " " + filepath + ">/dev/null")
+            os.system("/usr/bin/pacpl --to " + dst_type + " --outdir " +
+                      settings.config["audio_dir"] + " " + filepath + ">/dev/null")
         else:  # if filename_extension in ffmpeg supported list
-            os.system("/usr/bin/ffmpeg -y -i " + filepath + " " + os.path.join(settings.config["audio_dir"], filename_prefix + "." + dst_type) + " >/dev/null 2>/dev/null")
+            os.system("/usr/bin/ffmpeg -y -i " + filepath + " " + os.path.join(settings.config[
+                      "audio_dir"], filename_prefix + "." + dst_type) + " >/dev/null 2>/dev/null")
 
 
 # Gets the directory the file is uploaded to by which extension it has.

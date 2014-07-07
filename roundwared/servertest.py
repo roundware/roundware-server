@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -73,7 +74,8 @@ def migrate_tag_and_project_msgs():
     for tag in t:
         ls = LocalizedString(language=l, localized_string=tag.value)
         ls.save()
-        ls_es = LocalizedString(language=l_es, localized_string="spanish placeholder for: " + tag.value)
+        ls_es = LocalizedString(
+            language=l_es, localized_string="spanish placeholder for: " + tag.value)
         ls_es.save()
         tag.loc_msg.add(ls)
         tag.loc_msg.add(ls_es)
@@ -84,18 +86,22 @@ def migrate_tag_and_project_msgs():
     p = Project.objects.all()
     for proj in p:
         if proj.sharing_message != None and proj.sharing_message != "":
-            ls_share = LocalizedString(language=l, localized_string=proj.sharing_message)
+            ls_share = LocalizedString(
+                language=l, localized_string=proj.sharing_message)
             ls_share.save()
-            ls_es = LocalizedString(language=l_es, localized_string="spanish placeholder for: " + proj.sharing_message)
+            ls_es = LocalizedString(
+                language=l_es, localized_string="spanish placeholder for: " + proj.sharing_message)
             ls_es.save()
             proj.sharing_message_loc.add(ls_share)
             proj.sharing_message_loc.add(ls_es)
             proj.sharing_message = ""
             proj.save()
         if proj.out_of_range_message != None and proj.out_of_range_message != "":
-            ls_range = LocalizedString(language=l, localized_string=proj.out_of_range_message)
+            ls_range = LocalizedString(
+                language=l, localized_string=proj.out_of_range_message)
             ls_range.save()
-            ls_es = LocalizedString(language=l_es, localized_string="spanish placeholder for: " + proj.out_of_range_message)
+            ls_es = LocalizedString(
+                language=l_es, localized_string="spanish placeholder for: " + proj.out_of_range_message)
             ls_es.save()
             proj.out_of_range_message_loc.add(ls_range)
             proj.out_of_range_message_loc.add(ls_es)

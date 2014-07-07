@@ -14,6 +14,7 @@ from roundwared.roundexception import RoundException
 
 
 class TestGetRecordings(RoundwaredTestCase):
+
     """ test various permutations of db.get_recordings
     """
 
@@ -22,24 +23,24 @@ class TestGetRecordings(RoundwaredTestCase):
 
         self.project1 = mommy.make(Project, name='Project One')
         self.project2 = mommy.make(Project, name='Project Two')
-        self.session1 = mommy.make(Session, project=self.project1, 
+        self.session1 = mommy.make(Session, project=self.project1,
                                    language=self.english)
         self.session2 = mommy.make(Session, project=self.project2,
                                    language=self.english)
         self.tagcat2 = mommy.make(TagCategory)
         self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2')
-        self.masterui1 = mommy.make(MasterUI, project=self.project1, 
+        self.masterui1 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=self.ui_mode_listen,
                                     tag_category=self.tagcat1)
-        self.masterui2 = mommy.make(MasterUI, project=self.project2, 
+        self.masterui2 = mommy.make(MasterUI, project=self.project2,
                                     ui_mode=self.ui_mode_listen,
-                                    tag_category=self.tagcat2)        
+                                    tag_category=self.tagcat2)
         self.asset1 = mommy.make(Asset, project=self.project1,
-                                 language=self.english, 
+                                 language=self.english,
                                  tags=[self.tag1],
                                  audiolength=2000)
         self.asset2 = mommy.make(Asset, project=self.project2,
-                                 language=self.english, 
+                                 language=self.english,
                                  tags=[self.tag2],
                                  audiolength=2000)
 
@@ -48,9 +49,8 @@ class TestGetRecordings(RoundwaredTestCase):
         should not return any assets but an exception
         """
         with self.assertRaises(RoundException):
-            req = {'project_id': [self.project1.id]}    
+            req = {'project_id': [self.project1.id]}
             get_recordings(req)
-            
 
     def test_no_session_with_tags(self):
         """ calling get_recordings without a session but with tags 
@@ -60,7 +60,6 @@ class TestGetRecordings(RoundwaredTestCase):
             req = {'project_id': [self.project1.id],
                    'tags': [self.tag1.id, self.tag2.id, ]}
             get_recordings(req)
-        
 
     def test_correct_assets_passing_project_and_session_different(self):
         """ calling get_recordings with a session id and a project id,
@@ -90,11 +89,11 @@ class TestGetRecordings(RoundwaredTestCase):
 
         req = {'session_id': [self.session2.id, ],
                'tags': [self.tag2]}
-        self.assertEqual([self.asset2], get_recordings(req))               
-
+        self.assertEqual([self.asset2], get_recordings(req))
 
 
 class TestFilterRecsForTags(RoundwaredTestCase):
+
     """ test db.filter_recs_for_tags, that it returns assets containing at 
     least one matching tag in each available tag category for tags given in
     the request.
@@ -111,21 +110,21 @@ class TestFilterRecsForTags(RoundwaredTestCase):
         self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3')
         self.project1 = mommy.make(Project, name='Project One')
         self.project2 = mommy.make(Project, name='Project Two')
-        self.masterui1 = mommy.make(MasterUI, project=self.project1, 
+        self.masterui1 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=self.ui_mode_listen,
                                     tag_category=self.tagcat2)
-        self.masterui2 = mommy.make(MasterUI, project=self.project1, 
+        self.masterui2 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=self.ui_mode_listen,
                                     tag_category=self.tagcat3)
-        self.masterui3 = mommy.make(MasterUI, project=self.project2, 
+        self.masterui3 = mommy.make(MasterUI, project=self.project2,
                                     ui_mode=self.ui_mode_listen,
                                     tag_category=self.tagcat1)
         self.asset1 = mommy.make(Asset, project=self.project1,
-                                 language=self.english, 
+                                 language=self.english,
                                  tags=[self.tag1],
                                  audiolength=2000)
         self.asset2 = mommy.make(Asset, project=self.project1,
-                                 language=self.english, 
+                                 language=self.english,
                                  tags=[self.tag2],
                                  audiolength=2000)
         self.asset3 = mommy.make(Asset, project=self.project2,
@@ -168,10 +167,10 @@ class TestFilterRecsForTags(RoundwaredTestCase):
         so it should return assets with tag2 and tag3: = no assets
         asset2 matches category 2 but not 3
         """
-        recs = filter_recs_for_tags(self.project1, 
+        recs = filter_recs_for_tags(self.project1,
                                     [self.tag2.id, self.tag3.id],
                                     self.english)
-        self.assertEqual([], recs)        
+        self.assertEqual([], recs)
 
     def test_no_assets_too_short_audiolength(self):
         recs = filter_recs_for_tags(self.project1, [self.tag1.id, self.tag2.id],
@@ -184,7 +183,7 @@ class TestFilterRecsForTags(RoundwaredTestCase):
         self.assertNotIn(self.asset4, recs)
 
     def test_only_assets_in_desired_language(self):
-        recs = filter_recs_for_tags(self.project2, 
+        recs = filter_recs_for_tags(self.project2,
                                     [self.tag1.id],
                                     self.spanish)
         self.assertIn(self.asset3, recs)  # spanish language asset
@@ -211,6 +210,7 @@ class TestFilterRecsForTags(RoundwaredTestCase):
 
 
 class TestGetConfigTagJSON(RoundwaredTestCase):
+
     """ test various permutations of db.get_config_tag_json 
     """
 
@@ -218,13 +218,13 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
         super(type(self), TestGetConfigTagJSON).setUp(self)
 
         # make a masterui, a project, a ui_mode, tag category, selectionmethod
-        self.english_hdr = mommy.make(LocalizedString, 
+        self.english_hdr = mommy.make(LocalizedString,
                                       localized_string="Head",
                                       language=self.english)
-        self.spanish_hdr = mommy.make(LocalizedString, 
+        self.spanish_hdr = mommy.make(LocalizedString,
                                       localized_string="Cabeza",
                                       language=self.spanish)
-        self.masterui = mommy.make(MasterUI, active=True, 
+        self.masterui = mommy.make(MasterUI, active=True,
                                    ui_mode=self.ui_mode_listen, index=1,
                                    tag_category__name='TagCatName',
                                    header_text_loc=[self.english_hdr,
@@ -239,27 +239,27 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
         self.ui_mapping_one = mommy.make(UIMapping, master_ui=self.masterui,
                                          active=True, tag=self.tag1,
                                          index=1, default=True)
-        self.master_ui_two = mommy.make(MasterUI, name='inactivemui', 
+        self.master_ui_two = mommy.make(MasterUI, name='inactivemui',
                                         ui_mode=self.ui_mode_one, active=True)
-        self.project_two = self.master_ui_two.project  
+        self.project_two = self.master_ui_two.project
         self.project_three = mommy.make(Project, name='project_three')
 
     def _proj_one_config(self):
-        return {'listen': [ 
-            {'name': self.masterui.name, 
-             'header_text': "Head", 
+        return {'listen': [
+            {'name': self.masterui.name,
+             'header_text': "Head",
              'code': 'TagCatName',
-             'select': self.masterui.select.name, 
+             'select': self.masterui.select.name,
              'order': 1,
              'defaults': [self.ui_mapping_one.tag.id],
              'options': [{
-                 'tag_id': self.ui_mapping_one.tag.id, 
-                 'order': 1, 
+                 'tag_id': self.ui_mapping_one.tag.id,
+                 'order': 1,
                  'data': "{'json':'value'}",
                  'relationships': [],
                  'value': 'One'
              }]},
-        ]}    
+        ]}
 
     def test_get_uimapping_info_for_project(self):
         """ Test proper UIMapping data returned based on project passed """
@@ -276,8 +276,8 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
 
         config = get_config_tag_json(self.project_two)
         # should not have any uimapping info for project _one_
-        self.assertNotIn(self.masterui.name, 
-                         [dic['name'] for dic in 
+        self.assertNotIn(self.masterui.name,
+                         [dic['name'] for dic in
                           config['listen']])
 
     def test_session_project_overrides_passed_project(self):
@@ -310,7 +310,7 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
             none passed, header text in English.
         """
         config = get_config_tag_json(None, self.spanish_sess)
-        self.assertEquals('Cabeza', 
+        self.assertEquals('Cabeza',
                           config['listen'][0]['header_text'])
 
     def test_tag_values_correctly_localized(self):
@@ -318,23 +318,23 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
             based on session language, or if none passed, in English.
         """
         config = get_config_tag_json(None, self.spanish_sess)
-        self.assertEquals('Uno', 
+        self.assertEquals('Uno',
                           config['listen'][0]['options'][0]['value'])
 
 
 class TestListeningHistoryDB(RoundwaredTestCase):
 
     def setUp(self):
-        super(type(self), TestListeningHistoryDB).setUp(self)  
+        super(type(self), TestListeningHistoryDB).setUp(self)
 
         self.project1 = mommy.make(Project)
         self.asset1 = mommy.make(Asset, project=self.project1)
         self.asset2 = mommy.make(Asset, project=self.project1)
         self.history1 = mommy.make(ListeningHistoryItem, asset=self.asset1,
-                                   session=self.default_session, 
+                                   session=self.default_session,
                                    starttime=datetime.datetime.now())
         self.history2 = mommy.make(ListeningHistoryItem, asset=self.asset2,
-                                   session=self.default_session, 
+                                   session=self.default_session,
                                    starttime=datetime.datetime.now())
 
     def test_get_current_streaming_asset(self):
@@ -345,4 +345,3 @@ class TestListeningHistoryDB(RoundwaredTestCase):
         cleanup_history_for_session(self.default_session)
         self.assertEquals(None, get_current_streaming_asset(
                           self.default_session.id))
-

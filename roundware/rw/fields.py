@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -49,7 +50,8 @@ class RWValidatedFileField(ValidatedFileField):
         # http headers and by peeking in the file
         data = super(RWValidatedFileField, self).clean(*args, **kwargs)
 
-        # ClamAV scan was here. See: https://github.com/hburgund/roundware-server/issues/107
+        # ClamAV scan was here. See:
+        # https://github.com/hburgund/roundware-server/issues/107
 
         return data
 

@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -78,8 +79,10 @@ class Project(models.Model):
     listen_questions_dynamic = models.BooleanField(default=False)
     speak_questions_dynamic = models.BooleanField(default=False)
     sharing_url = models.CharField(max_length=512)
-    sharing_message_loc = models.ManyToManyField(LocalizedString, related_name='sharing_msg_string', null=True, blank=True)
-    out_of_range_message_loc = models.ManyToManyField(LocalizedString, related_name='out_of_range_msg_string', null=True, blank=True)
+    sharing_message_loc = models.ManyToManyField(
+        LocalizedString, related_name='sharing_msg_string', null=True, blank=True)
+    out_of_range_message_loc = models.ManyToManyField(
+        LocalizedString, related_name='out_of_range_msg_string', null=True, blank=True)
     out_of_range_url = models.CharField(max_length=512)
     recording_radius = models.IntegerField(null=True)
     listen_enabled = models.BooleanField(default=False)
@@ -87,18 +90,23 @@ class Project(models.Model):
     speak_enabled = models.BooleanField(default=False)
     geo_speak_enabled = models.BooleanField(default=False)
     reset_tag_defaults_on_startup = models.BooleanField(default=False)
-    legal_agreement_loc = models.ManyToManyField(LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
+    legal_agreement_loc = models.ManyToManyField(
+        LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
     repeat_mode = models.ForeignKey(RepeatMode, null=True)
     files_url = models.CharField(max_length=512, blank=True)
     files_version = models.CharField(max_length=16, blank=True)
     BITRATE_CHOICES = (
-        ('64', '64'), ('96', '96'), ('112', '112'), ('128', '128'), ('160', '160'), ('192', '192'), ('256', '256'), ('320', '320'),
+        ('64', '64'), ('96', '96'), ('112', '112'), ('128', '128'), ('160',
+                                                                     '160'), ('192', '192'), ('256', '256'), ('320', '320'),
     )
-    audio_stream_bitrate = models.CharField(max_length=3, choices=BITRATE_CHOICES, default='128')
-    ordering = models.CharField(max_length=16, choices=[('by_like', 'by_like'), ('by_weight', 'by_weight'), ('random', 'random')], default='random')
+    audio_stream_bitrate = models.CharField(
+        max_length=3, choices=BITRATE_CHOICES, default='128')
+    ordering = models.CharField(max_length=16, choices=[(
+        'by_like', 'by_like'), ('by_weight', 'by_weight'), ('random', 'random')], default='random')
     demo_stream_enabled = models.BooleanField(default=False)
     demo_stream_url = models.CharField(max_length=512, blank=True)
-    demo_stream_message_loc = models.ManyToManyField(LocalizedString, related_name='demo_stream_msg_string', null=True, blank=True)
+    demo_stream_message_loc = models.ManyToManyField(
+        LocalizedString, related_name='demo_stream_msg_string', null=True, blank=True)
 
     def __unicode__(self):
         return self.name
@@ -110,7 +118,8 @@ class Project(models.Model):
             Pass name of UIMode. MasterUI must be active
         """
         logger.debug('inside get_tag_cats_by_ui_mode... not from cache')
-        master_uis = MasterUI.objects.select_related('tag_category').filter(project=self, ui_mode__name=ui_mode, active=True)
+        master_uis = MasterUI.objects.select_related('tag_category').filter(
+            project=self, ui_mode__name=ui_mode, active=True)
         return [mui.tag_category for mui in master_uis]
 
     @cached(60 * 60)
@@ -176,11 +185,14 @@ class Tag(models.Model):
     tag_category = models.ForeignKey(TagCategory)
     value = models.TextField()
     description = models.TextField()
-    loc_description = models.ManyToManyField(LocalizedString, null=True, blank=True, related_name='tag_desc')
+    loc_description = models.ManyToManyField(
+        LocalizedString, null=True, blank=True, related_name='tag_desc')
     loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)
     data = models.TextField(null=True, blank=True)
-    relationships = models.ManyToManyField('self', symmetrical=True, related_name='related_to', null=True, blank=True)
-    filter = models.CharField(max_length=255, default="--", null=False, blank=False, choices=FILTERS)
+    relationships = models.ManyToManyField(
+        'self', symmetrical=True, related_name='related_to', null=True, blank=True)
+    filter = models.CharField(
+        max_length=255, default="--", null=False, blank=False, choices=FILTERS)
 
     def get_loc(self):
         return "<br />".join(unicode(t) for t in self.loc_msg.all())
@@ -200,7 +212,8 @@ class Tag(models.Model):
 
 class MasterUI(models.Model):
     name = models.CharField(max_length=50)
-    header_text_loc = models.ManyToManyField(LocalizedString, null=True, blank=True)
+    header_text_loc = models.ManyToManyField(
+        LocalizedString, null=True, blank=True)
     ui_mode = models.ForeignKey(UIMode)
     tag_category = models.ForeignKey(TagCategory)
     select = models.ForeignKey(SelectionMethod)
@@ -330,7 +343,8 @@ class Asset(models.Model):
         'text': settings.ALLOWED_TEXT_MIME_TYPES,
     }
 
-    session = models.ForeignKey(Session, null=True, blank=True, default=get_default_session)
+    session = models.ForeignKey(
+        Session, null=True, blank=True, default=get_default_session)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
     filename = models.CharField(max_length=256, null=True, blank=True)
@@ -348,10 +362,13 @@ class Asset(models.Model):
     audiolength = models.BigIntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, null=True, blank=True)
     language = models.ForeignKey(Language, null=True)
-    weight = models.IntegerField(choices=[(i, i) for i in range(0, 100)], default=50)
-    mediatype = models.CharField(max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
+    weight = models.IntegerField(
+        choices=[(i, i) for i in range(0, 100)], default=50)
+    mediatype = models.CharField(
+        max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
     description = models.TextField(max_length=2048, blank=True)
-    loc_description = models.ManyToManyField(LocalizedString, null=True, blank=True)
+    loc_description = models.ManyToManyField(
+        LocalizedString, null=True, blank=True)
 
     # enables inline adding/editing of Assets in Envelope Admin.
     # creates a relationship of an Asset to the Envelope, in which it was
@@ -425,7 +442,8 @@ class Asset(models.Model):
             self.file.close()
             chars = len(fileread)
             excerpt = fileread[:1000]
-            more_str = chars > 1000 and """ <br/>... (excerpted from %s)""" % self.media_link_url() or ""
+            more_str = chars > 1000 and """ <br/>... (excerpted from %s)""" % self.media_link_url(
+            ) or ""
             return """<div data-filename="%s" class="media-display text-file"
                    >%s %s</div>""" % (self.filename, excerpt, more_str)
         except Exception as e:
@@ -502,7 +520,8 @@ class Asset(models.Model):
 
     @transaction.atomic
     def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
-        super(Asset, self).save(force_insert, force_update, using, *args, **kwargs)
+        super(Asset, self).save(
+            force_insert, force_update, using, *args, **kwargs)
 
     def __unicode__(self):
         return str(self.id) + ": " + self.mediatype + " at " + str(self.latitude) + "/" + str(self.longitude)
@@ -567,7 +586,8 @@ class Vote(models.Model):
     value = models.IntegerField(null=True, blank=True)
     session = models.ForeignKey(Session)
     asset = models.ForeignKey(Asset)
-    type = models.CharField(max_length=16, choices=[('like', 'like'), ('flag', 'flag')])
+    type = models.CharField(
+        max_length=16, choices=[('like', 'like'), ('flag', 'flag')])
 
     def __unicode__(self):
         return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)

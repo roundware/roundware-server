@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -73,23 +74,28 @@ class RecordingCollection:
         self.nearby_unplayed_recordings = []
         self.update_nearby_recordings(request)
         logger.debug("update_request: all_recordings count: " + str(len(self.all_recordings))
-                     + ", far_recordings count: " + str(len(self.far_recordings))
-                     + ", nearby_played_recordings count: " + str(len(self.nearby_played_recordings))
+                     + ", far_recordings count: " +
+                     str(len(self.far_recordings))
+                     + ", nearby_played_recordings count: " +
+                     str(len(self.nearby_played_recordings))
                      + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
         self.lock.release()
 
     # Gets a new recording to play.
     # @profile(stats=True)
     def get_recording(self):
-        logger.debug("Recording Collection: Getting a recording from the bucket.")
+        logger.debug(
+            "Recording Collection: Getting a recording from the bucket.")
         self.lock.acquire()
         recording = None
-        logger.debug("Recording Collection: we have " + str(len(self.nearby_unplayed_recordings)) + " unplayed recs.")
+        logger.debug("Recording Collection: we have " +
+                     str(len(self.nearby_unplayed_recordings)) + " unplayed recs.")
         if len(self.nearby_unplayed_recordings) > 0:
             #           index = random.randint(0, len(self.nearby_unplayed_recordings) - 1)
             index = 0
             recording = self.nearby_unplayed_recordings.pop(index)
-            logger.debug("RecordingCollection: get_recording: Got " + str(recording.filename))
+            logger.debug(
+                "RecordingCollection: get_recording: Got " + str(recording.filename))
             self.nearby_played_recordings.append(recording)
         elif len(self.nearby_played_recordings) > 0:
             logger.debug("get_recording 1")
@@ -105,12 +111,15 @@ class RecordingCollection:
                 self.nearby_unplayed_recordings = []
                 self.update_nearby_recordings(self.request)
                 logger.debug("GET_RECORDING UPDATE: all_recordings count: " + str(len(self.all_recordings))
-                             + ", far_recordings count: " + str(len(self.far_recordings))
-                             + ", nearby_played_recordings count: " + str(len(self.nearby_played_recordings))
+                             + ", far_recordings count: " +
+                             str(len(self.far_recordings))
+                             + ", nearby_played_recordings count: " +
+                             str(len(self.nearby_played_recordings))
                              + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
                 index = 0
                 recording = self.nearby_unplayed_recordings.pop(index)
-                logger.debug("POST UPDATE RecordingCollection: get_recording: Got " + str(recording.filename))
+                logger.debug(
+                    "POST UPDATE RecordingCollection: get_recording: Got " + str(recording.filename))
                 self.nearby_played_recordings.append(recording)
             else:
                 logger.debug("get_recording stop mode")
@@ -126,7 +135,8 @@ class RecordingCollection:
         logger.debug("add_recording exit")
         self.lock.release()
 
-    # Updates the collection of recordings according to a new listener position.
+    # Updates the collection of recordings according to a new listener
+    # position.
     def move_listener(self, listener):
         # logger.debug("move_listener")
         self.lock.acquire()

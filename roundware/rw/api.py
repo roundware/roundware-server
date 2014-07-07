@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -36,7 +37,8 @@ class AssetResource(ModelResource):
     project = fields.IntegerField(attribute="project_id")
     language = fields.IntegerField(attribute="language_id")
     session = fields.IntegerField(attribute="session_id")
-    audiolength_in_seconds = fields.FloatField(attribute="audiolength_in_seconds")
+    audiolength_in_seconds = fields.FloatField(
+        attribute="audiolength_in_seconds")
 
     class Meta:
         queryset = Asset.objects.all()
