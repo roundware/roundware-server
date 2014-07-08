@@ -31,7 +31,7 @@ from models import *
 from django.contrib import admin
 from django.conf import settings
 
-from roundware.rw.signals import add_asset_to_envelope, create_envelope
+from roundware.rw.admin_helper import add_asset_to_envelope, create_envelope
 from roundware.rw.filters import AudiolengthListFilter, TagCategoryListFilter
 from roundware.rw.views import MultiCreateTagsView
 
@@ -195,12 +195,35 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     save_on_top = True
     filter_horizontal = ('tags', 'loc_description')
     fieldsets = (
-        ('Media Data', {'fields': ('mediatype', 'media_display', 'file',
-                                   'volume', 'audiolength', 'description', 'loc_description')}),
-        (None, {'fields': ('project', 'language', 'session',
-                           'created', 'weight', 'submitted', 'tags')}),
+        ('Media Data', {
+            'fields': (
+                'mediatype',
+                'media_display',
+                'file',
+                'volume',
+                'audiolength',
+                'description',
+                'loc_description'
+            )
+        }),
+        (None, {
+            'fields': (
+                'project',
+                'language',
+                'session',
+                'created',
+                'weight',
+                'submitted',
+                'tags'
+            )
+        }),
         ('Geographical Data', {
-         'fields': ('location_map', 'longitude', 'latitude')})
+            'fields': (
+                'location_map',
+                'longitude',
+                'latitude'
+            )
+        })
     )
 
     class Media:
