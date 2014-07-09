@@ -25,14 +25,14 @@
 #***********************************************************************************#
 
 
-import settings
+from roundware import settings
 import os
 import subprocess
 from roundwared import roundexception
 
 
 def discover_and_set_audiolength(recording, filename):
-    filepath = os.path.join(settings.config["audio_dir"], filename)
+    filepath = os.path.join(settings.AUDIO_DIR, filename)
 
     cmd = ['mediainfo', '--Inform=General;%Duration%', filepath]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

@@ -117,9 +117,6 @@ mkdir -p $MEDIA_PATH
 mkdir -p $STATIC_PATH
 touch /var/log/roundware
 chown $USERNAME:$USERNAME /var/log/roundware
-# copy default RW config file into place - don't forget to edit!
-mkdir -p /etc/roundware
-cp $CODE_PATH/files/sample-config /etc/roundware/rw
 # copy test audio file to media storage
 cp $CODE_PATH/files/rw_test_audio1.wav $MEDIA_PATH
 # install correct shout2send gstreamer plugin

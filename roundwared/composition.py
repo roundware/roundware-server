@@ -40,8 +40,8 @@ import random
 import logging
 import os
 from roundwared import roundfilesrc
-from roundwared import settings
 from roundwared import db
+from roundware import settings
 
 STATE_PLAYING = 0
 STATE_DEAD_AIR = 1
@@ -157,7 +157,7 @@ class Composition:
                                 self.current_recording.filename, start, duration, fadein, fadeout, volume))
 
         self.roundfilesrc = roundfilesrc.RoundFileSrc(
-            "file://" + os.path.join(settings.config["audio_dir"],
+            "file://" + os.path.join(settings.AUDIO_DIR,
                                      self.current_recording.filename),
             start, duration, fadein, fadeout, volume)
         self.pipeline.add(self.roundfilesrc)
@@ -207,10 +207,10 @@ class Composition:
     def set_new_pan_target(self):
         pan_step_size = (self.comp_settings.maxpanpos -
                          self.comp_settings.minpanpos) / \
-            settings.config["num_pan_steps"]
+            settings.NUM_PAN_STEPS
         target_pan_step = random.randint(
             0,
-            settings.config["num_pan_steps"])
+            settings.NUM_PAN_STEPS)
         self.target_pan_pos = -1 + target_pan_step * pan_step_size
 
     def set_new_pan_duration(self):
@@ -220,7 +220,7 @@ class Composition:
                 self.comp_settings.maxpanduration)
         duration_in_miliseconds = duration_in_gst_units / gst.MSECOND
         self.pan_steps_left = duration_in_miliseconds / \
-            settings.config["stereo_pan_interval"]
+            settings.STEREO_PAN_INTERVAL
 
     def skip_ahead(self):
         logger.debug("skip_ahead 1")
