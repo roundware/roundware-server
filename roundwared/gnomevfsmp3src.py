@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -49,9 +50,9 @@ class GnomeVFSMP3Src (gst.Bin):
         self.volume = gst.element_factory_make("volume")
         self.volume.set_property("volume", self.current_vol)
         self.add(gnomevfssrc, mad, audioconvert,
-            audioresample, self.volume)
+                 audioresample, self.volume)
         gst.element_link_many(gnomevfssrc, mad,
-            audioconvert, audioresample, self.volume)
+                              audioconvert, audioresample, self.volume)
         pad = self.volume.get_pad("src")
         ghostpad = gst.GhostPad("src", pad)
         self.add_pad(ghostpad)
@@ -59,7 +60,7 @@ class GnomeVFSMP3Src (gst.Bin):
     def set_volume(self, vol):
         self.target_vol = vol
         if self.target_vol != self.current_vol \
-            and not self.is_adjusting:
+                and not self.is_adjusting:
 
             self.is_adjusting = True
             gobject.timeout_add(

@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -34,6 +35,7 @@ from roundware.rw.models import Tag, TagCategory
 
 
 class AudiolengthListFilter(DateFieldListFilter):
+
     """ Provide a filter by audiolength, grouped by ranges.
     """
     # Use DateFieldListFilter base class since it gives us gt/lt ranges
@@ -84,6 +86,7 @@ class AudiolengthListFilter(DateFieldListFilter):
 
 
 class TagCategoryListFilter(RelatedFieldListFilter):
+
     """ Adds filtering by TagCategory, based on tags on Asset.  If a
     TagCategory is clicked the filter list displays specific tags in that
     TagCategory.
@@ -113,7 +116,8 @@ class TagCategoryListFilter(RelatedFieldListFilter):
             self.lookup_kwarg = '%s__tag_category__name__iexact' % field_path
             self.lookup_val = request.GET.get(self.lookup_kwarg, None)
             # getting the first char of values
-            self.lookup_choices = list(cat.name for cat in TagCategory.objects.all())
+            self.lookup_choices = list(
+                cat.name for cat in TagCategory.objects.all())
             self.lookup_choices.sort()
 
         for p in self.expected_parameters():

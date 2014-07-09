@@ -19,16 +19,17 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
 
-#TODO: Figure out how to get the main pipeline to send EOS
+# TODO: Figure out how to get the main pipeline to send EOS
 #   when all compositions are finished (only happens
 #   when repeat is off)
-#TODO: Reimplement panning using a gst.Controller
-#TODO: Remove stero_pan from public interface
+# TODO: Reimplement panning using a gst.Controller
+# TODO: Remove stero_pan from public interface
 
 import gobject
 gobject.threads_init()
@@ -47,10 +48,12 @@ STATE_DEAD_AIR = 1
 STATE_WAITING = 2
 logger = logging.getLogger(__name__)
 
+
 class Composition:
     ######################################################################
     # PUBLIC
     ######################################################################
+
     def __init__(self, parent, pipeline, adder, comp_settings, recordingColl):
         self.parent = parent
         # logger.debug("---------Composition init")
@@ -77,7 +80,7 @@ class Composition:
 
     def stereo_pan(self):
         if self.current_pan_pos == self.target_pan_pos \
-            or self.pan_steps_left == 0:
+                or self.pan_steps_left == 0:
             self.set_new_pan_target()
             self.set_new_pan_duration()
         else:
@@ -93,7 +96,7 @@ class Composition:
         if self.recordingCollection.has_recording():
             if self.state == STATE_WAITING:
                 self.add_file()
-#FIXME: This code is responsible for swapping the playing file if there is
+# FIXME: This code is responsible for swapping the playing file if there is
 #   a closer one to play and we've walked out of range of another.
 #   Problem is it sounds bad without the ability to fade it out.
 #   Uncomment this when fading works.
@@ -101,7 +104,7 @@ class Composition:
 #               if not self.recordingCollection.is_nearby(
 #                       listener,
 #                       self.currently_playing_recording):
-#                   #FIXME: This should fade out.
+# FIXME: This should fade out.
 #                   self.clean_up()
 #                   self.add_file()
 
@@ -118,7 +121,7 @@ class Composition:
         duration = min(
             self.current_recording.audiolength,
             random.randint(
-                #FIXME: I don't allow less than a second to
+                # FIXME: I don't allow less than a second to
                 # play currently. Mostly because playing zero
                 # is an error. Revisit this.
                 max(self.comp_settings.minduration,
@@ -137,7 +140,7 @@ class Composition:
             self.comp_settings.minfadeouttime,
             self.comp_settings.maxfadeouttime)
 
-        #FIXME: Instead of doing this divide by two, instead,
+        # FIXME: Instead of doing this divide by two, instead,
         # decrease them by the same percentage. Remember it's
         # possible that fade_in != fade_out.
         if fadein + fadeout > duration:
@@ -145,17 +148,17 @@ class Composition:
             fadeout = duration / 2
 
         volume = self.current_recording.volume * (
-            self.comp_settings.minvolume + \
-            random.random() * \
-            (self.comp_settings.maxvolume - \
+            self.comp_settings.minvolume +
+            random.random() *
+            (self.comp_settings.maxvolume -
                 self.comp_settings.minvolume))
 
         logger.debug(str.format("self.current_recording.filename: {0}, start: {1}, duration: {2}, fadein: {3}, fadeout: {4}, volume: {5}",
-                                 self.current_recording.filename, start, duration, fadein, fadeout, volume))
+                                self.current_recording.filename, start, duration, fadein, fadeout, volume))
 
         self.roundfilesrc = roundfilesrc.RoundFileSrc(
             "file://" + os.path.join(settings.config["audio_dir"],
-                    self.current_recording.filename),
+                                     self.current_recording.filename),
             start, duration, fadein, fadeout, volume)
         self.pipeline.add(self.roundfilesrc)
         self.srcpad = self.roundfilesrc.get_pad('src')
@@ -166,14 +169,15 @@ class Composition:
         self.roundfilesrc.set_state(cur)
         self.state = STATE_PLAYING
         # logger.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
-        #self.parent.sink.taginjector.set_property("tags","title=\"asset_id=456\"")
+        # self.parent.sink.taginjector.set_property("tags","title=\"asset_id=456\"")
         # logger.debug("trying...")
         # logger.debug("---------Composition add")
         # logger.debug("---------Composition add: self.parent class: " + self.parent.__class__.__name__)
         # logger.debug("---------Composition add: self.recording class: " + self.current_recording.__class__.__name__)
         # logger.debug("---------Composition add: self.parent.sessionid: " + str(self.parent.sessionid))
-        #placeholder for refactor after we upgrade and fix taginject issue
-        db.add_asset_to_session_history_and_update_metadata(self.current_recording.id, self.parent.sessionid, duration)
+        # placeholder for refactor after we upgrade and fix taginject issue
+        db.add_asset_to_session_history_and_update_metadata(
+            self.current_recording.id, self.parent.sessionid, duration)
         # logger.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
         # logger.debug("---------Composition add: self.parent.sink.shout class: " + self.parent.sink.shout.__class__.__name__)
         #self.parent.sink.shout.set_property("streamname","asset" + str(self.current_recording.id))
@@ -201,8 +205,8 @@ class Composition:
         return False
 
     def set_new_pan_target(self):
-        pan_step_size = (self.comp_settings.maxpanpos - \
-            self.comp_settings.minpanpos) / \
+        pan_step_size = (self.comp_settings.maxpanpos -
+                         self.comp_settings.minpanpos) / \
             settings.config["num_pan_steps"]
         target_pan_step = random.randint(
             0,
@@ -226,8 +230,8 @@ class Composition:
         if self.roundfilesrc != None and not self.roundfilesrc.fading:
             self.roundfilesrc.fade_out(fadeoutnsecs)
             logger.debug("skip_ahead 2")
-            #1st arg is in milliseconds
-            #1000000000
+            # 1st arg is in milliseconds
+            # 1000000000
             #gobject.timeout_add(fadeoutnsecs/gst.MSECOND, self.clean_up_wait_and_play)
             logger.debug("skip_ahead 3")
             self.clean_up_wait_and_play()

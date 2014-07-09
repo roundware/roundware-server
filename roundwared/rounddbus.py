@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -54,7 +55,8 @@ def add_stream_signal_receiver(stream):
                 stream.refresh_recordings()
 
     bus = dbus.SystemBus(mainloop=DBusGMainLoop())
-    signal_match = bus.add_signal_receiver(handler, signal_name="round_stream_control")
+    signal_match = bus.add_signal_receiver(
+        handler, signal_name="round_stream_control")
     return signal_match
 
 
@@ -71,6 +73,7 @@ class StreamSignalEmmiter(dbus.service.Object):
         dbus.service.Object.__init__(self, bus, OBJECT_PATH)
 
     @dbus.service.signal(dbus_interface=INTERFACE, signature='iss')
-    def round_stream_control(self, sessionid, operation, args): pass
+    def round_stream_control(self, sessionid, operation, args):
+        pass
 
 global_emitter = StreamSignalEmmiter()

@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -36,7 +37,7 @@ from roundware import settings
 from roundware.rw.models import Tag, MasterUI, UIMapping
 from roundware.rw import fields
 from roundware.rw.widgets import (NonAdminRelatedFieldWidgetWrapper,
-                                  DummyWidgetWrapper, 
+                                  DummyWidgetWrapper,
                                   SetupTagUIFilteredSelectMultiple,
                                   SetupTagUISortedCheckboxSelectMultiple)
 
@@ -53,6 +54,7 @@ def get_formset_media_js():
 
 
 class TagCreateForm(forms.ModelForm):
+
     """ Custom create form for tags allowing batch creation of Tags assigned
         to a TagCategory
     """
@@ -83,9 +85,10 @@ class TagCreateForm(forms.ModelForm):
         }
 
     class Media:
-        js = get_formset_media_js() + ('admin/js/admin/RelatedObjectLookups.js',)
+        js = get_formset_media_js() + \
+            ('admin/js/admin/RelatedObjectLookups.js',)
         css = {'all': ('rw/css/tag_batch_add.css',)}
-      
+
 
 class BatchTagFormset(BaseModelFormSet):
 
@@ -98,7 +101,7 @@ class BatchTagFormset(BaseModelFormSet):
     # XXX TODO: if we decide to add localized messages inline we can use below
     # as a start.
     # def add_fields(self, form, index):
-    #     """ add custom fields for entry of localized string text and language.  
+    #     """ add custom fields for entry of localized string text and language.
     #         Can't use an inlineformset since the field loc_msg is manytomany.
     #     """
     #     super(BatchTagFormset, self).add_fields(form, index)
@@ -119,7 +122,7 @@ class MasterUIForSetupTagUIFormMixin(object):
         super(MasterUIForSetupTagUIFormMixin, self).__init__(*args, **kwargs)
 
 
-class MasterUIForSetupTagUICreateForm(MasterUIForSetupTagUIFormMixin, 
+class MasterUIForSetupTagUICreateForm(MasterUIForSetupTagUIFormMixin,
                                       forms.ModelForm):
 
     class Meta:
@@ -130,12 +133,13 @@ class MasterUIForSetupTagUICreateForm(MasterUIForSetupTagUIFormMixin,
         }
 
 
-class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin, 
+class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin,
                                       forms.Form):
+
     """ form for selection of MasterUIs for editing form
     """
     masterui = forms.ModelChoiceField(
-        queryset=MasterUI.objects.all().order_by('id'), 
+        queryset=MasterUI.objects.all().order_by('id'),
         required=False,
         widget=forms.Select(attrs={"onChange": 'update_MasterUI_edit_form()'}),
         label='Master UI',
@@ -143,12 +147,12 @@ class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin,
         empty_label="---------")
 
     def __init__(self, user, *args, **kwargs):
-        super(MasterUIForSetupTagUISelectForm, self).__init__(*args, **kwargs) 
+        super(MasterUIForSetupTagUISelectForm, self).__init__(*args, **kwargs)
         self.helper.form_id = 'mui_select_form'
         self.prefix = 'master_ui_select'
         self.fields['masterui'].queryset = \
-            MasterUI.objects.filter(project__in=get_objects_for_user(user, 
-                                    'rw.access_project')
+            MasterUI.objects.filter(project__in=get_objects_for_user(user,
+                                                                     'rw.access_project')
                                     ).order_by('id')
 
     def form_valid():
@@ -167,7 +171,7 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
         label='Assign tags',
         required=False,
         widget=NonAdminRelatedFieldWidgetWrapper(
-            SetupTagUIFilteredSelectMultiple('tags', False), 
+            SetupTagUIFilteredSelectMultiple('tags', False),
             '/admin/rw/tag/add')
     )
 
@@ -189,16 +193,17 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
         super(MasterUIForSetupTagUIEditForm, self).__init__(*args, **kwargs)
         self.helper.form_tag = False
         self.prefix = 'master_ui_edit'
-        if kwargs.has_key('instance'):
+        if 'instance' in kwargs:
             self.instance = kwargs['instance']
             uimaps = UIMapping.objects.select_related('tag').filter(
                 master_ui=self.instance).order_by('index')
-            self.initial['ui_mappings_tags'] = [uimap.tag.id for uimap in uimaps]
+            self.initial['ui_mappings_tags'] = [
+                uimap.tag.id for uimap in uimaps]
             # self.initial['ui_mappings_tag_order'] = []
             self.fields['ui_mappings_tag_order'].queryset = uimaps
             self.fields['ui_mappings_tag_order'].label_from_instance = \
                 self.get_order_instance_label
-            self.initial['ui_mappings_tag_order'] = [uimap.id for uimap 
+            self.initial['ui_mappings_tag_order'] = [uimap.id for uimap
                                                      in uimaps if uimap.default]
 
     def get_order_instance_label(self, obj):
@@ -207,9 +212,9 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
     def is_valid(self):
         # import pdb; pdb.set_trace()
         return super(MasterUIForSetupTagUIEditForm, self).is_valid()
-        
+
     class Media:
-        # load the setup_tag_ui.js in the selectmultiple widget so it loads 
+        # load the setup_tag_ui.js in the selectmultiple widget so it loads
         # early enough.
         js = get_formset_media_js() + \
             ('admin/js/admin/RelatedObjectLookups.js', )
@@ -218,12 +223,12 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
 
     class Meta:
         model = MasterUI
-        fields = ['id', 'project', 'ui_mode', 'tag_category', 'select', 'active', 
-                  'index', 'name', 'header_text_loc', 
-                  'ui_mappings_tags', 'ui_mappings_tag_order', 
+        fields = ['id', 'project', 'ui_mode', 'tag_category', 'select', 'active',
+                  'index', 'name', 'header_text_loc',
+                  'ui_mappings_tags', 'ui_mappings_tag_order',
                   ]
         widgets = {  # floppyforms requires override orig widgets to use theirs
-            'id': forms.HiddenInput, 
+            'id': forms.HiddenInput,
             'project': forms.Select,
             'ui_mode': forms.Select,
             'tag_category': forms.Select,

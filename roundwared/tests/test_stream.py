@@ -7,6 +7,7 @@ from roundwared.stream import RoundStream
 
 
 class TestRoundStream(RoundwaredTestCase):
+
     """ Exercise methods and instances of RoundStream
     """
 
@@ -15,15 +16,15 @@ class TestRoundStream(RoundwaredTestCase):
 
         self.project1 = mommy.make(Project, name='Project One',
                                    ordering=1, recording_radius=16)
-        self.session1 = mommy.make(Session, project=self.project1, 
+        self.session1 = mommy.make(Session, project=self.project1,
                                    language=self.english)
-        self.req1 = {"session_id": [self.session1.id,]}
+        self.req1 = {"session_id": [self.session1.id, ]}
         self.asset1 = mommy.make(Asset, project=self.project1,
-                                 language=self.english, 
+                                 language=self.english,
                                  tags=[self.tag1],
                                  audiolength=2000)
         self.asset2 = mommy.make(Asset, project=self.project1,
-                                 language=self.english, 
+                                 language=self.english,
                                  tags=[self.tag1],
                                  audiolength=2000)
 
@@ -33,7 +34,7 @@ class TestRoundStream(RoundwaredTestCase):
         req = self.req1
         req["audio_stream_bitrate"] = '128'
         stream = RoundStream(self.session1.id, 'ogg', req)
-        self.assertEquals(stream.recordingCollection.__class__.__name__, 
+        self.assertEquals(stream.recordingCollection.__class__.__name__,
                           'RecordingCollection')
 
     def test_new_stream_has_correct_radius_from_project(self):
@@ -61,5 +62,3 @@ class TestRoundStream(RoundwaredTestCase):
         stream = RoundStream(self.session1.id, 'ogg', req)
         admin = stream.icecast_admin
         self.assertEquals(admin.__class__.__name__, 'Admin')
-        
-

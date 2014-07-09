@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -33,7 +34,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class RoundFileSrc (gst.Bin):
+
     def __init__(self, uri, start, duration, fadein, fadeout, volume):
         gst.Bin.__init__(self)
         self.start = start
@@ -57,10 +60,10 @@ class RoundFileSrc (gst.Bin):
         self.controller.set("volume", start + duration - fadeout, volume)
         self.controller.set("volume", start + duration, 0.0)
         self.add(self.gnomevfssrc, self.wavparse, self.audioconvert,
-            self.audioresample, self.audiopanorama, self.volume)
+                 self.audioresample, self.audiopanorama, self.volume)
         gst.element_link_many(self.gnomevfssrc, self.wavparse)
         gst.element_link_many(self.audioconvert, self.audioresample,
-            self.audiopanorama, self.volume)
+                              self.audiopanorama, self.volume)
 
         def on_pad(comp, pad):
             convpad = self.audioconvert.get_compatible_pad(pad, pad.get_caps())
@@ -87,7 +90,7 @@ class RoundFileSrc (gst.Bin):
         pos_int = self.wavparse.query_position(gst.FORMAT_TIME, None)[0]
         logger.debug("fade_out: got position: " + str(pos_int))
         self.controller.set_interpolation_mode(
-                    "volume", gst.INTERPOLATE_LINEAR)
+            "volume", gst.INTERPOLATE_LINEAR)
         if (self.duration - pos_int) > nsecs:
             self.controller.set("volume", pos_int, self.clip_volume)
             self.controller.set("volume", pos_int + nsecs, 0)

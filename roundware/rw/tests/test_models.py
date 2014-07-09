@@ -9,12 +9,13 @@ from .common import use_locmemcache, RWTestCase
 
 
 class TestMasterUI(RWTestCase):
+
     """ exercise MasterUI model class """
 
     def setUp(self):
         super(type(self), TestMasterUI).setUp(self)
 
-        # make masterui, makes our tagcategory, uimode, project, 
+        # make masterui, makes our tagcategory, uimode, project,
         # selectionmethod
         self.masterui = mommy.make('rw.MasterUI')
         self.other_uimode = mommy.make('rw.UIMode')
@@ -38,7 +39,7 @@ class TestMasterUI(RWTestCase):
         get_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode_name)
         self.assertIn(self.masterui.tag_category, get_tag_cats)
 
-        # save the masterui, now should not get old tag categories... 
+        # save the masterui, now should not get old tag categories...
         # cached copy invalidated
         self.masterui.save()
         get_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode_name)
@@ -62,7 +63,7 @@ class TestProject(RWTestCase):
         """ test that we get correct tagcategories for our project once
             we add a MasterUI.
         """
-        masterui = mommy.make('rw.MasterUI', project=self.project, 
+        masterui = mommy.make('rw.MasterUI', project=self.project,
                               ui_mode=self.ui_mode)
         cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode.name)
         self.assertIn(masterui.tag_category, cats)
@@ -88,15 +89,14 @@ class TestAsset(RWTestCase):
         self.project = mommy.make('rw.Project')
         self.asset1 = mommy.make('rw.Asset')
         self.asset2 = mommy.make('rw.Asset')
-        self.vote1 = mommy.make('rw.Vote', session=self.session1, 
+        self.vote1 = mommy.make('rw.Vote', session=self.session1,
                                 asset=self.asset1, type="like")
-        self.vote2 = mommy.make('rw.Vote', session=self.session2, 
+        self.vote2 = mommy.make('rw.Vote', session=self.session2,
                                 asset=self.asset1, type="like")
-        self.vote3 = mommy.make('rw.Vote', session=self.session1, 
-                        asset=self.asset2, type="like")
-        self.vote4 = mommy.make('rw.Vote', session=self.session1, 
-                        asset=self.asset1, type="flag")
-
+        self.vote3 = mommy.make('rw.Vote', session=self.session1,
+                                asset=self.asset2, type="like")
+        self.vote4 = mommy.make('rw.Vote', session=self.session1,
+                                asset=self.asset1, type="flag")
 
     def test_get_likes(self):
         self.assertEquals(2, self.asset1.get_likes())

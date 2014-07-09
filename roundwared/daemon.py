@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -29,19 +30,21 @@ import sys
 import logging
 logger = logging.getLogger(__name__)
 
+
 def create_daemon(function, pidfile=False):
     # create - fork 1
     try:
         if os.fork() > 0:
-            #os._exit(0) # exit father...
+            # os._exit(0) # exit father...
             sys.exit(0)
     except OSError, error:
-        logger.critical('fork #1 failed: %d (%s)' % (error.errno, error.strerror))
-        #os._exit(1)
+        logger.critical('fork #1 failed: %d (%s)' %
+                        (error.errno, error.strerror))
+        # os._exit(1)
         sys.exit(1)
 
     # it separates the son from the father
-    #os.chdir('/') # Do this when I can run stream_script from $PATH
+    # os.chdir('/') # Do this when I can run stream_script from $PATH
     os.setsid()
     os.umask(0)
 
@@ -54,11 +57,12 @@ def create_daemon(function, pidfile=False):
                 pidfile = open(pidfile, "w")
                 pidfile.write(str(pid) + "\n")
                 pidfile.close()
-            #os._exit(0)
+            # os._exit(0)
             sys.exit(0)
     except OSError, error:
-        logger.critical('fork #2 failed: %d (%s)' % (error.errno, error.strerror))
-        #os._exit(1)
+        logger.critical('fork #2 failed: %d (%s)' %
+                        (error.errno, error.strerror))
+        # os._exit(1)
         sys.exit(1)
 
     function()

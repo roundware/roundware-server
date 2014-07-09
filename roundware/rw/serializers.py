@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -36,4 +37,4 @@ class PrettyJSONSerializer(Serializer):
         options = options or {}
         data = self.to_simple(data, options)
         return json.dumps(data, cls=DjangoJSONEncoder,
-                sort_keys=True, ensure_ascii=False, indent=self.json_indent)
+                          sort_keys=True, ensure_ascii=False, indent=self.json_indent)

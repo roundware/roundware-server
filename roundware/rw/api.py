@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -36,7 +37,8 @@ class AssetResource(ModelResource):
     project = fields.IntegerField(attribute="project_id")
     language = fields.IntegerField(attribute="language_id")
     session = fields.IntegerField(attribute="session_id")
-    audiolength_in_seconds = fields.FloatField(attribute="audiolength_in_seconds")
+    audiolength_in_seconds = fields.FloatField(
+        attribute="audiolength_in_seconds")
 
     class Meta:
         queryset = Asset.objects.all()
@@ -71,6 +73,7 @@ class AssetLocationResource(AssetResource):
 
 
 class ProjectResource(ModelResource):
+
     class Meta:
         queryset = Project.objects.all()
         resource_name = "project"
@@ -88,8 +91,8 @@ class EventResource(ModelResource):
         serializer = PrettyJSONSerializer()
         filtering = {
             "event_type": ('exact', 'startswith',),
-            "server_time"  : ('exact', 'gte', 'lte', 'range'),
-            "session"  : ('exact'),
+            "server_time": ('exact', 'gte', 'lte', 'range'),
+            "session": ('exact'),
         }
 
 
@@ -104,11 +107,11 @@ class SessionResource(ModelResource):
         serializer = PrettyJSONSerializer()
         filtering = {
             "client_type": ('exact', 'contains',),
-            "client_system"  : ('exact', 'contains'),
-            "starttime"  : ('exact', 'gte', 'lte', 'range'),
-            "demo_stream_enabled"  : ('exact'),
-            "project"  : ('exact'),
-            "language"  : ('exact'),
+            "client_system": ('exact', 'contains'),
+            "starttime": ('exact', 'gte', 'lte', 'range'),
+            "demo_stream_enabled": ('exact'),
+            "project": ('exact'),
+            "language": ('exact'),
         }
 
 
@@ -124,7 +127,7 @@ class ListeningHistoryItemResource(ModelResource):
         serializer = PrettyJSONSerializer()
         filtering = {
             "duration": ('lte', 'gte'),
-            "server_time"  : ('exact', 'gte', 'lte', 'range'),
-            "session"  : ('exact'),
-            "asset"  : ('exact'),
+            "server_time": ('exact', 'gte', 'lte', 'range'),
+            "session": ('exact'),
+            "asset": ('exact'),
         }

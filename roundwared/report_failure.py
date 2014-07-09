@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -35,7 +36,8 @@ from email.Encoders import encode_base64
 
 def send_email():
     fromaddr = "roundwarnings@gmail.com"
-    toaddrs = ["mike.machenry@gmail.com", "halsey@halseyburgund.com", "bryanlandia@gmail.com"]
+    toaddrs = ["mike.machenry@gmail.com",
+               "halsey@halseyburgund.com", "bryanlandia@gmail.com"]
     msg = MIMEMultipart()
     msg['From'] = fromaddr
     msg['To'] = ",".join(toaddrs)

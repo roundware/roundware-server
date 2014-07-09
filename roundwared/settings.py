@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -60,7 +61,8 @@ configstring = """
 
 
 # String -> ConfigObj
-# Returns the configobj created by reading from the given filename or using defaults where necessary.
+# Returns the configobj created by reading from the given filename or
+# using defaults where necessary.
 def read_configfile(filename):
     configspec = StringIO.StringIO(configstring)
     tmpconfig = configobj.ConfigObj(filename, configspec=configspec)
@@ -70,7 +72,8 @@ def read_configfile(filename):
 
 
 # String -> None
-# Reads a configobj from a given filename and assigns the global config variable to that config.
+# Reads a configobj from a given filename and assigns the global config
+# variable to that config.
 def initialize_config(filename):
     global config
     if os.access(filename, os.F_OK):
@@ -79,13 +82,15 @@ def initialize_config(filename):
     else:
         raise roundexception.RoundException("Config file not found")
 
-# Read in the default config file, store it in config (to be referenced by other modules)
+# Read in the default config file, store it in config (to be referenced by
+# other modules)
 config = read_configfile(default_configfile)
 
-# If there is no existing config at the default location, write one out if there is write permission.
+# If there is no existing config at the default location, write one out if
+# there is write permission.
 (dir, relativefilename) = os.path.split(default_configfile)
 if (os.access(default_configfile, os.F_OK) and os.access(default_configfile, os.W_OK)) \
-    or (not os.access(default_configfile, os.F_OK) and os.access(dir, os.W_OK)):
+        or (not os.access(default_configfile, os.F_OK) and os.access(dir, os.W_OK)):
     config.write()
 
 # mode is compressor or expander

@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -31,11 +32,13 @@ from sortedm2m.forms import SortedMultipleChoiceField
 
 
 class RWValidatedFileField(ValidatedFileField):
+
     """
     Same as FileField, but you can specify:
         * content_types - list containing allowed content_types.
         Example: ['application/pdf', 'image/jpeg']
     """
+
     def __init__(self, content_types=None, **kwargs):
         if content_types:
             self.content_types = content_types
@@ -47,12 +50,13 @@ class RWValidatedFileField(ValidatedFileField):
         # http headers and by peeking in the file
         data = super(RWValidatedFileField, self).clean(*args, **kwargs)
 
-        # ClamAV scan was here. See: https://github.com/hburgund/roundware-server/issues/107
+        # ClamAV scan was here. See:
+        # https://github.com/hburgund/roundware-server/issues/107
 
         return data
 
 
-add_introspection_rules([], ["^roundware\.rw\.fields\.RWValidatedFileField"])        
+add_introspection_rules([], ["^roundware\.rw\.fields\.RWValidatedFileField"])
 
 
 class RWTagOrderingSortedMultipleChoiceField(SortedMultipleChoiceField):

@@ -5,7 +5,7 @@ from model_mommy import mommy
 from model_mommy.generators import gen_file_field
 
 from roundware.settings import DEFAULT_SESSION_ID
-from roundware.rw.models import (UIMode, Language, LocalizedString, 
+from roundware.rw.models import (UIMode, Language, LocalizedString,
                                  Tag, TagCategory, Session)
 
 
@@ -14,6 +14,7 @@ def rw_validated_file_field_gen():
 
 
 class FakeRequest(object):
+
     def __init__(self):
         self.GET = {}
 
@@ -27,6 +28,7 @@ def mock_distance_in_meters_far(l_lat, l_long, rec_lat, rec_long):
 
 
 class RoundwaredTestCase(TestCase):
+
     """ provide common testcase data for Roundwared test cases 
     """
 
@@ -34,7 +36,7 @@ class RoundwaredTestCase(TestCase):
         self.maxDiff = None
 
         generator_dict = {
-            'roundware.rw.fields.RWValidatedFileField': 
+            'roundware.rw.fields.RWValidatedFileField':
             rw_validated_file_field_gen
         }
         # can't set this directly in settings: db ENGINE not yet available

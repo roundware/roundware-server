@@ -19,7 +19,8 @@
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
+# along with this program.  If not, see
+# <http://www.gnu.org/licenses/lgpl.html>.
 
 #***********************************************************************************#
 
@@ -53,14 +54,15 @@ v1_api.register(EventResource())
 v1_api.register(SessionResource())
 v1_api.register(ListeningHistoryItemResource())
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     # Examples:
     # url(r'^$', 'roundware.views.home', name='home'),
-#    url(r'^charts/asset/$', 'rw.views.chart_views'),
+    # url(r'^charts/asset/$', 'rw.views.chart_views'),
     url(r'^dashboard/asset-map$', 'rw.views.asset_map'),
     url(r'^dashboard/$', 'rw.views.chart_views'),
 
-    #TastyPie API URLS
+    # TastyPie API URLS
     url(r'^roundware/api/', include(v1_api.urls)),
 
     url(r'^roundware/$', 'rw.views.main'),
@@ -85,8 +87,7 @@ urlpatterns = patterns('',
 
 if settings.DEBUG:
     import debug_toolbar
-    urlpatterns += patterns('',
+    urlpatterns += patterns(
+        '',
         url(r'^__debug__/', include(debug_toolbar.urls)),
     )
-
-
