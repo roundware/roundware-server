@@ -553,10 +553,17 @@ def add_asset_to_envelope(request):
         except models.Asset.DoesNotExist:
             raise roundexception.RoundException(
                 "Invalid Asset ID Provided. No Asset exists with ID %s" % asset_id)
-    envelope_id = get_parameter_from_request(request, 'envelope_id', True)
 
-    envelope = models.Envelope.objects.select_related(
-        'session').get(id=envelope_id)
+    envelope_id = get_parameter_from_request(request, 'envelope_id', True)
+    logger.debug("Found asset_id: %d, envelope_id: %d", asset_id, envelope_id)
+
+    try:
+        envelope = models.Envelope.objects.select_related(
+            'session').get(id=envelope_id)
+    except models.Envelope.DoesNotExist:
+        raise roundexception.RoundException(
+            "Invalid Envelope ID Provided. No Envelope exists with ID %s" % envelope_id)
+
     session = envelope.session
 
     db.log_event("start_upload", session.id, request.GET)

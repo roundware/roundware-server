@@ -25,15 +25,11 @@
 #***********************************************************************************#
 
 
-import json
 import logging
-import urllib
-import urllib2
 from django.conf import settings
+from roundwared import server as rwapi
 
-API_URL = getattr(settings, "API_URL")
 logger = logging.getLogger(__name__)
-
 
 def create_envelope(instance, **kwargs):
     """
@@ -41,34 +37,42 @@ def create_envelope(instance, **kwargs):
     This function retrieves an envelope_id from the API server
     """
     instance.filename = instance.file.name
-    # build get string
-    get_data = [('operation', 'create_envelope'),
-                ('session_id', getattr(settings, "DEFAULT_SESSION_ID", "-1"))]     # a sequence of two element tuples
+    session_id = getattr(settings, "DEFAULT_SESSION_ID", "-1")
 
-    # post to server
-    result = urllib2.urlopen(API_URL + "?" + urllib.urlencode(get_data))
-    # read response
-    content = json.loads(result.read())
+    fake_request = FakeRWRequest()
+    fake_request.GET = {'session_id': session_id}
+    logger.debug(fake_request.GET)
 
-    if 'error_message' in content:
-        logger.info("error message is pre_save: %s" % content['error_message'])
+    response = rwapi.create_envelope(fake_request)
+    logger.debug(response)
+
+    if 'error_message' in response:
+        logger.error("error message is pre_save: %s" %
+                     response['error_message'])
         return
-        # get the envelope Id from the return message
-    instance.ENVELOPE_ID = content['envelope_id']
+
+    # get the envelope Id from the return message
+    instance.envelope_id = response['envelope_id']
 
 
 def add_asset_to_envelope(instance, **kwargs):
-    # build post string
-    post_data = [('operation', 'add_asset_to_envelope'),
-                 ('envelope_id', instance.ENVELOPE_ID),
-                 ('asset_id', instance.id),
-                 ]
-    # post to server
-    result = urllib2.urlopen(API_URL, urllib.urlencode(post_data))
-    # read response
-    content = json.loads(result.read())
 
+    fake_request = FakeRWRequest()
+    fake_request.GET = {
+        'envelope_id': instance.envelope_id,
+        'asset_id': instance.id,
+    }
+    logger.debug(fake_request.GET)
+
+    content = rwapi.add_asset_to_envelope(fake_request)
+    logger.debug(content)
     if 'error_message' in content:
-        logger.info("error message is post_save: %s" %
+        logger.error("error message is post_save: %s" %
                     content['error_message'])
         return
+
+class FakeRWRequest:
+    """
+    Fake HTTP GET request object to send the Roundware API server functions
+    """
+    GET = {}
