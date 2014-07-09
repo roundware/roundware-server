@@ -31,9 +31,8 @@ try:
     from profiling import profile
 except ImportError:
     pass
-from roundwared import settings
+from roundware import settings
 from roundwared import roundexception
-from roundware import settings as rw_settings
 from roundware.rw.models import Session
 from roundware.rw.models import Language
 from roundware.rw.models import Event
@@ -208,7 +207,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     tag_ids_per_cat_dict = {}
     # project_cats = TagCategory.objects.filter()
 
-    project_cats = p.get_tag_cats_by_ui_mode(rw_settings.LISTEN_UIMODE)
+    project_cats = p.get_tag_cats_by_ui_mode(settings.LISTEN_UIMODE)
     for cat in project_cats:
         # for each tag category a list of all of the tags with that cat
         tag_ids_per_cat_dict[cat.id] = [
@@ -309,14 +308,14 @@ def log_event(event_type, session_id, form):
 
 
 def add_asset_to_session_history_and_update_metadata(asset_id, session_id, duration):
-    logger.debug("!!!!add_recording_to_session_history called with recording " +
+    logger.debug("add_recording_to_session_history called with recording " +
                  str(asset_id) + " session_id: " + str(session_id) + " duration: " + str(int(duration)))
-    admin = icecast2.Admin(settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"]),
-                           settings.config["icecast_username"],
-                           settings.config["icecast_password"])
+    admin = icecast2.Admin(settings.ICECAST_HOST + ":" + str(settings.ICECAST_PORT),
+                           settings.ICECAST_USERNAME,
+                           settings.ICECAST_PASSWORD)
     logger.debug("add_asset_to_session_history_and_update_metadata: got admin")
     admin.update_metadata(asset_id, session_id)
-    logger.debug("add_asset_to_session_history_and_update_metadata: returned!")
+    logger.debug("add_asset_to_session_history_and_update_metadata: returned")
 
     #import pycurl
     #c = pycurl.Curl()

@@ -25,7 +25,7 @@
 #***********************************************************************************#
 
 
-import settings
+from roundware import settings
 import shutil
 import os
 from roundwared import roundexception
@@ -44,7 +44,7 @@ def convert_uploaded_file(filename):
         convert_audio_file(
             upload_dir, filename_prefix, filename_extension, 'wav')
         convert_audio_file(
-            settings.config["audio_dir"], filename_prefix, '.wav', 'mp3')
+            settings.AUDIO_DIR, filename_prefix, '.wav', 'mp3')
         return filename_prefix + '.wav'
     else:
         convert_audio_file(
@@ -58,22 +58,19 @@ def convert_uploaded_file(filename):
 def convert_audio_file(upload_dir, filename_prefix, filename_extension, dst_type):
     filepath = os.path.join(upload_dir, filename_prefix + filename_extension)
     if filename_extension == "." + dst_type:
-        if not settings.config["audio_dir"] == upload_dir:
+        if not settings.AUDIO_DIR == upload_dir:
             shutil.copyfile(
                 filepath,
-                os.path.join(settings.config["audio_dir"], filename_prefix + filename_extension))
+                os.path.join(settings.AUDIO_DIR, filename_prefix + filename_extension))
     else:
         if filename_extension == '.caf':
             os.system("/usr/bin/pacpl --to " + dst_type + " --outdir " +
-                      settings.config["audio_dir"] + " " + filepath + ">/dev/null")
+                      settings.AUDIO_DIR + " " + filepath + ">/dev/null")
         else:  # if filename_extension in ffmpeg supported list
-            os.system("/usr/bin/ffmpeg -y -i " + filepath + " " + os.path.join(settings.config[
-                      "audio_dir"], filename_prefix + "." + dst_type) + " >/dev/null 2>/dev/null")
+            os.system("/usr/bin/ffmpeg -y -i " + filepath + " " + os.path.join(settings.AUDIO_DIR,
+                      filename_prefix + "." + dst_type) + " >/dev/null 2>/dev/null")
 
 
 # Gets the directory the file is uploaded to by which extension it has.
 def get_upload_directory(filename_extension):
-    if filename_extension == '.flv':
-        return settings.config["flv_upload_dir"]
-    else:
-        return settings.config["upload_dir"]
+    return settings.UPLOAD_DIR

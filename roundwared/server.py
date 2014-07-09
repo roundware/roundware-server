@@ -37,7 +37,6 @@ try:
     from profiling import profile
 except ImportError:
     pass
-from roundwared import settings
 from roundwared import db
 from roundwared import convertaudio
 from roundwared import discover_audiolength
@@ -46,7 +45,7 @@ from roundwared import icecast2
 from roundwared import gpsmixer
 from roundwared import rounddbus
 from roundware.rw import models
-from roundware import settings as rw_settings
+from roundware import settings
 
 logger = logging.getLogger(__name__)
 
@@ -206,7 +205,7 @@ def get_config(request):
     # Demo stream is enabled if enabled project wide or CPU idle is less than
     # CPU limit (default 50%.)
     demo_stream_enabled = project.demo_stream_enabled or cpu_idle < float(
-        settings.config["demo_stream_cpu_limit"])
+        settings.DEMO_STREAM_CPU_LIMIT)
 
     # Create a new session if new_session is not equal 'false'
     create_new_session = form.get('new_session') != 'false'
@@ -342,12 +341,6 @@ def get_available_assets(request):
 
     form = request.GET
     kw = {}
-    try:
-        hostname_without_port = str(
-            settings.config["external_host_name_without_port"])
-    except KeyError:
-        raise roundexception.RoundException(
-            "Roundware configuration file is missing 'external_host_name_without_port' key. ")
 
     known_params = ['project_id', 'latitude', 'longitude',
                     'tag_ids', 'tagbool', 'radius', 'language', 'asset_id',
@@ -468,7 +461,7 @@ def get_available_assets(request):
             assets_list.append(
                 dict(asset_id=asset.id,
                      asset_url='%s%s' % (
-                         rw_settings.AUDIO_FILE_URI, asset.filename),
+                         settings.AUDIO_FILE_URI, asset.filename),
                      latitude=asset.latitude,
                      longitude=asset.longitude,
                      audio_length=asset.audiolength,
@@ -583,7 +576,7 @@ def add_asset_to_envelope(request):
         (filename_prefix, filename_extension) = \
             os.path.splitext(fileitem.name)
         fn = time.strftime("%Y%m%d-%H%M%S") + filename_extension
-        fileout = open(os.path.join(settings.config["upload_dir"], fn), 'wb')
+        fileout = open(os.path.join(settings.AUDIO_DIR, fn), 'wb')
         fileout.write(fileitem.file.read())
         fileout.close()
         # delete the uploaded original after the copy has been made
@@ -693,12 +686,8 @@ def get_parameter_from_request(request, name, required):
 def request_stream(request):
 
     request_form = request.GET
-    try:
-        hostname_without_port = str(
-            settings.config["external_host_name_without_port"])
-    except KeyError:
-        raise roundexception.RoundException(
-            "Roundware configuration file is missing 'external_host_name_without_port' key. ")
+    hostname_without_port = settings.EXTERNAL_HOST_NAME_WITHOUT_PORT
+
     db.log_event(
         "request_stream", int(request_form['session_id']), request_form)
 
@@ -721,7 +710,7 @@ def request_stream(request):
             url = project.demo_stream_url
         else:
             url = "http://" + hostname_without_port + ":" + \
-                  str(settings.config["icecast_port"]) + \
+                  str(settings.ICECAST_PORT) + \
                   "/demo_stream.mp3"
 
         return {
@@ -737,12 +726,6 @@ def request_stream(request):
         for p in ['latitude', 'longitude', 'audio_format']:
             if p in request_form and request_form[p]:
                 command.extend(['--' + p, request_form[p].replace("\t", ",")])
-        if 'config' in request_form:
-            command.extend(
-                ['--configfile', os.path.join(settings.configdir, request_form['config'])])
-        else:
-            command.extend(
-                ['--configfile', os.path.join(settings.configdir, 'rw')])
         if 'audio_stream_bitrate' in request_form:
             command.extend(
                 ['--audio_stream_bitrate', str(request_form['audio_stream_bitrate'])])
@@ -754,7 +737,7 @@ def request_stream(request):
 
         return {
             "stream_url": "http://" + hostname_without_port + ":" +
-            str(settings.config["icecast_port"]) +
+            str(settings.ICECAST_PORT) +
             icecast_mount_point(session.id, audio_format),
         }
     else:
@@ -768,10 +751,6 @@ def request_stream(request):
         # if project.out_of_range_url: all projects must have an out
         # of range url
         url = project.out_of_range_url
-        # else:
-        #     url = "http://" + hostname_without_port + ":" + \
-        #                 str(settings.config["icecast_port"]) + \
-        #                 "/outofrange.mp3"
 
         return {
             'stream_url': url,
@@ -901,9 +880,9 @@ def apache_safe_daemon_subprocess(command):
 
 def wait_for_stream(sessionid, audio_format):
     logger.debug("waiting " + str(sessionid) + audio_format)
-    admin = icecast2.Admin(settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"]),
-                           settings.config["icecast_username"],
-                           settings.config["icecast_password"])
+    admin = icecast2.Admin(settings.ICECAST_HOST + ":" + str(settings.ICECAST_PORT),
+                           settings.ICECAST_USERNAME,
+                           settings.ICECAST_PASSWORD)
     # Stream wait timeout in seconds
     timeout = 30
     # Number of retries timeout/(time to wait between retries)
@@ -918,9 +897,9 @@ def wait_for_stream(sessionid, audio_format):
 
 def stream_exists(sessionid, audio_format):
     logger.debug("checking for existence of " + str(sessionid) + audio_format)
-    admin = icecast2.Admin(settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"]),
-                           settings.config["icecast_username"],
-                           settings.config["icecast_password"])
+    admin = icecast2.Admin(settings.ICECAST_HOST + ":" + str(settings.ICECAST_PORT),
+                           settings.ICECAST_USERNAME,
+                           settings.ICECAST_PASSWORD)
     return admin.stream_exists(icecast_mount_point(sessionid, audio_format))
 
 

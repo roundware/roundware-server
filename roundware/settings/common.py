@@ -12,18 +12,44 @@ ADMINS = (
 # holding the current file.
 here = lambda * x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
 
-# root of roundware Django project
+# Root of roundware Django project
 PROJECT_ROOT = here("../..")
 
-# root of roundware-server
+# Root of roundware-server
 ROUNDWARE_SERVER_ROOT = here("../..")
 
 # root() gives us file paths from the root of the system to whatever
 # folder(s) we pass it starting at the roundware-server root
 root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
+# TODO - Reduce number of audio/media file directories listed.
+# Roundwared & rwstreamd.py settings - Previously in /etc/roundware/rw
+ICECAST_PORT = 8000
+ICECAST_HOST = "localhost"
+ICECAST_USERNAME = "admin"
+ICECAST_PASSWORD = "roundice"
+# TODO - Still used?
+ICECAST_SOURCE_USERNAME = "source"
+# TODO - Still used?
+ICECAST_SOURCE_PASSWORD = "roundice"
+# Default location for participant audio
+AUDIO_DIR = "/var/www/roundware/rwmedia"
+# Default location for incoming participant audio
+UPLOAD_DIR = "/var/www/roundware/rwmedia"
+# Discrete steps
+NUM_PAN_STEPS = 200
+# In milliseconds
+STEREO_PAN_INTERVAL = 10
+# In milliseconds
+PING_INTERVAL = 10000
+MASTER_VOLUME = 3.0
+HEARTBEAT_TIMEOUT = 200
+# Radius in meters - default system wide setting
+RECORDING_RADIUS = 1
+EXTERNAL_HOST_NAME_WITHOUT_PORT = "example.com"
+DEMO_STREAM_CPU_LIMIT = 50.0
+# End Roundwared & rwstreamd.py settings
 
-######## ROUNDWARE SPECIFIC SETTINGS ###########
 # url base for media files
 MEDIA_BASE_URI = "/rwmedia/"
 # external url where audio files can be accessed

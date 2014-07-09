@@ -35,7 +35,7 @@ import json
 import string
 import datetime
 import time
-from roundwared import settings
+from roundware import settings
 from roundwared import gpsmixer
 from roundwared import roundexception
 from django.db.models import Q
