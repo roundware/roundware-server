@@ -62,7 +62,6 @@ from roundware.rw.forms import (TagCreateForm, BatchTagFormset,
                                 MasterUIForSetupTagUIEditForm,
                                 MasterUIForSetupTagUISelectForm)
 from roundware.rw.widgets import SetupTagUISortedCheckboxSelectMultiple
-from roundwared import settings
 from roundwared import roundexception
 from roundwared import server
 logger = logging.getLogger(__name__)
@@ -74,12 +73,6 @@ def main(request):
 
 def catch_errors(request):
     try:
-        config_file = "rw"
-        if 'config' in request.GET:
-            config_file = request.GET['config']
-        settings.initialize_config(
-            os.path.join('/etc/roundware/', config_file))
-
         if 'operation' in request.GET:
             function = operation_to_function(request.GET['operation'])
         elif 'operation' in request.POST:

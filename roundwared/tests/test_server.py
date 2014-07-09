@@ -20,8 +20,7 @@ from roundwared.server import (check_for_single_audiotrack, get_asset_info,
                                vote_asset, request_stream)
 from roundwared import server
 from roundwared import gpsmixer
-from roundwared import settings
-from roundware import settings as rwsettings
+from roundware import settings
 
 
 def mock_apache_safe_daemon_subprocess(command):
@@ -42,7 +41,7 @@ def mock_wait_for_stream(sessionid, audio_format):
 @patch.object(server, 'apache_safe_daemon_subprocess',
               mock_apache_safe_daemon_subprocess)
 @patch.object(server, 'wait_for_stream', mock_wait_for_stream)
-@patch.object(rwsettings, 'AUDIO_FILE_URI', '/audio/')
+@patch.object(settings, 'AUDIO_FILE_URI', '/audio/')
 class TestServer(RoundwaredTestCase):
 
     """ test server.py methods

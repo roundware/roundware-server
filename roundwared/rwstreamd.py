@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
 import logging
-import sys
 import traceback
 
-from roundwared import settings
 from roundwared import daemon
 from roundwared import roundgetopt
 from roundwared.stream import RoundStream
@@ -18,7 +16,6 @@ options_data = [
     ("session_id", int),
     ("foreground",),
     ("project_id", int, 0),
-    ("configfile", str),
     ("latitude", float, False),
     ("longitude", float, False),
     ("audio_format", str, "MP3"),
@@ -27,24 +24,19 @@ options_data = [
 
 logger = logging.getLogger(__name__)
 
-# @profile
-
 
 def main():
     opts = roundgetopt.getopts(options_data)
-    if 'configfile' in opts:
-        settings.initialize_config(opts["configfile"])
     request = cmdline_opts_to_request(opts)
 
     def thunk():
-        logger.debug("request is...")
         logger.debug(request)
         start_stream(opts["session_id"], opts["audio_format"], request)
 
     if opts["foreground"]:
         thunk()
     else:
-        daemon.create_daemon(thunk, False)
+        daemon.create_daemon(thunk)
 
 
 def start_stream(sessionid, audio_format, request):

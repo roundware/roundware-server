@@ -31,7 +31,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def create_daemon(function, pidfile=False):
+def create_daemon(function):
     # create - fork 1
     try:
         if os.fork() > 0:
@@ -40,7 +40,6 @@ def create_daemon(function, pidfile=False):
     except OSError, error:
         logger.critical('fork #1 failed: %d (%s)' %
                         (error.errno, error.strerror))
-        # os._exit(1)
         sys.exit(1)
 
     # it separates the son from the father
@@ -53,16 +52,10 @@ def create_daemon(function, pidfile=False):
         pid = os.fork()
         if pid > 0:
             logger.debug('Daemon PID %d' % pid)
-            if pidfile:
-                pidfile = open(pidfile, "w")
-                pidfile.write(str(pid) + "\n")
-                pidfile.close()
-            # os._exit(0)
             sys.exit(0)
     except OSError, error:
         logger.critical('fork #2 failed: %d (%s)' %
                         (error.errno, error.strerror))
-        # os._exit(1)
         sys.exit(1)
 
     function()

@@ -34,7 +34,8 @@ pygst.require("0.10")
 import gst
 import logging
 import time
-from roundwared import settings, asset_sorters
+from roundware import settings
+from roundwared import asset_sorters
 from roundwared import composition
 from roundwared import icecast2
 from roundwared.server import icecast_mount_point
@@ -66,7 +67,7 @@ class RoundStream:
         logger.debug(
             "Roundstream init: got session, got project radius: " + str(self.radius))
         if self.radius == None:
-            self.radius = settings.config["recording_radius"]
+            self.radius = settings.RECORDING_RADIUS
 
         # TODO - Why is this stored as listener and as request?
         self.listener = request
@@ -75,10 +76,10 @@ class RoundStream:
         self.gps_mixer = None
         self.main_loop = gobject.MainLoop()
         self.icecast_admin = icecast2.Admin(
-            settings.config["icecast_host"] + ":" +
-            str(settings.config["icecast_port"]),
-            settings.config["icecast_username"],
-            settings.config["icecast_password"])
+            settings.ICECAST_HOST + ":" +
+            str(settings.ICECAST_PORT),
+            settings.ICECAST_USERNAME,
+            settings.ICECAST_PASSWORD)
         self.heartbeat()
         # project = models.Session.objects.get(id=sessionid)  # not used
         self.recordingCollection = \
@@ -107,7 +108,7 @@ class RoundStream:
 
         self.pipeline.set_state(gst.STATE_PLAYING)
         gobject.timeout_add(
-            settings.config["stereo_pan_interval"],
+            settings.STEREO_PAN_INTERVAL,
             self.stereo_pan)
         self.main_loop.run()
 
@@ -265,7 +266,7 @@ class RoundStream:
                 logger.debug("Announcing " + str(self.sessionid)
                              + " is playing")
                 gobject.timeout_add(
-                    settings.config["ping_interval"],
+                    settings.PING_INTERVAL,
                     self.ping)
                 for comp in self.compositions:
                     comp.wait_and_play()
@@ -289,8 +290,7 @@ class RoundStream:
         return True
 
     def ping(self):
-        is_stream_active = \
-            self.is_anyone_listening() \
+        is_stream_active = self.is_anyone_listening() \
             or self.is_activity_timestamp_recent()
 
         if is_stream_active:
@@ -315,7 +315,7 @@ class RoundStream:
         # logger.debug("check now=" + str(time.time()) \
         #   + " time=" + str(self.activity_timestamp) \
         #   + " diff=" + str(time.time() - self.activity_timestamp))
-        return time.time() - self.activity_timestamp < settings.config["heartbeat_timeout"]
+        return time.time() - self.activity_timestamp < settings.HEARTBEAT_TIMEOUT
 
 
 # If there is no music this is needed to keep the stream not in
@@ -343,14 +343,12 @@ class RoundStreamSink (gst.Bin):
 
         capsfilter = gst.element_factory_make("capsfilter")
         volume = gst.element_factory_make("volume")
-        volume.set_property("volume", settings.config["master_volume"])
+        volume.set_property("volume", settings.MASTER_VOLUME)
         shout2send = gst.element_factory_make("shout2send")
         shout2send.set_property(
-            "username", settings.config["icecast_source_username"])
+            "username", settings.ICECAST_SOURCE_USERNAME)
         shout2send.set_property(
-            "password", settings.config["icecast_source_password"])
-        #shout2send.set_property("username", "source")
-        #shout2send.set_property("password", "roundice")
+            "password", settings.ICECAST_SOURCE_PASSWORD)
         shout2send.set_property("mount",
                                 icecast_mount_point(sessionid, audio_format))
         #shout2send.set_property("streamname","initial name")
