@@ -719,21 +719,21 @@ def request_stream(request):
         }
 
     elif is_listener_in_range_of_stream(request_form, project):
-        roundwared_directory = os.path.dirname(os.path.realpath(__file__))
-
-        command = [roundwared_directory + '/rwstreamd.py',
-                   '--session_id', str(session.id), '--project_id', str(project.id)]
-        for p in ['latitude', 'longitude', 'audio_format']:
-            if p in request_form and request_form[p]:
-                command.extend(['--' + p, request_form[p].replace("\t", ",")])
-        if 'audio_stream_bitrate' in request_form:
-            command.extend(
-                ['--audio_stream_bitrate', str(request_form['audio_stream_bitrate'])])
-
         audio_format = project.audio_format.upper()
+        if not stream_exists(session.id, audio_format):
+            roundwared_directory = os.path.dirname(os.path.realpath(__file__))
 
-        apache_safe_daemon_subprocess(command)
-        wait_for_stream(session.id, audio_format)
+            command = [roundwared_directory + '/rwstreamd.py',
+                       '--session_id', str(session.id), '--project_id', str(project.id)]
+            for p in ['latitude', 'longitude', 'audio_format']:
+                if p in request_form and request_form[p]:
+                    command.extend(['--' + p, request_form[p].replace("\t", ",")])
+            if 'audio_stream_bitrate' in request_form:
+                command.extend(
+                    ['--audio_stream_bitrate', str(request_form['audio_stream_bitrate'])])
+
+            apache_safe_daemon_subprocess(command)
+            wait_for_stream(session.id, audio_format)
 
         return {
             "stream_url": "http://" + hostname_without_port + ":" +
@@ -875,20 +875,16 @@ def apache_safe_daemon_subprocess(command):
     # logger.debug("subprocess_stdout: " + stdout)
     # logger.debug("subprocess_stdout: " + stderr)
 
-# Loops until the give stream is present and ready to be listened to.
-
-
 def wait_for_stream(sessionid, audio_format):
-    logger.debug("waiting " + str(sessionid) + audio_format)
-    admin = icecast2.Admin(settings.ICECAST_HOST + ":" + str(settings.ICECAST_PORT),
-                           settings.ICECAST_USERNAME,
-                           settings.ICECAST_PASSWORD)
+    """
+    Loops until the give stream is present and ready to be listened to.
+    """
     # Stream wait timeout in seconds
     timeout = 30
     # Number of retries timeout/(time to wait between retries)
     retries_left = timeout / 0.1
 
-    while not admin.stream_exists(icecast_mount_point(sessionid, audio_format)):
+    while not stream_exists(sessionid, audio_format):
         time.sleep(0.1)
         retries_left -= 1
         if retries_left < 0:

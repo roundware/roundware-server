@@ -104,7 +104,7 @@ class RoundStream:
 
         self.add_music_source()
         self.add_voice_compositions()
-        self.add_message_wacher()
+        self.add_message_watcher()
 
         self.pipeline.set_state(gst.STATE_PLAYING)
         gobject.timeout_add(
@@ -190,7 +190,7 @@ class RoundStream:
     ######################################################################
     # PRIVATE
     ######################################################################
-    def add_message_wacher(self):
+    def add_message_watcher(self):
         self.bus = self.pipeline.get_bus()
         self.bus.add_signal_watch()
         self.watch_id = self.bus.connect("message", self.get_message)
