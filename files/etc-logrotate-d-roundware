@@ -1,0 +1,9 @@
+/var/log/roundware {
+  rotate 4
+  weekly
+  compress
+  missingok
+  notifempty
+  create 644 USERNAME USERNAME
+}
+

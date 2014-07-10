@@ -115,8 +115,10 @@ echo "grant all privileges on roundware.* to 'round'@'localhost' identified by '
 # File/directory configurations
 mkdir -p $MEDIA_PATH
 mkdir -p $STATIC_PATH
+# Setup roundware log and logrotate
 touch /var/log/roundware
 chown $USERNAME:$USERNAME /var/log/roundware
+sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-logrotate-d-roundware > /etc/logrotate.d/roundware
 # copy test audio file to media storage
 cp $CODE_PATH/files/rw_test_audio1.wav $MEDIA_PATH
 # install correct shout2send gstreamer plugin
