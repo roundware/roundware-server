@@ -23,5 +23,14 @@ fi
 
 # Activate the Roundware Python Virtual Environment
 source /var/www/roundware/bin/activate
-# Set Python Path to use the development source code
-export PYTHONPATH=~/roundware-server
+
+# Set PYTHONPATH to the development source code
+# http://bugs.python.org/issue19352 PYTHONPATH must not be a symbolic link.
+RWPATH=`readlink ~/roundware-server`
+if [ -n "$RWPATH" ]; then
+  # If ~/roundware-server is a symbolic link, set it to the dereferenced path.
+  export PYTHONPATH=$RWPATH
+else
+  # If ~/roundware-server is not a symbolic link, set it.
+  export PYTHONPATH=~/roundware-server
+fi

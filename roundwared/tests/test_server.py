@@ -35,9 +35,9 @@ def mock_wait_for_stream(sessionid, audio_format):
     return {'sessionid': sessionid, 'audio_format': audio_format}
 
 
-@patch.object(settings, "config", {'icecast_port': 8000,
-                                   'external_host_name_without_port': 'rw.com',
-                                   'icecast_host': 'rw.com'})
+# @patch.object(settings, {'ICECAST_PORT': 8000,
+#                          'EXTERNAL_HOST_NAME_WITHOUT_PORT': 'rw.com',
+#                          'ICECAST_HOST': 'rw.com'})
 @patch.object(server, 'apache_safe_daemon_subprocess',
               mock_apache_safe_daemon_subprocess)
 @patch.object(server, 'wait_for_stream', mock_wait_for_stream)

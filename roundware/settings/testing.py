@@ -1,6 +1,10 @@
 from django import VERSION as django_version
 from .dev import *
 
+
+EXTERNAL_HOST_NAME_WITHOUT_PORT = "rw.com"
+ICECAST_HOST = "rw.com"
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
