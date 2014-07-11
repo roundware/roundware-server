@@ -86,7 +86,8 @@ class TestGetRecordings(RoundwaredTestCase):
                'tags': [self.tag2]}
         self.assertEqual([self.asset1], get_recordings(req))
 
-        req = {'session_id': [self.session2.id, ],
+        req = {'project_id': [self.project2.id], # ignored since session
+               'session_id': [self.session2.id, ],
                'tags': [self.tag2]}
         self.assertEqual([self.asset2], get_recordings(req))
 
