@@ -27,7 +27,8 @@ class TestRecordingCollection(RoundwaredTestCase):
                                    language=self.english)
         self.session2 = mommy.make(Session, project=self.project2,
                                    language=self.english)
-        self.req1 = {"session_id": [self.session1.id, ],
+        self.req1 = {"session_id": [self.session1.id],
+                     "project_id": [self.project1.id],
                      "audio_stream_bitrate": '128',
                      "latitude": 0.1, "longitude": 0.1}
         self.asset1 = mommy.make(Asset, project=self.project1,

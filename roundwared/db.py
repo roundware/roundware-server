@@ -115,35 +115,44 @@ def get_recordings(request):
     p = None
     s = None
 
+    if "project_id" not in request:
+        raise roundexception.RoundException(
+            "get_recordings: must be passed a project_id")
+
+    if "session_id" not in request:
+        raise roundexception.RoundException(
+            "get_recordings: must be passed a session_id")
+
+    session_id = request["session_id"]
+
+    if len(session_id) == 0:
+        raise roundexception.RoundException(
+            "get_recordings: session_id cannot be empty")
+
     # TODO XXX: passing a project_id is actually useless in terms of this method
     # but get_recording will fail without one in the request.  This will always get
     # the project from the session, and fail if no session is passed.
-    if "project_id" in request and hasattr(request["project_id"], "__iter__") and len(request["project_id"]) > 0:
+    if hasattr(request["project_id"], "__iter__") and len(request["project_id"]) > 0:
         logger.debug(
             "get_recordings: got project_id: " + str(request["project_id"][0]))
         p = Project.objects.get(id=request["project_id"][0])
-    elif "project_id" in request and not hasattr(request["project_id"], "__iter__"):
+    elif not hasattr(request["project_id"], "__iter__"):
         logger.debug(
             "get_recordings: got project_id: " + str(request["project_id"]))
         p = Project.objects.get(id=request["project_id"])
 
-    if "project_id" in request and hasattr(request["session_id"], "__iter__") and len(request["session_id"]) > 0:
+    if hasattr(request["session_id"], "__iter__") and len(request["session_id"]) > 0:
         logger.debug(
             "get_recordings: got session_id: " + str(request["session_id"][0]))
         s = Session.objects.select_related(
             'project', 'language').get(id=request["session_id"][0])
         p = s.project
-    elif "project_id" in request and not hasattr(request["session_id"], "__iter__"):
+    elif not hasattr(request["session_id"], "__iter__"):
         logger.debug(
             "get_recordings: got session_id: " + str(request["session_id"]))
         s = Session.objects.select_related(
             'project', 'language').get(id=request["session_id"])
         p = s.project
-    elif "project_id" not in request or len(request["session_id"]) == 0:
-        # must raise error if no session passed because it will otherwise error below
-        # XXX TODO: or, fix this to match desired functionality
-        raise roundexception.RoundException(
-            "get_recordings must be passed a session id")
 
     # this first check checks whether tags is a list of numbers.
     if "tags" in request and hasattr(request["tags"], "__iter__") and len(request["tags"]) > 0:

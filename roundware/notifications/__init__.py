@@ -12,12 +12,11 @@ logger = logging.getLogger(__name__)
 def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
     # get the type of model from the sender
     object_string = sender._meta.object_name.lower()
-    logger.info("Add or Edit %s, created: %s" %
-                (object_string, created))
     # check whether the model is represented as being able to handle
     # notifications
     objects = [i[0] for i in ENABLED_MODELS if i[1].lower() == object_string]
     if objects:
+        logger.info("Add or Edit %s, created: %s" % (object_string, created))
         # 0 = add
         # 1 = edit
         action = 0 if created else 1

@@ -70,7 +70,7 @@ class TestGetRecordings(RoundwaredTestCase):
         self.assertEquals([self.asset2], get_recordings(req))
 
     def test_correct_assets_passing_project_and_empty_session_list(self):
-        """ should be able to pass an empty list for session ids  if
+        """ should be able to pass an empty list for session ids if
         we pass a project id
         """
         with self.assertRaises(RoundException):
@@ -81,7 +81,7 @@ class TestGetRecordings(RoundwaredTestCase):
     def test_correct_assets_passing_project_and_tags_and_session(self):
         """ if we pass tags, it uses filter_recs_for_tags.
         """
-        req = {'project_id': [self.project2.id],  # ignored since session
+        req = {'project_id': [self.project2.id], # ignored since session
                'session_id': [self.session1.id, ],
                'tags': [self.tag2]}
         self.assertEqual([self.asset1], get_recordings(req))
