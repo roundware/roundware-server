@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import logging
 import datetime
 from django.conf import settings
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
     # get the type of model from the sender
     object_string = sender._meta.object_name.lower()
-    logger.info("caught add or edit %s, created: %s" %
+    logger.debug("Add or Edit %s, created: %s" %
                 (object_string, created))
     # check whether the model is represented as being able to handle
     # notifications
@@ -20,7 +21,7 @@ def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
         # 0 = add
         # 1 = edit
         action = 0 if created else 1
-        logger.info("%s %s", object_string, instance.id)
+        logger.debug("%s %s", object_string, instance.id)
         object_int = objects[0]
         # find the time between this notifications and the last time this
         # notification was sent
@@ -35,7 +36,7 @@ def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
             action=action,
             active=True,
         )
-        logger.info("%s", notifications)
+        logger.debug("Enabled notifications: %s", notifications)
         # loop through and execute them
         for n in notifications:
             # only execute notification if we're working with a different object

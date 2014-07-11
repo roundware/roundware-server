@@ -31,6 +31,7 @@
 # TODO: Reimplement panning using a gst.Controller
 # TODO: Remove stero_pan from public interface
 
+from __future__ import unicode_literals
 import gobject
 gobject.threads_init()
 import pygst
@@ -41,7 +42,7 @@ import logging
 import os
 from roundwared import roundfilesrc
 from roundwared import db
-from roundware import settings
+from django.conf import settings
 
 STATE_PLAYING = 0
 STATE_DEAD_AIR = 1

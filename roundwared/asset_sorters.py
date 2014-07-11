@@ -24,7 +24,7 @@
 
 #***********************************************************************************#
 
-
+from __future__ import unicode_literals
 import logging
 from operator import itemgetter
 import random

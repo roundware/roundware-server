@@ -1,4 +1,4 @@
-# Django settings for roundware project.
+from __future__ import unicode_literals
 import os
 
 DEBUG = False

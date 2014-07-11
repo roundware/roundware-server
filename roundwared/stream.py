@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 import gobject
 from roundware.rw.models import Tag
 
@@ -34,7 +35,7 @@ pygst.require("0.10")
 import gst
 import logging
 import time
-from roundware import settings
+from django.conf import settings
 from roundwared import asset_sorters
 from roundwared import composition
 from roundwared import icecast2

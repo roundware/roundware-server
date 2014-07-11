@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 from chartit.chartdata import PivotDataPool
 from chartit.charts import PivotChart
 from django.db.models.aggregates import Count, Sum

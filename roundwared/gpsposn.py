@@ -27,7 +27,7 @@
 
 # Taken from http://www.movable-type.co.uk/scripts/latlong.html
 # More accurate stuff here: http://www.movable-type.co.uk/scripts/latlong.js
-
+from __future__ import unicode_literals
 import math
 
 R = 6371.0  # The radius of the Earth

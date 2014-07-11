@@ -25,7 +25,8 @@
 #***********************************************************************************#
 
 
-from roundware import settings
+from __future__ import unicode_literals
+from django.conf import settings
 import shutil
 import os
 from roundwared import roundexception

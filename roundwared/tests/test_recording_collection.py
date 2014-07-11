@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from model_mommy import mommy
 from mock import patch
 

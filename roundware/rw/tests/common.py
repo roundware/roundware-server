@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from django.core import cache
 from django.test import TestCase
 from django.conf import settings

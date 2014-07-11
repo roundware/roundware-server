@@ -27,6 +27,7 @@
 
 # MODES: True Shuffle, Random cycle N times
 
+from __future__ import unicode_literals
 import logging
 import threading
 import asset_sorters

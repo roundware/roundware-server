@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 from tastypie.authentication import SessionAuthentication
 from tastypie.authorization import DjangoAuthorization
 from tastypie.resources import ModelResource

@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 from chartit.chartdata import PivotDataPool
 from chartit.chartdata import DataPool
 from chartit.charts import Chart

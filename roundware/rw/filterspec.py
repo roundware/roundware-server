@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 from django.contrib.admin.util import get_model_from_relation
 from django.db import models
 from django.contrib.admin.filterspecs import FilterSpec, ChoicesFilterSpec, RelatedFilterSpec

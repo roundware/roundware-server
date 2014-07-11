@@ -25,14 +25,14 @@
 #***********************************************************************************#
 
 
-# from django.views.generic import CreateView
+from __future__ import unicode_literals
 from django.forms.models import BaseModelFormSet
 
 import floppyforms as forms
 from crispy_forms.helper import FormHelper
 from guardian.shortcuts import get_objects_for_user
 
-from roundware import settings
+from django.conf import settings
 
 from roundware.rw.models import Tag, MasterUI, UIMapping
 from roundware.rw import fields

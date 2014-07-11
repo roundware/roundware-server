@@ -25,13 +25,14 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 import logging
 import datetime
 try:
     from profiling import profile
 except ImportError:
     pass
-from roundware import settings
+from django.conf import settings
 from roundwared import roundexception
 from roundware.rw.models import Session
 from roundware.rw.models import Language

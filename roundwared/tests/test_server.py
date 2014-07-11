@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import datetime
 from urllib import urlencode
 import json
@@ -20,7 +21,7 @@ from roundwared.server import (check_for_single_audiotrack, get_asset_info,
                                vote_asset, request_stream)
 from roundwared import server
 from roundwared import gpsmixer
-from roundware import settings
+from django.conf import settings
 
 
 def mock_apache_safe_daemon_subprocess(command):
@@ -35,9 +36,9 @@ def mock_wait_for_stream(sessionid, audio_format):
     return {'sessionid': sessionid, 'audio_format': audio_format}
 
 
-# @patch.object(settings, {'ICECAST_PORT': 8000,
-#                          'EXTERNAL_HOST_NAME_WITHOUT_PORT': 'rw.com',
-#                          'ICECAST_HOST': 'rw.com'})
+@patch.object(settings, 'ICECAST_PORT', 8000)
+@patch.object(settings, 'EXTERNAL_HOST_NAME_WITHOUT_PORT', 'rw.com')
+@patch.object(settings, 'ICECAST_HOST', 'rw.com')
 @patch.object(server, 'apache_safe_daemon_subprocess',
               mock_apache_safe_daemon_subprocess)
 @patch.object(server, 'wait_for_stream', mock_wait_for_stream)

@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from tastypie.serializers import Serializer

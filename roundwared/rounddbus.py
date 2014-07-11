@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 import dbus
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop

@@ -24,6 +24,8 @@
 
 #***********************************************************************************#
 
+
+from __future__ import unicode_literals
 import time
 import subprocess
 import os
@@ -45,7 +47,7 @@ from roundwared import icecast2
 from roundwared import gpsmixer
 from roundwared import rounddbus
 from roundware.rw import models
-from roundware import settings
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -892,7 +894,7 @@ def wait_for_stream(sessionid, audio_format):
 
 
 def stream_exists(sessionid, audio_format):
-    logger.debug("checking for existence of " + str(sessionid) + audio_format)
+    logger.debug("Checking for existence of stream: %s%s", sessionid, audio_format)
     admin = icecast2.Admin(settings.ICECAST_HOST + ":" + str(settings.ICECAST_PORT),
                            settings.ICECAST_USERNAME,
                            settings.ICECAST_PASSWORD)

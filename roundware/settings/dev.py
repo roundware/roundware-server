@@ -6,6 +6,8 @@ except ImportError:
 
 # Set Roundware API for internal calls to development environment
 API_URL = "http://127.0.0.1:8888/roundware/"
+EXTERNAL_HOST_NAME_WITHOUT_PORT = "rw.com"
+ICECAST_HOST = "rw.com"
 
 INSTALLED_APPS = INSTALLED_APPS + (
     'discoverage',

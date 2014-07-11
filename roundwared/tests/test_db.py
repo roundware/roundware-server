@@ -1,7 +1,6 @@
+from __future__ import unicode_literals
 import datetime
-
 from model_mommy import mommy
-# from django_webtest import WebTest
 
 from .common import FakeRequest, RoundwaredTestCase
 from roundware.rw.models import (MasterUI, Session, Tag, Asset, TagCategory,

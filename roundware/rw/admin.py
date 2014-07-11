@@ -25,11 +25,11 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 from guardian.admin import GuardedModelAdmin
 from guardian.shortcuts import get_objects_for_user
 from models import *
 from django.contrib import admin
-from django.conf import settings
 
 from roundware.rw.admin_helper import add_asset_to_envelope, create_envelope
 from roundware.rw.filters import AudiolengthListFilter, TagCategoryListFilter
