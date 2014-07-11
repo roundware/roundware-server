@@ -30,10 +30,10 @@ def mock_apache_safe_daemon_subprocess(command):
     return command
 
 
-def mock_wait_for_stream(sessionid, audio_format):
+def mock_stream_exists(sessionid, audio_format):
     """ patch this since we aren't really testing this yet.
     """
-    return {'sessionid': sessionid, 'audio_format': audio_format}
+    return True
 
 
 @patch.object(settings, 'ICECAST_PORT', 8000)
@@ -42,7 +42,7 @@ def mock_wait_for_stream(sessionid, audio_format):
 @patch.object(settings, 'AUDIO_FILE_URI', '/audio/')
 @patch.object(server, 'apache_safe_daemon_subprocess',
               mock_apache_safe_daemon_subprocess)
-@patch.object(server, 'wait_for_stream', mock_wait_for_stream)
+@patch.object(server, 'stream_exists', mock_stream_exists)
 class TestServer(RoundwaredTestCase):
 
     """ test server.py methods
