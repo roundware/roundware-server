@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
     # get the type of model from the sender
     object_string = sender._meta.object_name.lower()
-    logger.debug("Add or Edit %s, created: %s" %
+    logger.info("Add or Edit %s, created: %s" %
                 (object_string, created))
     # check whether the model is represented as being able to handle
     # notifications
@@ -57,10 +57,9 @@ def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
 
 def send_notifications_delete(sender, instance, *args, **kwargs):
     object_string = sender._meta.object_name.lower()
-    logger.info("caught delete %s", object_string)
     objects = [i[0] for i in ENABLED_MODELS if i[1].lower() == object_string]
     if objects:
-        logger.info("%s %s", object_string, instance.id)
+        logger.info("Delete %s id=%s", object_string, instance.id)
         object_int = objects[0]
         notifications = ActionNotification.objects.filter(
             notification__model=object_int,
@@ -69,7 +68,7 @@ def send_notifications_delete(sender, instance, *args, **kwargs):
             action=2,
             active=True,
         )
-        logger.info("%s", notifications)
+        logger.debug("Enabled notifications: %s", notifications)
         for n in notifications:
             n.notify(ref=instance.pk)
 

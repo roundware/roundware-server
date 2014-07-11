@@ -39,10 +39,10 @@ def mock_wait_for_stream(sessionid, audio_format):
 @patch.object(settings, 'ICECAST_PORT', 8000)
 @patch.object(settings, 'EXTERNAL_HOST_NAME_WITHOUT_PORT', 'rw.com')
 @patch.object(settings, 'ICECAST_HOST', 'rw.com')
+@patch.object(settings, 'AUDIO_FILE_URI', '/audio/')
 @patch.object(server, 'apache_safe_daemon_subprocess',
               mock_apache_safe_daemon_subprocess)
 @patch.object(server, 'wait_for_stream', mock_wait_for_stream)
-@patch.object(settings, 'AUDIO_FILE_URI', '/audio/')
 class TestServer(RoundwaredTestCase):
 
     """ test server.py methods
@@ -155,40 +155,46 @@ class TestServer(RoundwaredTestCase):
     ASSET_1 = {
         'asset_id': 1,
         'asset_url': '/audio/None',
-        'latitude': 0.1,
-        'longitude': 0.1,
         'audio_length': 5000000,
+        'description': '',
+        'language': 'en',
+        'latitude': 0.1,
+        'loc_description': '',
+        'longitude': 0.1,
+        'mediatype': 'audio',
+        'project': 'Uno',
         'submitted': True,
-        'project': u'Uno',
-        'language': u'en',
     }
 
     ASSET_1_TAGS_EN = {
         'tags': [{
-            'tag_category_name': u'tagcatname',
+            'tag_category_name': 'tagcatname',
             'tag_id': 1,
-            'localized_value': u'One'
+            'localized_value': 'One'
         }]
     }
 
     ASSET_2 = {
         'asset_id': 2,
         'asset_url': '/audio/None',
-        'latitude': None,
-        'longitude': None,
         'audio_length': None,
+        'description': '',
+        'language': 'es',
+        'latitude': None,
+        'loc_description': '',
+        'longitude': None,
+        'mediatype': 'audio',
+        'project': 'Uno',
         'submitted': True,
-        'project': u'Uno',
-        'language': u'es',
     }
 
     ASSET_2_TAGS_EN = ASSET_1_TAGS_EN
 
     ASSET_1_TAGS_ES = {
         'tags': [{
-            'tag_category_name': u'tagcatname',
+            'tag_category_name': 'tagcatname',
             'tag_id': 1,
-            'localized_value': u'Uno'
+            'localized_value': 'Uno'
         }]
     }
 
@@ -381,8 +387,10 @@ class TestServer(RoundwaredTestCase):
         req.GET = {'tagids': '1,2', 'project_id': '12'}
         expected = {
             'number_of_assets': {
-                'audio': 0, 'photo': 0, 'text': 0, 'video': 0
-
+                'audio': 0,
+                'photo': 0,
+                'text': 0,
+                'video': 0
             },
             'assets': []
         }
@@ -639,12 +647,12 @@ class TestServer(RoundwaredTestCase):
         req.GET = {'session_id': '1', 'latitude': '0.1', 'longitude': '0.1'}
         expected = {
             'user_message': ('This application is designed to be used in '
-                             'specific geographic locations.  Apparently '
+                             'specific geographic locations. Apparently '
                              'your phone thinks you are not at one of those '
                              'locations, so you will hear a sample audio '
-                             'stream instead of the real deal.  If you think '
+                             'stream instead of the real deal. If you think '
                              'your phone is incorrect, please restart Scapes '
-                             'and it will probably work.  Thanks for '
+                             'and it will probably work. Thanks for '
                              'checking it out!'),
             'stream_url': 'http://rw.com:8000/outofrange.mp3'}
         self.assertEquals(expected, request_stream(req))
@@ -659,12 +667,12 @@ class TestServer(RoundwaredTestCase):
         self.speaker1.save()
         expected = {
             'user_message': ('This application is designed to be used in '
-                             'specific geographic locations.  Apparently '
+                             'specific geographic locations. Apparently '
                              'your phone thinks you are not at one of those '
                              'locations, so you will hear a sample audio '
-                             'stream instead of the real deal.  If you think '
+                             'stream instead of the real deal. If you think '
                              'your phone is incorrect, please restart Scapes '
-                             'and it will probably work.  Thanks for '
+                             'and it will probably work. Thanks for '
                              'checking it out!'),
             'stream_url': 'http://rw.com:8000/outofrange.mp3'}
         self.assertEquals(expected, request_stream(req))
