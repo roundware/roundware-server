@@ -154,8 +154,8 @@ class Composition:
             (self.comp_settings.maxvolume -
                 self.comp_settings.minvolume))
 
-        logger.debug(str.format("self.current_recording.filename: {0}, start: {1}, duration: {2}, fadein: {3}, fadeout: {4}, volume: {5}",
-                                self.current_recording.filename, start, duration, fadein, fadeout, volume))
+        logger.debug("current_recording.filename: %s, start: %s, duration: %s, fadein: %s, fadeout: %s, volume: %s",
+                                self.current_recording.filename, start, duration, fadein, fadeout, volume)
 
         self.roundfilesrc = roundfilesrc.RoundFileSrc(
             "file://" + os.path.join(settings.AUDIO_DIR,

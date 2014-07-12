@@ -85,12 +85,12 @@ class Admin:
 
     def update_metadata(self, asset_id, session_id):
         c = pycurl.Curl()
-        c.setopt(pycurl.USERPWD, "admin:roundice")
+        c.setopt(pycurl.USERPWD, str("admin:roundice"))
         logger.debug("update metadata - enter")
         sysString = "http://" + self.__host + "/admin/metadata.xsl?mount=/stream" + \
             str(session_id) + \
             ".mp3&mode=updinfo&charset=UTF-8&song=assetid" + str(asset_id) + ""
-        c.setopt(pycurl.URL, sysString)
+        c.setopt(pycurl.URL, str(sysString))
         logger.debug("update metadata - sysString: " + sysString)
         c.perform()
         logger.debug("update metadata - returning")

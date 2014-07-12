@@ -108,6 +108,14 @@ def get_config_tag_json(p=None, s=None):
 # @profile(stats=True)
 @cached(30)
 def get_recordings(session_id, tags=None):
+
+    # If the session_is is a list, get the first value
+    # TODO: Remove check for a session_id list.
+    # session_id is a list at stream.modify_stream() in roundwared.rounddbus.add_stream_signal_receiver()
+    # session_id is a list before it is sent out on dbus in roundware.rw.views.main()
+    if isinstance(session_id, list):
+        session_id = session_id[0]
+
     logger.debug("Got session_id: %s", session_id)
     session = Session.objects.select_related('project',
                                            'language').get(id=session_id)

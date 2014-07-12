@@ -765,10 +765,12 @@ def request_stream(request):
 def modify_stream(request):
     success = False
     msg = ""
+    # TODO: Why is this request data changed so much? Why isn't msg used?
     form = request.GET
     request = form_to_request(form)
     arg_hack = json.dumps(request)
     db.log_event("modify_stream", int(form['session_id']), form)
+    logger.debug(request)
 
     if 'session_id' in form:
         session = models.Session.objects.select_related(
