@@ -47,49 +47,17 @@ class TestGetRecordings(RoundwaredTestCase):
         """ calling get_recordings without a session and without tags 
         should not return any assets but an exception
         """
-        with self.assertRaises(RoundException):
-            req = {'project_id': [self.project1.id]}
-            get_recordings(req)
-
-    def test_no_session_with_tags(self):
-        """ calling get_recordings without a session but with tags 
-        should still not return any assets but an exception
-        """
-        with self.assertRaises(RoundException):
-            req = {'project_id': [self.project1.id],
-                   'tags': [self.tag1.id, self.tag2.id, ]}
-            get_recordings(req)
-
-    def test_correct_assets_passing_project_and_session_different(self):
-        """ calling get_recordings with a session id and a project id,
-            where the session has a different project, should give the 
-            session's project's assets
-        """
-        req = {'project_id': self.project1.id,
-               'session_id': self.session2.id}
-        self.assertEquals([self.asset2], get_recordings(req))
-
-    def test_correct_assets_passing_project_and_empty_session_list(self):
-        """ should be able to pass an empty list for session ids if
-        we pass a project id
-        """
-        with self.assertRaises(RoundException):
-            req = {'project_id': [self.project1.id],
-                   'session_id': []}
-            get_recordings(req)
+        with self.assertRaises(TypeError):
+            get_recordings(project_id=self.project1.id)
 
     def test_correct_assets_passing_project_and_tags_and_session(self):
         """ if we pass tags, it uses filter_recs_for_tags.
         """
-        req = {'project_id': [self.project2.id], # ignored since session
-               'session_id': [self.session1.id, ],
-               'tags': [self.tag2]}
-        self.assertEqual([self.asset1], get_recordings(req))
+        recordings = get_recordings(self.session1.id, [self.tag2])
+        self.assertEqual([self.asset1], recordings)
 
-        req = {'project_id': [self.project2.id], # ignored since session
-               'session_id': [self.session2.id, ],
-               'tags': [self.tag2]}
-        self.assertEqual([self.asset2], get_recordings(req))
+        recordings = get_recordings(self.session2.id, [self.tag2])
+        self.assertEqual([self.asset2], recordings)
 
 
 class TestFilterRecsForTags(RoundwaredTestCase):
