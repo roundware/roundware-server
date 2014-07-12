@@ -35,7 +35,7 @@ try:
     from profiling import profile
 except ImportError:
     pass
-from roundware.rw.models import Tag
+
 from roundwared import gpsmixer
 from roundware.rw import models
 from roundwared import db
@@ -69,7 +69,8 @@ class RecordingCollection:
     def update_request(self, request):
         logger.debug("update_request")
         self.lock.acquire()
-        self.all_recordings = db.get_recordings(request)
+        tags = getattr(request, "tags", None)
+        self.all_recordings = db.get_recordings(request["session_id"], tags)
         self.far_recordings = self.all_recordings
         self.nearby_played_recordings = []
         self.nearby_unplayed_recordings = []
@@ -99,14 +100,14 @@ class RecordingCollection:
                 "RecordingCollection: get_recording: Got " + str(recording.filename))
             self.nearby_played_recordings.append(recording)
         elif len(self.nearby_played_recordings) > 0:
-            logger.debug("get_recording 1")
             logger.debug("get_recording request:  " + str(self.request))
             p = models.Project.objects.get(id=int(self.request['project_id']))
-            logger.debug("get_recording 2 - repeatmode:" + p.repeat_mode.mode)
+            logger.debug("get_recording repeatmode:" + p.repeat_mode.mode)
             # do this only if project setting calls for it
             if p.is_continuous():
                 logger.debug("get_recording continuous mode")
-                self.all_recordings = db.get_recordings(self.request)
+                tags = getattr(self.request, "tags", None)
+                self.all_recordings = db.get_recordings(self.request["session_id"], tags)
                 self.far_recordings = self.all_recordings
                 self.nearby_played_recordings = []
                 self.nearby_unplayed_recordings = []
