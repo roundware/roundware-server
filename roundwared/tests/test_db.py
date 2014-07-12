@@ -213,6 +213,12 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
         self.project_three = mommy.make(Project, name='project_three')
 
     def _proj_one_config(self):
+        # Translate the description tag like db.get_config_tag_json()
+        loc_desc = ""
+        temp_desc = self.ui_mapping_one.tag.loc_description.filter(language=self.english)
+        if temp_desc:
+            loc_desc = temp_desc[0].localized_string
+
         return {'listen': [
             {'name': self.masterui.name,
              'header_text': "Head",
@@ -224,6 +230,9 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
                  'tag_id': self.ui_mapping_one.tag.id,
                  'order': 1,
                  'data': "{'json':'value'}",
+                 'description': self.ui_mapping_one.tag.description,
+                 'loc_description': loc_desc,
+                 'shortcode': self.ui_mapping_one.tag.value,
                  'relationships': [],
                  'value': 'One'
              }]},

@@ -8,6 +8,7 @@ from roundware.rw.models import (Session, Asset, Project, MasterUI, UIMapping)
 from roundwared.recording_collection import RecordingCollection
 from roundwared.stream import RoundStream
 from roundwared import gpsmixer
+from roundwared import asset_sorters
 
 
 class TestRecordingCollection(RoundwaredTestCase):
@@ -125,21 +126,15 @@ class TestRecordingCollection(RoundwaredTestCase):
                            asset=self.asset2, type="like")
         vote3 = mommy.make('rw.Vote', session=self.session1,
                            asset=self.asset1, type="like")
-        vote1, vote2, vote3  # pyflakes
-        req = self.req1
-        stream = RoundStream(self.session1.id, 'ogg', req)
-        rc = RecordingCollection(stream, req, stream.radius)
+        vote1, vote2, vote3 # Use all three votes to stop unuse warnings
         self.assertEquals([self.asset2, self.asset1],
-                          rc.order_assets_by_like([self.asset1, self.asset2]))
+                          asset_sorters.order_assets_by_like([self.asset1, self.asset2]))
 
     def test_order_assets_by_weight(self):
         """ order of assets returned should be determined by asset weight
         """
-        req = self.req1
-        stream = RoundStream(self.session1.id, 'ogg', req)
-        rc = RecordingCollection(stream, req, stream.radius)
         self.assertEquals([self.asset2, self.asset1],
-                          rc.order_assets_by_weight([self.asset1,
+                          asset_sorters.order_assets_by_weight([self.asset1,
                                                      self.asset2]))
 
     def test_get_recording_until_none_repeatmode_stop(self):

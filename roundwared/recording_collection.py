@@ -198,31 +198,6 @@ class RecordingCollection:
         self.nearby_unplayed_recordings = new_nearby_unplayed_recordings
         self.nearby_played_recordings = new_nearby_played_recordings
 
-    # Moved to roundwared/asset_sorters
-    # def order_assets_by_like(self, assets):
-    #     unplayed = []
-    #     for asset in assets:
-    #         count = models.Asset.get_likes(asset)
-    #         unplayed.append((count, asset))
-    #     logger.info('Unordered: ' +
-    #                  str([(u[0], u[1].filename) for u in unplayed]))
-    #     unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
-    #     logger.info('Ordered by like: ' +
-    #                  str([(u[0], u[1].filename) for u in unplayed]))
-    #     return [x[1] for x in unplayed]
-
-    # def order_assets_by_weight(self, assets):
-    #     unplayed = []
-    #     for asset in assets:
-    #         weight = asset.weight
-    #         unplayed.append((weight, asset))
-    #     logger.debug('Unordered: ' +
-    #                   str([(u[0], u[1].filename) for u in unplayed]))
-    #     unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
-    #     logger.debug('Ordered by weighting: ' +
-    #                   str([(u[0], u[1].filename) for u in unplayed]))
-    #     return [x[1] for x in unplayed]
-
     # True if the listener and recording are close enough to be heard.
     def is_nearby(self, listener, recording):
         if 'latitude' in listener and listener['latitude'] \
