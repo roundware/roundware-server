@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 import db
 import json
 #print(json.dumps(db.get_config_tag_json_for_project(1), indent=4))
@@ -35,7 +36,7 @@ import json
 import string
 import datetime
 import time
-from roundware import settings
+from django.conf import settings
 from roundwared import gpsmixer
 from roundwared import roundexception
 from django.db.models import Q

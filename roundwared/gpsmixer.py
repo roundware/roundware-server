@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 import gobject
 gobject.threads_init()
 import pygst

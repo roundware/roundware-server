@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 from django.core.cache import cache
 cache  # pyflakes, make sure it is imported, for patching in tests
 from django.core.files.storage import FileSystemStorage

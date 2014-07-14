@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 from django.contrib.admin import DateFieldListFilter, RelatedFieldListFilter
 from django.contrib.admin.util import (get_model_from_relation,
                                        prepare_lookup_value)

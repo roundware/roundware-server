@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 from django.forms import forms
 from south.modelsinspector import add_introspection_rules
 from validatedfile.fields import ValidatedFileField

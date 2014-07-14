@@ -24,6 +24,8 @@
 
 #***********************************************************************************#
 
+
+from __future__ import unicode_literals
 import time
 import subprocess
 import os
@@ -45,7 +47,7 @@ from roundwared import icecast2
 from roundwared import gpsmixer
 from roundwared import rounddbus
 from roundware.rw import models
-from roundware import settings
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -763,10 +765,12 @@ def request_stream(request):
 def modify_stream(request):
     success = False
     msg = ""
+    # TODO: Why is this request data changed so much? Why isn't msg used?
     form = request.GET
     request = form_to_request(form)
     arg_hack = json.dumps(request)
     db.log_event("modify_stream", int(form['session_id']), form)
+    logger.debug(request)
 
     if 'session_id' in form:
         session = models.Session.objects.select_related(
@@ -882,17 +886,18 @@ def wait_for_stream(sessionid, audio_format):
     # Stream wait timeout in seconds
     timeout = 30
     # Number of retries timeout/(time to wait between retries)
-    retries_left = timeout / 0.1
+    retries_left = timeout / 0.2
 
+    logger.debug("Checking for existence of stream %s%s on %s:%s", sessionid,
+                 audio_format, settings.ICECAST_HOST, settings.ICECAST_PORT)
     while not stream_exists(sessionid, audio_format):
-        time.sleep(0.1)
+        time.sleep(0.2)
         retries_left -= 1
         if retries_left < 0:
             raise roundexception.RoundException("Stream timeout on creation")
 
 
 def stream_exists(sessionid, audio_format):
-    logger.debug("checking for existence of " + str(sessionid) + audio_format)
     admin = icecast2.Admin(settings.ICECAST_HOST + ":" + str(settings.ICECAST_PORT),
                            settings.ICECAST_USERNAME,
                            settings.ICECAST_PASSWORD)

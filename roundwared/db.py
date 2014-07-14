@@ -25,13 +25,14 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 import logging
 import datetime
 try:
     from profiling import profile
 except ImportError:
     pass
-from roundware import settings
+from django.conf import settings
 from roundwared import roundexception
 from roundware.rw.models import Session
 from roundware.rw.models import Language
@@ -59,7 +60,6 @@ def get_config_tag_json(p=None, s=None):
         lingo = s.language
 
     m = MasterUI.objects.filter(project=p)
-    response = []
     modes = {}
 
     for masterui in m:
@@ -107,74 +107,45 @@ def get_config_tag_json(p=None, s=None):
 
 # @profile(stats=True)
 @cached(30)
-def get_recordings(request):
+def get_recordings(session_id, tags=None):
 
-    logger.debug("get_recordings: got request: " + str(request))
-    recs = []
-    p = None
-    s = None
+    # If the session_is is a list, get the first value
+    # TODO: Remove check for a session_id list.
+    # session_id is a list at stream.modify_stream() in roundwared.rounddbus.add_stream_signal_receiver()
+    # session_id is a list before it is sent out on dbus in roundware.rw.views.main()
+    if isinstance(session_id, list):
+        session_id = session_id[0]
 
-    # TODO XXX: passing a project_id is actually useless in terms of this method
-    # but get_recording will fail without one in the request.  This will always get
-    # the project from the session, and fail if no session is passed.
-    if "project_id" in request and hasattr(request["project_id"], "__iter__") and len(request["project_id"]) > 0:
-        logger.debug(
-            "get_recordings: got project_id: " + str(request["project_id"][0]))
-        p = Project.objects.get(id=request["project_id"][0])
-    elif "project_id" in request and not hasattr(request["project_id"], "__iter__"):
-        logger.debug(
-            "get_recordings: got project_id: " + str(request["project_id"]))
-        p = Project.objects.get(id=request["project_id"])
+    logger.debug("Got session_id: %s", session_id)
+    session = Session.objects.select_related('project',
+                                           'language').get(id=session_id)
+    project = session.project
 
-    if "project_id" in request and hasattr(request["session_id"], "__iter__") and len(request["session_id"]) > 0:
-        logger.debug(
-            "get_recordings: got session_id: " + str(request["session_id"][0]))
-        s = Session.objects.select_related(
-            'project', 'language').get(id=request["session_id"][0])
-        p = s.project
-    elif "project_id" in request and not hasattr(request["session_id"], "__iter__"):
-        logger.debug(
-            "get_recordings: got session_id: " + str(request["session_id"]))
-        s = Session.objects.select_related(
-            'project', 'language').get(id=request["session_id"])
-        p = s.project
-    elif "project_id" not in request or len(request["session_id"]) == 0:
-        # must raise error if no session passed because it will otherwise error below
-        # XXX TODO: or, fix this to match desired functionality
-        raise roundexception.RoundException(
-            "get_recordings must be passed a session id")
-
-    # this first check checks whether tags is a list of numbers.
-    if "tags" in request and hasattr(request["tags"], "__iter__") and len(request["tags"]) > 0:
-        logger.debug(
-            "get_recordings: got " + str(len(request["tags"])) + "tags.")
-        recs = filter_recs_for_tags(p, request["tags"], s.language)
-    # this second check checks whether tags is a string representation of a
-    # list of numbers.
-    elif "tags" in request and not hasattr(request["tags"], "__iter__"):
-        logger.debug("get_recordings: tags supplied: " + request["tags"])
-        recs = filter_recs_for_tags(p, request["tags"].split(","), s.language)
+    tag_list = None
+    if tags:
+        if isinstance(tags, list):
+            tag_list = tags
+        else:
+            tag_list = tags.split(",")
     else:
-        logger.debug("get_recordings: no tags supplied")
-        if s != None:
-            recs = filter_recs_for_tags(
-                p, get_default_tags_for_project(p, s), s.language)
+        tag_list = get_default_tags_for_project(project, session)
+        logger.debug("Using project default tags")
 
-    logger.debug("db: get_recordings: got " + str(len(recs)) +
-                 " recordings from db for project " + str(p.id))
-    return recs
+    recordings = []
+    if tag_list:
+        logger.debug("Tags supplied: %s", tag_list)
+        recordings = filter_recs_for_tags(project, tag_list, session.language)
+    else:
+        logger.debug("No recordings available")
+
+    logger.debug("Got %s recordings for project %s",
+                 len(recordings), project.id)
+    return recordings
 
 
 # @profile(stats=True)
 def get_default_tags_for_project(p, s):
-    lingo = Language.objects.filter(language_code='en')[0]
-    if s != None:
-        p = s.project
-        lingo = s.language
-
     m = MasterUI.objects.filter(project=p)
-    tag_list = []
-    modes = {}
     default = []
     for masterui in m:
         if masterui.active:
@@ -201,7 +172,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     category.  It won't be returned if it has a tag from one tagcategory
     but not another.
     """
-    logger.debug("filter_recs_for_tags enter")
+    logger.debug("filter_recs_for_tags. Tags: %s", tagids_from_request)
 
     recs = []
     tag_ids_per_cat_dict = {}
@@ -260,7 +231,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
         if not remove:
             recs.append(rec)
     logger.debug(
-        "\n\n\nfilter_recs_for_tags returned %s Assets \n\n\n" % (len(recs)))
+        "filter_recs_for_tags returned %s Assets" % (len(recs)))
     return recs
 # form args:
 # event_type <string>

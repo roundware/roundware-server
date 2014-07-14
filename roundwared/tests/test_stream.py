@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from model_mommy import mommy
 
 from .common import RoundwaredTestCase
@@ -18,7 +19,8 @@ class TestRoundStream(RoundwaredTestCase):
                                    ordering=1, recording_radius=16)
         self.session1 = mommy.make(Session, project=self.project1,
                                    language=self.english)
-        self.req1 = {"session_id": [self.session1.id, ]}
+        self.req1 = {"session_id": self.session1.id,
+                     "project_id": self.project1.id}
         self.asset1 = mommy.make(Asset, project=self.project1,
                                  language=self.english,
                                  tags=[self.tag1],

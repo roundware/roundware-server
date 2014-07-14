@@ -1,12 +1,14 @@
+from __future__ import unicode_literals
 from model_mommy import mommy
 from mock import patch
 
 from .common import (RoundwaredTestCase, mock_distance_in_meters_far,
                      mock_distance_in_meters_near)
-from roundware.rw.models import (Session, Asset, Project)
+from roundware.rw.models import (Session, Asset, Project, MasterUI, UIMapping)
 from roundwared.recording_collection import RecordingCollection
 from roundwared.stream import RoundStream
 from roundwared import gpsmixer
+from roundwared import asset_sorters
 
 
 class TestRecordingCollection(RoundwaredTestCase):
@@ -26,7 +28,8 @@ class TestRecordingCollection(RoundwaredTestCase):
                                    language=self.english)
         self.session2 = mommy.make(Session, project=self.project2,
                                    language=self.english)
-        self.req1 = {"session_id": [self.session1.id, ],
+        self.req1 = {"session_id": self.session1.id,
+                     "project_id": self.project1.id,
                      "audio_stream_bitrate": '128',
                      "latitude": 0.1, "longitude": 0.1}
         self.asset1 = mommy.make(Asset, project=self.project1,
@@ -39,6 +42,15 @@ class TestRecordingCollection(RoundwaredTestCase):
                                  tags=[self.tag1],
                                  audiolength=2000, weight=100,
                                  latitude=0.1, longitude=0.1)
+        self.masterui1 = mommy.make(MasterUI, project=self.project1,
+                                    ui_mode=self.ui_mode_listen,
+                                    tag_category=self.tagcat1)
+        self.masterui2 = mommy.make(MasterUI, project=self.project1,
+                                    ui_mode=self.ui_mode_listen,
+                                    tag_category=self.tagcat1)
+        self.uimapping1 = mommy.make(UIMapping, master_ui=self.masterui1,
+                                     tag=self.tag1, default=True, active=True)
+
 
     def test_instantiate_recording_collection(self):
         req = self.req1
@@ -71,7 +83,7 @@ class TestRecordingCollection(RoundwaredTestCase):
         req = self.req1
         stream = RoundStream(self.session1.id, 'ogg', req)
         rc = RecordingCollection(stream, req, stream.radius)
-        req['session_id'] = [self.session2.id]
+        req['session_id'] = self.session2.id
         rc.update_request(req)
         self.assertEquals([], rc.all_recordings)
 
@@ -91,7 +103,6 @@ class TestRecordingCollection(RoundwaredTestCase):
         10 tests.... not that scientific but probably reasonable
         """
         req = self.req1
-        req["project_id"] = self.project1.id  # required by get_recording
         stream = RoundStream(self.session1.id, 'ogg', req)
         with patch.object(gpsmixer, 'distance_in_meters',
                           mock_distance_in_meters_near):
@@ -115,21 +126,15 @@ class TestRecordingCollection(RoundwaredTestCase):
                            asset=self.asset2, type="like")
         vote3 = mommy.make('rw.Vote', session=self.session1,
                            asset=self.asset1, type="like")
-        vote1, vote2, vote3  # pyflakes
-        req = self.req1
-        stream = RoundStream(self.session1.id, 'ogg', req)
-        rc = RecordingCollection(stream, req, stream.radius)
+        vote1, vote2, vote3 # Use all three votes to stop unuse warnings
         self.assertEquals([self.asset2, self.asset1],
-                          rc.order_assets_by_like([self.asset1, self.asset2]))
+                          asset_sorters.order_assets_by_like([self.asset1, self.asset2]))
 
     def test_order_assets_by_weight(self):
         """ order of assets returned should be determined by asset weight
         """
-        req = self.req1
-        stream = RoundStream(self.session1.id, 'ogg', req)
-        rc = RecordingCollection(stream, req, stream.radius)
         self.assertEquals([self.asset2, self.asset1],
-                          rc.order_assets_by_weight([self.asset1,
+                          asset_sorters.order_assets_by_weight([self.asset1,
                                                      self.asset2]))
 
     def test_get_recording_until_none_repeatmode_stop(self):
@@ -158,7 +163,6 @@ class TestRecordingCollection(RoundwaredTestCase):
         self.project1.repeat_mode.mode = "continuous"
         self.project1.repeat_mode.save()
         req = self.req1
-        req["project_id"] = self.project1.id  # required by get_recording
         stream = RoundStream(self.session1.id, 'ogg', req)
         with patch.object(gpsmixer, 'distance_in_meters',
                           mock_distance_in_meters_near):
@@ -178,7 +182,6 @@ class TestRecordingCollection(RoundwaredTestCase):
         nearby_unplayed_recordings
         """
         req = self.req1
-        req["project_id"] = self.project1.id  # required by get_recording
         stream = RoundStream(self.session1.id, 'ogg', req)
         with patch.object(gpsmixer, 'distance_in_meters',
                           mock_distance_in_meters_near):

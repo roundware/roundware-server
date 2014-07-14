@@ -25,6 +25,7 @@
 #***********************************************************************************#
 
 
+from __future__ import unicode_literals
 from chartit.chartdata import PivotDataPool
 from chartit.charts import PivotChart
 from django.db.models.aggregates import Count, Sum
@@ -364,7 +365,7 @@ class UpdateTagUIOrder(TemplateView):
         html = self.widget.render('master_ui_edit-ui_mappings_tag_order',
                                   value=[uimap.pk for uimap in filtered],
                                   attrs={
-                                      u'id': u'id_master_ui_edit-ui_mappings_tag_order'},
+                                      'id': 'id_master_ui_edit-ui_mappings_tag_order'},
                                   choices=self.choice_iterator(),
                                   new_maps=tags_unseen,)
         return HttpResponse(mark_safe(html))

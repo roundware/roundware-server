@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import unicode_literals
 import logging
 import traceback
 
@@ -22,7 +23,8 @@ options_data = [
     ("audio_stream_bitrate", int, 128),
 ]
 
-logger = logging.getLogger(__name__)
+# Set specifically since __name__ is __main__
+logger = logging.getLogger('roundwared.rwstreamd')
 
 
 def main():
