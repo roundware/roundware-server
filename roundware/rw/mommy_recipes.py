@@ -16,7 +16,7 @@ basic_user = Recipe(
     password='password',
     first_name='Test',
     last_name='User',
-    email='bryanlandia@gmail.com',
+    email='user@example.com',
 )
 
 default_session = Recipe(
