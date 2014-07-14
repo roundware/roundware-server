@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # http://code.google.com/p/sequel-pro/
 #
-# Host: 192.168.30.12 (MySQL 5.5.35-0ubuntu0.12.04.2)
+# Host: 127.0.0.1 (MySQL 5.5.37-0ubuntu0.12.04.1)
 # Database: roundware
-# Generation Time: 2014-06-03 19:06:13 +0000
+# Generation Time: 2014-07-04 22:36:27 +0000
 # ************************************************************
 
 
@@ -56,7 +56,7 @@ LOCK TABLES `rw_asset` WRITE;
 
 INSERT INTO `rw_asset` (`id`, `session_id`, `latitude`, `longitude`, `filename`, `volume`, `submitted`, `project_id`, `created`, `audiolength`, `language_id`, `file`, `weight`, `mediatype`, `description`, `initialenvelope_id`)
 VALUES
-	(1,2891,28.2562653919411,-58.94140825,'rw_test_audio1.wav',1,1,1,'2012-07-24 18:06:40',30000000000,1,'',50,'audio','',NULL);
+	(1,1,1,1,'rw_test_audio1.wav',1,1,1,'2012-07-24 18:06:40',30000000000,1,'',50,'audio','',NULL);
 
 /*!40000 ALTER TABLE `rw_asset` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -144,7 +144,7 @@ LOCK TABLES `rw_audiotrack` WRITE;
 
 INSERT INTO `rw_audiotrack` (`id`, `project_id`, `minvolume`, `maxvolume`, `minduration`, `maxduration`, `mindeadair`, `maxdeadair`, `minfadeintime`, `maxfadeintime`, `minfadeouttime`, `maxfadeouttime`, `minpanpos`, `maxpanpos`, `minpanduration`, `maxpanduration`, `repeatrecordings`)
 VALUES
-	(1,1,1,1,5000000000,10000000000,1000000000,3000000000,100000000,500000000,100000000,2000000000,0,0,5000000000,10000000000,0);
+	(1,1,1,1,10000000000,30000000000,1000000000,3000000000,100000000,500000000,100000000,2000000000,0,0,5000000000,10000000000,0);
 
 /*!40000 ALTER TABLE `rw_audiotrack` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -169,7 +169,7 @@ LOCK TABLES `rw_envelope` WRITE;
 
 INSERT INTO `rw_envelope` (`id`, `session_id`, `created`)
 VALUES
-	(302,2891,'2013-01-21 10:36:44');
+	(1,1,'2013-01-21 10:36:44');
 
 /*!40000 ALTER TABLE `rw_envelope` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -197,7 +197,7 @@ LOCK TABLES `rw_envelope_assets` WRITE;
 
 INSERT INTO `rw_envelope_assets` (`id`, `envelope_id`, `asset_id`)
 VALUES
-	(1,302,1);
+	(1,1,1);
 
 /*!40000 ALTER TABLE `rw_envelope_assets` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -224,16 +224,6 @@ CREATE TABLE `rw_event` (
   KEY `rw_event_6b4dc4c3` (`session_id`),
   CONSTRAINT `session_id_refs_id_2aa2ee27` FOREIGN KEY (`session_id`) REFERENCES `rw_session` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-LOCK TABLES `rw_event` WRITE;
-/*!40000 ALTER TABLE `rw_event` DISABLE KEYS */;
-
-INSERT INTO `rw_event` (`id`, `server_time`, `client_time`, `session_id`, `event_type`, `data`, `latitude`, `longitude`, `tags`, `operationid`, `udid`)
-VALUES
-	(10,'2013-12-24 22:29:44',NULL,2891,'request_stream',NULL,NULL,NULL,NULL,NULL,NULL);
-
-/*!40000 ALTER TABLE `rw_event` ENABLE KEYS */;
-UNLOCK TABLES;
 
 
 # Dump of table rw_eventtype
@@ -462,7 +452,7 @@ LOCK TABLES `rw_project` WRITE;
 
 INSERT INTO `rw_project` (`id`, `name`, `latitude`, `longitude`, `pub_date`, `audio_format`, `auto_submit`, `max_recording_length`, `listen_questions_dynamic`, `speak_questions_dynamic`, `sharing_url`, `out_of_range_url`, `recording_radius`, `listen_enabled`, `geo_listen_enabled`, `speak_enabled`, `geo_speak_enabled`, `reset_tag_defaults_on_startup`, `repeat_mode_id`, `audio_stream_bitrate`, `files_version`, `files_url`, `ordering`, `demo_stream_enabled`, `demo_stream_url`)
 VALUES
-	(1,'Test Project',45,-59,'2011-12-06 16:06:32','mp3',1,30,0,0,'http://roundware.org/r/eid=[id]','http://scapesaudio.dyndns.org:8000/mg_outofrange.mp3',20,1,0,1,1,1,1,'128','1','http://roundware.org/webview/rw.zip','random',1,'http://scapesaudio.dyndns.org:8000/scapes1.mp3');
+	(1,'Test Project',1,1,'2011-12-06 16:06:32','mp3',1,30,0,0,'http://roundware.org/r/eid=[id]','http://scapesaudio.dyndns.org:8000/mg_outofrange.mp3',20,1,1,1,1,1,1,'128','1','http://halseyburgund.com/dev/rw-base/webview/rw.zip','random',0,'http://scapesaudio.dyndns.org:8000/scapes1.mp3');
 
 /*!40000 ALTER TABLE `rw_project` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -490,8 +480,8 @@ LOCK TABLES `rw_project_demo_stream_message_loc` WRITE;
 
 INSERT INTO `rw_project_demo_stream_message_loc` (`id`, `project_id`, `localizedstring_id`)
 VALUES
-	(44,1,47),
-	(43,1,48);
+	(48,1,47),
+	(47,1,48);
 
 /*!40000 ALTER TABLE `rw_project_demo_stream_message_loc` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -519,8 +509,8 @@ LOCK TABLES `rw_project_legal_agreement_loc` WRITE;
 
 INSERT INTO `rw_project_legal_agreement_loc` (`id`, `project_id`, `localizedstring_id`)
 VALUES
-	(108,1,53),
-	(109,1,54);
+	(112,1,53),
+	(113,1,54);
 
 /*!40000 ALTER TABLE `rw_project_legal_agreement_loc` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -548,8 +538,8 @@ LOCK TABLES `rw_project_out_of_range_message_loc` WRITE;
 
 INSERT INTO `rw_project_out_of_range_message_loc` (`id`, `project_id`, `localizedstring_id`)
 VALUES
-	(111,1,47),
-	(110,1,48);
+	(115,1,47),
+	(114,1,48);
 
 /*!40000 ALTER TABLE `rw_project_out_of_range_message_loc` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -577,8 +567,8 @@ LOCK TABLES `rw_project_sharing_message_loc` WRITE;
 
 INSERT INTO `rw_project_sharing_message_loc` (`id`, `project_id`, `localizedstring_id`)
 VALUES
-	(108,1,49),
-	(109,1,50);
+	(112,1,49),
+	(113,1,50);
 
 /*!40000 ALTER TABLE `rw_project_sharing_message_loc` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -660,7 +650,7 @@ LOCK TABLES `rw_session` WRITE;
 INSERT INTO `rw_session` (`id`, `device_id`, `starttime`, `stoptime`, `project_id`, `language_id`, `client_type`, `client_system`, `demo_stream_enabled`)
 VALUES
 	(-10,'session-for-admin-uploads','2014-01-25 13:44:49',NULL,1,1,NULL,NULL,0),
-	(2891,'e87e8199-01c9-4151-ae96-d704b61323e7','2012-08-27 00:11:48','2012-08-27 00:15:52',1,1,NULL,NULL,0);
+	(1,'test-session','2012-08-27 00:11:48','2012-08-27 00:15:52',1,1,NULL,NULL,0);
 
 /*!40000 ALTER TABLE `rw_session` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -694,7 +684,7 @@ LOCK TABLES `rw_speaker` WRITE;
 
 INSERT INTO `rw_speaker` (`id`, `project_id`, `activeyn`, `code`, `latitude`, `longitude`, `maxdistance`, `mindistance`, `maxvolume`, `minvolume`, `uri`, `backupuri`)
 VALUES
-	(1,1,1,'1',42.132059,-99.103302,20000,10000,0.5,0.5,'http://scapesaudio.dyndns.org:8000/scapes1.mp3','http://scapesaudio.dyndns.org:8000/scapes1.mp3');
+	(1,1,1,'1',1,1,20000,10000,0.5,0,'http://scapesaudio.dyndns.org:8000/scapes1.mp3','http://scapesaudio.dyndns.org:8000/scapes1.mp3');
 
 /*!40000 ALTER TABLE `rw_speaker` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -722,14 +712,14 @@ LOCK TABLES `rw_tag` WRITE;
 
 INSERT INTO `rw_tag` (`id`, `tag_category_id`, `value`, `description`, `data`, `filter`)
 VALUES
-	(3,3,'male','male','','--'),
-	(4,3,'female','female','','--'),
-	(5,2,'Why RW?','Why are you using Roundware?\r\n','','--'),
-	(8,4,'Artist','Artist','','--'),
-	(9,4,'Visitor','Visitor','','--'),
-	(21,6,'feedback','Leave feedback','','--'),
-	(22,2,'respond','Respond to something you\'ve heard.','','--'),
-	(23,4,'curator','curator','class=tag-one','--'),
+	(3,3,'male','male','class=tag-one',''),
+	(4,3,'female','female','class=tag-one',''),
+	(5,2,'Why RW?','Why are you using Roundware?','class=tag-one',''),
+	(8,4,'Artist','Artist','class=tag-one',''),
+	(9,4,'Visitor','Visitor','class=tag-one',''),
+	(21,6,'feedback','Leave feedback','',''),
+	(22,2,'respond','Respond to something you\'ve heard.','class=tag-one',''),
+	(23,4,'curator','curator','class=tag-one',''),
 	(24,7,'recent','recent','','_ten_most_recent_days'),
 	(25,7,'nearby','nearby','','_within_10km');
 
@@ -790,19 +780,19 @@ INSERT INTO `rw_tag_loc_msg` (`id`, `tag_id`, `localizedstring_id`)
 VALUES
 	(62,3,5),
 	(63,3,6),
-	(65,4,7),
-	(64,4,8),
-	(66,5,9),
-	(67,5,10),
-	(69,8,15),
-	(68,8,16),
-	(70,9,17),
-	(71,9,18),
-	(72,21,41),
-	(73,21,42),
-	(74,22,43),
-	(75,22,44),
-	(76,23,57),
+	(79,4,7),
+	(78,4,8),
+	(80,5,9),
+	(81,5,10),
+	(83,8,15),
+	(82,8,16),
+	(84,9,17),
+	(85,9,18),
+	(89,21,41),
+	(90,21,42),
+	(86,22,43),
+	(87,22,44),
+	(88,23,57),
 	(77,24,58),
 	(61,25,59);
 
@@ -833,20 +823,54 @@ LOCK TABLES `rw_tag_relationships` WRITE;
 INSERT INTO `rw_tag_relationships` (`id`, `from_tag_id`, `to_tag_id`)
 VALUES
 	(90,3,3),
-	(106,3,4),
-	(108,3,5),
-	(110,3,8),
-	(112,3,9),
-	(114,3,21),
-	(116,3,22),
-	(118,3,23),
-	(105,4,3),
-	(107,5,3),
-	(109,8,3),
-	(111,9,3),
-	(113,21,3),
-	(115,22,3),
-	(117,23,3);
+	(127,3,4),
+	(142,3,5),
+	(157,3,8),
+	(172,3,9),
+	(187,3,22),
+	(202,3,23),
+	(119,4,3),
+	(120,4,4),
+	(143,4,5),
+	(158,4,8),
+	(173,4,9),
+	(188,4,22),
+	(203,4,23),
+	(134,5,3),
+	(135,5,4),
+	(136,5,5),
+	(159,5,8),
+	(174,5,9),
+	(189,5,22),
+	(204,5,23),
+	(149,8,3),
+	(150,8,4),
+	(151,8,5),
+	(152,8,8),
+	(175,8,9),
+	(190,8,22),
+	(205,8,23),
+	(164,9,3),
+	(165,9,4),
+	(166,9,5),
+	(167,9,8),
+	(168,9,9),
+	(191,9,22),
+	(206,9,23),
+	(179,22,3),
+	(180,22,4),
+	(181,22,5),
+	(182,22,8),
+	(183,22,9),
+	(185,22,22),
+	(208,22,23),
+	(194,23,3),
+	(195,23,4),
+	(196,23,5),
+	(197,23,8),
+	(198,23,9),
+	(200,23,22),
+	(201,23,23);
 
 /*!40000 ALTER TABLE `rw_tag_relationships` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -906,13 +930,13 @@ VALUES
 	(1,1,2,3,1,1),
 	(2,1,1,4,1,1),
 	(5,3,1,5,1,1),
-	(8,4,2,3,1,1),
+	(8,4,2,3,0,1),
 	(9,4,1,4,0,1),
-	(12,6,1,5,1,1),
+	(12,6,1,5,0,1),
 	(15,7,1,8,1,1),
 	(16,7,2,9,1,1),
-	(17,8,2,9,0,1),
-	(53,8,2,8,1,1),
+	(17,8,1,9,0,1),
+	(53,8,2,8,0,1),
 	(54,3,2,22,1,1),
 	(55,6,2,22,0,1);
 
