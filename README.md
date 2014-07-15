@@ -35,7 +35,7 @@ Notes:
    * VM:80->host:8080 for Apache hosting the demo "live" environment available at http://127.0.0.1:8080/
    * VM:8888->host:8888 for the manage.py runserver development webserver available at http://127.0.0.1:8888/
    * VM:8000->host:8000 for Icecast.
- * Initialize the test Roundware stream at: http://127.0.0.1:8888/roundware/?operation=request_stream&session_id=2891 then access it with an audio stream player at: http://127.0.0.1:8000/stream2891.mp3
+ * Initialize the test Roundware stream at: http://127.0.0.1:8888/roundware/?operation=request_stream&session_id=1 then access it with an audio stream player at: http://127.0.0.1:8000/stream1.mp3
  * Edit the development environment code on your local machine, then refresh to see the changes reflected in the virtual machine.
 
 ## Icecast
@@ -152,9 +152,9 @@ All Roundware specific settings are stored in roundware/settings/common.py
 Here are some simple browser tests to see if your Roundware installation is functioning properly (substitute your RW server url):
 
     http://example.com/roundware/?operation=get_config&project_id=1
-    http://example.com/roundware/?operation=get_tags&session_id=2891
-    http://example.com/roundware/?operation=request_stream&session_id=2891
-    http://example.com/roundware/?operation=modify_stream&session_id=2891
+    http://example.com/roundware/?operation=get_tags&session_id=1
+    http://example.com/roundware/?operation=request_stream&session_id=1
+    http://example.com/roundware/?operation=modify_stream&session_id=1
 
 The first two should return JSON objects containing information about your Roundware project. The second two will create and then modify an audio stream. You can verify stream creation in the Icecast admin, but of course, the true verification is by listening.
 
