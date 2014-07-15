@@ -123,6 +123,14 @@ class RecordingCollection:
             else:
                 logger.debug("Stop mode")
 
+        # If a recording was found and unit tests are not running.
+        if recording and not settings.TESTING:
+            filepath = os.path.join(settings.AUDIO_DIR, recording.filename)
+            # Check if the file exists on the server.
+            if not os.path.isfile(filepath):
+                recording = None
+                logger.error("File not found: %s", filepath)
+
         self.lock.release()
         return recording
 
