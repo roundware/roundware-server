@@ -3,6 +3,8 @@ import os
 
 DEBUG = False
 TEMPLATE_DEBUG = False
+# True when unit tests are running. Used by roundwared.recording_collection
+TESTING = False
 
 ADMINS = (
     ('round', 'your_email@example.com'),
