@@ -30,16 +30,16 @@
 from __future__ import unicode_literals
 import logging
 import threading
-import asset_sorters
+import os.path
 try:
     from profiling import profile
 except ImportError:
     pass
 
+from django.conf import settings
 from roundwared import gpsmixer
 from roundware.rw import models
 from roundwared import db
-from operator import itemgetter
 from roundwared.asset_sorters import order_assets_randomly, order_assets_by_like, order_assets_by_weight
 
 logger = logging.getLogger(__name__)
@@ -86,26 +86,24 @@ class RecordingCollection:
     # Gets a new recording to play.
     # @profile(stats=True)
     def get_recording(self):
-        logger.debug(
-            "Recording Collection: Getting a recording from the bucket.")
+        logger.debug("Getting a recording from the bucket.")
         self.lock.acquire()
         recording = None
-        logger.debug("Recording Collection: we have " +
-                     str(len(self.nearby_unplayed_recordings)) + " unplayed recs.")
+        logger.debug("We have %s unplayed recordings.",
+                     len(self.nearby_unplayed_recordings))
         if len(self.nearby_unplayed_recordings) > 0:
-            #           index = random.randint(0, len(self.nearby_unplayed_recordings) - 1)
             index = 0
             recording = self.nearby_unplayed_recordings.pop(index)
-            logger.debug(
-                "RecordingCollection: get_recording: Got " + str(recording.filename))
+
+            logger.debug("Got %s", recording.filename)
             self.nearby_played_recordings.append(recording)
         elif len(self.nearby_played_recordings) > 0:
-            logger.debug("get_recording request:  " + str(self.request))
+            logger.debug("Request: %s", self.request)
             p = models.Project.objects.get(id=int(self.request['project_id']))
-            logger.debug("get_recording repeatmode:" + p.repeat_mode.mode)
+            logger.debug("Repeat mode: %s", p.repeat_mode.mode)
             # do this only if project setting calls for it
             if p.is_continuous():
-                logger.debug("get_recording continuous mode")
+                logger.debug("Continuous mode")
                 tags = getattr(self.request, "tags", None)
                 self.all_recordings = db.get_recordings(self.request["session_id"], tags)
                 self.far_recordings = self.all_recordings
@@ -120,11 +118,18 @@ class RecordingCollection:
                              + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
                 index = 0
                 recording = self.nearby_unplayed_recordings.pop(index)
-                logger.debug(
-                    "POST UPDATE RecordingCollection: get_recording: Got " + str(recording.filename))
+                logger.debug("Got %s", recording.filename)
                 self.nearby_played_recordings.append(recording)
             else:
-                logger.debug("get_recording stop mode")
+                logger.debug("Stop mode")
+
+        # If a recording was found and unit tests are not running.
+        if recording and not settings.TESTING:
+            filepath = os.path.join(settings.AUDIO_DIR, recording.filename)
+            # Check if the file exists on the server.
+            if not os.path.isfile(filepath):
+                recording = None
+                logger.error("File not found: %s", filepath)
 
         self.lock.release()
         return recording
@@ -134,7 +139,6 @@ class RecordingCollection:
         logger.debug("add_recording enter - asset id: " + str(asset_id))
         a = models.Asset.objects.get(id=str(asset_id))
         self.nearby_unplayed_recordings.insert(0, a)
-        logger.debug("add_recording exit")
         self.lock.release()
 
     # Updates the collection of recordings according to a new listener

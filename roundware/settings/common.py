@@ -3,6 +3,8 @@ import os
 
 DEBUG = False
 TEMPLATE_DEBUG = False
+# True when unit tests are running. Used by roundwared.recording_collection
+TESTING = False
 
 ADMINS = (
     ('round', 'your_email@example.com'),
@@ -279,7 +281,7 @@ LOGGING = {
     },
     'formatters': {
         'verbose': {
-            'format': "[%(asctime)s] %(levelname)s <%(name)s:%(lineno)s> %(message)s",
+            'format': "[%(asctime)s] %(levelname)s <%(name)s.%(funcName)s:%(lineno)s> %(message)s",
             'datefmt': "%d/%b/%Y %H:%M:%S"
         },
         'simple': {

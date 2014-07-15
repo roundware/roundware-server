@@ -157,12 +157,6 @@ def get_default_tags_for_project(p, s):
     return default
 
 
-#import operator
-
-#search_fields = ('title', 'body', 'summary')
-#q_objects = [Q(**{field + '__icontains':q}) for field in search_fields]
-#queryset = BlogPost.objects.filter(reduce(operator.or_, q_objects))
-
 # @profile(stats=True)
 @cached(60 * 1)
 def filter_recs_for_tags(p, tagids_from_request, l):
@@ -279,23 +273,13 @@ def log_event(event_type, session_id, form):
 
 
 def add_asset_to_session_history_and_update_metadata(asset_id, session_id, duration):
-    logger.debug("add_recording_to_session_history called with recording " +
+    logger.debug("Called with recording " +
                  str(asset_id) + " session_id: " + str(session_id) + " duration: " + str(int(duration)))
     admin = icecast2.Admin(settings.ICECAST_HOST + ":" + str(settings.ICECAST_PORT),
                            settings.ICECAST_USERNAME,
                            settings.ICECAST_PASSWORD)
-    logger.debug("add_asset_to_session_history_and_update_metadata: got admin")
     admin.update_metadata(asset_id, session_id)
-    logger.debug("add_asset_to_session_history_and_update_metadata: returned")
 
-    #import pycurl
-    #c = pycurl.Curl()
-    #c.setopt(pycurl.USERPWD, "admin:roundice")
-    # logger.debug("add_asset_to_session_history_and_update_metadata - enter")
-    #sysString = "http://" + settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"])  + "/admin/metadata.xsl?mount=/stream" + str(session_id) + ".mp3&mode=updinfo&charset=UTF-8&song=assetid" + str(asset.id)
-    # logger.debug("add_asset_to_session_history_and_update_metadataa - sysString: "+ sysString)
-    #c.setopt(pycurl.URL, sysString)
-    # c.perform()
     s = Session.objects.get(id=session_id)
     ass = Asset.objects.get(id=asset_id)
     try:
@@ -303,7 +287,7 @@ def add_asset_to_session_history_and_update_metadata(asset_id, session_id, durat
             session=s, asset=ass, starttime=datetime.datetime.now(), duration=int(duration))
         hist.save()
     except:
-        logger.debug("failed to save listening history!")
+        logger.warning("Failed to save listening history!")
     return True
 
 

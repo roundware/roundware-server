@@ -54,15 +54,13 @@ class RoundStream:
     ######################################################################
 
     def __init__(self, sessionid, audio_format, request):
-        logger.debug("begin stream")
+        logger.debug("Begin stream")
         self.sessionid = sessionid
         self.request = request
         self.bitrate = request["audio_stream_bitrate"]
         logger.debug("Roundstream init: bitrate: {0}".format(self.bitrate))
-        logger.debug("Roundstream init: getting session id")
         session = models.Session.objects.select_related(
             'project').get(id=sessionid)
-        logger.debug("Roundstream init: got session, getting project radius")
         self.radius = session.project.recording_radius
         self.ordering = session.project.ordering
         logger.debug(
@@ -115,12 +113,12 @@ class RoundStream:
 
     def play_asset(self, request):
         asset_id = request['asset_id'][0]
-        logger.debug("!!!!!!!!!! Stream Play asset: " + str(asset_id))
+        logger.debug("Stream Play asset: " + str(asset_id))
         for comp in self.compositions:
             comp.play_asset(asset_id)
 
     def skip_ahead(self):
-        logger.debug("!!!!!!!!!!Skip ahead")
+        logger.debug("Skip ahead")
         for comp in self.compositions:
             comp.skip_ahead()
 
