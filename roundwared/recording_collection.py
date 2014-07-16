@@ -69,8 +69,8 @@ class RecordingCollection:
     def update_request(self, request):
         logger.debug("update_request")
         self.lock.acquire()
-        tags = getattr(request, "tags", None)
-        self.all_recordings = db.get_recordings(request["session_id"], tags)
+        self.all_recordings = db.get_recordings(request["session_id"],
+                                                request.get("tags"))
         self.far_recordings = self.all_recordings
         self.nearby_played_recordings = []
         self.nearby_unplayed_recordings = []

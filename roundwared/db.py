@@ -78,7 +78,6 @@ def get_config_tag_json(p=None, s=None):
 
             default = []
             for mapping in mappings:
-                temp_desc = ""
                 loc_desc = ""
                 temp_desc = mapping.tag.loc_description.filter(language=lingo)
                 if temp_desc:
@@ -126,34 +125,30 @@ def get_recordings(session_id, tags=None):
         if isinstance(tags, list):
             tag_list = tags
         else:
-            tag_list = tags.split(",")
+            # Assuming string, make an int list from the "string,string,string"
+            tag_list = map(int, tags.split(","))
     else:
-        tag_list = get_default_tags_for_project(project, session)
+        tag_list = get_default_tags_for_project(project)
         logger.debug("Using project default tags")
 
     recordings = []
     if tag_list:
-        logger.debug("Tags supplied: %s", tag_list)
         recordings = filter_recs_for_tags(project, tag_list, session.language)
-    else:
-        logger.debug("No recordings available")
 
-    logger.debug("Got %s recordings for project %s",
-                 len(recordings), project.id)
+    logger.debug("Found %s recordings for project %s",
+                 len(recordings), project.name)
     return recordings
 
 
 # @profile(stats=True)
-def get_default_tags_for_project(p, s):
-    m = MasterUI.objects.filter(project=p)
+def get_default_tags_for_project(project):
+    m = MasterUI.objects.filter(project=project, active=True)
     default = []
     for masterui in m:
-        if masterui.active:
-            mappings = UIMapping.objects.filter(
-                master_ui=masterui, active=True)
-            for mapping in mappings:
-                if mapping.default:
-                    default.append(mapping.tag.id)
+        mappings = UIMapping.objects.filter(master_ui=masterui,
+                                            active=True, default=True)
+        for mapping in mappings:
+            default.append(mapping.tag.id)
     return default
 
 
@@ -166,18 +161,18 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     category.  It won't be returned if it has a tag from one tagcategory
     but not another.
     """
-    logger.debug("filter_recs_for_tags. Tags: %s", tagids_from_request)
+    logger.debug("Tags: %s", tagids_from_request)
 
     recs = []
     tag_ids_per_cat_dict = {}
-    # project_cats = TagCategory.objects.filter()
 
     project_cats = p.get_tag_cats_by_ui_mode(settings.LISTEN_UIMODE)
+    logger.debug("Project tag categories: %s", project_cats)
     for cat in project_cats:
         # for each tag category a list of all of the tags with that cat
         tag_ids_per_cat_dict[cat.id] = [
             tag.id for tag in Tag.objects.filter(tag_category=cat)]
-
+    # Note the audiolength must be greater than 1000 to be returned.
     project_recs = list(Asset.objects.filter(
         project=p, submitted=True, audiolength__gt=1000, language=l).distinct())
     for rec in project_recs:
