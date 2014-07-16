@@ -2,13 +2,13 @@ from __future__ import unicode_literals
 import datetime
 from model_mommy import mommy
 
-from .common import FakeRequest, RoundwaredTestCase
+from .common import RoundwaredTestCase
 from roundware.rw.models import (MasterUI, Session, Tag, Asset, TagCategory,
                                  UIMapping, Project, LocalizedString,
                                  ListeningHistoryItem)
 from roundwared.db import (get_config_tag_json, filter_recs_for_tags,
                            get_recordings, get_current_streaming_asset,
-                           cleanup_history_for_session)
+                           cleanup_history_for_session, get_default_tags_for_project)
 from roundwared.roundexception import RoundException
 
 
@@ -27,38 +27,94 @@ class TestGetRecordings(RoundwaredTestCase):
         self.session2 = mommy.make(Session, project=self.project2,
                                    language=self.english)
         self.tagcat2 = mommy.make(TagCategory)
+        self.tagcat3 = mommy.make(TagCategory)
         self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2')
+        self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3')
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=self.ui_mode_listen,
                                     tag_category=self.tagcat1)
-        self.masterui2 = mommy.make(MasterUI, project=self.project2,
+        self.masterui2 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=self.ui_mode_listen,
                                     tag_category=self.tagcat2)
+        self.masterui2 = mommy.make(MasterUI, project=self.project1,
+                                    ui_mode=self.ui_mode_listen,
+                                    tag_category=self.tagcat3)
+        self.masterui4 = mommy.make(MasterUI, project=self.project2,
+                                    ui_mode=self.ui_mode_listen,
+                                    tag_category=self.tagcat2)
+        # Add one default tag to project1
+        self.uimapping1 = mommy.make(UIMapping, master_ui=self.masterui1,
+                                     tag=self.tag1, default=True, active=True)
         self.asset1 = mommy.make(Asset, project=self.project1,
                                  language=self.english,
                                  tags=[self.tag1],
                                  audiolength=2000)
-        self.asset2 = mommy.make(Asset, project=self.project2,
+        self.asset2 = mommy.make(Asset, project=self.project1,
+                                 language=self.english,
+                                 tags=[self.tag2],
+                                 audiolength=2000)
+        self.asset3 = mommy.make(Asset, project=self.project1,
+                                 language=self.english,
+                                 tags=[self.tag2, self.tag1],
+                                 audiolength=2000)
+        self.asset4 = mommy.make(Asset, project=self.project2,
                                  language=self.english,
                                  tags=[self.tag2],
                                  audiolength=2000)
 
-    def test_no_session(self):
-        """ calling get_recordings without a session and without tags 
-        should not return any assets but an exception
+
+    def test_get_default_tags_for_project(self):
+        """ Project1 has one default tag, Project2 has no default tags.
         """
-        with self.assertRaises(TypeError):
-            get_recordings(project_id=self.project1.id)
+        default_tags = get_default_tags_for_project(self.project1)
+        self.assertEqual(default_tags, [self.tag1.id])
 
-    def test_correct_assets_passing_project_and_tags_and_session(self):
-        """ if we pass tags, it uses filter_recs_for_tags.
+        default_tags = get_default_tags_for_project(self.project2)
+        self.assertEqual(default_tags, [])
+
+    def test_correct_assets_project_default_tags(self):
+        """ If we pass no tags, the project defaults are provided
         """
-        recordings = get_recordings(self.session1.id, [self.tag2])
-        self.assertEqual([self.asset1], recordings)
+        recordings = get_recordings(self.session1.id)
+        self.assertEqual([self.asset1, self.asset3], recordings)
 
-        recordings = get_recordings(self.session2.id, [self.tag2])
-        self.assertEqual([self.asset2], recordings)
 
+    def test_no_assets_passing_valid_tag_list(self):
+        """ Pass valid unused tag and check no assets are returned
+        """
+        recordings = get_recordings(self.session1.id, [self.tag3.id])
+        self.assertEqual([], recordings)
+
+    # def test_no_assets_passing_invalid_tag_list(self):
+    #    """ Pass tags and check that no assets are returned
+    #    """
+    #    recordings = get_recordings(self.session1.id, [100])
+    #    self.assertEqual([], recordings)
+
+    def test_correct_assets_passing_tag_list(self):
+        """ Pass tag lists and check for correct assets
+        """
+        recordings = get_recordings(self.session1.id, [self.tag1.id])
+        self.assertEqual([self.asset1, self.asset3], recordings)
+
+        recordings = get_recordings(self.session1.id, [self.tag2.id])
+        self.assertEqual([self.asset2, self.asset3], recordings)
+
+        recordings = get_recordings(self.session1.id, [self.tag1.id, self.tag2.id])
+        self.assertEqual([self.asset3], recordings)
+
+        recordings = get_recordings(self.session2.id, [self.tag1.id])
+        self.assertEqual([self.asset4], recordings)
+
+    def test_correct_assets_passing_tag_string(self):
+        """ Pass tag lists and check for correct assets
+        """
+        recordings = get_recordings(self.session1.id, str(self.tag1.id))
+        self.assertEqual([self.asset1, self.asset3], recordings)
+
+        tag_string = str(self.tag1.id) + "," + str(self.tag2.id)
+        recordings = get_recordings(self.session1.id, tag_string)
+        self.assertEqual([self.asset3], recordings)
 
 class TestFilterRecsForTags(RoundwaredTestCase):
 
