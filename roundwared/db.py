@@ -78,7 +78,6 @@ def get_config_tag_json(p=None, s=None):
 
             default = []
             for mapping in mappings:
-                temp_desc = ""
                 loc_desc = ""
                 temp_desc = mapping.tag.loc_description.filter(language=lingo)
                 if temp_desc:
@@ -128,7 +127,7 @@ def get_recordings(session_id, tags=None):
         else:
             tag_list = tags.split(",")
     else:
-        tag_list = get_default_tags_for_project(project, session)
+        tag_list = get_default_tags_for_project(project)
         logger.debug("Using project default tags")
 
     recordings = []
@@ -144,16 +143,13 @@ def get_recordings(session_id, tags=None):
 
 
 # @profile(stats=True)
-def get_default_tags_for_project(p, s):
-    m = MasterUI.objects.filter(project=p)
+def get_default_tags_for_project(project):
+    m = MasterUI.objects.filter(project=project, active=True)
     default = []
     for masterui in m:
-        if masterui.active:
-            mappings = UIMapping.objects.filter(
-                master_ui=masterui, active=True)
-            for mapping in mappings:
-                if mapping.default:
-                    default.append(mapping.tag.id)
+        mappings = UIMapping.objects.filter(master_ui=masterui, active=True, default=True)
+        for mapping in mappings:
+            default.append(mapping.tag.id)
     return default
 
 

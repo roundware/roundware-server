@@ -97,13 +97,21 @@ class Project(models.Model):
     files_url = models.CharField(max_length=512, blank=True)
     files_version = models.CharField(max_length=16, blank=True)
     BITRATE_CHOICES = (
-        ('64', '64'), ('96', '96'), ('112', '112'), ('128', '128'), ('160',
-                                                                     '160'), ('192', '192'), ('256', '256'), ('320', '320'),
+        ('64', '64'),
+        ('96', '96'),
+        ('112', '112'),
+        ('128', '128'),
+        ('160', '160'),
+        ('192', '192'),
+        ('256', '256'),
+        ('320', '320'),
     )
     audio_stream_bitrate = models.CharField(
         max_length=3, choices=BITRATE_CHOICES, default='128')
-    ordering = models.CharField(max_length=16, choices=[(
-        'by_like', 'by_like'), ('by_weight', 'by_weight'), ('random', 'random')], default='random')
+    ordering_choices = [('by_like', 'by_like'),
+                        ('by_weight', 'by_weight'),
+                        ('random', 'random')]
+    ordering = models.CharField(max_length=16, choices=ordering_choices, default='random')
     demo_stream_enabled = models.BooleanField(default=False)
     demo_stream_url = models.CharField(max_length=512, blank=True)
     demo_stream_message_loc = models.ManyToManyField(
