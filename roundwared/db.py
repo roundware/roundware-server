@@ -275,9 +275,7 @@ def log_event(event_type, session_id, form):
 def add_asset_to_session_history_and_update_metadata(asset_id, session_id, duration):
     logger.debug("Called with recording " +
                  str(asset_id) + " session_id: " + str(session_id) + " duration: " + str(int(duration)))
-    admin = icecast2.Admin(settings.ICECAST_HOST + ":" + str(settings.ICECAST_PORT),
-                           settings.ICECAST_USERNAME,
-                           settings.ICECAST_PASSWORD)
+    admin = icecast2.Admin()
     admin.update_metadata(asset_id, session_id)
 
     s = Session.objects.get(id=session_id)

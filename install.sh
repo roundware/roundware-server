@@ -74,6 +74,10 @@ chown $USERNAME:$USERNAME /home/$USERNAME/runserver.sh
 # Create a symbolic link to the main roundware directory
 ln -sfn $WWW_PATH /home/$USERNAME/www
 
+
+# Install python-software-properties to add add-apt-repository
+DEBIAN_FRONTEND=noninteractive apt-get install -y  python-software-properties
+
 # Enable multiverse repository
 add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) multiverse"
 apt-get update
@@ -89,7 +93,7 @@ python-gst0.10 python-flup gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 \
 gstreamer0.10-plugins-base gstreamer0.10-plugins-bad gstreamer0.10-plugins-good \
 gstreamer0.10-plugins-bad-multiverse gstreamer0.10-plugins-ugly libavcodec-extra-53 \
 python-pip gstreamer-tools python-setuptools python-profiler libmagic1 python-lxml \
-python-dev python-pycurl mediainfo
+python-dev mediainfo
 
 # Install/upgrade virtualenv
 pip install -U virtualenv
