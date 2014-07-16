@@ -74,11 +74,7 @@ class RoundStream:
         self.last_listener_count = 1
         self.gps_mixer = None
         self.main_loop = gobject.MainLoop()
-        self.icecast_admin = icecast2.Admin(
-            settings.ICECAST_HOST + ":" +
-            str(settings.ICECAST_PORT),
-            settings.ICECAST_USERNAME,
-            settings.ICECAST_PASSWORD)
+        self.icecast_admin = icecast2.Admin()
         self.heartbeat()
         # project = models.Session.objects.get(id=sessionid)  # not used
         self.recordingCollection = \

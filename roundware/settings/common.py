@@ -26,7 +26,7 @@ root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
 # TODO - Reduce number of audio/media file directories listed.
 # Roundwared & rwstreamd.py settings - Previously in /etc/roundware/rw
-ICECAST_PORT = 8000
+ICECAST_PORT = "8000"
 ICECAST_HOST = "localhost"
 ICECAST_USERNAME = "admin"
 ICECAST_PASSWORD = "roundice"

@@ -883,24 +883,20 @@ def wait_for_stream(sessionid, audio_format):
     """
     Loops until the give stream is present and ready to be listened to.
     """
-    # Stream wait timeout in seconds
-    timeout = 30
-    # Number of retries timeout/(time to wait between retries)
-    retries_left = timeout / 0.2
+    # Number of retries
+    retries_left = 15
 
     logger.debug("Checking for existence of stream %s%s on %s:%s", sessionid,
                  audio_format, settings.ICECAST_HOST, settings.ICECAST_PORT)
     while not stream_exists(sessionid, audio_format):
-        time.sleep(0.2)
+        time.sleep(1)
         retries_left -= 1
         if retries_left < 0:
             raise roundexception.RoundException("Stream timeout on creation")
 
 
 def stream_exists(sessionid, audio_format):
-    admin = icecast2.Admin(settings.ICECAST_HOST + ":" + str(settings.ICECAST_PORT),
-                           settings.ICECAST_USERNAME,
-                           settings.ICECAST_PASSWORD)
+    admin = icecast2.Admin()
     return admin.stream_exists(icecast_mount_point(sessionid, audio_format))
 
 

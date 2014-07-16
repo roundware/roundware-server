@@ -27,22 +27,18 @@
 
 from __future__ import unicode_literals
 import libxml2
-import urllib2
 import logging
-import pycurl
+import requests
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
 class Admin:
 
-    def __init__(self, host, username, password):
-        self.__host = host
-        auth_handler = urllib2.HTTPBasicAuthHandler()
-        auth_handler.add_password(
-            'Icecast2 Server', self.__host, username, password)
-        opener = urllib2.build_opener(auth_handler)
-        urllib2.install_opener(opener)
+    def __init__(self):
+        self.auth = (str(settings.ICECAST_USERNAME), str(settings.ICECAST_PASSWORD))
+        self.base_uri = "http://" + settings.ICECAST_HOST + ":" + settings.ICECAST_PORT
 
     def get_mount_list(self):
         result = self.process_xml(
@@ -68,51 +64,30 @@ class Admin:
         return False
 
     def process_xml(self, url, xpath):
-        doc = None
-        try:
-            resp = urllib2.urlopen("http://" + self.__host + url)
-            respXML = resp.read()
-            doc = libxml2.parseDoc(respXML)
-            ctxt = doc.xpathNewContext()
-            return map(lambda x: x.content, ctxt.xpathEval(xpath))
-        except urllib2.HTTPError:
-            return None
-        finally:
-            if(doc):
-                doc.freeDoc()
-            # FIXME: This was in the original code I used to learn this. Do I need it?
-            # libxml2.dumpMemory()
+        # logger.debug("Request: %s, auth=%s", self.base_uri + url, self.auth)
+        response = requests.get(self.base_uri + url, auth=self.auth)
+        response.raise_for_status()
+        # logger.debug("Response: %s", response.content)
+        # Parse the XML and get the requested xpath results.
+        xml = libxml2.parseDoc(response.content)
+        context = xml.xpathNewContext()
+        results = map(lambda x: x.content, context.xpathEval(xpath))
+        # Must get the complete results before running freeDoc()
+        xml.freeDoc()
+        return results
 
     def update_metadata(self, asset_id, session_id):
-        c = pycurl.Curl()
-        c.setopt(pycurl.USERPWD, str("admin:roundice"))
-        logger.debug("update metadata - enter")
-        sysString = "http://" + self.__host + "/admin/metadata.xsl?mount=/stream" + \
-            str(session_id) + \
-            ".mp3&mode=updinfo&charset=UTF-8&song=assetid" + str(asset_id) + ""
-        c.setopt(pycurl.URL, str(sysString))
-        logger.debug("update metadata - sysString: " + sysString)
-        c.perform()
-        logger.debug("update metadata - returning")
+        url = "/admin/metadata"
+        uri = self.base_uri + url + "?mount=/stream" + str(session_id) + \
+            ".mp3&mode=updinfo&charset=UTF-8&song=assetid" + str(asset_id)
 
-        #r = os.system(sysString)
-#        def getMetadata(self):
-#                global basePath
-#                command_url = self.__host + "/admin/stats.xml"
-#                style_url = basePath + "/sbin/streamer/getMetadata.xsl"
-#                dataList = self.processXML(command_url, style_url)
-#                return dataList[0]
-
-
-#        def moveMountPoints(self, src, dest):
-#                command = "/admin/moveclients?mount=" + src + "&destination=" + dest
-#                self.execCommand(command)
-
-
-#        def execCommand(self, command):
-#                try:
-#                        resp = urllib2.urlopen("http://" + self.__host + command)
-#                        print "exec: %s" % command
-#                except:
-#                        pass
-# print "Cannot move mountpoints %s" % command
+        # TODO requests.get params value should be used instead of building
+        # the GET value list manually, but the Requests library URL encodes
+        # the values and Icecast does not accept that. Tested with Icecast
+        # 2.3.2 (Ubuntu 12.04 repo version) and 2.4.0 (current compiled.)
+        # Bug report filed against Icecast: https://trac.xiph.org/ticket/2031
+        logger.debug("Request: %s, auth=%s", uri, self.auth)
+        response = requests.get(uri, auth=self.auth)
+        logger.debug(response.url)
+        response.raise_for_status()
+        logger.debug("Response: %s", response.content)
