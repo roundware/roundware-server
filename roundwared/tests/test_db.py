@@ -85,6 +85,8 @@ class TestGetRecordings(RoundwaredTestCase):
         recordings = get_recordings(self.session1.id, [self.tag3.id])
         self.assertEqual([], recordings)
 
+    # Commented out, because IDK how this is supposed to work.
+    # I think the test is right and the code is wrong. -eosrei
     # def test_no_assets_passing_invalid_tag_list(self):
     #    """ Pass tags and check that no assets are returned
     #    """
