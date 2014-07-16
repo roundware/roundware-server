@@ -215,9 +215,9 @@ Here are some simple browser tests to see if your Roundware installation is func
 
 ```
 http://your.roundware.host/roundware/?operation=get_config&project_id=1
-http://your.roundware.host/roundware/?operation=get_tags&session_id=2891
-http://your.roundware.host/roundware/?operation=request_stream&session_id=2891
-http://your.roundware.host/roundware/?operation=modify_stream&session_id=2892&tags=3,5,8
+http://your.roundware.host/roundware/?operation=get_tags&session_id=1
+http://your.roundware.host/roundware/?operation=request_stream&session_id=1
+http://your.roundware.host/roundware/?operation=modify_stream&session_id=1&tags=3,5,8
 ```
 
 The first two should return JSON objects containing information about your Roundware project.  The second two will create and then modify an audio stream.  You can verify stream creation in the Icecast admin, but of course, the true verification is by listening which can be done in iTunes or in certain browsers.
