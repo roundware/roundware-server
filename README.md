@@ -7,7 +7,7 @@ For more information about Roundware functionalities and projects that use the p
 
 ## Basic Installation
 
-Roundware includes an *install.sh* to handle installation of the software and it's dependencies. The majority of the process is automated. Further configuration is required for a production system, application specific details are below.
+Roundware includes an *install.sh* to handle installation of the software and its dependencies. The majority of the process is automated. Further configuration is required for a production system, application specific details are below.
 
     user@server:~ $ git clone https://github.com/hburgund/roundware-server.git
     user@server:~ $ cd roundware-server

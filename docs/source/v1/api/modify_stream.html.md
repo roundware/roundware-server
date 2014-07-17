@@ -7,6 +7,10 @@ sidebar_current: "api-modify-stream"
 
 Modifies an existing stream per new tag filters and/or location filters.
 
+If tag filters are included, Roundware will refresh the available recordings per the new tags.  If only latitude and longitude are included, available recordings will not be entirely refreshed so that recordings that have already been played will not get played again until the user leaves and re-enters the recording's range.
+
+Roundware playback is based on tag categories.  Each asset in a project should be assigned one tag from each tag category in a typical situation.  If ```modify_stream``` is sent with any tags from a particular tag category, Roundware assumes that the category in question is active and there will not return assets that don't contain any tags from this category.
+
 **Example Call:**
 
 ```

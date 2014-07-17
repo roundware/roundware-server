@@ -10,10 +10,10 @@ Creates an entry in the envelope table in the db for an asset that is going to b
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=log_event&session_id=1
+http://rw.roundware.org/roundware/?operation=create_envelope&session_id=1
 ```
 
-## Parameters (some optional*):
+## Parameters:
 
 * `session_id`
 
