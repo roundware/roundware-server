@@ -32,17 +32,17 @@ from django.conf.urls import patterns, url, include
 # Loading static files for debug mode
 from django.conf.urls.static import static
 
-# Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 from tastypie.api import Api
 from roundware.rw.api import AssetResource, SessionResource, EventResource, ProjectResource, ListeningHistoryItemResource, AssetLocationResource
+
+# Import V1 Partial REST API
+from roundware.rw import views_api1
 
 from adminplus.sites import AdminSitePlus
 from ajax_filtered_fields.views import json_index
 
 from roundware.rw import urls as rw_urls
-
-# from roundware.rw import forms
 
 admin.site = AdminSitePlus()
 admin.autodiscover()
@@ -57,17 +57,16 @@ v1_api.register(ListeningHistoryItemResource())
 
 urlpatterns = patterns(
     '',
-    # Examples:
-    # url(r'^$', 'roundware.views.home', name='home'),
-    # url(r'^charts/asset/$', 'rw.views.chart_views'),
     url(r'^dashboard/asset-map$', 'rw.views.asset_map'),
     url(r'^dashboard/$', 'rw.views.chart_views'),
 
-    # TastyPie API URLS
+    # V1 API
+    url(r'^api/1/$', 'rw.views.main'),
+    url(r'^api/1$', 'rw.views.main'),
+    # V1 Partial REST Framework API in new location
+    url(r'^api/1/rest/asset/$', views_api1.AssetList.as_view()),
+    # V1 Partial TastyPie REST API in old location
     url(r'^roundware/api/', include(v1_api.urls)),
-
-    url(r'^roundware/$', 'rw.views.main'),
-    url(r'^roundware$', 'rw.views.main'),
 
     # use admin login as overall login
     url(r'^accounts/login/$', 'django.contrib.auth.views.login',
@@ -76,7 +75,6 @@ urlpatterns = patterns(
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
-    # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
 
     url(r'^rw/', include(rw_urls)),

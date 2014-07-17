@@ -239,6 +239,7 @@ INSTALLED_APPS = (
     'djangoformsetjs',
     'sortedm2m',
     'tastypie',
+    'rest_framework',
 )
 
 # A sample logging configuration. The only tangible logging
