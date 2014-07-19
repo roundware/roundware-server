@@ -33,3 +33,30 @@ class AssetSerializer(serializers.ModelSerializer):
     audiolength_in_seconds = serializers.FloatField()
     class Meta:
         model = Asset
+
+
+class AssetLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Asset
+        fields = ('latitude', 'longitude', 'id', 'filename', 'description')
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+
+
+class SessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Session
+
+
+class ListeningHistoryItemAssetSerializer(serializers.ModelSerializer):
+    duration_in_seconds = serializers.FloatField()
+    class Meta:
+        model = ListeningHistoryItem

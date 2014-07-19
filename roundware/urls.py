@@ -65,6 +65,11 @@ urlpatterns = patterns(
     url(r'^api/1$', 'rw.views.main'),
     # V1 Partial REST Framework API in new location
     url(r'^api/1/rest/asset/$', views_api1.AssetList.as_view()),
+    url(r'^api/1/rest/assetlocation/$', views_api1.AssetLocationList.as_view()),
+    url(r'^api/1/rest/project/$', views_api1.ProjectList.as_view()),
+    url(r'^api/1/rest/event/$', views_api1.EventList.as_view()),
+    url(r'^api/1/rest/session/$', views_api1.SessionList.as_view()),
+    url(r'^api/1/rest/listeninghistoryitem/$', views_api1.ListeningHistoryItemList.as_view()),
     # V1 Partial TastyPie REST API in old location
     url(r'^roundware/api/', include(v1_api.urls)),
 

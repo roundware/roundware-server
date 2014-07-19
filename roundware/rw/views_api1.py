@@ -28,7 +28,12 @@
 from __future__ import unicode_literals
 
 from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
-from roundware.rw.serializers_api1 import AssetSerializer
+from roundware.rw.serializers_api1 import (AssetSerializer,
+                                           AssetLocationSerializer,
+                                           ProjectSerializer,
+                                           EventSerializer,
+                                           SessionSerializer,
+                                           ListeningHistoryItemAssetSerializer)
 from rest_framework import generics
 
 
@@ -36,3 +41,28 @@ class AssetList(generics.ListAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
+class AssetLocationList(generics.ListAPIView):
+    queryset = Asset.objects.filter()
+    serializer_class = AssetLocationSerializer
+    fields = ['latitude', 'longitude', 'id', 'filename', 'description']
+
+
+class ProjectList(generics.ListAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+
+class EventList(generics.ListAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+
+
+
+class SessionList(generics.ListAPIView):
+    queryset = Session.objects.all()
+    serializer_class = SessionSerializer
+
+
+class ListeningHistoryItemList(generics.ListAPIView):
+    queryset = ListeningHistoryItem.objects.all()
+    serializer_class = ListeningHistoryItemAssetSerializer
