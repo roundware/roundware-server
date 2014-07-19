@@ -36,7 +36,7 @@ from django.contrib import admin
 from tastypie.api import Api
 from roundware.rw.api import AssetResource, SessionResource, EventResource, ProjectResource, ListeningHistoryItemResource, AssetLocationResource
 
-# Import V1 Partial REST API
+# Import V1 DRF API
 from roundware.rw import views_api1
 
 from adminplus.sites import AdminSitePlus
@@ -63,14 +63,15 @@ urlpatterns = patterns(
     # V1 API
     url(r'^api/1/$', 'rw.views.main'),
     url(r'^api/1$', 'rw.views.main'),
-    # V1 Partial REST Framework API in new location
-    url(r'^api/1/rest/asset/$', views_api1.AssetList.as_view()),
-    url(r'^api/1/rest/assetlocation/$', views_api1.AssetLocationList.as_view()),
-    url(r'^api/1/rest/project/$', views_api1.ProjectList.as_view()),
-    url(r'^api/1/rest/event/$', views_api1.EventList.as_view()),
-    url(r'^api/1/rest/session/$', views_api1.SessionList.as_view()),
-    url(r'^api/1/rest/listeninghistoryitem/$', views_api1.ListeningHistoryItemList.as_view()),
-    # V1 Partial TastyPie REST API in old location
+    # V1 DRF API
+    url(r'^api/1/rest/$', views_api1.APIRootView.as_view()),
+    url(r'^api/1/rest/asset/$', views_api1.AssetList.as_view(), name='api1-asset'),
+    url(r'^api/1/rest/assetlocation/$', views_api1.AssetLocationList.as_view(), name='api1-assetlocation'),
+    url(r'^api/1/rest/project/$', views_api1.ProjectList.as_view(), name='api1-project'),
+    url(r'^api/1/rest/event/$', views_api1.EventList.as_view(), name='api1-event'),
+    url(r'^api/1/rest/session/$', views_api1.SessionList.as_view(), name='api1-session'),
+    url(r'^api/1/rest/listeninghistoryitem/$', views_api1.ListeningHistoryItemList.as_view(), name='api1-listeninghistory'),
+    # V1 TastyPie REST API in old location
     url(r'^roundware/api/', include(v1_api.urls)),
 
     # use admin login as overall login

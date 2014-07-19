@@ -35,11 +35,28 @@ from roundware.rw.serializers_api1 import (AssetSerializer,
                                            SessionSerializer,
                                            ListeningHistoryItemAssetSerializer)
 from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
+
+class APIRootView(APIView):
+    def get(self, request, format=None):
+        data = {
+            'assets': reverse('api1-asset', request=request, format=format),
+            'assetlocations': reverse('api1-assetlocation', request=request, format=format),
+            'projects': reverse('api1-project', request=request, format=format),
+            'events': reverse('api1-event', request=request, format=format),
+            'sessions': reverse('api1-session', request=request, format=format),
+            'listeninghistory': reverse('api1-listeninghistory', request=request, format=format),
+
+        }
+        return Response(data)
 
 class AssetList(generics.ListAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
+
 
 class AssetLocationList(generics.ListAPIView):
     queryset = Asset.objects.filter()
@@ -55,7 +72,6 @@ class ProjectList(generics.ListAPIView):
 class EventList(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-
 
 
 class SessionList(generics.ListAPIView):
