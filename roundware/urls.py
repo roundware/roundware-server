@@ -27,10 +27,12 @@
 
 from __future__ import unicode_literals
 from django.conf import settings
-from django.conf.urls import patterns, url, include
+from django.conf.urls import patterns, url
 
 # Loading static files for debug mode
 from django.conf.urls.static import static
+
+from django.conf.urls import include
 
 from django.contrib import admin
 from tastypie.api import Api
@@ -65,8 +67,13 @@ urlpatterns = patterns(
     url(r'^api/1$', 'rw.views.main'),
     # V1 DRF API
     url(r'^api/1/rest/$', views_api1.APIRootView.as_view()),
-    url(r'^api/1/rest/asset/$', views_api1.AssetList.as_view(), name='api1-asset'),
-    url(r'^api/1/rest/assetlocation/$', views_api1.AssetLocationList.as_view(), name='api1-assetlocation'),
+    url(r'^api/1/rest/asset/$', views_api1.AssetList.as_view(),
+        name='api1-asset'),
+    url(r'^api/1/rest/assetlocation/$', views_api1.AssetLocationList.as_view(),
+        name='api1-assetlocation'),
+    url(r'^api/1/rest/assetlocation/(?P<pk>[0-9]+)/$',
+        views_api1.AssetLocationDetail.as_view(),
+        name='api1-assetlocation-detail'),
     url(r'^api/1/rest/project/$', views_api1.ProjectList.as_view(), name='api1-project'),
     url(r'^api/1/rest/event/$', views_api1.EventList.as_view(), name='api1-event'),
     url(r'^api/1/rest/session/$', views_api1.SessionList.as_view(), name='api1-session'),
@@ -89,6 +96,12 @@ urlpatterns = patterns(
     # urls import
     url(r'^ajax_filtered_fields/json_index/$', json_index),
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Add DRF auth URLs
+urlpatterns += patterns('',
+    url(r'^api/1/auth/', include('rest_framework.urls',
+                               namespace='rest_framework')),
+)
 
 if settings.DEBUG:
     import debug_toolbar

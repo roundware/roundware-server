@@ -35,10 +35,11 @@ class AssetSerializer(serializers.ModelSerializer):
         model = Asset
 
 
-class AssetLocationSerializer(serializers.ModelSerializer):
+class AssetLocationSerializer(serializers.HyperlinkedModelSerializer):
+    resource_uri = serializers.HyperlinkedIdentityField(view_name='api1-assetlocation-detail')
     class Meta:
         model = Asset
-        fields = ('latitude', 'longitude', 'id', 'filename', 'description')
+        fields = ('latitude', 'longitude', 'id', 'filename', 'description', 'resource_uri')
 
 
 class ProjectSerializer(serializers.ModelSerializer):

@@ -38,7 +38,7 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-
+from rest_framework import permissions
 
 class APIRootView(APIView):
     def get(self, request, format=None):
@@ -61,7 +61,14 @@ class AssetList(generics.ListAPIView):
 class AssetLocationList(generics.ListAPIView):
     queryset = Asset.objects.filter()
     serializer_class = AssetLocationSerializer
-    fields = ['latitude', 'longitude', 'id', 'filename', 'description']
+    # Only authenticated users can access this view
+    permission_classes = (permissions.IsAuthenticated,)
+
+class AssetLocationDetail(generics.RetrieveUpdateAPIView):
+    queryset = Asset.objects.filter()
+    serializer_class = AssetLocationSerializer
+    # Only authenticated users can access this view
+    permission_classes = (permissions.IsAuthenticated,)
 
 
 class ProjectList(generics.ListAPIView):
