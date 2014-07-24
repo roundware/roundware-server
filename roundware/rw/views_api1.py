@@ -39,6 +39,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import permissions
+import django_filters
 
 class APIRootView(APIView):
     def get(self, request, format=None):
@@ -63,9 +64,11 @@ class AssetLocationList(generics.ListAPIView):
     serializer_class = AssetLocationSerializer
     # Only authenticated users can access this view
     permission_classes = (permissions.IsAuthenticated,)
+    filter_fields = ('project', 'latitude')
+
 
 class AssetLocationDetail(generics.RetrieveUpdateAPIView):
-    queryset = Asset.objects.filter()
+    queryset = Asset.objects.all()
     serializer_class = AssetLocationSerializer
     # Only authenticated users can access this view
     permission_classes = (permissions.IsAuthenticated,)
@@ -75,10 +78,23 @@ class ProjectList(generics.ListAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
 
+class EventFilter(django_filters.FilterSet):
+    event_type__startswith = django_filters.CharFilter(name='event_type', lookup_type='startswith')
+    server_time__gte = django_filters.DateTimeFilter(name='server_time', lookup_type='gte')
+    server_time__lte = django_filters.DateTimeFilter(name='server_time', lookup_type='lte')
+    server_time__range = django_filters.DateRangeFilter(name='server_time')
+    class Meta:
+        model = Event
+        fields = ['event_type',
+                  'server_time',
+                  'session',
+                  ]
+
 
 class EventList(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+    filter_class = EventFilter
 
 
 class SessionList(generics.ListAPIView):
