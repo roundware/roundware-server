@@ -82,7 +82,7 @@ urlpatterns = patterns(
         name='api1-session'),
     url(r'^api/1/rest/listeninghistoryitem/$',
         views_api1.ListeningHistoryItemList.as_view(),
-        name='api1-listeninghistory'),
+        name='api1-listeninghistoryitem'),
     # V1 TastyPie REST API in old location
     url(r'^roundware/api/', include(v1_api.urls)),
 

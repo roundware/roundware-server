@@ -49,14 +49,36 @@ class APIRootView(APIView):
             'projects': reverse('api1-project', request=request, format=format),
             'events': reverse('api1-event', request=request, format=format),
             'sessions': reverse('api1-session', request=request, format=format),
-            'listeninghistory': reverse('api1-listeninghistory', request=request, format=format),
+            'listeninghistoryitems': reverse('api1-listeninghistoryitem', request=request, format=format),
 
         }
         return Response(data)
 
+
+class AssetFilter(django_filters.FilterSet):
+    mediatype__contains = django_filters.CharFilter(name='mediatype', lookup_type='startswith')
+
+    created__gte = django_filters.DateTimeFilter(name='created', lookup_type='gte')
+    created__lte = django_filters.DateTimeFilter(name='created', lookup_type='lte')
+    created__range = django_filters.DateRangeFilter(name='created')
+    audiolength__lte = django_filters.NumberFilter('audiolength', lookup_type='lte')
+    audiolength__gte = django_filters.NumberFilter('audiolength', lookup_type='gte')
+
+    class Meta:
+        model = Asset
+        fields = ['mediatype',
+                  'submitted',
+                  'created',
+                  'project',
+                  'language',
+                  'session',
+                  ]
+
+
 class AssetList(generics.ListAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
+    filter_class = AssetFilter
 
 
 class AssetLocationList(generics.ListAPIView):
@@ -64,7 +86,7 @@ class AssetLocationList(generics.ListAPIView):
     serializer_class = AssetLocationSerializer
     # Only authenticated users can access this view
     permission_classes = (permissions.IsAuthenticated,)
-    filter_fields = ('project', 'latitude')
+    filter_class = AssetFilter
 
 
 class AssetLocationDetail(generics.RetrieveUpdateAPIView):
@@ -97,11 +119,46 @@ class EventList(generics.ListAPIView):
     filter_class = EventFilter
 
 
+class SessionFilter(django_filters.FilterSet):
+    client_type__contains = django_filters.CharFilter(name='client_type', lookup_type='contains')
+    client_system__contains = django_filters.CharFilter(name='client_system', lookup_type='contains')
+
+    starttime__gte = django_filters.DateTimeFilter(name='starttime', lookup_type='gte')
+    starttime__lte = django_filters.DateTimeFilter(name='starttime', lookup_type='lte')
+    starttime__range = django_filters.DateRangeFilter(name='starttime')
+    class Meta:
+        model = Session
+        fields = ['client_type',
+                  'client_system',
+                  'starttime',
+                  'demo_stream_enabled',
+                  'project',
+                  'language',
+                  ]
+
+
 class SessionList(generics.ListAPIView):
     queryset = Session.objects.all()
     serializer_class = SessionSerializer
+    filter_class = SessionFilter
+
+
+class ListeningHistoryItemFilter(django_filters.FilterSet):
+    duration__lte = django_filters.NumberFilter('duration', lookup_type='lte')
+    duration__gte = django_filters.NumberFilter('duration', lookup_type='gte')
+
+    starttime__gte = django_filters.DateTimeFilter(name='starttime', lookup_type='gte')
+    starttime__lte = django_filters.DateTimeFilter(name='starttime', lookup_type='lte')
+    starttime__range = django_filters.DateRangeFilter(name='starttime')
+    class Meta:
+        model = ListeningHistoryItem
+        fields = ['starttime',
+                  'session',
+                  'asset',
+                  ]
 
 
 class ListeningHistoryItemList(generics.ListAPIView):
     queryset = ListeningHistoryItem.objects.all()
     serializer_class = ListeningHistoryItemAssetSerializer
+    filter_class = ListeningHistoryItemFilter
