@@ -8,7 +8,7 @@ sidebar_current: "api-get-tags"
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=get_tags&project_id=1&session_id=1234
+http://localhost:8888/api/1/?operation=get_tags&project_id=1&session_id=1234
 ```
 
 This is typically the second command a Roundware client sends to the Roundware server.

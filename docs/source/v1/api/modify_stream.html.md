@@ -14,7 +14,7 @@ Roundware playback is based on tag categories.  Each asset in a project should b
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=modify_stream&session_id=1&latitude=1&longitude=1&tags=1,2,3
+http://localhost:8888/api/1/?operation=modify_stream&session_id=1&latitude=1&longitude=1&tags=1,2,3
 ```
 
 ## Parameters (some optional*):

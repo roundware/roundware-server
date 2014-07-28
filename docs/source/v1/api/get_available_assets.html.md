@@ -12,7 +12,7 @@ of optional filtering parameters available.
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=get_available_assets&project_id=3&tagids=26,36&tagbool=and&latitude=47.654139&longitude=-122.335914&radius=500
+http://localhost:8888/api/1/?operation=get_available_assets&project_id=3&tagids=26,36&tagbool=and&latitude=47.654139&longitude=-122.335914&radius=500
 ```
 
 ## Parameters (some optional*):

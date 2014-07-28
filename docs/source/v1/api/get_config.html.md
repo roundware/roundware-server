@@ -8,7 +8,7 @@ sidebar_current: "api-get-config"
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=get_config&project_id=1
+http://localhost:8888/api/1/?operation=get_config&project_id=1
 ```
 
 This is typically the first command a Roundware client sends to the Roundware server.

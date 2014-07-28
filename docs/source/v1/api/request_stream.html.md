@@ -11,7 +11,7 @@ and project audio settings (speakers and audiotracks).
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=request_stream&session_id=1&latitude=1&longitude=1&tags=1,2,3
+http://localhost:8888/api/1/?operation=request_stream&session_id=1&latitude=1&longitude=1&tags=1,2,3
 ```
 
 ## Parameters (some optional*):

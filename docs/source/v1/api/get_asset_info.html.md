@@ -11,7 +11,7 @@ and has been in large part replaced by other API calls and the TastyPie REST API
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=get_asset_info&session_id=1&asset_id=234
+http://localhost:8888/api/1/?operation=get_asset_info&session_id=1&asset_id=234
 ```
 
 ## Parameters (some optional*):

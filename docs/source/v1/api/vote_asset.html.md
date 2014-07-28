@@ -11,7 +11,7 @@ are to allow users to "like" an asset or "flag" an asset for review.
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=vote_asset&asset_id=234&session_id=1&vote_type=like
+http://localhost:8888/api/1/?operation=vote_asset&asset_id=234&session_id=1&vote_type=like
 ```
 
 ## Parameters (some optional*):

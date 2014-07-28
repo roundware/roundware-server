@@ -12,7 +12,7 @@ to.
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=skip_ahead&session_id=1
+http://localhost:8888/api/1/?operation=skip_ahead&session_id=1
 ```
 
 ## Parameters (some optional*):

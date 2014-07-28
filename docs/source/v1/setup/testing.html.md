@@ -13,18 +13,18 @@ If you see the expected JSON responses, that is a very good sign.  If not, you'l
 ## Project verification
 
 ```
-http://localhost/roundware/?&operation=get_config&project_id=1
+http://localhost:8888/api/1/?&operation=get_config&project_id=1
 ```
 
 ## Tag verification
 
 ```
-http://localhost/roundware/?&operation=get_tags&project_id=1
+http://localhost:8888/api/1/?&operation=get_tags&project_id=1
 ```
 
 ## Stream generation verification
 
 ```
-http://localhost/roundware/?&operation=request_stream&session_id=1234&latitude=1.0&longitude=2.0&tags=1,2,3
+http://localhost:8888/api/1/?&operation=request_stream&session_id=1234&latitude=1.0&longitude=2.0&tags=1,2,3
 ```
 Make sure that you can actually listen to the stream_url returned and that it contains the speaker audio as well as any audio assets expected.

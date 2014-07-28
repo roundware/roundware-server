@@ -7,26 +7,26 @@ sidebar_current: "installation-testing"
 
 ## Overview
 
-After you have installed Roundware, you can run some API calls to test behavior.  A default database is included in the base install so that you will have a fully-functional system with a test project in place immediately.  This test project will also serve as an example for the setup of future projects.
+After you have installed Roundware, you can run some API calls to test behaviour.  A default database is included in the base install so that you will have a fully-functional system with a test project in place immediately.  This test project will also serve as an example for the setup of future projects.
 
 The following API calls will mimic a series of requests that will happen during a typical client session.  Port 8888 will access the python runserver instance and port 8080 the standard running instance.
 
 ### get_config
 
 ```
-http://localhost:8888/roundware?operation=get_config&project_id=1
+http://localhost:8888/api/1?operation=get_config&project_id=1
 ```
 
 ### get_tags
 
 ```
-http://localhost:8888/roundware?operation=get_tags&project_id=1
+http://localhost:8888/api/1?operation=get_tags&project_id=1
 ```
 
 ### request_stream
 
 ```
-http://localhost:8888/roundware?operation=request_stream&session_id=1&latitude=1&longitude=1
+http://localhost:8888/api/1?operation=request_stream&session_id=1&latitude=1&longitude=1
 ```
 
 Expected response:
@@ -44,13 +44,13 @@ You can listen to the stream in a browser to make sure it is playing back proper
 First modify the stream with all available tags within range of the speaker:
 
 ```
-http://localhost:8888/roundware?operation=modify_stream&session_id=1&tags=3,4,5,8,9,22
+http://localhost:8888/api/1?operation=modify_stream&session_id=1&tags=3,4,5,8,9,22
 ```
 
 The test asset will play in the stream again, but if you modify the stream without one of the tags assigned to the test asset, the asset will not be played again:
 
 ```
-http://localhost:8888/roundware?operation=modify_stream&session_id=1&tags=4,5,8,9,22
+http://localhost:8888/api/1?operation=modify_stream&session_id=1&tags=4,5,8,9,22
 ```
 
 ### move_listener
@@ -58,13 +58,13 @@ http://localhost:8888/roundware?operation=modify_stream&session_id=1&tags=4,5,8,
 If you move the listener outside of the range of the speaker, the stream will fade out:
 
 ```
-http://localhost:8888/roundware?operation=move_listener&session_id=1&latitude=5&longitude=5
+http://localhost:8888/api/1?operation=move_listener&session_id=1&latitude=5&longitude=5
 ```
 
-And when you move the listener back wtihin range, the speaker stream will fade back in and the test asset will play again:
+And when you move the listener back within range, the speaker stream will fade back in and the test asset will play again:
 
 ```
-http://localhost:8888/roundware?operation=move_listener&session_id=1&latitude=1&longitude=1
+http://localhost:8888/api/1?operation=move_listener&session_id=1&latitude=1&longitude=1
 ```
 
 ### create_envelope
@@ -72,7 +72,7 @@ http://localhost:8888/roundware?operation=move_listener&session_id=1&latitude=1&
 In order to upload an asset from a client, you must first create a new envelope to add the asset to:
 
 ```
-http://localhost/roundware/?operation=create_envelope&session_id=1
+http://localhost:8888/api/1/?operation=create_envelope&session_id=1
 ```
 
 Expected response:
@@ -88,7 +88,7 @@ Expected response:
 With an envelope in hand, you can upload a file and add it to the envelope:
 
 ```
-http://localhost:8888/roundware?operation=add_asset_to_envelope&envelope_id=2&latitude=1&longitude=1&tags=3,5,8&mediatype=audio
+http://localhost:8888/api/1?operation=add_asset_to_envelope&envelope_id=2&latitude=1&longitude=1&tags=3,5,8&mediatype=audio
 ```
 The audio file itself must be included in a POST part of this request.
 
