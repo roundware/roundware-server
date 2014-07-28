@@ -33,14 +33,10 @@ from django.conf.urls import patterns, url
 from django.conf.urls.static import static
 
 from django.conf.urls import include
-
 from django.contrib import admin
-from tastypie.api import Api
-from roundware.rw.api import AssetResource, SessionResource, EventResource, ProjectResource, ListeningHistoryItemResource, AssetLocationResource
 
 # Import V1 DRF API
 from roundware.rw import views_api1
-
 from adminplus.sites import AdminSitePlus
 from ajax_filtered_fields.views import json_index
 
@@ -48,14 +44,6 @@ from roundware.rw import urls as rw_urls
 
 admin.site = AdminSitePlus()
 admin.autodiscover()
-
-v1_api = Api(api_name='v1')
-v1_api.register(AssetResource())
-v1_api.register(AssetLocationResource())
-v1_api.register(ProjectResource())
-v1_api.register(EventResource())
-v1_api.register(SessionResource())
-v1_api.register(ListeningHistoryItemResource())
 
 urlpatterns = patterns(
     '',
@@ -83,8 +71,6 @@ urlpatterns = patterns(
     url(r'^api/1/rest/listeninghistoryitem/$',
         views_api1.ListeningHistoryItemList.as_view(),
         name='api1-listeninghistoryitem'),
-    # V1 TastyPie REST API in old location
-    url(r'^roundware/api/', include(v1_api.urls)),
 
     # use admin login as overall login
     url(r'^accounts/login/$', 'django.contrib.auth.views.login',
