@@ -239,7 +239,7 @@ class TestServer(RoundwaredTestCase):
         op = 'get_available_assets'
         req_dict = {'asset_id': '1,2', 'project_id': '2', 'tagids': '2,3'}
         f_set = urlencode(req_dict)
-        req_str = '/roundware?operation={0}&{1}'.format(op, f_set)
+        req_str = '/api/1?operation={0}&{1}'.format(op, f_set)
         response = cl.get(req_str)
         self.assertEquals(200, response.status_code)
         js = json.loads(response.content)
@@ -261,7 +261,7 @@ class TestServer(RoundwaredTestCase):
         req_dict = {'operation': 'get_available_assets',
                     'asset_id': '1,2', 'project_id': '2', 'tagids': '2,3'}
         # f_set = cl.encode_multipart(req_dict)
-        response = cl.post('/roundware/', req_dict)
+        response = cl.post('/api/1/', req_dict)
         self.assertEquals(200, response.status_code)
         js = json.loads(response.content)
         self.assertEqual(2, js['number_of_assets']['audio'])
@@ -505,7 +505,7 @@ class TestServer(RoundwaredTestCase):
         op = 'get_available_assets'
         req_dict = {'project_id': '12', 'audiolength': '5000000'}
         f_set = urlencode(req_dict)
-        req_str = '/roundware?operation={0}&{1}'.format(op, f_set)
+        req_str = '/api/1?operation={0}&{1}'.format(op, f_set)
         response = cl.get(req_str)
         self.assertEquals(200, response.status_code)
         js = json.loads(response.content)
@@ -552,7 +552,7 @@ class TestServer(RoundwaredTestCase):
         op = 'get_available_assets'
         req_dict = {'asset_id': '2', 'foo': 'bar'}
         f_set = urlencode(req_dict)
-        req_str = '/roundware?operation={0}&{1}'.format(op, f_set)
+        req_str = '/api/1?operation={0}&{1}'.format(op, f_set)
         response = cl.get(req_str)
         self.assertEquals(200, response.status_code)
         js = json.loads(response.content)
@@ -585,7 +585,7 @@ class TestServer(RoundwaredTestCase):
         req_dict = {'project_id': '12', 'audiolength': '5000000',
                     'volume': '1.0', }
         f_set = urlencode(req_dict)
-        req_str = '/roundware?operation={0}&{1}'.format(op, f_set)
+        req_str = '/api/1?operation={0}&{1}'.format(op, f_set)
         response = cl.get(req_str)
         self.assertEquals(200, response.status_code)
         js = json.loads(response.content)

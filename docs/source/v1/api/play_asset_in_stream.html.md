@@ -14,7 +14,7 @@ the new one is played thereafter.
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=play_asset_in_stream&session_id=1&asset_id=32&delay=1000
+http://localhost:8888/api/1/?operation=play_asset_in_stream&session_id=1&asset_id=32&delay=1000
 ```
 
 ## Parameters (some optional*):

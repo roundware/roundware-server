@@ -26,16 +26,44 @@
 
 
 from __future__ import unicode_literals
-import json
-from django.core.serializers.json import DjangoJSONEncoder
-from tastypie.serializers import Serializer
+from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
+from rest_framework import serializers
+
+class AssetSerializer(serializers.ModelSerializer):
+    audiolength_in_seconds = serializers.FloatField()
+    class Meta:
+        model = Asset
 
 
-class PrettyJSONSerializer(Serializer):
-    json_indent = 2
+class AssetLocationSerializer(serializers.ModelSerializer):
+    resource_uri = serializers.HyperlinkedIdentityField(view_name='api1-assetlocation-detail')
+    class Meta:
+        model = Asset
+        fields = ('project',
+                  'latitude',
+                  'longitude',
+                  'id',
+                  'filename',
+                  'description',
+                  'resource_uri')
 
-    def to_json(self, data, options=None):
-        options = options or {}
-        data = self.to_simple(data, options)
-        return json.dumps(data, cls=DjangoJSONEncoder,
-                          sort_keys=True, ensure_ascii=False, indent=self.json_indent)
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+
+
+class SessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Session
+
+
+class ListeningHistoryItemAssetSerializer(serializers.ModelSerializer):
+    duration_in_seconds = serializers.FloatField()
+    class Meta:
+        model = ListeningHistoryItem

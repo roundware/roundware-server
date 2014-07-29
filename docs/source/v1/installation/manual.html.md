@@ -252,10 +252,10 @@ You should also go over the other parameters in the config just to make sure the
 Here are some simple browser tests to see if your Roundware installation is functioning properly (substitute your RW server url):
 
 ```
-http://your.roundware.host/roundware/?operation=get_config&project_id=1
-http://your.roundware.host/roundware/?operation=get_tags&session_id=2891
-http://your.roundware.host/roundware/?operation=request_stream&session_id=2891
-http://your.roundware.host/roundware/?operation=modify_stream&session_id=2892&tags=3,5,8
+http://localhost:8888/api/1/?operation=get_config&project_id=1
+http://localhost:8888/api/1/?operation=get_tags&session_id=2891
+http://localhost:8888/api/1/?operation=request_stream&session_id=2891
+http://localhost:8888/api/1/?operation=modify_stream&session_id=2892&tags=3,5,8
 ```
 
 The first two should return JSON objects containing information about your Roundware project.  The second two will create and then modify an audio stream.  You can verify stream creation in the Icecast admin, but of course, the true verification is by listening which can be done in iTunes or in certain browsers.
@@ -264,16 +264,5 @@ To run unit and functional tests and see test coverage, you will need the develo
 To run tests and get a report of test coverage:
 
 ```
-user@machine ~/roundware-server/coverage.sh
+user@machine ~/roundware-server/test.sh
 ```
-
-
-
-<!-- <div class="alert alert-info">
-	<h3>Gem Install?</h3>
-	<p>
-		Vagrant 1.0.x had the option to be installed as a
-		<a href="http://en.wikipedia.org/wiki/RubyGems">RubyGem</a>. This
-		installation method has been removed for installers and packages only.
-	</p>
-</div> -->

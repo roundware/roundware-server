@@ -6,12 +6,12 @@ sidebar_current: "api-get-asset-info"
 # get\_asset\_info
 
 Returns useful info about a particular asset.  Originally developed to assist with asset voting
-and has been in large part replaced by other API calls and the TastyPie REST API.
+and has been in large part replaced by other API calls and the REST API.
 
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=get_asset_info&session_id=1&asset_id=234
+http://localhost:8888/api/1/?operation=get_asset_info&session_id=1&asset_id=234
 ```
 
 ## Parameters (some optional*):

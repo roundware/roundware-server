@@ -41,8 +41,6 @@ from datetime import datetime, date, timedelta
 from cache_utils.decorators import cached
 from roundwared.gpsmixer import distance_in_meters
 
-import json
-
 import logging
 logger = logging.getLogger(__name__)
 

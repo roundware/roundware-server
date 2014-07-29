@@ -15,7 +15,7 @@ pauses the audio stream.
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=heartbeat&session_id=1
+http://localhost:8888/api/1/?operation=heartbeat&session_id=1
 ```
 
 ## Parameters (some optional*):

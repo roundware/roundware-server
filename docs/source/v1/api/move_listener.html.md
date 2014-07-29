@@ -16,7 +16,7 @@ Upon receiving the new location, the server performs two tasks:
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=move_listener&session_id=1&latitude=1&longitude=1
+http://localhost:8888/api/1/?operation=move_listener&session_id=1&latitude=1&longitude=1
 ```
 
 ## Parameters:

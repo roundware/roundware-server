@@ -11,10 +11,10 @@ Roundware provides a set of web service APIs to support location-based listening
 
 * Apache Server: fields all incoming web requests and passes them to a running Roundware server via FCGI.
 * Roundware:
- * `roundware` python module: built on Django, the roundware python module fields all incoming requests and provides data administration functionality.
- * `roundwared` python module: the ‘low-level’ roundware protocol implementation, the roundwared module provides the nuts and bolts of stream creation, dbus interaction and database interaction.
-* dbus: a message bus system which is a standard part of the linux kernel.
-* mysql: data store, exposed through the roundware python module via Django.
+ * `roundware` Python module: built on Django, the Roundware python module fields all incoming requests and provides data administration functionality.
+ * `roundwared` Python module: the low-level Roundware protocol implementation, the roundwared module provides the nuts and bolts of stream creation, dbus interaction and database interaction.
+* dbus: a message bus system which is a standard part of the Linux kernel.
+* mysql: data store, exposed through the Roundware python module via Django.
 * icecast: open-source audio streaming software used by most internet radio stations among other things
 
 ## Diagram
@@ -27,7 +27,7 @@ To illustrate interaction with the pieces mentioned above, we’ll narrate throu
 
 1. An incoming request stream call is marshaled from roundware to roundwared.  Roundwared looks up some session-specific data, then forks a process and starts the streamscript.
 2. Streamscript constantly streams audio to icecast, which provides an outgoing stream to an individual listener. At the same time, streamscript receives incoming messages from roundware/roundwared over dbus to update location and listener preferences, which are reflected dynamically in the outgoing stream.
-3. An incoming modify stream call is marshaled from roundware to roundwared, which here includes new location information (lat, lon) for a listener.  The streamscript instance for this particular listener (identified by session_id) is sent the updated location info via a dbus message, at which point the content streamed to icecast is modified according to the updated location.
+3. An incoming modify stream call is marshalled from roundware to roundwared, which here includes new location information (lat, lon) for a listener.  The streamscript instance for this particular listener (identified by session_id) is sent the updated location info via a dbus message, at which point the content streamed to icecast is modified according to the updated location.
 
 ## Further Explanation
 

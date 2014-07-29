@@ -14,7 +14,7 @@ In addition to `log_event` calls, events can be logged directly by the server as
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=log_event&session_id=1&event_type=modify_stream&latitude=1&longitude=1&tags=1,2,3
+http://localhost:8888/api/1/?operation=log_event&session_id=1&event_type=modify_stream&latitude=1&longitude=1&tags=1,2,3
 ```
 
 ## Parameters (some optional*):

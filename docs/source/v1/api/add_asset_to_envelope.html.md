@@ -14,7 +14,7 @@ in `rw_asset.audiolength`.
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=add_asset_to_envelope&envelope_id=1&latitude=23.3456&longitude=-88.3456&tags=153,157&mediatype=photo
+http://localhost:8888/api/1/?operation=add_asset_to_envelope&envelope_id=1&latitude=23.3456&longitude=-88.3456&tags=153,157&mediatype=photo
 ```
 
 ## Parameters (some optional*):

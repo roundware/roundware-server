@@ -23,16 +23,5 @@ Notes:
    * VM:80->host:8080 for Apache hosting the demo "live" environment available at http://127.0.0.1:8080/
    * VM:8888->host:8888 for the manage.py runserver development webserver available at http://127.0.0.1:8888/
    * VM:8000->host:8000 for Icecast.
- * Initialize the test Roundware stream at: http://127.0.0.1:8888/roundware/?operation=request_stream&session_id=2891 then access it with an audio stream player at: http://127.0.0.1:8000/stream2891.mp3
+ * Initialize the test Roundware stream at: http://127.0.0.1:8888/api/1/?operation=request_stream&session_id=2891 then access it with an audio stream player at: http://127.0.0.1:8000/stream2891.mp3
  * Edit the development environment code on your local machine, then refresh to see the changes reflected in the virtual machine.
-
-
-
-<!-- <div class="alert alert-info">
-	<h3>Gem Install?</h3>
-	<p>
-		Vagrant 1.0.x had the option to be installed as a
-		<a href="http://en.wikipedia.org/wiki/RubyGems">RubyGem</a>. This
-		installation method has been removed for installers and packages only.
-	</p>
-</div> -->

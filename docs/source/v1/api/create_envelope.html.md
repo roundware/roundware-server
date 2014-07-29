@@ -10,7 +10,7 @@ Creates an entry in the envelope table in the db for an asset that is going to b
 **Example Call:**
 
 ```
-http://rw.roundware.org/roundware/?operation=create_envelope&session_id=1
+http://localhost:8888/api/1/?operation=create_envelope&session_id=1
 ```
 
 ## Parameters:

@@ -1,5 +1,11 @@
 from __future__ import unicode_literals
 import os
+# Patch datetime field parser to support ISO 8601 Date/Time strings.
+# More details here: https://github.com/tomchristie/django-rest-framework/issues/1338
+from dateutil import parser
+from django.forms import fields
+fields.DateTimeField.strptime = lambda o, v, f: parser.parse(v)
+
 
 DEBUG = False
 TEMPLATE_DEBUG = False
@@ -226,8 +232,6 @@ INSTALLED_APPS = (
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
     'django.contrib.admin',
-    # 'django.contrib.admindocs',
-
     'guardian',
     'chartit',
     'roundware.notifications',
@@ -238,8 +242,13 @@ INSTALLED_APPS = (
     'floppyforms',
     'djangoformsetjs',
     'sortedm2m',
-    'tastypie',
+    'rest_framework',
 )
+
+REST_FRAMEWORK = {
+    'PAGINATE_BY': 20,
+    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
+}
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
