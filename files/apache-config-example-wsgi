@@ -20,6 +20,11 @@
   Alias /static /var/www/roundware/static
   Alias /rwmedia /var/www/roundware/rwmedia
 
+  # Rewrite/Redirect from old Roundware API paths to new V1 /api/1 path. Delete when V1 API is removed.
+  RewriteEngine on
+  RewriteRule ^/roundware/api/v1/(.+)$ /api/1/rest/$1 [R]
+  RewriteRule ^/roundware/?(.+) /api/1$1 [R]
+
   ErrorLog /var/log/apache2/error.log
 
   # Possible values include: debug, info, notice, warn, error, crit,
