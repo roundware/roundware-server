@@ -1,0 +1,8 @@
+Roundware Server authors ordered by first contribution.
+
+Halsey Burgund <http://halseyburgund.com/>
+Mike MacHenry 
+Ben McAllister
+Jule Slootbeek
+Bryan Wilson
+Brad Erickson <eosrei@gmail.com>
