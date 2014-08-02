@@ -688,7 +688,8 @@ def get_parameter_from_request(request, name, required):
 def request_stream(request):
 
     request_form = request.GET
-    hostname_without_port = settings.EXTERNAL_HOST_NAME_WITHOUT_PORT
+    # Get the value 'example.com' from the host 'example.com:8888'
+    http_host = request.get_host().split(':')[0]
 
     db.log_event(
         "request_stream", int(request_form['session_id']), request_form)
@@ -711,7 +712,7 @@ def request_stream(request):
         if project.demo_stream_url:
             url = project.demo_stream_url
         else:
-            url = "http://" + hostname_without_port + ":" + \
+            url = "http://" + http_host + ":" + \
                   str(settings.ICECAST_PORT) + \
                   "/demo_stream.mp3"
 
@@ -738,7 +739,7 @@ def request_stream(request):
             wait_for_stream(session.id, audio_format)
 
         return {
-            "stream_url": "http://" + hostname_without_port + ":" +
+            "stream_url": "http://" + http_host + ":" +
             str(settings.ICECAST_PORT) +
             icecast_mount_point(session.id, audio_format),
         }

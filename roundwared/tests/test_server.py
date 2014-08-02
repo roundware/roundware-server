@@ -37,7 +37,6 @@ def mock_stream_exists(sessionid, audio_format):
 
 
 @patch.object(settings, 'ICECAST_PORT', 8000)
-@patch.object(settings, 'EXTERNAL_HOST_NAME_WITHOUT_PORT', 'rw.com')
 @patch.object(settings, 'ICECAST_HOST', 'rw.com')
 @patch.object(settings, 'AUDIO_FILE_URI', '/audio/')
 @patch.object(server, 'apache_safe_daemon_subprocess',

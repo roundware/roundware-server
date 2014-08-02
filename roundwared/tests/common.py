@@ -19,6 +19,9 @@ class FakeRequest(object):
     def __init__(self):
         self.GET = {}
 
+    def get_host(self):
+        return 'rw.com'
+
 
 def mock_distance_in_meters_near(l_lat, l_long, rec_lat, rec_long):
     return 1

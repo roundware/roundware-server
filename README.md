@@ -151,10 +151,10 @@ All Roundware specific settings are stored in roundware/settings/common.py
 
 Here are some simple browser tests to see if your Roundware installation is functioning properly (substitute your RW server url):
 
-    http://localhost:8888/api/1/rest/?operation=get_config&project_id=1
-    http://localhost:8888/api/1/rest/?operation=get_tags&session_id=1
-    http://localhost:8888/api/1/rest/?operation=request_stream&session_id=1
-    http://localhost:8888/api/1/rest/?operation=modify_stream&session_id=1
+    http://localhost:8888/api/1/?operation=get_config&project_id=1
+    http://localhost:8888/api/1/?operation=get_tags&session_id=1
+    http://localhost:8888/api/1/?operation=request_stream&session_id=1
+    http://localhost:8888/api/1/?operation=modify_stream&session_id=1
 
 The first two should return JSON objects containing information about your Roundware project. The second two will create and then modify an audio stream. You can verify stream creation in the Icecast admin, but of course, the true verification is by listening.
 
