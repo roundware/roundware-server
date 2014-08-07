@@ -129,12 +129,16 @@ class RoundStream:
         self.heartbeat()
         self.request = request
         self.listener = request
-        self.refresh_recordings()
-        logger.info("Stream modification: Going to play: "
-                    + ",".join(self.recordingCollection.get_filenames())
-                    + " Total of "
-                    + str(len(self.recordingCollection.get_filenames()))
-                    + " files.")
+        # only refresh recordings if tags are present and not blank in request
+        # NOT if only lat/lon are present; this prevents refresh_recordings from
+        # happening on modify_streams that have only location changes
+        if "tags" in self.request and self.request["tags"]:
+            self.refresh_recordings()
+        logging.info("Stream modification: Going to play: " \
+            + ",".join(self.recordingCollection.get_filenames()) \
+            + " Total of " \
+            + str(len(self.recordingCollection.get_filenames()))
+            + " files.")
         self.move_listener(request)
         return True
 
