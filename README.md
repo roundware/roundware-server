@@ -30,13 +30,20 @@ A VagrantFile is included for local development and testing with [Vagrant](http:
 Notes:
 
  * The installation process uses the default *vagrant* user as project owner.
- * The install script relies on the Vagrant default fileshare of host:~/roundware-server to vm:/vagrant for installation and development.
+ * The install script relies on the Vagrant default file share of host:~/roundware-server to vm:/vagrant for installation and development.
  * There are multiple port forwards from the host to the VM:
    * VM:80->host:8080 for Apache hosting the demo "live" environment available at http://127.0.0.1:8080/
    * VM:8888->host:8888 for the manage.py runserver development webserver available at http://127.0.0.1:8888/
    * VM:8000->host:8000 for Icecast.
  * Initialize the test Roundware stream at: http://127.0.0.1:8888/api/1/?operation=request_stream&session_id=1 then access it with an audio stream player at: http://127.0.0.1:8000/stream1.mp3
  * Edit the development environment code on your local machine, then refresh to see the changes reflected in the virtual machine.
+
+## Code Upgrades
+
+`deploy.sh` exists to update the Apache WSGI production code. Note: It fully replaces any code in */var/www/roundware/static/*. So, for example, customizations to *roundware/rw/settings/common.py* must be done to the code base the `deploy.sh` script is run from. To perform a code upgrade:
+
+    user@server:~/roundware-server $ git pull
+    user@server:~/roundware-server $ sudo ./deploy.sh
 
 ## Icecast
 

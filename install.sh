@@ -57,12 +57,6 @@ if [ ! "$FOUND_VAGRANT" = true ]; then
   fi
 fi
 
-# Install/Update the production code
-# TODO: Better deployment method.
-rm -rf $CODE_PATH
-mkdir -p $CODE_PATH
-cp -R $SOURCE_PATH/. $CODE_PATH
-
 # Replace the user's .profile
 cp $SOURCE_PATH/files/home-user-profile /home/$USERNAME/.profile
 
@@ -73,7 +67,6 @@ chown $USERNAME:$USERNAME /home/$USERNAME/runserver.sh
 
 # Create a symbolic link to the main roundware directory
 ln -sfn $WWW_PATH /home/$USERNAME/www
-
 
 # Install python-software-properties to add add-apt-repository
 DEBIAN_FRONTEND=noninteractive apt-get install -y  python-software-properties
@@ -106,12 +99,6 @@ source $VENV_PATH/bin/activate
 # Set python path to use production code
 export PYTHONPATH=$CODE_PATH
 
-# Install upgrade pip
-pip install -U pip
-
-# Install RoundWare requirements
-pip install -r $CODE_PATH/requirements.txt
-
 # Setup MySQL database
 echo "create database IF NOT EXISTS roundware;" | mysql -uroot -p$MYSQL_ROOT
 echo "grant all privileges on roundware.* to 'round'@'localhost' identified by 'round';" | mysql -uroot -p$MYSQL_ROOT
@@ -119,27 +106,26 @@ echo "grant all privileges on roundware.* to 'round'@'localhost' identified by '
 # File/directory configurations
 mkdir -p $MEDIA_PATH
 mkdir -p $STATIC_PATH
+
+# copy test audio file to media storage
+cp $SOURCE_PATH/files/rw_test_audio1.wav $MEDIA_PATH
+
+# Run the production upgrade/deployment script
+$SOURCE_PATH/deploy.sh
+
 # Setup roundware log and logrotate
 touch /var/log/roundware
 chown $USERNAME:$USERNAME /var/log/roundware
 sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-logrotate-d-roundware > /etc/logrotate.d/roundware
-# copy test audio file to media storage
-cp $CODE_PATH/files/rw_test_audio1.wav $MEDIA_PATH
 # install correct shout2send gstreamer plugin
 mv /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so.old
 cp $CODE_PATH/files/64-bit/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so
 
-# Install Roundware
-$CODE_PATH/roundware/manage.py collectstatic --noinput
-
 # Set $USERNAME to own all files
 chown $USERNAME:$USERNAME -R $HOME_PATH
-chown $USERNAME:$USERNAME -R $WWW_PATH
 
 # Initialize database with syncdb and default_auth_data.json
-$CODE_PATH/roundware/manage.py syncdb --noinput
 $CODE_PATH/roundware/manage.py loaddata $CODE_PATH/roundware/fixtures/default_auth_data.json
-$CODE_PATH/roundware/manage.py migrate
 mysql -uroot -p$MYSQL_ROOT roundware < $CODE_PATH/files/rw_base.sql
 
 # Setup apache
@@ -160,4 +146,4 @@ cp $CODE_PATH/files/etc-default-icecast2 /etc/default/icecast2
 cp $CODE_PATH/files/etc-icecast2-icecast.xml /etc/icecast2/icecast.xml
 service icecast2 restart
 
-echo "Done!"
+echo "Install Complete"
