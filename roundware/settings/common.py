@@ -30,7 +30,6 @@ ROUNDWARE_SERVER_ROOT = here("../..")
 # folder(s) we pass it starting at the roundware-server root
 root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
-# TODO - Reduce number of audio/media file directories listed.
 # Roundwared & rwstreamd.py settings - Previously in /etc/roundware/rw
 ICECAST_PORT = "8000"
 ICECAST_HOST = "localhost"
@@ -38,10 +37,6 @@ ICECAST_USERNAME = "admin"
 ICECAST_PASSWORD = "roundice"
 ICECAST_SOURCE_USERNAME = "source"
 ICECAST_SOURCE_PASSWORD = "roundice"
-# Default location for participant audio
-AUDIO_DIR = "/var/www/roundware/rwmedia"
-# Default location for incoming participant audio
-UPLOAD_DIR = "/var/www/roundware/rwmedia"
 # Discrete steps
 NUM_PAN_STEPS = 200
 # In milliseconds
@@ -53,26 +48,9 @@ HEARTBEAT_TIMEOUT = 200
 # Radius in meters - default system wide setting
 RECORDING_RADIUS = 1
 DEMO_STREAM_CPU_LIMIT = 50.0
-# End Roundwared & rwstreamd.py settings
-
-# url base for media files
-MEDIA_BASE_URI = "/rwmedia/"
-# external url where audio files can be accessed
-AUDIO_FILE_URI = MEDIA_BASE_URI  # + "audio"
-# external url where video files can be accessed
-VIDEO_FILE_URI = AUDIO_FILE_URI  # MEDIA_BASE_URI + "video"
-# external url where image files can be accessed
-IMAGE_FILE_URI = AUDIO_FILE_URI  # MEDIA_BASE_URI + "img"
-
-MEDIA_ROOT = ''
-MEDIA_BASE_DIR = "/var/www/roundware/rwmedia/"
-# internal path name to media file directories
-AUDIO_FILE_DIR = MEDIA_BASE_DIR  # + "audio"
-VIDEO_FILE_DIR = MEDIA_BASE_DIR  # + "video"
-IMAGE_FILE_DIR = MEDIA_BASE_DIR  # + "img"
 
 ALLOWED_AUDIO_MIME_TYPES = ['audio/x-wav', 'audio/wav',
-                            'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',  'audio/mp3', ]
+                            'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf', 'audio/mp3', ]
 ALLOWED_IMAGE_MIME_TYPES = [
     'image/jpeg', 'image/gif', 'image/png', 'image/pjpeg', ]
 ALLOWED_TEXT_MIME_TYPES = ['text/plain', 'text/html', 'application/xml', ]
@@ -149,7 +127,7 @@ USE_L10N = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = '/var/www/roundware/rwmedia'
+MEDIA_ROOT = '/var/www/roundware/rwmedia/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -201,7 +179,7 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
@@ -212,7 +190,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    #os.path.join(PROJECT_PATH, 'templates')
+    # os.path.join(PROJECT_PATH, 'templates')
     PROJECT_PATH + '/../templates',
     PROJECT_PATH + '/../rw/templates/rw',
 )

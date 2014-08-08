@@ -36,7 +36,7 @@ from roundwared import roundexception
 # Handles files of various formats depending on the file extension.
 def convert_uploaded_file(filename):
     (filename_prefix, filename_extension) = os.path.splitext(filename)
-    upload_dir = get_upload_directory(filename_extension)
+    upload_dir = settings.MEDIA_ROOT
     filepath = os.path.join(upload_dir, filename)
     if not os.path.exists(filepath):
         raise roundexception.RoundException(
@@ -45,7 +45,7 @@ def convert_uploaded_file(filename):
         convert_audio_file(
             upload_dir, filename_prefix, filename_extension, 'wav')
         convert_audio_file(
-            settings.AUDIO_DIR, filename_prefix, '.wav', 'mp3')
+            settings.MEDIA_ROOT, filename_prefix, '.wav', 'mp3')
         return filename_prefix + '.wav'
     else:
         convert_audio_file(
@@ -59,19 +59,14 @@ def convert_uploaded_file(filename):
 def convert_audio_file(upload_dir, filename_prefix, filename_extension, dst_type):
     filepath = os.path.join(upload_dir, filename_prefix + filename_extension)
     if filename_extension == "." + dst_type:
-        if not settings.AUDIO_DIR == upload_dir:
+        if not settings.MEDIA_ROOT == upload_dir:
             shutil.copyfile(
                 filepath,
-                os.path.join(settings.AUDIO_DIR, filename_prefix + filename_extension))
+                os.path.join(settings.MEDIA_ROOT, filename_prefix + filename_extension))
     else:
         if filename_extension == '.caf':
             os.system("/usr/bin/pacpl --to " + dst_type + " --outdir " +
-                      settings.AUDIO_DIR + " " + filepath + ">/dev/null")
-        else:  # if filename_extension in ffmpeg supported list
-            os.system("/usr/bin/ffmpeg -y -i " + filepath + " " + os.path.join(settings.AUDIO_DIR,
+                      settings.MEDIA_ROOT + " " + filepath + ">/dev/null")
+        else: # if filename_extension in ffmpeg supported list
+            os.system("/usr/bin/ffmpeg -y -i " + filepath + " " + os.path.join(settings.MEDIA_ROOT,
                       filename_prefix + "." + dst_type) + " >/dev/null 2>/dev/null")
-
-
-# Gets the directory the file is uploaded to by which extension it has.
-def get_upload_directory(filename_extension):
-    return settings.UPLOAD_DIR

@@ -57,7 +57,6 @@ class Composition:
 
     def __init__(self, parent, pipeline, adder, comp_settings, recordingColl):
         self.parent = parent
-        # logger.debug("---------Composition init")
         # logger.debug("---------Composition init: self.parent class: " + self.parent.__class__.__name__)
         # logger.debug("---------Composition init: self.parent.sessionid: " + str(self.parent.sessionid))
         self.pipeline = pipeline
@@ -158,7 +157,7 @@ class Composition:
                                 self.current_recording.filename, start, duration, fadein, fadeout, volume)
 
         self.roundfilesrc = roundfilesrc.RoundFileSrc(
-            "file://" + os.path.join(settings.AUDIO_DIR,
+            "file://" + os.path.join(settings.MEDIA_ROOT,
                                      self.current_recording.filename),
             start, duration, fadein, fadeout, volume)
         self.pipeline.add(self.roundfilesrc)

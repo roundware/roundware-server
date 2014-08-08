@@ -33,7 +33,7 @@ from roundwared import roundexception
 
 
 def discover_and_set_audiolength(recording, filename):
-    filepath = os.path.join(settings.AUDIO_DIR, filename)
+    filepath = os.path.join(settings.MEDIA_ROOT, filename)
 
     cmd = ['mediainfo', '--Inform=General;%Duration%', filepath]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

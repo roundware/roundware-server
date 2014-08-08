@@ -27,17 +27,15 @@
 
 from __future__ import unicode_literals
 from django.core.cache import cache
-cache  # pyflakes, make sure it is imported, for patching in tests
+cache # pyflakes, make sure it is imported, for patching in tests
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db import models, transaction
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
-from roundware.settings import MEDIA_BASE_URI
+
 from roundware.rw import fields
 from django.conf import settings
-from datetime import datetime, date, timedelta
+from datetime import datetime
 from cache_utils.decorators import cached
 from roundwared.gpsmixer import distance_in_meters
 
@@ -356,9 +354,9 @@ class Asset(models.Model):
     longitude = models.FloatField(null=True, blank=False)
     filename = models.CharField(max_length=256, null=True, blank=True)
     file = fields.RWValidatedFileField(storage=FileSystemStorage(
-        location=getattr(settings, "MEDIA_BASE_DIR"),
-        base_url=getattr(settings, "MEDIA_BASE_URI"),),
-        content_types=getattr(settings, "ALLOWED_MIME_TYPES"),
+        location=settings.MEDIA_ROOT,
+        base_url=settings.MEDIA_URL,),
+        content_types=settings.ALLOWED_AUDIO_MIME_TYPES,
         upload_to=".", help_text="Upload file")
     volume = models.FloatField(null=True, blank=True, default=1.0)
 
@@ -435,7 +433,7 @@ class Asset(models.Model):
     audio_player.allow_tags = True
 
     def image_display(self):
-        image_src = "%s%s" % (MEDIA_BASE_URI, self.filename)
+        image_src = "%s%s" % (settings.MEDIA_URL, self.filename)
         return """<div data-filename="%s" class="media-display image-file"><a href="%s" target="imagepop"
                ><img src="%s" alt="%s" title="%s"/></a></div>""" % (
             self.filename, image_src, image_src,
@@ -479,7 +477,7 @@ class Asset(models.Model):
     norm_audiolength.allow_tags = True
 
     def media_link_url(self):
-        return '<a href="%s%s" target="_new">%s</a>' % (MEDIA_BASE_URI, self.filename, self.filename)
+        return '<a href="%s%s" target="_new">%s</a>' % (settings.MEDIA_URL, self.filename, self.filename)
     media_link_url.allow_tags = True
 
     def get_tags(self):
