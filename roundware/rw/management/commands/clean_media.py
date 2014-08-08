@@ -4,7 +4,7 @@ import os
 
 class Command(RoundwareCommand):
     args = ''
-    help = 'Clean Roundware Media directory, optionally delete missing assets and unknown files.'
+    help = 'Clean Roundware Media directory by organizing mp3/wav into project_id subdirectories'
 
     def handle(self, *args, **options):
         self.stdout.write("Cleaning Roundware Media directory")
@@ -42,11 +42,19 @@ class Command(RoundwareCommand):
                 asset.file = new_filename
                 asset.filename = new_filename
 
-                # os.rename(old_filepath, new_filepath)
-                # Save *after* file move.
-                # asset.save()
-                # TODO: Committing as a test run for now.
-                self.stdout.write("TEST Moved: %s" % new_filename)
-                moved += 1
+                os.rename(old_filepath, new_filepath)
+                self.stdout.write("Moved: %s" % new_filepath)
 
-        self.stdout.write("TEST Moved %s files." % moved)
+                # Mpve the mp3 also.
+                # TODO: Remove this when all files are managed.
+                old_filepath = old_filepath.replace('wav', 'mp3')
+                new_filepath = new_filepath.replace('wav', 'mp3')
+                os.rename(old_filepath, new_filepath)
+                self.stdout.write("Moved: %s" % new_filepath)
+
+                # Save *after* file move.
+                asset.save()
+
+                moved += 2
+
+        self.stdout.write("Moved %s files." % moved)
