@@ -61,10 +61,12 @@ class RoundStream:
         logger.debug("Roundstream init: bitrate: {0}".format(self.bitrate))
         session = models.Session.objects.select_related(
             'project').get(id=sessionid)
-        self.radius = session.project.recording_radius
-        self.ordering = session.project.ordering
-        logger.debug(
-            "Roundstream init: got session, got project radius: " + str(self.radius))
+        self.project = session.project
+
+        self.radius = self.project.recording_radius
+        self.ordering = self.project.ordering
+
+        logger.debug("Project radius: %d meters" % self.radius)
         if self.radius == None:
             self.radius = settings.RECORDING_RADIUS
 
@@ -76,13 +78,12 @@ class RoundStream:
         self.main_loop = gobject.MainLoop()
         self.icecast_admin = icecast2.Admin()
         self.heartbeat()
-        # project = models.Session.objects.get(id=sessionid)  # not used
         self.recordingCollection = \
             recording_collection.RecordingCollection(
                 self, request, self.radius, str(self.ordering))
 
     def start(self):
-        logger.info("Serving stream" + str(self.sessionid))
+        logger.info("Serving stream for session #%s" % self.sessionid)
 
         self.pipeline = gst.Pipeline()
         self.adder = gst.element_factory_make("adder")
@@ -176,15 +177,14 @@ class RoundStream:
                 self.gps_mixer.move_listener(listener)
             self.recordingCollection.move_listener(listener)
             # logger.info("Stream: move_listener: Going to play: " \
-            #+ ",".join(self.recordingCollection.get_filenames()) \
-            #+ " Total of " \
-            #+ str(len(self.recordingCollection.get_filenames()))
-            #+ " files.")
+            # + ",".join(self.recordingCollection.get_filenames()) \
+            # + " Total of " \
+            # + str(len(self.recordingCollection.get_filenames()))
+            # + " files.")
             for comp in self.compositions:
                 comp.move_listener(listener)
         else:
-            logger.debug(
-                "stream: move_listener: no lat and long.  returning...")
+            logger.debug("no lat and long. Returning...")
 
     ######################################################################
     # PRIVATE
@@ -201,9 +201,8 @@ class RoundStream:
         srcpad.link(addersinkpad)
 
     def add_music_source(self):
-        p = models.Project.objects.get(id=self.request["project_id"])
         speakers = models.Speaker.objects.filter(
-            project=p).filter(activeyn=True)
+            project=self.project).filter(activeyn=True)
         # FIXME: We might need to unconditionally add blankaudio.
         # what happens if the only speaker is out of range? I think
         # it'll be fine but test this.
@@ -217,23 +216,13 @@ class RoundStream:
             self.add_source_to_adder(BlankAudioSrc())
 
     def add_voice_compositions(self):
-        p = models.Project.objects.get(id=self.request["project_id"])
-        c = models.Audiotrack.objects.filter(project=p)
-        logger.debug(
-            "Stream: add_voice_compositions: got composition: " + str(c))
+        comps = models.Audiotrack.objects.filter(project=self.project)
+        logger.debug("Got composition: %s" % comps)
         self.compositions = []
-        for t in c:
-            self.compositions.append(composition.Composition(self,
-                                                             self.pipeline,
-                                                             self.adder,
-                                                             t,
-                                                             self.recordingCollection))
-
-        # self.compositions = [composition.Composition(self,
-            # self.pipeline,
-            # self.adder,
-            # c,
-            # self.recordingCollection)]
+        for track in comps:
+            comp = composition.Composition(self, self.pipeline, self.adder,
+                                           track, self.recordingCollection)
+            self.compositions.append(comp)
 
         # TODO - ask if there is > 1 logical composition per proj. for now, assume 1 to 1.
         # self.compositions = \
@@ -262,8 +251,7 @@ class RoundStream:
             prev, new, pending = message.parse_state_changed()
             if message.src == self.pipeline \
                     and new == gst.STATE_PLAYING:
-                logger.debug("Announcing " + str(self.sessionid)
-                             + " is playing")
+                logger.debug("Announcing %d is playing." % self.sessionid)
                 gobject.timeout_add(
                     settings.PING_INTERVAL,
                     self.ping)
@@ -272,7 +260,7 @@ class RoundStream:
 
     def cleanup(self):
         db.log_event("cleanup_session", self.sessionid, None)
-        logger.debug("Cleaning up" + str(self.sessionid))
+        logger.debug("Cleaning up Session #%d" % self.sessionid)
 
         # db.cleanup_history_for_session(self.sessionid)
         if self.pipeline:
@@ -294,21 +282,20 @@ class RoundStream:
 
         if is_stream_active:
             return True
-        else:
-            self.cleanup()
-            return False
+
+        self.cleanup()
+        return False
 
     def is_anyone_listening(self):
-        listeners = self.icecast_admin.get_client_count(
-            icecast_mount_point(
-                self.sessionid, self.audio_format))
-        # logger.debug("Number of listeners: " + str(listeners))
+        mount_point = icecast_mount_point(self.sessionid, self.audio_format)
+        listeners = self.icecast_admin.get_client_count(mount_point)
+        logger.debug("Number of listeners: %d " % listeners)
         if self.last_listener_count == 0 and listeners == 0:
             # logger.info("Detected noone listening.")
             return False
-        else:
-            self.last_listener_count = listeners
-            return True
+
+        self.last_listener_count = listeners
+        return True
 
     def is_activity_timestamp_recent(self):
         # logger.debug("check now=" + str(time.time()) \
@@ -337,21 +324,19 @@ class RoundStreamSink (gst.Bin):
 
     def __init__(self, sessionid, audio_format, bitrate):
         gst.Bin.__init__(self)
-        #self.taginjector = gst.element_factory_make("taginject")
+        # self.taginjector = gst.element_factory_make("taginject")
         # self.taginjector.set_property("tags","title=\"asset_id=123\"")
 
         capsfilter = gst.element_factory_make("capsfilter")
         volume = gst.element_factory_make("volume")
         volume.set_property("volume", settings.MASTER_VOLUME)
         shout2send = gst.element_factory_make("shout2send")
-        shout2send.set_property(
-            "username", settings.ICECAST_SOURCE_USERNAME)
-        shout2send.set_property(
-            "password", settings.ICECAST_SOURCE_PASSWORD)
+        shout2send.set_property("username", settings.ICECAST_SOURCE_USERNAME)
+        shout2send.set_property("password", settings.ICECAST_SOURCE_PASSWORD)
         shout2send.set_property("mount",
                                 icecast_mount_point(sessionid, audio_format))
-        #shout2send.set_property("streamname","initial name")
-        #self.add(capsfilter, volume, self.taginjector, shout2send)
+        # shout2send.set_property("streamname","initial name")
+        # self.add(capsfilter, volume, self.taginjector, shout2send)
         self.add(capsfilter, volume, shout2send)
         capsfilter.link(volume)
 
