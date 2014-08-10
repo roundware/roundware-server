@@ -27,36 +27,49 @@
 
 from __future__ import unicode_literals
 import os
-import sys
 import logging
+
+
 logger = logging.getLogger(__name__)
 
-
 def create_daemon(function):
-    # create - fork 1
-    try:
-        if os.fork() > 0:
-            # os._exit(0) # exit father...
-            sys.exit(0)
-    except OSError, error:
-        logger.critical('fork #1 failed: %d (%s)' %
-                        (error.errno, error.strerror))
-        sys.exit(1)
+    """
+    Convert rwstreamd.py to a console-less daemon.
+    """
 
-    # it separates the son from the father
-    # os.chdir('/') # Do this when I can run stream_script from $PATH
-    os.setsid()
-    os.umask(0)
-
-    # create - fork 2
     try:
+        # Create the first child process.
         pid = os.fork()
-        if pid > 0:
-            logger.debug('Daemon PID %d' % pid)
-            sys.exit(0)
+    except OSError, error:
+        logger.critical('First Child fork failed: %d (%s)' %
+                        (error.errno, error.strerror))
+        os._exit(1)
+
+    # Exit the parent process to return the control to the shell.
+    if pid is not 0:
+        os._exit(0)
+
+    # Become the session leader
+    os.setsid()
+
+    try:
+        # Create the second child process, AKA grandchild.
+        pid = os.fork()
     except OSError, error:
         logger.critical('fork #2 failed: %d (%s)' %
                         (error.errno, error.strerror))
-        sys.exit(1)
+        os._exit(1)
 
+    # Exit the first child process to stop zombies
+    if pid is not 0:
+        # TODO: If we ever want to track daemon PIDs, they are available here.
+        logger.debug('Daemon PID %d' % pid)
+        os._exit(0)
+
+    # Set the working directory to /
+    os.chdir('/')
+    # Reset the process umask
+    os.umask(0)
+
+    # Call the original function
     function()
