@@ -114,7 +114,6 @@ The base Roundware install package includes a standard DB fixture file to popula
 
 Make some edits to the Django settings file, `roundware/settings.py`:
 
-    AUDIO_FILE_URI = "http://example.com/audio/" //set to the proper path for your server
     ANONYMOUS_USER_ID = 0 // change this to the proper id for AnonymousUser in database for Guardian
     # settings for notifications module - email account from which notifications will be sent
     EMAIL_HOST = 'smtp.example.com'

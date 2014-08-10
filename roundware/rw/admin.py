@@ -121,19 +121,19 @@ class AssetAdmin(ProjectProtectedModelAdmin):
 
     def add_view(self, request, form_url='', extra_context=None):
         extra_context = extra_context or {}
-        extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
+        extra_context['MEDIA_URL'] = settings.MEDIA_URL
         extra_context['extends_url'] = "admin/change_form.html"
         return super(AssetAdmin, self).add_view(request, form_url, extra_context=extra_context)
 
     def change_view(self, request, object_id, extra_context=None):
         extra_context = extra_context or {}
-        extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
+        extra_context['MEDIA_URL'] = settings.MEDIA_URL
         extra_context['extends_url'] = "admin/change_form.html"
         return super(AssetAdmin, self).change_view(request, object_id, extra_context=extra_context)
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
-        extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
+        extra_context['MEDIA_URL'] = settings.MEDIA_URL
         extra_context['extends_url'] = "admin/change_list.html"
         return super(AssetAdmin, self).changelist_view(request, extra_context=extra_context)
 

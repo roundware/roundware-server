@@ -463,7 +463,7 @@ def get_available_assets(request):
             assets_list.append(
                 dict(asset_id=asset.id,
                      asset_url='%s%s' % (
-                         settings.AUDIO_FILE_URI, asset.filename),
+                         settings.MEDIA_URL, asset.filename),
                      latitude=asset.latitude,
                      longitude=asset.longitude,
                      audio_length=asset.audiolength,
@@ -518,7 +518,7 @@ def create_envelope(request):
             "a session_id is required for this operation")
     s = models.Session.objects.get(id=form.get('session_id'))
 
-    #todo - tags
+    # todo - tags
 
     env = models.Envelope(session=s)
     env.save()
@@ -526,13 +526,13 @@ def create_envelope(request):
     return {"envelope_id": env.id}
 
 # add_asset_to_envelope (POST method)
-#args (operation, envelope_id, file, latitude, longitude, [tagids])
+# args (operation, envelope_id, file, latitude, longitude, [tagids])
 # example: http://localhost/roundware/?operation=add_asset_to_envelope
 # OR
 # add_asset_to_envelope (GET method)
 # args (operation, envelope_id, asset_id) #asset_id must point to an Asset that exists in the database
 # returns success bool
-#{"success": true}
+# {"success": true}
 # @profile(stats=True)
 
 
@@ -578,7 +578,7 @@ def add_asset_to_envelope(request):
         (filename_prefix, filename_extension) = \
             os.path.splitext(fileitem.name)
         fn = time.strftime("%Y%m%d-%H%M%S") + filename_extension
-        fileout = open(os.path.join(settings.AUDIO_DIR, fn), 'wb')
+        fileout = open(os.path.join(settings.MEDIA_ROOT, fn), 'wb')
         fileout.write(fileitem.file.read())
         fileout.close()
         # delete the uploaded original after the copy has been made
@@ -876,7 +876,7 @@ def apache_safe_daemon_subprocess(command):
         # stderr=subprocess.PIPE,
         env=env,
     )
-    #(stdout, stderr) = proc.communicate()
+    # (stdout, stderr) = proc.communicate()
     # logger.debug("subprocess_stdout: " + stdout)
     # logger.debug("subprocess_stdout: " + stderr)
 
