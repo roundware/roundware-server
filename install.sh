@@ -73,6 +73,8 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y  python-software-properties
 
 # Enable multiverse repository
 add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) multiverse"
+# Add the REAL ffmpeg
+add-apt-repository -y ppa:jon-severinsson/ffmpeg
 apt-get update
 
 # Set MySQL root password
@@ -113,15 +115,15 @@ cp $SOURCE_PATH/files/rw_test_audio1.wav $MEDIA_PATH
 # Setup apache
 a2enmod rewrite
 a2enmod wsgi
-rm /etc/apache2/sites-available/roundware
-sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-apache2-sites-available-roundware > /etc/apache2/sites-available/roundware
-
-a2ensite roundware
 a2dissite 000-default
-
 
 # Run the production upgrade/deployment script
 $SOURCE_PATH/deploy.sh
+
+# Setup roundware in Apache
+rm -f /etc/apache2/sites-available/roundware
+sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-apache2-sites-available-roundware > /etc/apache2/sites-available/roundware
+a2ensite roundware
 
 # Setup roundware log and logrotate
 touch /var/log/roundware
