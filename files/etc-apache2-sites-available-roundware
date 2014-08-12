@@ -33,7 +33,7 @@
 
   CustomLog /var/log/apache2/access.log combined
 
-  WSGIDaemonProcess roundware user=vagrant group=vagrant umask=002
+  WSGIDaemonProcess roundware user=USERNAME group=USERNAME umask=002
   WSGIApplicationGroup %{GLOBAL}
   WSGIProcessGroup roundware
   WSGIScriptAlias / /var/www/roundware/source/files/roundware.wsgi

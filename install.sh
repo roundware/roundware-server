@@ -73,6 +73,8 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y  python-software-properties
 
 # Enable multiverse repository
 add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) multiverse"
+# Add the REAL ffmpeg
+add-apt-repository -y ppa:jon-severinsson/ffmpeg
 apt-get update
 
 # Set MySQL root password
@@ -110,8 +112,18 @@ mkdir -p $STATIC_PATH
 # copy test audio file to media storage
 cp $SOURCE_PATH/files/rw_test_audio1.wav $MEDIA_PATH
 
+# Setup apache
+a2enmod rewrite
+a2enmod wsgi
+a2dissite 000-default
+
 # Run the production upgrade/deployment script
 $SOURCE_PATH/deploy.sh
+
+# Setup roundware in Apache
+rm -f /etc/apache2/sites-available/roundware
+sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-apache2-sites-available-roundware > /etc/apache2/sites-available/roundware
+a2ensite roundware
 
 # Setup roundware log and logrotate
 touch /var/log/roundware
@@ -128,17 +140,6 @@ chown $USERNAME:$USERNAME -R $HOME_PATH
 $CODE_PATH/roundware/manage.py loaddata $CODE_PATH/roundware/fixtures/default_auth_data.json
 mysql -uroot -p$MYSQL_ROOT roundware < $CODE_PATH/files/rw_base.sql
 
-# Setup apache
-
-# Enable Apache rewrite module
-a2enmod rewrite
-# Enable WSGI module
-a2enmod wsgi
-
-rm -f /etc/apache2/sites-available/roundware
-ln -s $CODE_PATH/files/apache-config-example-wsgi /etc/apache2/sites-available/roundware
-a2ensite roundware
-a2dissite 000-default
 service apache2 restart
 
 # Setup icecast
