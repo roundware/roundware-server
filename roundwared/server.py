@@ -776,13 +776,14 @@ def modify_stream(request):
     if success:
         return {"success": success}
     else:
-        return {"success": success, }
+        return {"success": success}
 
 
 def move_listener(request):
     form = request.GET
     request = form_to_request(form)
     arg_hack = json.dumps(request)
+    db.log_event("move_listener", int(form['session_id']), form)
     rounddbus.emit_stream_signal(
         int(form['session_id']), "move_listener", arg_hack)
     return {"success": True}
