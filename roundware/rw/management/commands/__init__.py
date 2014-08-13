@@ -18,7 +18,7 @@ class RoundwareCommand(BaseCommand):
         not_found = []
 
         for asset in assets:
-            filepath = os.path.join(settings.MEDIA_BASE_DIR, asset.filename)
+            filepath = os.path.join(settings.MEDIA_ROOT, asset.filename)
             if os.path.isfile(filepath):
                 found.append(asset)
             else:
@@ -45,10 +45,10 @@ class RoundwareCommand(BaseCommand):
         unknown = []
 
         # Recursively search /var/www/roundware/rwmedia for files.
-        for dirpath, dirnames, filenames in os.walk(settings.MEDIA_BASE_DIR):
+        for dirpath, dirnames, filenames in os.walk(settings.MEDIA_ROOT):
             for filename in filenames:
                 full_path = os.path.join(dirpath, filename)
-                rel_path = os.path.relpath(full_path, settings.MEDIA_BASE_DIR)
+                rel_path = os.path.relpath(full_path, settings.MEDIA_ROOT)
                 # DB only manages wav files, so check mp3 in the DB as wav.
                 # TODO: Remove when all files are managed
                 rel_path = rel_path.replace('mp3', 'wav')
