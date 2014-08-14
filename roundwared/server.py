@@ -229,6 +229,9 @@ def get_config(request):
 
     response = [
         {"device": {"device_id": device_id}},
+        # TODO: This should be changed with a schema change to either add it to
+        # the project table or create a new news/notification table...or something
+        {"notifications": {"startup_message": settings.STARTUP_NOTIFICATION_MESSAGE}},
         {"session": {"session_id": session_id}},
         {"project": {
             "project_id": project.id,
