@@ -1,7 +1,6 @@
 # Roundware Server is released under the GNU Lesser General Public License.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-
 from __future__ import unicode_literals
 
 from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
@@ -17,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import permissions
 import django_filters
+
 
 class APIRootView(APIView):
     def get(self, request, format=None):

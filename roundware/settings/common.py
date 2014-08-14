@@ -219,11 +219,19 @@ INSTALLED_APPS = (
     'djangoformsetjs',
     'sortedm2m',
     'rest_framework',
+    'rest_framework.authtoken',
+    'roundware.api2',
 )
 
 REST_FRAMEWORK = {
     'PAGINATE_BY': 20,
-    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework.filters.DjangoFilterBackend',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication'
+    ),
 }
 
 # A sample logging configuration. The only tangible logging

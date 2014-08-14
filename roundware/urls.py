@@ -11,8 +11,9 @@ from django.conf.urls.static import static
 from django.conf.urls import include
 from django.contrib import admin
 
-# Import V1 DRF API
+# Import V1 DRF REST API
 from roundware.rw import views_api1
+
 from adminplus.sites import AdminSitePlus
 from ajax_filtered_fields.views import json_index
 
@@ -29,7 +30,7 @@ urlpatterns = patterns(
     # V1 API
     url(r'^api/1/$', 'rw.views.main'),
     url(r'^api/1$', 'rw.views.main'),
-    # V1 DRF API
+    # V1 DRF API - V1 is partially REST.
     url(r'^api/1/rest/$', views_api1.APIRootView.as_view()),
     url(r'^api/1/rest/asset/$', views_api1.AssetList.as_view(),
         name='api1-asset'),
@@ -48,7 +49,10 @@ urlpatterns = patterns(
         views_api1.ListeningHistoryItemList.as_view(),
         name='api1-listeninghistoryitem'),
 
-    # use admin login as overall login
+    # V2 RESTful DRF API
+    url(r'^api/2/', include('api2.urls', namespace="api2")),
+
+    # Use Django Admin login as overall login
     url(r'^accounts/login/$', 'django.contrib.auth.views.login',
         {'template_name': 'admin/login.html'}),
 
