@@ -12,13 +12,13 @@ VOLUME_CHANGE_INTERVAL = 100  # milliseconds
 VOLUME_CHANGE_STEP = 0.01  # gsttreamer volume units
 
 
-class GnomeVFSMP3Src (gst.Bin):
+class SrcMP3Stream (gst.Bin):
 
     def __init__(self, uri, vol=1.0):
         gst.Bin.__init__(self)
         self.is_adjusting = False
-        gnomevfssrc = gst.element_factory_make("gnomevfssrc")
-        gnomevfssrc.set_property("location", uri)
+        src_mp3_stream = gst.element_factory_make("souphttpsrc")
+        src_mp3_stream.set_property("location", uri)
         mad = gst.element_factory_make("mad")
         audioconvert = gst.element_factory_make("audioconvert")
         audioresample = gst.element_factory_make("audioresample")
@@ -26,9 +26,9 @@ class GnomeVFSMP3Src (gst.Bin):
         self.target_vol = vol
         self.volume = gst.element_factory_make("volume")
         self.volume.set_property("volume", self.current_vol)
-        self.add(gnomevfssrc, mad, audioconvert,
+        self.add(src_mp3_stream, mad, audioconvert,
                  audioresample, self.volume)
-        gst.element_link_many(gnomevfssrc, mad,
+        gst.element_link_many(src_mp3_stream, mad,
                               audioconvert, audioresample, self.volume)
         pad = self.volume.get_pad("src")
         ghostpad = gst.GhostPad("src", pad)

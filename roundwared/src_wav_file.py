@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class RoundFileSrc (gst.Bin):
+class SrcWavFile (gst.Bin):
 
     def __init__(self, uri, start, duration, fadein, fadeout, volume):
         gst.Bin.__init__(self)
@@ -21,8 +21,9 @@ class RoundFileSrc (gst.Bin):
         self.clip_volume = volume
         self.already_seeked = False
         self.fading = False
-        self.gnomevfssrc = gst.element_factory_make("gnomevfssrc")
-        self.gnomevfssrc.set_property("location", uri)
+
+        self.src_wav_file = gst.element_factory_make("filesrc")
+        self.src_wav_file.set_property("location", uri)
         self.wavparse = gst.element_factory_make("wavparse")
         self.audioconvert = gst.element_factory_make("audioconvert")
         self.audioresample = gst.element_factory_make("audioresample")
@@ -36,9 +37,9 @@ class RoundFileSrc (gst.Bin):
         self.controller.set("volume", start + fadein, volume)
         self.controller.set("volume", start + duration - fadeout, volume)
         self.controller.set("volume", start + duration, 0.0)
-        self.add(self.gnomevfssrc, self.wavparse, self.audioconvert,
+        self.add(self.src_wav_file, self.wavparse, self.audioconvert,
                  self.audioresample, self.audiopanorama, self.volume)
-        gst.element_link_many(self.gnomevfssrc, self.wavparse)
+        gst.element_link_many(self.src_wav_file, self.wavparse)
         gst.element_link_many(self.audioconvert, self.audioresample,
                               self.audiopanorama, self.volume)
 
@@ -77,4 +78,4 @@ class RoundFileSrc (gst.Bin):
     def pan_to(self, pos):
         self.audiopanorama.set_property("panorama", pos)
 
-gobject.type_register(RoundFileSrc)
+gobject.type_register(SrcWavFile)
