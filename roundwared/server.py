@@ -326,15 +326,15 @@ def get_available_assets(request):
     known_params = ['project_id', 'latitude', 'longitude',
                     'tag_ids', 'tagbool', 'radius', 'language', 'asset_id',
                     'envelope_id']
-    project_id = get_parameter_from_request(request, 'project_id', None)
-    asset_id = get_parameter_from_request(request, 'asset_id', None)
-    envelope_id = get_parameter_from_request(request, 'envelope_id', None)
-    latitude = get_parameter_from_request(request, 'latitude', None)
-    longitude = get_parameter_from_request(request, 'longitude', None)
-    radius = get_parameter_from_request(request, 'radius', None)
-    tag_ids = get_parameter_from_request(request, 'tagids', None)
-    tagbool = get_parameter_from_request(request, 'tagbool', None)
-    language = get_parameter_from_request(request, 'language', None)
+    project_id = get_parameter_from_request(request, 'project_id')
+    asset_id = get_parameter_from_request(request, 'asset_id')
+    envelope_id = get_parameter_from_request(request, 'envelope_id')
+    latitude = get_parameter_from_request(request, 'latitude')
+    longitude = get_parameter_from_request(request, 'longitude')
+    radius = get_parameter_from_request(request, 'radius')
+    tag_ids = get_parameter_from_request(request, 'tagids')
+    tagbool = get_parameter_from_request(request, 'tagbool')
+    language = get_parameter_from_request(request, 'language')
     if (latitude and not longitude) or (longitude and not latitude):
         raise roundexception.RoundException(
             "This operation requires that you pass both latitude and "
@@ -518,7 +518,7 @@ def create_envelope(request):
 def add_asset_to_envelope(request):
 
     # get asset_id from the GET request
-    asset_id = get_parameter_from_request(request, 'asset_id', False)
+    asset_id = get_parameter_from_request(request, 'asset_id')
     asset = None
     # grab the Asset from the database, if an asset_id has been passed in
     if asset_id:
@@ -542,114 +542,120 @@ def add_asset_to_envelope(request):
 
     db.log_event("start_upload", session.id, request.GET)
 
-    fileitem = request.FILES.get('file') if not asset else asset.file
+    fileitem = asset.file if asset else request.FILES.get('file')
+    if not fileitem.name:
+        raise roundexception.RoundException("No file in request")
+
     # get mediatype from the GET request
     mediatype = get_parameter_from_request(
-        request, 'mediatype', False) if not asset else asset.mediatype
+        request, 'mediatype') if not asset else asset.mediatype
     # if mediatype parameter not passed, set to 'audio'
     # this ensures backwards compatibility
     if mediatype is None:
         mediatype = "audio"
 
-    if fileitem.name:
-        # copy the file to a unique name (current time and date)
-        logger.debug("Processing " + fileitem.name)
-        (filename_prefix, filename_extension) = \
-            os.path.splitext(fileitem.name)
-        fn = time.strftime("%Y%m%d-%H%M%S") + filename_extension
-        fileout = open(os.path.join(settings.MEDIA_ROOT, fn), 'wb')
-        fileout.write(fileitem.file.read())
-        fileout.close()
-        # delete the uploaded original after the copy has been made
-        if asset:
-            asset.file.delete()
-            # re-assign file to asset
-            asset.file.name = fn
-            asset.filename = fn
-            asset.save()
-        # make sure everything is in wav form only if mediatype is audio
-        if mediatype == "audio":
-            newfilename = convertaudio.convert_uploaded_file(fn)
-        else:
-            newfilename = fn
-        if newfilename:
-            # create the new asset if request comes in from a source other
-            # than the django admin interface
-            if not asset:
-                # get location data from request
-                latitude = get_parameter_from_request(
-                    request, 'latitude', False)
-                longitude = get_parameter_from_request(
-                    request, 'longitude', False)
-                # if no location data in request, default to project latitude
-                # and longitude
-                if not latitude:
-                    latitude = session.project.latitude
-                if not longitude:
-                    longitude = session.project.longitude
-                tagset = []
-                tags = get_parameter_from_request(request, 'tags', False)
-                if tags is not None:
-                    ids = tags.split(',')
-                    tagset = models.Tag.objects.filter(id__in=ids)
+    # copy the file to a unique name (current time and date)
+    logger.debug("Processing " + fileitem.name)
+    (filename_prefix, filename_extension) = os.path.splitext(fileitem.name)
 
-                # get optional submitted parameter from request (Y, N or blank
-                # string are only acceptable values)
-                submitted = get_parameter_from_request(
-                    request, 'submitted', False)
-                # set submitted variable to proper boolean value if it is
-                # passed as parameter
-                if submitted == "N":
-                    submitted = False
-                elif submitted == "Y":
-                    submitted = True
-                # if blank string or not included as parameter, check if in range of project and if so
-                # set asset.submitted based on project.auto_submit boolean
-                # value
-                elif submitted is None or len(submitted) == 0:
-                    submitted = False
-                    if is_listener_in_range_of_stream(request.GET, session.project):
-                        submitted = session.project.auto_submit
+    dest_filename = time.strftime("%Y%m%d-%H%M%S-") + str(session.id) + \
+        filename_extension
+    dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
+    if os.path.isfile(dest_filepath):
+        raise roundexception.RoundException("File already exists: %s" %
+                                            dest_filepath)
 
-                asset = models.Asset(latitude=latitude,
-                                     longitude=longitude,
-                                     filename=newfilename,
-                                     session=session,
-                                     submitted=submitted,
-                                     mediatype=mediatype,
-                                     volume=1.0,
-                                     language=session.language,
-                                     project=session.project)
-                asset.file.name = fn
-                asset.save()
-                for t in tagset:
-                    asset.tags.add(t)
-            # if the request comes from the django admin interface
-            # update the Asset with the right information
-            else:
-                # update asset with session
-                asset.session = session
-                asset.filename = newfilename
 
-            # get the audiolength of the file only if mediatype is audio and
-            # update the Asset
-            if mediatype == "audio":
-                discover_audiolength.discover_and_set_audiolength(
-                    asset, newfilename)
-                asset.save()
-            envelope.assets.add(asset)
-            envelope.save()
-        else:
-            raise roundexception.RoundException(
-                "File not converted successfully: " + newfilename)
+    fileout = open(dest_filepath, 'wb')
+    fileout.write(fileitem.file.read())
+    fileout.close()
+
+    # Delete the uploaded original after the copy has been made.
+    if asset:
+        asset.file.delete()
+        asset.file.name = dest_filename
+        asset.filename = dest_filename
+        asset.save()
+    # Make sure everything is in wav form only if media type is audio.
+    if mediatype == "audio":
+        newfilename = convertaudio.convert_uploaded_file(dest_filename)
     else:
-        raise roundexception.RoundException("No file in request")
+        newfilename = dest_filename
+    if not newfilename:
+        raise roundexception.RoundException(
+            "File not converted successfully: " + newfilename)
+
+    # if the request comes from the django admin interface
+    # update the Asset with the right information
+    if asset:
+        asset.session = session
+        asset.filename = newfilename
+    # create the new asset if request comes in from a source other
+    # than the django admin interface
+    else:
+        # get location data from request
+        latitude = get_parameter_from_request(request, 'latitude')
+        longitude = get_parameter_from_request(request, 'longitude')
+        # if no location data in request, default to project latitude
+        # and longitude
+        if not latitude:
+            latitude = session.project.latitude
+        if not longitude:
+            longitude = session.project.longitude
+        tagset = []
+        tags = get_parameter_from_request(request, 'tags')
+        if tags is not None:
+            ids = tags.split(',')
+            tagset = models.Tag.objects.filter(id__in=ids)
+
+        # get optional submitted parameter from request (Y, N or blank
+        # string are only acceptable values)
+        submitted = get_parameter_from_request(request, 'submitted')
+        # set submitted variable to proper boolean value if it is
+        # passed as parameter
+        if submitted == "N":
+            submitted = False
+        elif submitted == "Y":
+            submitted = True
+        # if blank string or not included as parameter, check if in range of project and if so
+        # set asset.submitted based on project.auto_submit boolean
+        # value
+        elif submitted is None or len(submitted) == 0:
+            submitted = False
+            if is_listener_in_range_of_stream(request.GET, session.project):
+                submitted = session.project.auto_submit
+
+        asset = models.Asset(latitude=latitude,
+                             longitude=longitude,
+                             filename=newfilename,
+                             session=session,
+                             submitted=submitted,
+                             mediatype=mediatype,
+                             volume=1.0,
+                             language=session.language,
+                             project=session.project)
+        asset.file.name = dest_filename
+        asset.save()
+        for t in tagset:
+            asset.tags.add(t)
+
+
+    # get the audiolength of the file only if mediatype is audio and
+    # update the Asset
+    if mediatype == "audio":
+        discover_audiolength.discover_and_set_audiolength(
+            asset, newfilename)
+        asset.save()
+
+    envelope.assets.add(asset)
+    envelope.save()
+
     rounddbus.emit_stream_signal(0, "refresh_recordings", "")
     return {"success": True,
             "asset_id": asset.id}
 
 
-def get_parameter_from_request(request, name, required):
+def get_parameter_from_request(request, name, required=False):
     ret = None
     try:
         ret = request.POST[name]
@@ -738,9 +744,6 @@ def request_stream(request):
             'stream_url': url,
             'user_message': msg
         }
-
-# @profile(stats=True)
-
 
 def modify_stream(request):
     success = False
@@ -838,11 +841,6 @@ def get_events(request):
     else:
         return {"error": "no session_id"}
 
-# END 2.0 Protocol
-
-# 2.0 Helper methods
-
-
 def apache_safe_daemon_subprocess(command):
     logger.debug(str(command))
     env = os.environ.copy()
@@ -897,8 +895,6 @@ def is_listener_in_range_of_stream(form, proj):
         if distance < 3 * speaker.maxdistance:
             return True
     return False
-
-# END 2.0 Helper methods
 
 
 def form_to_request(form):
