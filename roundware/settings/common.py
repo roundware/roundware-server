@@ -77,7 +77,7 @@ SPEAK_UIMODE = "speak"
 CONTINUOUS_REPEAT_MODE = "continuous"
 STOP_REPEAT_MODE = "stop"
 
-STARTUP_NOTIFICATION_MESSAGE = "Welcome! Please make sure you have the most updated version of the app before continuing."
+STARTUP_NOTIFICATION_MESSAGE = ""
 
 ######## END ROUNDWARE SPECIFIC SETTINGS #########
 
