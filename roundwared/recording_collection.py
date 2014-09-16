@@ -38,10 +38,27 @@ class RecordingCollection:
         self.nearby_unplayed_recordings = []
         self.ordering = ordering
         self.lock = threading.Lock()
-        self.update_request(self.request)
+        self.init_request(self.request)
+
+    # Initializes the request stored in the collection by filling all_recordings
+    # with assets filtered by tags but keeping nearby_unplayed_recordings empty
+    # so no assets are triggered until modify_stream or move_listener are called
+    # @profile(stats=True)
+    def init_request(self, request):
+        logger.debug("init_request")
+        self.lock.acquire()
+        self.all_recordings = db.get_recordings(request["session_id"],
+                                                request.get("tags"))
+        self.far_recordings = self.all_recordings
+        self.nearby_played_recordings = []
+        self.nearby_unplayed_recordings = []
+        logger.debug("init_request: all_recordings count: "   + str(len(self.all_recordings))
+                     + ", far_recordings count: "             + str(len(self.far_recordings))
+                     + ", nearby_played_recordings count: "   + str(len(self.nearby_played_recordings))
+                     + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
+        self.lock.release()
 
     # Updates the request stored in the collection.
-    # @profile(stats=True)
     def update_request(self, request):
         logger.debug("update_request")
         self.lock.acquire()
