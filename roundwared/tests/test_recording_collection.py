@@ -72,6 +72,9 @@ class TestRecordingCollection(RoundwaredTestCase):
         with patch.object(gpsmixer, 'distance_in_meters',
                           mock_distance_in_meters_near):
             rc = RecordingCollection(stream, req, stream.radius)
+            # Update the list of nearby recordings
+            rc.update_request(req)
+
             self.assertEquals([], rc.far_recordings)  # everything close by
 
         with patch.object(gpsmixer, 'distance_in_meters',
@@ -148,6 +151,9 @@ class TestRecordingCollection(RoundwaredTestCase):
         with patch.object(gpsmixer, 'distance_in_meters',
                           mock_distance_in_meters_near):
             rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+            # Update the list of nearby recordings
+            rc.update_request(req)
+
             next_rec = rc.get_recording()
             self.assertEquals(self.asset2, next_rec)
             next_rec = rc.get_recording()
@@ -167,6 +173,9 @@ class TestRecordingCollection(RoundwaredTestCase):
         with patch.object(gpsmixer, 'distance_in_meters',
                           mock_distance_in_meters_near):
             rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+            # Update the list of nearby recordings
+            rc.update_request(req)
+
             next_rec = rc.get_recording()
             self.assertEquals(self.asset2, next_rec)
             next_rec = rc.get_recording()
@@ -186,6 +195,8 @@ class TestRecordingCollection(RoundwaredTestCase):
         with patch.object(gpsmixer, 'distance_in_meters',
                           mock_distance_in_meters_near):
             rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+            # Update the list of nearby recordings
+            rc.update_request(req)
             self.assertEquals([self.asset2, self.asset1],
                               rc.nearby_unplayed_recordings)
             rc.add_recording(self.asset2.id)
