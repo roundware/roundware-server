@@ -2,31 +2,23 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 from __future__ import unicode_literals
-from chartit.chartdata import PivotDataPool
-from chartit.charts import PivotChart
-from django.db.models.aggregates import Count, Sum
 from django.http import HttpResponse
-import time
 import string
-import os
 import logging
 import json
 import traceback
 
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.shortcuts import render_to_response
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
 from django.forms.models import save_instance
 from django.views.generic.base import TemplateView
 from django.utils.safestring import mark_safe
 
-from guardian.core import ObjectPermissionChecker
 from guardian.mixins import PermissionRequiredMixin
 from braces.views import (LoginRequiredMixin, FormValidMessageMixin,
                           AjaxResponseMixin)
-from extra_views import InlineFormSet, CreateWithInlinesView, UpdateWithInlinesView
+from extra_views import InlineFormSet
 from extra_views.multi import MultiFormView, FormProvider
 
 from roundware.rw.chart_functions import assets_created_per_day

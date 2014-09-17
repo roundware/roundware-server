@@ -3,28 +3,22 @@
 
 # The Django REST Framework Views for the V2 API.
 from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
-from serializers import (AssetSerializer)
-from rest_framework import generics
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.reverse import reverse
-from rest_framework import permissions
-import django_filters
+from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
+from rest_framework import viewsets
+from serializers import AssetSerializer
 
-class APIRootView(APIView):
+
+class AssetViewSet(viewsets.ModelViewSet):
     """
-    The V2 API root view listing available endpoints 
+    API V2: api/2/assets/:asset_id
+
+    <Permissions>
+    Anonymous: None.
+    Authenticated: GET. PUT/PATCH/DELETE for objects owned by user. 
+    Admin: GET/POST/PUT/PATCH/DELETE.
     """
-    def get(self, request, format=None):
-        # The endpoints use the 'api2:' URL namespace.
-        data = {
-           'assets': reverse('api2:assets', request=request, format=format),
 
-        }
-        return Response(data)
-
-
-class AssetList(generics.ListAPIView):
+    # TODO: Implement DjangoObjectPermissions
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
-    filter_class = AssetFilter
+    permission_classes = (IsAuthenticated, DjangoObjectPermissions)

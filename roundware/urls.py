@@ -50,7 +50,7 @@ urlpatterns = patterns(
         name='api1-listeninghistoryitem'),
 
     # V2 RESTful DRF API
-    url(r'^api/2/', include('api2.urls', namespace="api2")),
+    url(r'^api/2/', include('api2.urls')),
 
     # Use Django Admin login as overall login
     url(r'^accounts/login/$', 'django.contrib.auth.views.login',

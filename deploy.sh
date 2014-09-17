@@ -48,15 +48,15 @@ pip install -U pip
 # Install RoundWare requirements
 pip install -r $CODE_PATH/requirements.txt
 
-# Collect static files for production
-$CODE_PATH/roundware/manage.py collectstatic --noinput
-
 # Set $USERNAME to own all files
 chown $USERNAME:$USERNAME -R $WWW_PATH
 
 # Update database with syncdb and default_auth_data.json
 $CODE_PATH/roundware/manage.py syncdb --noinput
 $CODE_PATH/roundware/manage.py migrate
+
+# Collect static files for production
+$CODE_PATH/roundware/manage.py collectstatic --noinput
 
 service apache2 restart
 
