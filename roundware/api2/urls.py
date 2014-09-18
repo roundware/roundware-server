@@ -8,6 +8,11 @@ import views
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
 router.register(r'assets', views.AssetViewSet)
+router.register(r'events', views.EventViewSet)
+router.register(r'listenevents', views.ListenEventViewSet)
+router.register(r'projects', views.ProjectViewSet)
+router.register(r'sessions', views.SessionViewSet)
+router.register(r'tags', views.TagViewSet)
 
 urlpatterns = patterns('',
     url(r'^', include(router.urls)),
