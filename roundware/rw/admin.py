@@ -128,7 +128,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
         if not change:
             add_asset_to_envelope(instance=obj)
 
-    def copy_asset(modeladmin, request, queryset):
+    def copy_asset(self, modeladmin, request, queryset):
         for obj in queryset:
             tags = obj.tags.all()
             obj.pk = None
@@ -137,7 +137,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
                 obj.tags.add(i)
     copy_asset.short_description = "Copy selected assets"
 
-    def copy_asset_with_votes(modeladmin, request, queryset):
+    def copy_asset_with_votes(self, modeladmin, request, queryset):
         for obj in queryset:
             tags = obj.tags.all()
             votes = obj.vote_set.all()

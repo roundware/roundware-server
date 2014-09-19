@@ -131,7 +131,7 @@ class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin,
                                                                      'rw.access_project')
                                     ).order_by('id')
 
-    def form_valid():
+    def form_valid(self):
         return True
         pass
 

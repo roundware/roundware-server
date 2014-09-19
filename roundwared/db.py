@@ -4,16 +4,16 @@
 from __future__ import unicode_literals
 import logging
 import datetime
+from django.templatetags.i18n import language
 try:
     from profiling import profile
 except ImportError:
     pass
 from django.conf import settings
-from roundwared import roundexception
+from roundwared.roundexception import RoundException
 from roundware.rw.models import Session
 from roundware.rw.models import Language
 from roundware.rw.models import Event
-from roundware.rw.models import Project
 from roundware.rw.models import Asset
 from roundware.rw.models import Tag
 from roundware.rw.models import MasterUI
@@ -23,17 +23,28 @@ from roundwared import icecast2
 from cache_utils.decorators import cached
 logger = logging.getLogger(__name__)
 
+
+def t(msg, field, language):
+    """
+    Locates the translation for the msg in the field object for the provided
+    session language.
+    """
+    # TODO: Replace with standard Django internationalization.
+    try:
+        msg = field.filter(language=language)[0].localized_string
+    except:
+        pass
+    return msg
+
 # @profile(stats=True)
-
-
 def get_config_tag_json(p=None, s=None):
     if s is None and p is None:
-        raise roundexception.RoundException("Must pass either a project or "
+        raise RoundException("Must pass either a project or "
                                             "a session")
-    lingo = Language.objects.filter(language_code='en')[0]
+    language = Language.objects.filter(language_code='en')[0]
     if s is not None:
         p = s.project
-        lingo = s.language
+        language = s.language
 
     m = MasterUI.objects.filter(project=p)
     modes = {}
@@ -42,22 +53,15 @@ def get_config_tag_json(p=None, s=None):
         if masterui.active:
             mappings = UIMapping.objects.filter(
                 master_ui=masterui, active=True)
-            if masterui.header_text_loc.all():
-                ht = masterui.header_text_loc.filter(
-                    language=lingo)[0].localized_string
-            else:
-                ht = ""
-            #masterD = masterui.toTagDictionary()
+            ht = t("", masterui.header_text_loc, language)
+
             masterD = {'name': masterui.name, 'header_text': ht, 'code': masterui.tag_category.name,
                        'select': masterui.select.name, 'order': masterui.index}
             masterOptionsList = []
 
             default = []
             for mapping in mappings:
-                loc_desc = ""
-                temp_desc = mapping.tag.loc_description.filter(language=lingo)
-                if temp_desc:
-                    loc_desc = temp_desc[0].localized_string
+                loc_desc = t("", mapping.tag.loc_description, language)
                 if mapping.default:
                     default.append(mapping.tag.id)
                 # masterOptionsList.append(mapping.toTagDictionary())
@@ -69,7 +73,7 @@ def get_config_tag_json(p=None, s=None):
                                           'relationships': mapping.tag.get_relationships(),
                                           'description': mapping.tag.description, 'shortcode': mapping.tag.value,
                                           'loc_description': loc_desc,
-                                          'value': mapping.tag.loc_msg.filter(language=lingo)[0].localized_string})
+                                          'value': t("", mapping.tag.loc_msg, language)})
             masterD["options"] = masterOptionsList
             masterD["defaults"] = default
             if masterui.ui_mode.name not in modes:
@@ -211,8 +215,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
 def log_event(event_type, session_id, form):
     s = Session.objects.get(id=session_id)
     if s == None:
-        raise roundexception.RoundException(
-            "failed to access session " + str(session_id))
+        raise RoundException("Failed to access session: %s " % session_id)
     client_time = None
     latitude = None
     longitude = None
