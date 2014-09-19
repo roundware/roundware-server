@@ -27,30 +27,37 @@ class RecordingCollection:
     ######################################################################
 
     def __init__(self, stream, request, radius, ordering='random'):
-        self.radius = radius
+        logger.debug("RecordingCollection init - request: " + str(request))
         self.stream = stream
         self.request = request
-        logger.debug("RecordingCollection init - request: " + str(request))
+        self.radius = radius
+        self.ordering = ordering
         # these are lists of model.Recording objects ie [rec1,rec2,etc]
         self.all_recordings = []
         self.far_recordings = []
         self.nearby_played_recordings = []
         self.nearby_unplayed_recordings = []
-        self.ordering = ordering
         self.lock = threading.Lock()
-        self.update_request(self.request)
+        self.update_request(self.request, False)
 
-    # Updates the request stored in the collection.
-    # @profile(stats=True)
-    def update_request(self, request):
+    def update_request(self, request, update_nearby = True):
+        """
+        Updates/Initializes the request stored in the collection by filling
+        all_recordings with assets filtered by tags. Optionally leaves
+        nearby_unplayed_recordings empty so no assets are triggered until
+        modify_stream or move_listener are called.
+        """
         logger.debug("update_request")
         self.lock.acquire()
         self.all_recordings = db.get_recordings(request["session_id"],
                                                 request.get("tags"))
         self.far_recordings = self.all_recordings
+        # Clear the nearby recordings storage.
         self.nearby_played_recordings = []
         self.nearby_unplayed_recordings = []
-        self.update_nearby_recordings(request)
+        # Updating nearby_recording will start stream audio asset playback.
+        if (update_nearby):
+            self.update_nearby_recordings(request)
         logger.debug("update_request: all_recordings count: " + str(len(self.all_recordings))
                      + ", far_recordings count: " +
                      str(len(self.far_recordings))

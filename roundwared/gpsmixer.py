@@ -11,7 +11,7 @@ import logging
 import math
 import httplib
 import urlparse
-from roundwared import gnomevfsmp3src
+from roundwared import src_mp3_stream
 logger = logging.getLogger(__name__)
 
 
@@ -56,7 +56,7 @@ class GPSMixer (gst.Bin):
             logger.debug("vol is " + str(vol) + " for uri " + uri)
             if vol > 0:
                 logger.debug("adding to bin")
-                src = gnomevfsmp3src.GnomeVFSMP3Src(uri, vol)
+                src = src_mp3_stream.SrcMP3Stream(uri, vol)
                 self.add(src)
                 srcpad = src.get_pad('src')
                 addersinkpad = self.adder.get_request_pad('sink%d')
@@ -78,7 +78,7 @@ class GPSMixer (gst.Bin):
                 if self.sources[i] == None:
                     logger.debug(
                         "gpsmixer: move_listener: allocating new source")
-                    tempsrc = gnomevfsmp3src.GnomeVFSMP3Src(
+                    tempsrc = src_mp3_stream.SrcMP3Stream(
                         self.speakers[i].uri, vol)
                     logger.debug(
                         "gpsmixer: move_listener: replacing old slot in source array")

@@ -16,7 +16,7 @@ import gst
 import random
 import logging
 import os
-from roundwared import roundfilesrc
+from roundwared import src_wav_file
 from roundwared import db
 from django.conf import settings
 
@@ -42,7 +42,7 @@ class Composition:
         self.current_pan_pos = 0
         self.target_pan_pos = 0
         self.state = STATE_WAITING
-        self.roundfilesrc = None
+        self.src_wav_file = None
         self.current_recording = None
 
     def wait_and_play(self):
@@ -65,8 +65,8 @@ class Composition:
             amount_to_pan_now = pan_distance / self.pan_steps_left
             self.current_pan_pos += amount_to_pan_now
             self.pan_steps_left -= 1
-            if self.roundfilesrc:
-                self.roundfilesrc.pan_to(self.current_pan_pos)
+            if self.src_wav_file:
+                self.src_wav_file.pan_to(self.current_pan_pos)
 
     def move_listener(self, posn):
         if self.recordingCollection.has_recording():
@@ -132,17 +132,17 @@ class Composition:
         logger.debug("current_recording.filename: %s, start: %s, duration: %s, fadein: %s, fadeout: %s, volume: %s",
                                 self.current_recording.filename, start, duration, fadein, fadeout, volume)
 
-        self.roundfilesrc = roundfilesrc.RoundFileSrc(
-            "file://" + os.path.join(settings.MEDIA_ROOT,
+        self.src_wav_file = src_wav_file.SrcWavFile(
+            os.path.join(settings.MEDIA_ROOT,
                                      self.current_recording.filename),
             start, duration, fadein, fadeout, volume)
-        self.pipeline.add(self.roundfilesrc)
-        self.srcpad = self.roundfilesrc.get_pad('src')
+        self.pipeline.add(self.src_wav_file)
+        self.srcpad = self.src_wav_file.get_pad('src')
         self.addersinkpad = self.adder.get_request_pad('sink%d')
         self.srcpad.link(self.addersinkpad)
         self.addersinkpad.add_event_probe(self.event_probe)
         (ret, cur, pen) = self.pipeline.get_state()
-        self.roundfilesrc.set_state(cur)
+        self.src_wav_file.set_state(cur)
         self.state = STATE_PLAYING
         # logger.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
         # self.parent.sink.taginjector.set_property("tags","title=\"asset_id=456\"")
@@ -163,7 +163,7 @@ class Composition:
         if event.type == gst.EVENT_EOS:
             gobject.idle_add(self.clean_up_wait_and_play)
         elif event.type == gst.EVENT_NEWSEGMENT:
-            gobject.idle_add(self.roundfilesrc.seek_to_start)
+            gobject.idle_add(self.src_wav_file.seek_to_start)
         return True
 
     def clean_up_wait_and_play(self):
@@ -171,13 +171,13 @@ class Composition:
         self.wait_and_play()
 
     def clean_up(self):
-        if self.roundfilesrc:
-            self.roundfilesrc.set_state(gst.STATE_NULL)
-            self.pipeline.remove(self.roundfilesrc)
+        if self.src_wav_file:
+            self.src_wav_file.set_state(gst.STATE_NULL)
+            self.pipeline.remove(self.src_wav_file)
             self.adder.release_request_pad(self.addersinkpad)
             self.state = STATE_DEAD_AIR
             self.current_recording = None
-            self.roundfilesrc = None
+            self.src_wav_file = None
         return False
 
     def set_new_pan_target(self):
@@ -203,8 +203,8 @@ class Composition:
         fadeoutnsecs = random.randint(
             self.comp_settings.minfadeouttime,
             self.comp_settings.maxfadeouttime)
-        if self.roundfilesrc != None and not self.roundfilesrc.fading:
-            self.roundfilesrc.fade_out(fadeoutnsecs)
+        if self.src_wav_file != None and not self.src_wav_file.fading:
+            self.src_wav_file.fade_out(fadeoutnsecs)
             logger.debug("skip_ahead 2")
             # 1st arg is in milliseconds
             # 1000000000
@@ -212,7 +212,7 @@ class Composition:
             logger.debug("skip_ahead 3")
             self.clean_up_wait_and_play()
         else:
-            logger.debug("skip_ahead: no roundfilesrc")
+            logger.debug("skip_ahead: no src_wav_file")
 
     def play_asset(self, asset_id):
         logger.debug("Composition play asset: " + str(asset_id))
