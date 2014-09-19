@@ -38,5 +38,8 @@
   WSGIProcessGroup roundware
   WSGIScriptAlias / /var/www/roundware/source/files/roundware.wsgi
 
+  # allow CORS for listen map, session map etc
+  Header set Access-Control-Allow-Origin "*"
+
 </VirtualHost>
 

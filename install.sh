@@ -112,6 +112,7 @@ cp $SOURCE_PATH/files/rw_test_audio1.wav $MEDIA_PATH
 # Setup apache
 a2enmod rewrite
 a2enmod wsgi
+a2enmod headers
 a2dissite 000-default
 
 # Run the production upgrade/deployment script
