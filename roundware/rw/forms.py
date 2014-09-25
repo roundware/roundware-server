@@ -186,7 +186,6 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
         return obj.tag.__unicode__()
 
     def is_valid(self):
-        # import pdb; pdb.set_trace()
         return super(MasterUIForSetupTagUIEditForm, self).is_valid()
 
     class Media:

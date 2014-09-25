@@ -67,6 +67,11 @@ LOGGING['loggers'].update({
         'level': 'DEBUG',
         'handlers': ['console'],
     },
+    # The Roundware API2 logger.
+    'api2': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    },
     # Example logger for single file. Disable parent logger to use.
     # 'roundwared.stream': {
     #    'level': 'DEBUG',

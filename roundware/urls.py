@@ -56,9 +56,6 @@ urlpatterns = patterns(
     url(r'^accounts/login/$', 'django.contrib.auth.views.login',
         {'template_name': 'admin/login.html'}),
 
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
     url(r'^admin/', include(admin.site.urls)),
 
     url(r'^rw/', include(rw_urls)),
@@ -68,10 +65,12 @@ urlpatterns = patterns(
     url(r'^ajax_filtered_fields/json_index/$', json_index),
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# Add DRF auth URLs
+# Add DRF auth URLs for API 1 and API 2
 urlpatterns += patterns('',
     url(r'^api/1/auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
+    # url(r'^api/2/auth/', include('rest_framework.urls',
+    #                           namespace='rest_framework')),
 )
 
 if settings.DEBUG:

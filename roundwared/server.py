@@ -129,7 +129,7 @@ def vote_asset(request):
     try:
         asset = models.Asset.objects.get(id=int(form.get('asset_id')))
     except:
-        raise RoundException("asset not found.")
+        raise RoundException("Asset not found.")
     if 'value' not in form:
         v = models.Vote(
             asset=asset, session=session, type=form.get('vote_type'))
@@ -330,12 +330,10 @@ def get_available_assets(request):
         # default to English if no language parameter present
         lng_id = 1
 
-    # by asset
     if asset_id:
         # ignore all other filter criteria
         assets = models.Asset.objects.filter(id__in=asset_id.split(','))
 
-    # by envelope
     elif envelope_id:
         assets = []
         envelopes = models.Envelope.objects.filter(
@@ -346,7 +344,6 @@ def get_available_assets(request):
                 if a not in assets:
                     assets.append(a)
 
-    # by project
     elif project_id:
         project = models.Project.objects.get(id=project_id)
         kw['project__exact'] = project
@@ -653,7 +650,9 @@ def request_stream(request):
         }
 
     elif is_listener_in_range_of_stream(request.GET, project):
+        # TODO: audio_format.upper() should be handled when the project is saved.
         audio_format = project.audio_format.upper()
+        # Make the audio stream if it doesn't exist.
         if not stream_exists(session.id, audio_format):
             roundwared_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -822,13 +821,13 @@ def stream_exists(sessionid, audio_format):
 
 
 def is_listener_in_range_of_stream(form, proj):
+    # If latitude and longitude is not specified assume True.
     if not ('latitude' in form and 'longitude' in form) or not (form['latitude'] and form['longitude']):
         return True
+    # Get all active speakers
     speakers = models.Speaker.objects.filter(project=proj, activeyn=True)
 
     for speaker in speakers:
-        # only do this if latitude and longitude are included, return False
-        # otherwise
         distance = gpsmixer.distance_in_meters(
             float(form['latitude']),
             float(form['longitude']),

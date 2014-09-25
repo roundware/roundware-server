@@ -30,7 +30,7 @@ ROUNDWARE_SERVER_ROOT = here("../..")
 # folder(s) we pass it starting at the roundware-server root
 root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
-# Roundwared & rwstreamd.py settings - Previously in /etc/roundware/rw
+# Roundwared & rwstreamd.py settings
 ICECAST_PORT = "8000"
 ICECAST_HOST = "localhost"
 ICECAST_USERNAME = "admin"
@@ -229,8 +229,8 @@ REST_FRAMEWORK = {
         'rest_framework.filters.DjangoFilterBackend',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication'
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_THROTTLE_CLASSES': (
         'rest_framework.throttling.AnonRateThrottle',

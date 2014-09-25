@@ -1,7 +1,11 @@
 # Roundware Server is released under the GNU Lesser General Public License.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
+from __future__ import unicode_literals
 from rest_framework.permissions import BasePermission, SAFE_METHODS
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AuthenticatedReadAdminWrite(BasePermission):
