@@ -10,6 +10,9 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+def mount_point(sessionid, audio_format):
+    return '/stream%s.%s' % (sessionid, audio_format.lower())
+
 class Admin:
 
     def __init__(self):

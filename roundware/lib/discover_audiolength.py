@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 import os
 import subprocess
-from roundwared import roundexception
+from exception import RoundException
 
 
 def discover_and_set_audiolength(recording, filename):
@@ -22,4 +22,4 @@ def discover_and_set_audiolength(recording, filename):
         recording.audiolength = int(output) * 1000000
         recording.save()
     else:
-        roundexception.RoundException("Recorded file is corrupt:" + filename)
+        RoundException("Recorded file is corrupt:" + filename)

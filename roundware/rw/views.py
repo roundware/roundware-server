@@ -31,8 +31,9 @@ from roundware.rw.forms import (TagCreateForm, BatchTagFormset,
                                 MasterUIForSetupTagUIEditForm,
                                 MasterUIForSetupTagUISelectForm)
 from roundware.rw.widgets import SetupTagUISortedCheckboxSelectMultiple
-from roundwared import roundexception
-from roundwared import server
+from roundware.lib import server
+from roundware.lib.exception import RoundException
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,7 +48,7 @@ def catch_errors(request):
         elif 'operation' in request.POST:
             function = operation_to_function(request.POST['operation'])
         return function(request)
-    except roundexception.RoundException as e:
+    except RoundException as e:
         logger.error(str(e) + traceback.format_exc())
         return {"error_message": str(e)}
     except:
@@ -62,7 +63,7 @@ def catch_errors(request):
 
 def operation_to_function(operation):
     if not operation:
-        raise roundexception.RoundException("Operation is required")
+        raise RoundException("Operation is required")
     operations = {
         "request_stream": server.request_stream,
         "heartbeat": server.heartbeat,
@@ -86,7 +87,7 @@ def operation_to_function(operation):
     if key in operations:
         return operations[key]
     else:
-        raise roundexception.RoundException("Invalid operation, " + operation)
+        raise RoundException("Invalid operation, " + operation)
 
 
 from django.shortcuts import render_to_response

@@ -15,16 +15,15 @@ try:
     from profiling import profile
 except ImportError:
     pass
+from django.conf import settings
+from roundware.rw import models
+from roundware.lib import convertaudio
+from roundware.lib import discover_audiolength
+from roundware.lib.exception import RoundException
 from roundwared import db
-from roundwared.db import t
-from roundwared import convertaudio
-from roundwared import discover_audiolength
-from roundwared.roundexception import RoundException
 from roundwared import icecast2
 from roundwared import gpsmixer
 from roundwared import rounddbus
-from roundware.rw import models
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +61,7 @@ def get_asset_info(request):
     if 'asset_id' not in form:
         raise RoundException("an asset_id is required for this operation")
 
-    if check_for_single_audiotrack(form.get('session_id')) != True:
+    if not check_for_single_audiotrack(form.get('session_id')):
         raise RoundException(
             "this operation is only valid for projects with 1 audiotrack")
     else:
@@ -84,7 +83,7 @@ def play_asset_in_stream(request):
 
     if 'session_id' not in form:
         raise RoundException("a session_id is required for this operation")
-    if check_for_single_audiotrack(form.get('session_id')) != True:
+    if not check_for_single_audiotrack(form.get('session_id')):
         raise RoundException(
             "this operation is only valid for projects with 1 audiotrack")
     if 'asset_id' not in form:
@@ -101,7 +100,7 @@ def skip_ahead(request):
 
     if 'session_id' not in form:
         raise RoundException("a session_id is required for this operation")
-    if check_for_single_audiotrack(form.get('session_id')) != True:
+    if not check_for_single_audiotrack(form.get('session_id')):
         raise RoundException(
             "this operation is only valid for projects with 1 audiotrack")
     rounddbus.emit_stream_signal(int(form['session_id']), "skip_ahead", "")
@@ -118,7 +117,7 @@ def vote_asset(request):
         raise RoundException("an asset_id is required for this operation")
     if 'vote_type' not in form:
         raise RoundException("a vote_type is required for this operation")
-    if check_for_single_audiotrack(form.get('session_id')) != True:
+    if not check_for_single_audiotrack(form.get('session_id')):
         raise RoundException(
             "this operation is only valid for projects with 1 audiotrack")
 
@@ -188,10 +187,10 @@ def get_config(request):
         session_id = s.id
         db.log_event('start_session', s.id, None)
 
-    sharing_message = t("none set", project.sharing_message_loc, l)
-    out_of_range_message = t("none set", project.out_of_range_message_loc, l)
-    legal_agreement = t("none set", project.legal_agreement_loc, l)
-    demo_stream_message = t("none set", project.demo_stream_message_loc, l)
+    sharing_message = db.t("none set", project.sharing_message_loc, l)
+    out_of_range_message = db.t("none set", project.out_of_range_message_loc, l)
+    legal_agreement = db.t("none set", project.legal_agreement_loc, l)
+    demo_stream_message = db.t("none set", project.demo_stream_message_loc, l)
 
     response = [
         {"device": {"device_id": device_id}},
@@ -391,7 +390,7 @@ def get_available_assets(request):
     assets_list = []
 
     for asset in assets:
-        loc_desc = t("", asset.loc_description, lng_id)
+        loc_desc = db.t("", asset.loc_description, lng_id)
 
         if asset.mediatype in asset_media_types:
             assets_info['number_of_assets'][asset.mediatype] += 1
@@ -423,7 +422,6 @@ def get_available_assets(request):
     return assets_info
 
 def log_event(request):
-
     form = request.GET
     if 'session_id' not in form:
         raise RoundException("a session_id is required for this operation")
@@ -441,15 +439,11 @@ def log_event(request):
 #{"envelope_id": 2}
 
 # @profile(stats=True)
-
-
 def create_envelope(request):
     form = request.GET
     if 'session_id' not in form:
         raise RoundException("a session_id is required for this operation")
     s = models.Session.objects.get(id=form.get('session_id'))
-
-    # todo - tags
 
     env = models.Envelope(session=s)
     env.save()
@@ -465,8 +459,6 @@ def create_envelope(request):
 # returns success bool
 # {"success": true}
 # @profile(stats=True)
-
-
 def add_asset_to_envelope(request):
 
     # get asset_id from the GET request
@@ -619,24 +611,23 @@ def get_parameter_from_request(request, name, required=False):
                     name + " is required for this operation")
     return ret
 
-
 # @profile(stats=True)
 def request_stream(request):
-    if not request.GET.get('session_id'):
+    session_id = request.GET.get('session_id', None)
+    if not session_id:
         raise RoundException("Must supply session_id.")
 
-    db.log_event(
-        "request_stream", int(request.GET.get('session_id')), request.GET)
+    db.log_event("request_stream", int(session_id), request.GET)
 
     session = models.Session.objects.select_related(
-        'project').get(id=request.GET.get('session_id'))
+        'project').get(id=session_id)
     project = session.project
 
     # Get the value 'example.com' from the host 'example.com:8888'
     http_host = request.get_host().split(':')[0]
 
     if session.demo_stream_enabled:
-        msg = t("demo_stream_message", project.demo_stream_message_loc,
+        msg = db.t("demo_stream_message", project.demo_stream_message_loc,
                 session.language)
 
         if project.demo_stream_url:
@@ -670,10 +661,10 @@ def request_stream(request):
 
         return {
             "stream_url": "http://%s:%s%s" % (http_host, settings.ICECAST_PORT,
-                                              icecast_mount_point(session.id, audio_format))
+                                              icecast2.mount_point(session.id, audio_format))
         }
     else:
-        msg = t("This application is designed to be used in specific geographic"
+        msg = db.t("This application is designed to be used in specific geographic"
                 " locations. Apparently your phone thinks you are not at one of"
                 " those locations, so you will hear a sample audio stream"
                 " instead of the real deal. If you think your phone is"
@@ -817,7 +808,7 @@ def wait_for_stream(sessionid, audio_format):
 
 def stream_exists(sessionid, audio_format):
     admin = icecast2.Admin()
-    return admin.stream_exists(icecast_mount_point(sessionid, audio_format))
+    return admin.stream_exists(icecast2.mount_point(sessionid, audio_format))
 
 
 def is_listener_in_range_of_stream(form, proj):
@@ -859,7 +850,3 @@ def form_to_request(form):
         else:
             request[p] = False
     return request
-
-
-def icecast_mount_point(sessionid, audio_format):
-    return '/stream' + str(sessionid) + "." + audio_format.lower()

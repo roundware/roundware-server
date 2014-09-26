@@ -6,10 +6,10 @@ from .common import RoundwaredTestCase
 from roundware.rw.models import (MasterUI, Session, Tag, Asset, TagCategory,
                                  UIMapping, Project, LocalizedString,
                                  ListeningHistoryItem)
+from roundware.lib.exception import RoundException
 from roundwared.db import (get_config_tag_json, filter_recs_for_tags,
                            get_recordings, get_current_streaming_asset,
                            cleanup_history_for_session, get_default_tags_for_project)
-from roundwared.roundexception import RoundException
 
 
 class TestGetRecordings(RoundwaredTestCase):

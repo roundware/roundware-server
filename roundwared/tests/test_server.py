@@ -7,21 +7,21 @@ from model_mommy import mommy
 from mock import patch
 
 from django.test.client import Client
-
+from django.conf import settings
 from .common import (RoundwaredTestCase, FakeRequest,
                      mock_distance_in_meters_near,
                      mock_distance_in_meters_far)
 from roundware.rw.models import (ListeningHistoryItem, Asset, Project,
                                  Audiotrack, Session, Vote, Envelope,
                                  Speaker)
-from roundwared.roundexception import RoundException
-from roundwared.server import (check_for_single_audiotrack, get_asset_info,
+from roundware.lib.exception import RoundException
+from roundware.lib.server import (check_for_single_audiotrack, get_asset_info,
                                get_current_streaming_asset,
                                get_available_assets,
                                vote_asset, request_stream)
-from roundwared import server
+from roundware.lib import server
 from roundwared import gpsmixer
-from django.conf import settings
+
 
 
 def mock_apache_safe_daemon_subprocess(command):

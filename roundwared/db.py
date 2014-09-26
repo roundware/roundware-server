@@ -10,7 +10,7 @@ try:
 except ImportError:
     pass
 from django.conf import settings
-from roundwared.roundexception import RoundException
+from roundware.lib.exception import RoundException
 from roundware.rw.models import Session
 from roundware.rw.models import Language
 from roundware.rw.models import Event
@@ -53,9 +53,9 @@ def get_config_tag_json(p=None, s=None):
         if masterui.active:
             mappings = UIMapping.objects.filter(
                 master_ui=masterui, active=True)
-            ht = t("", masterui.header_text_loc, language)
+            header = t("", masterui.header_text_loc, language)
 
-            masterD = {'name': masterui.name, 'header_text': ht, 'code': masterui.tag_category.name,
+            masterD = {'name': masterui.name, 'header_text': header, 'code': masterui.tag_category.name,
                        'select': masterui.select.name, 'order': masterui.index}
             masterOptionsList = []
 
@@ -135,12 +135,14 @@ def get_default_tags_for_project(project):
 # @profile(stats=True)
 @cached(60 * 1)
 def filter_recs_for_tags(p, tagids_from_request, l):
-    """ Return Assets containing at least one matching tag in _each_ available
+    """
+    Return Assets containing at least one matching tag in _each_ available
     tag category with the tags supplied in tagids_from_request.
     i.e., an Asset, to be returned, must match at least one tag from each
     category.  It won't be returned if it has a tag from one tagcategory
     but not another.
     """
+    # TODO: This function can be replaced with SQL.
     logger.debug("Tags: %s", tagids_from_request)
 
     recs = []
@@ -202,36 +204,31 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     logger.debug(
         "filter_recs_for_tags returned %s Assets" % (len(recs)))
     return recs
-# form args:
-# event_type <string>
-# session_id <integer>
-#[client_time] <string using RFC822 format>
-#[latitude] <float?>
-#[longitude] <float?>
-#[tags] (could possibly be incorporated into the 'data' field?)
-#[data]
 
-
-def log_event(event_type, session_id, form):
+def log_event(event_type, session_id, requestget=None):
+    """
+    event_type <string>
+    session_id <integer>
+    [client_time] <string using RFC822 format>
+    [latitude] <float>
+    [longitude] <float>
+    [tags]
+    [data]
+    """
     s = Session.objects.get(id=session_id)
-    if s == None:
+    if not s:
         raise RoundException("Failed to access session: %s " % session_id)
     client_time = None
     latitude = None
     longitude = None
     tags = None
     data = None
-    if form != None:
-        if "client_time" in form:
-            client_time = form["client_time"]
-        if "latitude" in form:
-            latitude = form["latitude"]
-        if "longitude" in form:
-            longitude = form["longitude"]
-        if "tags" in form:
-            tags = form["tags"]
-        if "data" in form:
-            data = form["data"]
+    if requestget:
+        client_time = requestget.get("client_time", None)
+        latitude = requestget.get("latitude", None)
+        longitude = requestget.get("longitude", None)
+        tags = requestget.get("tags", None)
+        data = requestget.get("data", None)
 
     e = Event(session=s,
               event_type=event_type,
@@ -243,9 +240,6 @@ def log_event(event_type, session_id, form):
               data=data)
     e.save()
 
-    return True
-
-
 def add_asset_to_session_history_and_update_metadata(asset_id, session_id, duration):
     logger.debug("Called with recording " +
                  str(asset_id) + " session_id: " + str(session_id) + " duration: " + str(int(duration)))
@@ -253,10 +247,10 @@ def add_asset_to_session_history_and_update_metadata(asset_id, session_id, durat
     admin.update_metadata(asset_id, session_id)
 
     s = Session.objects.get(id=session_id)
-    ass = Asset.objects.get(id=asset_id)
+    asset = Asset.objects.get(id=asset_id)
     try:
         hist = ListeningHistoryItem(
-            session=s, asset=ass, starttime=datetime.datetime.now(), duration=int(duration))
+            session=s, asset=asset, starttime=datetime.datetime.now(), duration=int(duration))
         hist.save()
     except:
         logger.warning("Failed to save listening history!")

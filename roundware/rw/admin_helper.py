@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import logging
 from django.conf import settings
-from roundwared import server as rwapi
+from roundware.lib import server
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ def create_envelope(instance, **kwargs):
     fake_request.GET = {'session_id': session_id}
     logger.debug(fake_request.GET)
 
-    response = rwapi.create_envelope(fake_request)
+    response = server.create_envelope(fake_request)
     logger.debug(response)
 
     if 'error_message' in response:
@@ -41,7 +41,7 @@ def add_asset_to_envelope(instance, **kwargs):
     }
     logger.debug(fake_request.GET)
 
-    content = rwapi.add_asset_to_envelope(fake_request)
+    content = server.add_asset_to_envelope(fake_request)
     logger.debug(content)
     if 'error_message' in content:
         logger.error("error message is post_save: %s" %
