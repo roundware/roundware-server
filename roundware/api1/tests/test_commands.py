@@ -8,18 +8,18 @@ from mock import patch
 
 from django.test.client import Client
 from django.conf import settings
-from .common import (RoundwaredTestCase, FakeRequest,
-                     mock_distance_in_meters_near,
-                     mock_distance_in_meters_far)
 from roundware.rw.models import (ListeningHistoryItem, Asset, Project,
                                  Audiotrack, Session, Vote, Envelope,
                                  Speaker, LocalizedString, MasterUI, UIMapping)
+from roundwared.tests.common import (RoundwaredTestCase, FakeRequest,
+                     mock_distance_in_meters_near,
+                     mock_distance_in_meters_far)
 from roundware.lib.exception import RoundException
-from roundware.lib.server import (check_for_single_audiotrack, get_asset_info,
+from roundware.api1.commands import (check_for_single_audiotrack, get_asset_info,
                                get_current_streaming_asset,
                                get_available_assets, get_config_tags,
                                vote_asset, request_stream, _get_current_streaming_asset)
-from roundware.lib import server
+from roundware.api1 import commands
 from roundwared import gpsmixer
 
 
@@ -39,12 +39,12 @@ def mock_stream_exists(sessionid, audio_format):
 @patch.object(settings, 'ICECAST_PORT', 8000)
 @patch.object(settings, 'ICECAST_HOST', 'rw.com')
 @patch.object(settings, 'MEDIA_URL', '/audio/')
-@patch.object(server, 'apache_safe_daemon_subprocess',
+@patch.object(commands, 'apache_safe_daemon_subprocess',
               mock_apache_safe_daemon_subprocess)
-@patch.object(server, 'stream_exists', mock_stream_exists)
+@patch.object(commands, 'stream_exists', mock_stream_exists)
 class TestServer(RoundwaredTestCase):
 
-    """ test server.py methods
+    """ test commands.py methods
     """
 
     def setUp(self):
@@ -238,7 +238,7 @@ class TestServer(RoundwaredTestCase):
         op = 'get_available_assets'
         req_dict = {'asset_id': '1,2', 'project_id': '2', 'tagids': '2,3'}
         f_set = urlencode(req_dict)
-        req_str = '/api/1?operation={0}&{1}'.format(op, f_set)
+        req_str = '/api/1/?operation={0}&{1}'.format(op, f_set)
         response = cl.get(req_str)
         self.assertEquals(200, response.status_code)
         js = json.loads(response.content)
@@ -503,7 +503,7 @@ class TestServer(RoundwaredTestCase):
         op = 'get_available_assets'
         req_dict = {'project_id': '12', 'audiolength': '5000000'}
         f_set = urlencode(req_dict)
-        req_str = '/api/1?operation={0}&{1}'.format(op, f_set)
+        req_str = '/api/1/?operation={0}&{1}'.format(op, f_set)
         response = cl.get(req_str)
         self.assertEquals(200, response.status_code)
         js = json.loads(response.content)
@@ -550,7 +550,7 @@ class TestServer(RoundwaredTestCase):
         op = 'get_available_assets'
         req_dict = {'asset_id': '2', 'foo': 'bar'}
         f_set = urlencode(req_dict)
-        req_str = '/api/1?operation={0}&{1}'.format(op, f_set)
+        req_str = '/api/1/?operation={0}&{1}'.format(op, f_set)
         response = cl.get(req_str)
         self.assertEquals(200, response.status_code)
         js = json.loads(response.content)
@@ -583,7 +583,7 @@ class TestServer(RoundwaredTestCase):
         req_dict = {'project_id': '12', 'audiolength': '5000000',
                     'volume': '1.0', }
         f_set = urlencode(req_dict)
-        req_str = '/api/1?operation={0}&{1}'.format(op, f_set)
+        req_str = '/api/1/?operation={0}&{1}'.format(op, f_set)
         response = cl.get(req_str)
         self.assertEquals(200, response.status_code)
         js = json.loads(response.content)

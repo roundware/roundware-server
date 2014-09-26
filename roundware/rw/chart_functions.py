@@ -3,14 +3,11 @@
 
 from __future__ import unicode_literals
 from chartit.chartdata import PivotDataPool
-from chartit.chartdata import DataPool
-from chartit.charts import Chart
 from chartit.charts import PivotChart
 from roundware.rw.models import Asset
 from roundware.rw.models import Session
 from roundware.rw.models import Tag
 from django.db.models.aggregates import Count
-from django.db.models import Q
 
 
 def assets_created_per_day():

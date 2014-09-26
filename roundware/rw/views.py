@@ -2,11 +2,7 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 from __future__ import unicode_literals
-from django.http import HttpResponse
-import string
 import logging
-import json
-import traceback
 
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -14,6 +10,9 @@ from django.template.context import RequestContext
 from django.forms.models import save_instance
 from django.views.generic.base import TemplateView
 from django.utils.safestring import mark_safe
+from django.shortcuts import render_to_response
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 
 from guardian.mixins import PermissionRequiredMixin
 from braces.views import (LoginRequiredMixin, FormValidMessageMixin,
@@ -30,67 +29,7 @@ from roundware.rw.forms import (TagCreateForm, BatchTagFormset,
                                 MasterUIForSetupTagUIEditForm,
                                 MasterUIForSetupTagUISelectForm)
 from roundware.rw.widgets import SetupTagUISortedCheckboxSelectMultiple
-from roundware.lib import server
-from roundware.lib.exception import RoundException
-
 logger = logging.getLogger(__name__)
-
-
-def main(request):
-    return HttpResponse(json.dumps(catch_errors(request), sort_keys=True, indent=4, ensure_ascii=False), content_type='application/json')
-
-
-def catch_errors(request):
-    try:
-        if 'operation' in request.GET:
-            function = operation_to_function(request.GET['operation'])
-        elif 'operation' in request.POST:
-            function = operation_to_function(request.POST['operation'])
-        return function(request)
-    except RoundException as e:
-        logger.error(str(e) + traceback.format_exc())
-        return {"error_message": str(e)}
-    except:
-        logger.error(
-            "An uncaught exception was raised. See traceback for details." +
-            traceback.format_exc())
-        return {
-            "error_message": "An uncaught exception was raised. See traceback for details.",
-            "traceback": traceback.format_exc(),
-        }
-
-
-def operation_to_function(operation):
-    if not operation:
-        raise RoundException("Operation is required")
-    operations = {
-        "request_stream": server.request_stream,
-        "heartbeat": server.heartbeat,
-        "current_version": server.current_version,
-        "log_event": server.op_log_event,
-        "create_envelope": server.create_envelope,
-        "add_asset_to_envelope": server.add_asset_to_envelope,
-        "get_config": server.get_config,
-        "get_tags": server.get_tags_for_project,
-        "modify_stream": server.modify_stream,
-        "move_listener": server.move_listener,
-        "get_current_streaming_asset": server.get_current_streaming_asset,
-        "get_asset_info": server.get_asset_info,
-        "get_available_assets": server.get_available_assets,
-        "play_asset_in_stream": server.play_asset_in_stream,
-        "vote_asset": server.vote_asset,
-        "skip_ahead": server.skip_ahead,
-        "get_events": server.get_events,
-    }
-    key = string.lower(operation)
-    if key in operations:
-        return operations[key]
-    else:
-        raise RoundException("Invalid operation, " + operation)
-
-
-from django.shortcuts import render_to_response
-from django.contrib.auth.decorators import login_required
 
 
 @login_required

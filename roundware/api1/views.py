@@ -1,23 +1,87 @@
 # Roundware Server is released under the GNU Lesser General Public License.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
+# Roundware API1 views. Part REST, part not.
 from __future__ import unicode_literals
+import string
+import json
+import traceback
 
-from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
-from roundware.rw.serializers_api1 import (AssetSerializer,
-                                           AssetLocationSerializer,
-                                           ProjectSerializer,
-                                           EventSerializer,
-                                           SessionSerializer,
-                                           ListeningHistoryItemAssetSerializer)
+import django_filters
+from django.http import HttpResponse
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import permissions
-import django_filters
+from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
+from roundware.api1.serializers import (AssetSerializer,
+                                           AssetLocationSerializer,
+                                           ProjectSerializer,
+                                           EventSerializer,
+                                           SessionSerializer,
+                                           ListeningHistoryItemAssetSerializer)
+from roundware.api1 import commands
+from roundware.lib.exception import RoundException
+import logging
+logger = logging.getLogger(__name__)
 
 
+def operations(request):
+    data = json.dumps(catch_errors(request), sort_keys=True,
+                      indent=4, ensure_ascii=False)
+    return HttpResponse(data, content_type='application/json')
+
+def catch_errors(request):
+    try:
+        if 'operation' in request.GET:
+            function = operation_to_function(request.GET['operation'])
+        elif 'operation' in request.POST:
+            function = operation_to_function(request.POST['operation'])
+        return function(request)
+    except RoundException as e:
+        logger.error(str(e) + traceback.format_exc())
+        return {"error_message": str(e)}
+    except:
+        logger.error(
+            "An uncaught exception was raised. See traceback for details." +
+            traceback.format_exc())
+        return {
+            "error_message": "An uncaught exception was raised. See traceback for details.",
+            "traceback": traceback.format_exc(),
+        }
+
+
+def operation_to_function(operation):
+    if not operation:
+        raise RoundException("Operation is required")
+    operations = {
+        "request_stream": commands.request_stream,
+        "heartbeat": commands.heartbeat,
+        "current_version": commands.current_version,
+        "log_event": commands.op_log_event,
+        "create_envelope": commands.create_envelope,
+        "add_asset_to_envelope": commands.add_asset_to_envelope,
+        "get_config": commands.get_config,
+        "get_tags": commands.get_tags_for_project,
+        "modify_stream": commands.modify_stream,
+        "move_listener": commands.move_listener,
+        "get_current_streaming_asset": commands.get_current_streaming_asset,
+        "get_asset_info": commands.get_asset_info,
+        "get_available_assets": commands.get_available_assets,
+        "play_asset_in_stream": commands.play_asset_in_stream,
+        "vote_asset": commands.vote_asset,
+        "skip_ahead": commands.skip_ahead,
+        "get_events": commands.get_events,
+    }
+    key = string.lower(operation)
+    if key in operations:
+        return operations[key]
+    else:
+        raise RoundException("Invalid operation, " + operation)
+
+
+# Start Django Rest Framework REST API (Roundware V1)
 class APIRootView(APIView):
     def get(self, request, format=None):
         data = {

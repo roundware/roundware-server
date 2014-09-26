@@ -11,9 +11,6 @@ from django.conf.urls.static import static
 from django.conf.urls import include
 from django.contrib import admin
 
-# Import V1 DRF REST API
-from roundware.rw import views_api1
-
 from adminplus.sites import AdminSitePlus
 from ajax_filtered_fields.views import json_index
 
@@ -27,28 +24,8 @@ urlpatterns = patterns(
     url(r'^dashboard/asset-map$', 'rw.views.asset_map'),
     url(r'^dashboard/$', 'rw.views.chart_views'),
 
-    # V1 API
-    url(r'^api/1/$', 'rw.views.main'),
-    url(r'^api/1$', 'rw.views.main'),
-    # V1 DRF API - V1 is partially REST.
-    url(r'^api/1/rest/$', views_api1.APIRootView.as_view()),
-    url(r'^api/1/rest/asset/$', views_api1.AssetList.as_view(),
-        name='api1-asset'),
-    url(r'^api/1/rest/assetlocation/$', views_api1.AssetLocationList.as_view(),
-        name='api1-assetlocation'),
-    url(r'^api/1/rest/assetlocation/(?P<pk>[0-9]+)/$',
-        views_api1.AssetLocationDetail.as_view(),
-        name='api1-assetlocation-detail'),
-    url(r'^api/1/rest/project/$', views_api1.ProjectList.as_view(),
-        name='api1-project'),
-    url(r'^api/1/rest/event/$', views_api1.EventList.as_view(),
-        name='api1-event'),
-    url(r'^api/1/rest/session/$', views_api1.SessionList.as_view(),
-        name='api1-session'),
-    url(r'^api/1/rest/listeninghistoryitem/$',
-        views_api1.ListeningHistoryItemList.as_view(),
-        name='api1-listeninghistoryitem'),
-
+    # V1 DRF API
+    url(r'^api/1/', include('api1.urls')),
     # V2 RESTful DRF API
     url(r'^api/2/', include('api2.urls')),
 
@@ -64,14 +41,6 @@ urlpatterns = patterns(
     # urls import
     url(r'^ajax_filtered_fields/json_index/$', json_index),
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-# Add DRF auth URLs for API 1 and API 2
-urlpatterns += patterns('',
-    url(r'^api/1/auth/', include('rest_framework.urls',
-                               namespace='rest_framework')),
-    # url(r'^api/2/auth/', include('rest_framework.urls',
-    #                           namespace='rest_framework')),
-)
 
 if settings.DEBUG:
     import debug_toolbar

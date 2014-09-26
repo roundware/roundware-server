@@ -13,7 +13,7 @@ import logging
 import time
 from django.conf import settings
 from roundware.rw import models
-from roundware.lib.server import log_event
+from roundware.api1.commands import log_event
 from roundwared import asset_sorters
 from roundwared import composition
 from roundwared import icecast2

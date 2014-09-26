@@ -7,7 +7,6 @@ from django.conf.urls import patterns, url, include
 from rest_framework.routers import DefaultRouter
 import views
 import logging
-
 logger = logging.getLogger(__name__)
 
 
@@ -24,4 +23,6 @@ router.register(r'tags', views.TagViewSet)
 urlpatterns = patterns('',
     url(r'^', include(router.urls)),
     url(r'^obtain_token/', 'rest_framework.authtoken.views.obtain_auth_token'),
+    url(r'^auth/', include('rest_framework.urls',
+                              namespace='rest_framework')),
 )

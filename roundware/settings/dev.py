@@ -22,8 +22,6 @@ MIDDLEWARE_CLASSES = (
 ) + MIDDLEWARE_CLASSES
 
 # Bypass the INTERNAL_IPS check for Debug Toolbar
-
-
 class internal_list(list):
 
     def __contains__(self, key):

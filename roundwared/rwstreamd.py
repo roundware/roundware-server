@@ -5,7 +5,7 @@ import logging
 import traceback
 
 from roundwared.stream import RoundStream
-from roundwared import rwdbus_receive
+from roundwared import dbus_receive
 import getopt
 import sys
 import re
@@ -48,7 +48,7 @@ def start_stream(sessionid, audio_format, request):
         logger.info("Starting stream " + str(sessionid))
         current_stream = RoundStream(
             sessionid, audio_format, request)
-        rwdbus_receive.add_stream_signal_receiver(current_stream)
+        dbus_receive.add_stream_signal_receiver(current_stream)
         current_stream.start()
     except:
         logger.error(traceback.format_exc())
