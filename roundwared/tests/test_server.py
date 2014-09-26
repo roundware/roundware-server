@@ -13,12 +13,12 @@ from .common import (RoundwaredTestCase, FakeRequest,
                      mock_distance_in_meters_far)
 from roundware.rw.models import (ListeningHistoryItem, Asset, Project,
                                  Audiotrack, Session, Vote, Envelope,
-                                 Speaker)
+                                 Speaker, LocalizedString, MasterUI, UIMapping)
 from roundware.lib.exception import RoundException
 from roundware.lib.server import (check_for_single_audiotrack, get_asset_info,
                                get_current_streaming_asset,
-                               get_available_assets,
-                               vote_asset, request_stream)
+                               get_available_assets, get_config_tags,
+                               vote_asset, request_stream, _get_current_streaming_asset)
 from roundware.lib import server
 from roundwared import gpsmixer
 
@@ -256,7 +256,6 @@ class TestServer(RoundwaredTestCase):
         """ make sure response includes proper JSON using a Client request
         """
         cl = Client()
-        op = 'get_available_assets'
         req_dict = {'operation': 'get_available_assets',
                     'asset_id': '1,2', 'project_id': '2', 'tagids': '2,3'}
         # f_set = cl.encode_multipart(req_dict)
@@ -692,3 +691,142 @@ class TestServer(RoundwaredTestCase):
     @patch.object(gpsmixer, 'distance_in_meters', mock_distance_in_meters_far)
     def test_project_out_of_range_message_localized(self):
         pass
+
+class TestGetConfigTagJSON(RoundwaredTestCase):
+    """ test various permutations of server.get_config_tag
+    """
+    def setUp(self):
+        super(type(self), TestGetConfigTagJSON).setUp(self)
+
+        # make a masterui, a project, a ui_mode, tag category, selectionmethod
+        self.english_hdr = mommy.make(LocalizedString,
+                                      localized_string="Head",
+                                      language=self.english)
+        self.spanish_hdr = mommy.make(LocalizedString,
+                                      localized_string="Cabeza",
+                                      language=self.spanish)
+        self.masterui = mommy.make(MasterUI, active=True,
+                                   ui_mode=self.ui_mode_listen, index=1,
+                                   tag_category__name='TagCatName',
+                                   header_text_loc=[self.english_hdr,
+                                                    self.spanish_hdr])
+        self.ui_mode_one = self.masterui.ui_mode
+
+        self.english_sess = mommy.make(Session, project=self.masterui.project,
+                                       language=self.english)
+        self.spanish_sess = mommy.make(Session, project=self.masterui.project,
+                                       language=self.spanish)
+        self.project_one = self.masterui.project
+        self.ui_mapping_one = mommy.make(UIMapping, master_ui=self.masterui,
+                                         active=True, tag=self.tag1,
+                                         index=1, default=True)
+        self.master_ui_two = mommy.make(MasterUI, name='inactivemui',
+                                        ui_mode=self.ui_mode_one, active=True)
+        self.project_two = self.master_ui_two.project
+        self.project_three = mommy.make(Project, name='project_three')
+
+    def _proj_one_config(self):
+        # Translate the description tag like db.get_config_tag_json()
+        loc_desc = ""
+        temp_desc = self.ui_mapping_one.tag.loc_description.filter(language=self.english)
+        if temp_desc:
+            loc_desc = temp_desc[0].localized_string
+
+        return {'listen': [
+            {'name': self.masterui.name,
+             'header_text': "Head",
+             'code': 'TagCatName',
+             'select': self.masterui.select.name,
+             'order': 1,
+             'defaults': [self.ui_mapping_one.tag.id],
+             'options': [{
+                 'tag_id': self.ui_mapping_one.tag.id,
+                 'order': 1,
+                 'data': "{'json':'value'}",
+                 'description': self.ui_mapping_one.tag.description,
+                 'loc_description': loc_desc,
+                 'shortcode': self.ui_mapping_one.tag.value,
+                 'relationships': [],
+                 'value': 'One'
+             }]},
+        ]}
+
+    def test_get_uimapping_info_for_project(self):
+        """ Test proper UIMapping data returned based on project passed """
+        config = get_config_tags(self.project_one, self.english_sess)
+        expected = self._proj_one_config()
+        self.assertEquals(expected, config)
+
+    def test_only_masteruis_for_project_returned(self):
+        """ Confirm only info for MasterUIs for passed project or session
+            project are returned in config tag dictionary
+        """
+        config = get_config_tags(self.project_three)
+        self.assertEquals({}, config)
+
+        config = get_config_tags(self.project_two)
+        # should not have any uimapping info for project _one_
+        self.assertNotIn(self.masterui.name,
+                         [dic['name'] for dic in
+                          config['listen']])
+
+    def test_session_project_overrides_passed_project(self):
+        """ The project associated with a passed session should be used 
+            even if a project is explicitly passed. (really?)
+        """
+        pass
+
+    def test_only_active_masteruis_returned(self):
+        """ Confirm that only active MasterUIs are returned in 
+            config tag 'JSON' (dictionary)
+        """
+        self.master_ui_two.active = False
+        self.master_ui_two.save()
+        config = get_config_tags(self.project_two)
+        self.assertEquals({}, config)
+        self.master_ui_two.active = True
+        self.master_ui_two.save()
+
+    def test_get_right_masterui_without_passed_project(self):
+        """ Don't pass a project, just use the project for the session.
+            Do we still get the right MasterUI?
+        """
+        config = get_config_tags(None, self.english_sess)
+        expected = self._proj_one_config()
+        self.assertEquals(expected, config)
+
+    def test_get_correct_localized_header_text(self):
+        """ Test that we get correct localized header text for session, or if 
+            none passed, header text in English.
+        """
+        config = get_config_tags(None, self.spanish_sess)
+        self.assertEquals('Cabeza',
+                          config['listen'][0]['header_text'])
+
+    def test_tag_values_correctly_localized(self):
+        """ Test that we get correct localized text for tag values
+            based on session language, or if none passed, in English.
+        """
+        config = get_config_tags(None, self.spanish_sess)
+        self.assertEquals('Uno',
+                          config['listen'][0]['options'][0]['value'])
+
+class TestListeningHistoryDB(RoundwaredTestCase):
+
+    def setUp(self):
+        super(type(self), TestListeningHistoryDB).setUp(self)
+
+        self.project1 = mommy.make(Project)
+        self.asset1 = mommy.make(Asset, project=self.project1)
+        self.asset2 = mommy.make(Asset, project=self.project1)
+        self.history1 = mommy.make(ListeningHistoryItem, asset=self.asset1,
+                                   session=self.default_session,
+                                   starttime=datetime.datetime.now())
+        self.history2 = mommy.make(ListeningHistoryItem, asset=self.asset2,
+                                   session=self.default_session,
+                                   starttime=datetime.datetime.now())
+
+    def test_get_current_streaming_asset(self):
+        self.assertEquals(self.history2, _get_current_streaming_asset(
+                          self.default_session.id))
+

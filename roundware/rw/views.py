@@ -21,13 +21,12 @@ from braces.views import (LoginRequiredMixin, FormValidMessageMixin,
 from extra_views import InlineFormSet
 from extra_views.multi import MultiFormView, FormProvider
 
-from roundware.rw.chart_functions import assets_created_per_day
-from roundware.rw.chart_functions import sessions_created_per_day
-from roundware.rw.chart_functions import assets_by_question
-from roundware.rw.chart_functions import assets_by_section
+from roundware.rw.chart_functions import (assets_created_per_day,
+                                          sessions_created_per_day,
+                                          assets_by_question,
+                                          assets_by_section)
 from roundware.rw.models import Tag, MasterUI, UIMapping, Project
 from roundware.rw.forms import (TagCreateForm, BatchTagFormset,
-                                # MasterUIForSetupTagUICreateForm,
                                 MasterUIForSetupTagUIEditForm,
                                 MasterUIForSetupTagUISelectForm)
 from roundware.rw.widgets import SetupTagUISortedCheckboxSelectMultiple
@@ -68,7 +67,7 @@ def operation_to_function(operation):
         "request_stream": server.request_stream,
         "heartbeat": server.heartbeat,
         "current_version": server.current_version,
-        "log_event": server.log_event,
+        "log_event": server.op_log_event,
         "create_envelope": server.create_envelope,
         "add_asset_to_envelope": server.add_asset_to_envelope,
         "get_config": server.get_config,

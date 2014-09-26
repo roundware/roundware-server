@@ -4,87 +4,26 @@
 from __future__ import unicode_literals
 import logging
 import datetime
-from django.templatetags.i18n import language
 try:
     from profiling import profile
 except ImportError:
     pass
 from django.conf import settings
 from roundware.lib.exception import RoundException
-from roundware.rw.models import Session
-from roundware.rw.models import Language
-from roundware.rw.models import Event
-from roundware.rw.models import Asset
-from roundware.rw.models import Tag
-from roundware.rw.models import MasterUI
-from roundware.rw.models import UIMapping
-from roundware.rw.models import ListeningHistoryItem
+from roundware.rw.models import (Session,
+                                 Event,
+                                 Asset,
+                                 Tag,
+                                 MasterUI,
+                                 UIMapping,
+                                 ListeningHistoryItem)
 from roundwared import icecast2
 from cache_utils.decorators import cached
 logger = logging.getLogger(__name__)
 
 
-def t(msg, field, language):
-    """
-    Locates the translation for the msg in the field object for the provided
-    session language.
-    """
-    # TODO: Replace with standard Django internationalization.
-    try:
-        msg = field.filter(language=language)[0].localized_string
-    except:
-        pass
-    return msg
-
 # @profile(stats=True)
-def get_config_tag_json(p=None, s=None):
-    if s is None and p is None:
-        raise RoundException("Must pass either a project or "
-                                            "a session")
-    language = Language.objects.filter(language_code='en')[0]
-    if s is not None:
-        p = s.project
-        language = s.language
-
-    m = MasterUI.objects.filter(project=p)
-    modes = {}
-
-    for masterui in m:
-        if masterui.active:
-            mappings = UIMapping.objects.filter(
-                master_ui=masterui, active=True)
-            header = t("", masterui.header_text_loc, language)
-
-            masterD = {'name': masterui.name, 'header_text': header, 'code': masterui.tag_category.name,
-                       'select': masterui.select.name, 'order': masterui.index}
-            masterOptionsList = []
-
-            default = []
-            for mapping in mappings:
-                loc_desc = t("", mapping.tag.loc_description, language)
-                if mapping.default:
-                    default.append(mapping.tag.id)
-                # masterOptionsList.append(mapping.toTagDictionary())
-                # def toTagDictionary(self):
-                    # return
-                    # {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
-
-                masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'data': mapping.tag.data,
-                                          'relationships': mapping.tag.get_relationships(),
-                                          'description': mapping.tag.description, 'shortcode': mapping.tag.value,
-                                          'loc_description': loc_desc,
-                                          'value': t("", mapping.tag.loc_msg, language)})
-            masterD["options"] = masterOptionsList
-            masterD["defaults"] = default
-            if masterui.ui_mode.name not in modes:
-                modes[masterui.ui_mode.name] = [masterD, ]
-            else:
-                modes[masterui.ui_mode.name].append(masterD)
-
-    return modes
-
-
-# @profile(stats=True)
+# Used by recording_collection.py only
 @cached(30)
 def get_recordings(session_id, tags=None):
 
@@ -121,6 +60,7 @@ def get_recordings(session_id, tags=None):
 
 
 # @profile(stats=True)
+# Used by recording_collection.py only
 def get_default_tags_for_project(project):
     m = MasterUI.objects.filter(project=project, active=True)
     default = []
@@ -133,6 +73,7 @@ def get_default_tags_for_project(project):
 
 
 # @profile(stats=True)
+# Used by recording_collection.py only
 @cached(60 * 1)
 def filter_recs_for_tags(p, tagids_from_request, l):
     """
@@ -205,41 +146,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
         "filter_recs_for_tags returned %s Assets" % (len(recs)))
     return recs
 
-def log_event(event_type, session_id, requestget=None):
-    """
-    event_type <string>
-    session_id <integer>
-    [client_time] <string using RFC822 format>
-    [latitude] <float>
-    [longitude] <float>
-    [tags]
-    [data]
-    """
-    s = Session.objects.get(id=session_id)
-    if not s:
-        raise RoundException("Failed to access session: %s " % session_id)
-    client_time = None
-    latitude = None
-    longitude = None
-    tags = None
-    data = None
-    if requestget:
-        client_time = requestget.get("client_time", None)
-        latitude = requestget.get("latitude", None)
-        longitude = requestget.get("longitude", None)
-        tags = requestget.get("tags", None)
-        data = requestget.get("data", None)
-
-    e = Event(session=s,
-              event_type=event_type,
-              server_time=datetime.datetime.now(),
-              client_time=client_time,
-              latitude=latitude,
-              longitude=longitude,
-              tags=tags,
-              data=data)
-    e.save()
-
+# Used by composition.py only
 def add_asset_to_session_history_and_update_metadata(asset_id, session_id, duration):
     logger.debug("Called with recording " +
                  str(asset_id) + " session_id: " + str(session_id) + " duration: " + str(int(duration)))
@@ -255,20 +162,3 @@ def add_asset_to_session_history_and_update_metadata(asset_id, session_id, durat
     except:
         logger.warning("Failed to save listening history!")
     return True
-
-
-def cleanup_history_for_session(session_id):
-    ListeningHistoryItem.objects.filter(session=session_id).delete()
-
-
-def get_current_streaming_asset(session_id):
-    try:
-        l = ListeningHistoryItem.objects.filter(
-            session=session_id).order_by('-starttime')[0]
-        return l
-    except IndexError:
-        return None
-
-
-def get_asset(asset_id):
-    return Asset.objects.get(id=asset_id)

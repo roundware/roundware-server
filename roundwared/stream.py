@@ -13,12 +13,12 @@ import logging
 import time
 from django.conf import settings
 from roundware.rw import models
+from roundware.lib.server import log_event
 from roundwared import asset_sorters
 from roundwared import composition
 from roundwared import icecast2
 from roundwared import gpsmixer
 from roundwared import recording_collection
-from roundwared import db
 
 logger = logging.getLogger(__name__)
 
@@ -234,7 +234,7 @@ class RoundStream:
                     comp.wait_and_play()
 
     def cleanup(self):
-        db.log_event("cleanup_session", self.sessionid)
+        log_event("cleanup_session", self.sessionid)
         logger.debug("Cleaning up Session #%d" % self.sessionid)
 
         if self.pipeline:
