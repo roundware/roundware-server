@@ -699,9 +699,7 @@ def request_stream(request):
         audio_format = project.audio_format.upper()
         # Make the audio stream if it doesn't exist.
         if not stream_exists(session.id, audio_format):
-            roundwared_directory = os.path.dirname(os.path.realpath(__file__))
-
-            command = [roundwared_directory + '/rwstreamd.py',
+            command = [settings.PROJECT_ROOT + '/roundwared/rwstreamd.py',
                        '--session_id', str(session.id), '--project_id', str(project.id)]
             for p in ['latitude', 'longitude', 'audio_format']:
                 if p in request.GET and request.GET[p]:
