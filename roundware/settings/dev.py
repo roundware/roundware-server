@@ -65,6 +65,16 @@ LOGGING['loggers'].update({
         'level': 'DEBUG',
         'handlers': ['console'],
     },
+    # The Roundware Library logger.
+    'library': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    },
+    # The Roundware API1 logger.
+    'api1': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    },
     # The Roundware API2 logger.
     'api2': {
         'level': 'DEBUG',

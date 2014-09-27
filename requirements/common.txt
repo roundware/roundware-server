@@ -1,5 +1,5 @@
 Django==1.6
-South==0.7.6
+South==1.0
 configobj==4.7.2
 django-chartit==0.1
 django-guardian==1.1.1

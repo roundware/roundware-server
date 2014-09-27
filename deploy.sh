@@ -53,6 +53,8 @@ chown $USERNAME:$USERNAME -R $WWW_PATH
 
 # Update database with syncdb and default_auth_data.json
 $CODE_PATH/roundware/manage.py syncdb --noinput
+# Must force authtoken to be first. See: https://github.com/tomchristie/django-rest-framework/issues/987
+$CODE_PATH/roundware/manage.py migrate rest_framework.authtoken
 $CODE_PATH/roundware/manage.py migrate
 
 # Collect static files for production
