@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 import shutil
 import os
-from roundwared import roundexception
+from exception import RoundException
 
 
 # Converts the given file to both wav and mp3 and stores the files in the audio directory.
@@ -15,7 +15,7 @@ def convert_uploaded_file(filename):
     upload_dir = settings.MEDIA_ROOT
     filepath = os.path.join(upload_dir, filename)
     if not os.path.exists(filepath):
-        raise roundexception.RoundException(
+        raise RoundException(
             "Uploaded file not found: " + filepath)
     elif filename_extension == '.caf':
         convert_audio_file(

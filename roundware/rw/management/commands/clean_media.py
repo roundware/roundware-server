@@ -27,13 +27,13 @@ class Command(RoundwareCommand):
             # If the directory value in the filepath is not the project_id, correct it.
             if filepath != correct_project_id:
 
-                project_directory = os.path.join(settings.MEDIA_BASE_DIR, correct_project_id)
+                project_directory = os.path.join(settings.MEDIA_ROOT, correct_project_id)
 
                 # Create the directory if it doesn't exist.
                 if not os.path.isdir(project_directory):
                     os.mkdir(project_directory)
 
-                old_filepath = os.path.join(settings.MEDIA_BASE_DIR, asset.filename)
+                old_filepath = os.path.join(settings.MEDIA_ROOT, asset.filename)
                 new_filepath = os.path.join(project_directory, asset.filename)
                 new_filename = os.path.join(correct_project_id, asset.filename)
 
@@ -45,7 +45,7 @@ class Command(RoundwareCommand):
                 os.rename(old_filepath, new_filepath)
                 self.stdout.write("Moved: %s" % new_filepath)
 
-                # Mpve the mp3 also.
+                # Move the mp3 also.
                 # TODO: Remove this when all files are managed.
                 old_filepath = old_filepath.replace('wav', 'mp3')
                 new_filepath = new_filepath.replace('wav', 'mp3')

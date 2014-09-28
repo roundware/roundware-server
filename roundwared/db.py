@@ -9,84 +9,27 @@ try:
 except ImportError:
     pass
 from django.conf import settings
-from roundwared import roundexception
-from roundware.rw.models import Session
-from roundware.rw.models import Language
-from roundware.rw.models import Event
-from roundware.rw.models import Project
-from roundware.rw.models import Asset
-from roundware.rw.models import Tag
-from roundware.rw.models import MasterUI
-from roundware.rw.models import UIMapping
-from roundware.rw.models import ListeningHistoryItem
+from roundware.lib.exception import RoundException
+from roundware.rw.models import (Session,
+                                 Event,
+                                 Asset,
+                                 Tag,
+                                 MasterUI,
+                                 UIMapping,
+                                 ListeningHistoryItem)
 from roundwared import icecast2
 from cache_utils.decorators import cached
 logger = logging.getLogger(__name__)
 
-# @profile(stats=True)
-
-
-def get_config_tag_json(p=None, s=None):
-    if s is None and p is None:
-        raise roundexception.RoundException("Must pass either a project or "
-                                            "a session")
-    lingo = Language.objects.filter(language_code='en')[0]
-    if s is not None:
-        p = s.project
-        lingo = s.language
-
-    m = MasterUI.objects.filter(project=p)
-    modes = {}
-
-    for masterui in m:
-        if masterui.active:
-            mappings = UIMapping.objects.filter(
-                master_ui=masterui, active=True)
-            if masterui.header_text_loc.all():
-                ht = masterui.header_text_loc.filter(
-                    language=lingo)[0].localized_string
-            else:
-                ht = ""
-            #masterD = masterui.toTagDictionary()
-            masterD = {'name': masterui.name, 'header_text': ht, 'code': masterui.tag_category.name,
-                       'select': masterui.select.name, 'order': masterui.index}
-            masterOptionsList = []
-
-            default = []
-            for mapping in mappings:
-                loc_desc = ""
-                temp_desc = mapping.tag.loc_description.filter(language=lingo)
-                if temp_desc:
-                    loc_desc = temp_desc[0].localized_string
-                if mapping.default:
-                    default.append(mapping.tag.id)
-                # masterOptionsList.append(mapping.toTagDictionary())
-                # def toTagDictionary(self):
-                    # return
-                    # {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
-
-                masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'data': mapping.tag.data,
-                                          'relationships': mapping.tag.get_relationships(),
-                                          'description': mapping.tag.description, 'shortcode': mapping.tag.value,
-                                          'loc_description': loc_desc,
-                                          'value': mapping.tag.loc_msg.filter(language=lingo)[0].localized_string})
-            masterD["options"] = masterOptionsList
-            masterD["defaults"] = default
-            if masterui.ui_mode.name not in modes:
-                modes[masterui.ui_mode.name] = [masterD, ]
-            else:
-                modes[masterui.ui_mode.name].append(masterD)
-
-    return modes
-
 
 # @profile(stats=True)
+# Used by recording_collection.py only
 @cached(30)
 def get_recordings(session_id, tags=None):
 
     # If the session_is is a list, get the first value
     # TODO: Remove check for a session_id list.
-    # session_id is a list at stream.modify_stream() in roundwared.rounddbus.add_stream_signal_receiver()
+    # session_id is a list at stream.modify_stream() in roundwared.rwdbus_receive.add_stream_signal_receiver()
     # session_id is a list before it is sent out on dbus in roundware.rw.views.main()
     if isinstance(session_id, list):
         session_id = session_id[0]
@@ -117,6 +60,7 @@ def get_recordings(session_id, tags=None):
 
 
 # @profile(stats=True)
+# Used by recording_collection.py only
 def get_default_tags_for_project(project):
     m = MasterUI.objects.filter(project=project, active=True)
     default = []
@@ -129,14 +73,17 @@ def get_default_tags_for_project(project):
 
 
 # @profile(stats=True)
+# Used by recording_collection.py only
 @cached(60 * 1)
 def filter_recs_for_tags(p, tagids_from_request, l):
-    """ Return Assets containing at least one matching tag in _each_ available
+    """
+    Return Assets containing at least one matching tag in _each_ available
     tag category with the tags supplied in tagids_from_request.
     i.e., an Asset, to be returned, must match at least one tag from each
     category.  It won't be returned if it has a tag from one tagcategory
     but not another.
     """
+    # TODO: This function can be replaced with SQL.
     logger.debug("Tags: %s", tagids_from_request)
 
     recs = []
@@ -198,51 +145,8 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     logger.debug(
         "filter_recs_for_tags returned %s Assets" % (len(recs)))
     return recs
-# form args:
-# event_type <string>
-# session_id <integer>
-#[client_time] <string using RFC822 format>
-#[latitude] <float?>
-#[longitude] <float?>
-#[tags] (could possibly be incorporated into the 'data' field?)
-#[data]
 
-
-def log_event(event_type, session_id, form):
-    s = Session.objects.get(id=session_id)
-    if s == None:
-        raise roundexception.RoundException(
-            "failed to access session " + str(session_id))
-    client_time = None
-    latitude = None
-    longitude = None
-    tags = None
-    data = None
-    if form != None:
-        if "client_time" in form:
-            client_time = form["client_time"]
-        if "latitude" in form:
-            latitude = form["latitude"]
-        if "longitude" in form:
-            longitude = form["longitude"]
-        if "tags" in form:
-            tags = form["tags"]
-        if "data" in form:
-            data = form["data"]
-
-    e = Event(session=s,
-              event_type=event_type,
-              server_time=datetime.datetime.now(),
-              client_time=client_time,
-              latitude=latitude,
-              longitude=longitude,
-              tags=tags,
-              data=data)
-    e.save()
-
-    return True
-
-
+# Used by composition.py only
 def add_asset_to_session_history_and_update_metadata(asset_id, session_id, duration):
     logger.debug("Called with recording " +
                  str(asset_id) + " session_id: " + str(session_id) + " duration: " + str(int(duration)))
@@ -250,28 +154,11 @@ def add_asset_to_session_history_and_update_metadata(asset_id, session_id, durat
     admin.update_metadata(asset_id, session_id)
 
     s = Session.objects.get(id=session_id)
-    ass = Asset.objects.get(id=asset_id)
+    asset = Asset.objects.get(id=asset_id)
     try:
         hist = ListeningHistoryItem(
-            session=s, asset=ass, starttime=datetime.datetime.now(), duration=int(duration))
+            session=s, asset=asset, starttime=datetime.datetime.now(), duration=int(duration))
         hist.save()
     except:
         logger.warning("Failed to save listening history!")
     return True
-
-
-def cleanup_history_for_session(session_id):
-    ListeningHistoryItem.objects.filter(session=session_id).delete()
-
-
-def get_current_streaming_asset(session_id):
-    try:
-        l = ListeningHistoryItem.objects.filter(
-            session=session_id).order_by('-starttime')[0]
-        return l
-    except IndexError:
-        return None
-
-
-def get_asset(asset_id):
-    return Asset.objects.get(id=asset_id)

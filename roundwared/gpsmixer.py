@@ -11,7 +11,7 @@ import logging
 import math
 import httplib
 import urlparse
-from roundwared import src_mp3_stream
+import src_mp3_stream
 logger = logging.getLogger(__name__)
 
 

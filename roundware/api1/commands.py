@@ -15,18 +15,28 @@ try:
     from profiling import profile
 except ImportError:
     pass
-from roundwared import db
-from roundwared import convertaudio
-from roundwared import discover_audiolength
-from roundwared import roundexception
+from django.conf import settings
+from roundware.rw import models
+from roundware.lib import convertaudio
+from roundware.lib import discover_audiolength
+from roundware.lib import dbus_send
+from roundware.lib.exception import RoundException
 from roundwared import icecast2
 from roundwared import gpsmixer
-from roundwared import rounddbus
-from roundware.rw import models
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+def t(msg, field, language):
+    """
+    Locates the translation for the msg in the field object for the provided
+    session language.
+    """
+    # TODO: Replace with standard Django internationalization.
+    try:
+        msg = field.filter(language=language)[0].localized_string
+    except:
+        pass
+    return msg
 
 def check_for_single_audiotrack(session_id):
     ret = False
@@ -37,19 +47,16 @@ def check_for_single_audiotrack(session_id):
         ret = True
     return ret
 
-# 2.1 Protocol additions AS 1.2
-
 
 def get_current_streaming_asset(request):
     form = request.GET
     if 'session_id' not in form:
-        raise roundexception.RoundException(
-            "a session_id is required for this operation")
+        raise RoundException("a session_id is required for this operation")
     if check_for_single_audiotrack(form.get('session_id')) != True:
-        raise roundexception.RoundException(
+        raise RoundException(
             "this operation is only valid for projects with 1 audiotrack")
     else:
-        l = db.get_current_streaming_asset(form.get('session_id'))
+        l = _get_current_streaming_asset(form.get('session_id'))
     if l:
         return {"asset_id": l.asset.id,
                 "start_time": l.starttime.isoformat(),
@@ -58,18 +65,25 @@ def get_current_streaming_asset(request):
     else:
         return {"user_error_message": "no asset found"}
 
+def _get_current_streaming_asset(session_id):
+    try:
+        l = models.ListeningHistoryItem.objects.filter(
+            session=session_id).order_by('-starttime')[0]
+        return l
+    except IndexError:
+        return None
+
 
 def get_asset_info(request):
     form = request.GET
     if 'asset_id' not in form:
-        raise roundexception.RoundException(
-            "an asset_id is required for this operation")
+        raise RoundException("an asset_id is required for this operation")
 
-    if check_for_single_audiotrack(form.get('session_id')) != True:
-        raise roundexception.RoundException(
+    if not check_for_single_audiotrack(form.get('session_id')):
+        raise RoundException(
             "this operation is only valid for projects with 1 audiotrack")
     else:
-        a = db.get_asset(form.get('asset_id'))
+        a = models.Asset.objects.get(id=form.get('asset_id'))
     if a:
         return {"asset_id": a.id,
                 "created": a.created.isoformat(),
@@ -80,66 +94,59 @@ def get_asset_info(request):
 
 def play_asset_in_stream(request):
     form = request.GET
-    # add skipped asset_id to form in order to track which asset is played
-    #assetid = form[asset_id]
-    #form[data] = form["asset_id"]
+
     request = form_to_request(form)
     arg_hack = json.dumps(request)
-    db.log_event("play_asset_in_stream", int(form['session_id']), form)
+    log_event("play_asset_in_stream", int(form['session_id']), form)
 
     if 'session_id' not in form:
-        raise roundexception.RoundException(
-            "a session_id is required for this operation")
-    if check_for_single_audiotrack(form.get('session_id')) != True:
-        raise roundexception.RoundException(
+        raise RoundException("a session_id is required for this operation")
+    if not check_for_single_audiotrack(form.get('session_id')):
+        raise RoundException(
             "this operation is only valid for projects with 1 audiotrack")
     if 'asset_id' not in form:
-        raise roundexception.RoundException(
+        raise RoundException(
             "an asset_id is required for this operation")
-    rounddbus.emit_stream_signal(
+    dbus_send.emit_stream_signal(
         int(form['session_id']), "play_asset", arg_hack)
     return {"success": True}
 
 
 def skip_ahead(request):
     form = request.GET
-    db.log_event("skip_ahead", int(form['session_id']), form)
+    log_event("skip_ahead", int(form['session_id']), form)
 
     if 'session_id' not in form:
-        raise roundexception.RoundException(
-            "a session_id is required for this operation")
-    if check_for_single_audiotrack(form.get('session_id')) != True:
-        raise roundexception.RoundException(
+        raise RoundException("a session_id is required for this operation")
+    if not check_for_single_audiotrack(form.get('session_id')):
+        raise RoundException(
             "this operation is only valid for projects with 1 audiotrack")
-    rounddbus.emit_stream_signal(int(form['session_id']), "skip_ahead", "")
+    dbus_send.emit_stream_signal(int(form['session_id']), "skip_ahead", "")
     return {"success": True}
 
 
 def vote_asset(request):
     form = request.GET
-    db.log_event("vote_asset", int(form['session_id']), form)
+    log_event("vote_asset", int(form['session_id']), form)
 
     if 'session_id' not in form:
-        raise roundexception.RoundException(
-            "a session_id is required for this operation")
+        raise RoundException("a session_id is required for this operation")
     if 'asset_id' not in form:
-        raise roundexception.RoundException(
-            "an asset_id is required for this operation")
+        raise RoundException("an asset_id is required for this operation")
     if 'vote_type' not in form:
-        raise roundexception.RoundException(
-            "a vote_type is required for this operation")
-    if check_for_single_audiotrack(form.get('session_id')) != True:
-        raise roundexception.RoundException(
+        raise RoundException("a vote_type is required for this operation")
+    if not check_for_single_audiotrack(form.get('session_id')):
+        raise RoundException(
             "this operation is only valid for projects with 1 audiotrack")
 
     try:
         session = models.Session.objects.get(id=int(form.get('session_id')))
     except:
-        raise roundexception.RoundException("Session not found.")
+        raise RoundException("Session not found.")
     try:
         asset = models.Asset.objects.get(id=int(form.get('asset_id')))
     except:
-        raise roundexception.RoundException("asset not found.")
+        raise RoundException("Asset not found.")
     if 'value' not in form:
         v = models.Vote(
             asset=asset, session=session, type=form.get('vote_type'))
@@ -150,15 +157,11 @@ def vote_asset(request):
     return {"success": True}
 
 # @profile(stats=True)
-
-
 def get_config(request):
     form = request.GET
 
-    # check params
     if 'project_id' not in form:
-        raise roundexception.RoundException(
-            "a project_id is required for this operation")
+        raise RoundException("a project_id is required for this operation")
     project = models.Project.objects.get(id=form.get('project_id'))
     speakers = models.Speaker.objects.filter(
         project=form.get('project_id')).values()
@@ -200,32 +203,12 @@ def get_config(request):
 
         s.save()
         session_id = s.id
-        db.log_event('start_session', s.id, None)
+        log_event('start_session', s.id, None)
 
-    sharing_message = "none set"
-    out_of_range_message = "none set"
-    legal_agreement = "none set"
-    demo_stream_message = "none set"
-    try:
-        sharing_message = project.sharing_message_loc.filter(
-            language=l)[0].localized_string
-    except:
-        pass
-    try:
-        out_of_range_message = project.out_of_range_message_loc.filter(
-            language=l)[0].localized_string
-    except:
-        pass
-    try:
-        legal_agreement = project.legal_agreement_loc.filter(
-            language=l)[0].localized_string
-    except:
-        pass
-    try:
-        demo_stream_message = project.demo_stream_message_loc.filter(
-            language=l)[0].localized_string
-    except:
-        pass
+    sharing_message = t("none set", project.sharing_message_loc, l)
+    out_of_range_message = t("none set", project.out_of_range_message_loc, l)
+    legal_agreement = t("none set", project.legal_agreement_loc, l)
+    demo_stream_message = t("none set", project.demo_stream_message_loc, l)
 
     response = [
         {"device": {"device_id": device_id}},
@@ -274,14 +257,14 @@ def get_tags_for_project(request):
     p = None
     s = None
     if 'project_id' not in form and 'session_id' not in form:
-        raise roundexception.RoundException(
+        raise RoundException(
             "either a project_id or session_id is required for this operation")
 
     if 'project_id' in form:
         p = models.Project.objects.get(id=form.get('project_id'))
     if 'session_id' in form:
         s = models.Session.objects.get(id=form.get('session_id'))
-    return db.get_config_tag_json(p, s)
+    return get_config_tags(p, s)
 
 
 # get_available_assets
@@ -336,7 +319,7 @@ def get_available_assets(request):
     tagbool = get_parameter_from_request(request, 'tagbool')
     language = get_parameter_from_request(request, 'language')
     if (latitude and not longitude) or (longitude and not latitude):
-        raise roundexception.RoundException(
+        raise RoundException(
             "This operation requires that you pass both latitude and "
             "longitude, if you pass either one.")
 
@@ -359,126 +342,148 @@ def get_available_assets(request):
             qry_retlng = models.Language.objects.get(language_code=language)
             lng_id = models.Language.objects.get(language_code=language)
         except models.Language.DoesNotExist:
-            raise roundexception.RoundException(
-                "Specified language code does not exist."
-            )
+            raise RoundException("Specified language code does not exist.")
     else:
-        # default to Emglish if no language parameter present
+        # default to English if no language parameter present
         lng_id = 1
 
-    if project_id or asset_id or envelope_id:
+    if asset_id:
+        # ignore all other filter criteria
+        assets = models.Asset.objects.filter(id__in=asset_id.split(','))
 
-        # by asset
-        if asset_id:
-            # ignore all other filter criteria
-            assets = models.Asset.objects.filter(id__in=asset_id.split(','))
+    elif envelope_id:
+        assets = []
+        envelopes = models.Envelope.objects.filter(
+            id__in=envelope_id.split(','))
+        for e in envelopes:
+            e_assets = e.assets.all()
+            for a in e_assets:
+                if a not in assets:
+                    assets.append(a)
 
-        # by envelope
-        elif envelope_id:
-            assets = []
-            envelopes = models.Envelope.objects.filter(
-                id__in=envelope_id.split(','))
-            for e in envelopes:
-                e_assets = e.assets.all()
-                for a in e_assets:
-                    if a not in assets:
-                        assets.append(a)
+    elif project_id:
+        project = models.Project.objects.get(id=project_id)
+        kw['project__exact'] = project
 
-        # by project
-        elif project_id:
-            project = models.Project.objects.get(id=project_id)
-            kw['project__exact'] = project
-
-            assets = models.Asset.objects.filter(**kw)
-            if tag_ids:
-                if tagbool and str(tagbool).lower() == 'or':
-                    assets = assets.filter(
-                        tags__in=tag_ids.split(',')).distinct()
-                else:
-                    # 'and'.  Asset must have all tags
-                    for tag_id in tag_ids.split(','):
-                        assets = assets.filter(tags__id=tag_id)
-
-            # filter by extra params. These are chained with an AND
-            assets = assets.filter(**extras)
-
-            if latitude and longitude:  # need both
-                # return only assets within specified or default radius
-                # by project
-                latitude = float(latitude)
-                longitude = float(longitude)
-                if not radius:
-                    radius = project.recording_radius
-                    if not radius:
-                        raise roundexception.RoundException("Project does not "
-                                                            "specify a radius and no radius parameter passed to "
-                                                            "operation.")
-                radius = float(radius)
-                for asset in assets:
-                    distance = gpsmixer.distance_in_meters(
-                        latitude, longitude,
-                        asset.latitude, asset.longitude)
-                    if distance > radius:
-                        assets = assets.exclude(id=asset.id)
-
-        assets_info = {}
-        assets_info['number_of_assets'] = {}
-        for mtype in asset_media_types:
-            assets_info['number_of_assets'][mtype] = 0
-        assets_list = []
-
-        for asset in assets:
-            temp_desc = ""
-            loc_desc = ""
-            temp_desc = asset.loc_description.filter(language=lng_id)
-            if temp_desc:
-                loc_desc = temp_desc[0].localized_string
-            if asset.mediatype in asset_media_types:
-                assets_info['number_of_assets'][asset.mediatype] += 1
-            if not qry_retlng:
-                retlng = asset.language  # can be None
+        assets = models.Asset.objects.filter(**kw)
+        if tag_ids:
+            if tagbool and str(tagbool).lower() == 'or':
+                assets = assets.filter(
+                    tags__in=tag_ids.split(',')).distinct()
             else:
-                retlng = qry_retlng
-            assets_list.append(
-                dict(asset_id=asset.id,
-                     asset_url='%s%s' % (
-                         settings.MEDIA_URL, asset.filename),
-                     latitude=asset.latitude,
-                     longitude=asset.longitude,
-                     audio_length=asset.audiolength,
-                     submitted=asset.submitted,
-                     mediatype=asset.mediatype,
-                     description=asset.description,
-                     loc_description=loc_desc,
-                     project=asset.project.name,
-                     language=asset.language.language_code,
-                     tags=[dict(
-                         tag_category_name=tag.tag_category.name,
-                         tag_id=tag.id,
-                         localized_value=_get_best_localized_string(
-                             asset, tag, retlng)
-                     ) for tag in asset.tags.all()]),
-            )
-        assets_info['assets'] = assets_list
-        return assets_info
+                # 'and'.  Asset must have all tags
+                for tag_id in tag_ids.split(','):
+                    assets = assets.filter(tags__id=tag_id)
 
+        # filter by extra params. These are chained with an AND
+        assets = assets.filter(**extras)
+
+        if latitude and longitude: # need both
+            # return only assets within specified or default radius
+            # by project
+            latitude = float(latitude)
+            longitude = float(longitude)
+            if not radius:
+                radius = project.recording_radius
+                if not radius:
+                    raise RoundException("Project does not specify a "
+                                         "radius and no radius parameter "
+                                         "passed to operation.")
+            radius = float(radius)
+            for asset in assets:
+                distance = gpsmixer.distance_in_meters(
+                    latitude, longitude,
+                    asset.latitude, asset.longitude)
+                if distance > radius:
+                    assets = assets.exclude(id=asset.id)
     else:
-        raise roundexception.RoundException("This operation requires that you "
-                                            "pass a project_id, asset_id, or envelope_id")
+        raise RoundException("This operation requires that you pass a "
+                             "project_id, asset_id, or envelope_id")
 
 
-def log_event(request):
+    assets_info = {}
+    assets_info['number_of_assets'] = {}
+    for mtype in asset_media_types:
+        assets_info['number_of_assets'][mtype] = 0
+    assets_list = []
 
+    for asset in assets:
+        loc_desc = t("", asset.loc_description, lng_id)
+
+        if asset.mediatype in asset_media_types:
+            assets_info['number_of_assets'][asset.mediatype] += 1
+        if not qry_retlng:
+            retlng = asset.language # can be None
+        else:
+            retlng = qry_retlng
+        assets_list.append(
+            dict(asset_id=asset.id,
+                 asset_url='%s%s' % (
+                     settings.MEDIA_URL, asset.filename),
+                 latitude=asset.latitude,
+                 longitude=asset.longitude,
+                 audio_length=asset.audiolength,
+                 submitted=asset.submitted,
+                 mediatype=asset.mediatype,
+                 description=asset.description,
+                 loc_description=loc_desc,
+                 project=asset.project.name,
+                 language=asset.language.language_code,
+                 tags=[dict(
+                     tag_category_name=tag.tag_category.name,
+                     tag_id=tag.id,
+                     localized_value=_get_best_localized_string(
+                         asset, tag, retlng)
+                 ) for tag in asset.tags.all()]),
+        )
+    assets_info['assets'] = assets_list
+    return assets_info
+
+def op_log_event(request):
     form = request.GET
     if 'session_id' not in form:
-        raise roundexception.RoundException(
-            "a session_id is required for this operation")
+        raise RoundException("a session_id is required for this operation")
     if 'event_type' not in form:
-        raise roundexception.RoundException(
-            "an event_type is required for this operation")
-    db.log_event(form.get('event_type'), form.get('session_id'), form)
+        raise RoundException("an event_type is required for this operation")
+    log_event(form.get('event_type'), form.get('session_id'), form)
 
     return {"success": True}
+
+# Used by server.py many times and stream.py once!
+def log_event(event_type, session_id, requestget=None):
+    """
+    event_type <string>
+    session_id <integer>
+    [client_time] <string using RFC822 format>
+    [latitude] <float>
+    [longitude] <float>
+    [tags]
+    [data]
+    """
+    s = models.Session.objects.get(id=session_id)
+    if not s:
+        raise RoundException("Failed to access session: %s " % session_id)
+    client_time = None
+    latitude = None
+    longitude = None
+    tags = None
+    data = None
+    if requestget:
+        client_time = requestget.get("client_time", None)
+        latitude = requestget.get("latitude", None)
+        longitude = requestget.get("longitude", None)
+        tags = requestget.get("tags", None)
+        data = requestget.get("data", None)
+
+    e = models.Event(session=s,
+              event_type=event_type,
+              server_time=datetime.datetime.now(),
+              client_time=client_time,
+              latitude=latitude,
+              longitude=longitude,
+              tags=tags,
+              data=data)
+    e.save()
 
 # create_envelope
 # args: (operation, session_id, [tags])
@@ -488,16 +493,11 @@ def log_event(request):
 #{"envelope_id": 2}
 
 # @profile(stats=True)
-
-
 def create_envelope(request):
     form = request.GET
     if 'session_id' not in form:
-        raise roundexception.RoundException(
-            "a session_id is required for this operation")
+        raise RoundException("a session_id is required for this operation")
     s = models.Session.objects.get(id=form.get('session_id'))
-
-    # todo - tags
 
     env = models.Envelope(session=s)
     env.save()
@@ -513,8 +513,6 @@ def create_envelope(request):
 # returns success bool
 # {"success": true}
 # @profile(stats=True)
-
-
 def add_asset_to_envelope(request):
 
     # get asset_id from the GET request
@@ -525,7 +523,7 @@ def add_asset_to_envelope(request):
         try:
             asset = models.Asset.objects.get(pk=asset_id)
         except models.Asset.DoesNotExist:
-            raise roundexception.RoundException(
+            raise RoundException(
                 "Invalid Asset ID Provided. No Asset exists with ID %s" % asset_id)
 
     envelope_id = get_parameter_from_request(request, 'envelope_id', True)
@@ -535,16 +533,16 @@ def add_asset_to_envelope(request):
         envelope = models.Envelope.objects.select_related(
             'session').get(id=envelope_id)
     except models.Envelope.DoesNotExist:
-        raise roundexception.RoundException(
+        raise RoundException(
             "Invalid Envelope ID Provided. No Envelope exists with ID %s" % envelope_id)
 
     session = envelope.session
 
-    db.log_event("start_upload", session.id, request.GET)
+    log_event("start_upload", session.id, request.GET)
 
     fileitem = asset.file if asset else request.FILES.get('file')
     if not fileitem.name:
-        raise roundexception.RoundException("No file in request")
+        raise RoundException("No file in request")
 
     # get mediatype from the GET request
     mediatype = get_parameter_from_request(
@@ -562,7 +560,7 @@ def add_asset_to_envelope(request):
         filename_extension
     dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
     if os.path.isfile(dest_filepath):
-        raise roundexception.RoundException("File already exists: %s" %
+        raise RoundException("File already exists: %s" %
                                             dest_filepath)
 
 
@@ -582,8 +580,7 @@ def add_asset_to_envelope(request):
     else:
         newfilename = dest_filename
     if not newfilename:
-        raise roundexception.RoundException(
-            "File not converted successfully: " + newfilename)
+        raise RoundException("File not converted successfully: " + newfilename)
 
     # if the request comes from the django admin interface
     # update the Asset with the right information
@@ -650,7 +647,7 @@ def add_asset_to_envelope(request):
     envelope.assets.add(asset)
     envelope.save()
 
-    rounddbus.emit_stream_signal(0, "refresh_recordings", "")
+    dbus_send.emit_stream_signal(0, "refresh_recordings", "")
     return {"success": True,
             "asset_id": asset.id}
 
@@ -664,84 +661,71 @@ def get_parameter_from_request(request, name, required=False):
             ret = request.GET[name]
         except (KeyError, AttributeError):
             if required:
-                raise roundexception.RoundException(
+                raise RoundException(
                     name + " is required for this operation")
     return ret
 
-
 # @profile(stats=True)
 def request_stream(request):
+    session_id = request.GET.get('session_id', None)
+    if not session_id:
+        raise RoundException("Must supply session_id.")
 
-    request_form = request.GET
+    log_event("request_stream", int(session_id), request.GET)
+
+    session = models.Session.objects.select_related(
+        'project').get(id=session_id)
+    project = session.project
+
     # Get the value 'example.com' from the host 'example.com:8888'
     http_host = request.get_host().split(':')[0]
 
-    db.log_event(
-        "request_stream", int(request_form['session_id']), request_form)
-
-    if not request_form.get('session_id'):
-        raise roundexception.RoundException("Must supply session_id.")
-    session = models.Session.objects.select_related(
-        'project').get(id=request_form.get('session_id'))
-    project = session.project
-
     if session.demo_stream_enabled:
-        # return {"success": "demo_stream_enabled"}
-        msg = "demo_stream_message"
-        try:
-            msg = project.demo_stream_message_loc.filter(
-                language=session.language)[0].localized_string
-        except:
-            pass
+        msg = t("demo_stream_message", project.demo_stream_message_loc,
+                session.language)
 
         if project.demo_stream_url:
             url = project.demo_stream_url
         else:
-            url = "http://" + http_host + ":" + \
-                  str(settings.ICECAST_PORT) + \
-                  "/demo_stream.mp3"
-
+            url = "http://%s:%s/demo_stream.mp3" % (http_host,
+                                                    settings.ICECAST_PORT)
         return {
             'stream_url': url,
             'demo_stream_message': msg
         }
 
-    elif is_listener_in_range_of_stream(request_form, project):
+    elif is_listener_in_range_of_stream(request.GET, project):
+        # TODO: audio_format.upper() should be handled when the project is saved.
         audio_format = project.audio_format.upper()
+        # Make the audio stream if it doesn't exist.
         if not stream_exists(session.id, audio_format):
-            roundwared_directory = os.path.dirname(os.path.realpath(__file__))
-
-            command = [roundwared_directory + '/rwstreamd.py',
+            command = [settings.PROJECT_ROOT + '/roundwared/rwstreamd.py',
                        '--session_id', str(session.id), '--project_id', str(project.id)]
             for p in ['latitude', 'longitude', 'audio_format']:
-                if p in request_form and request_form[p]:
-                    command.extend(['--' + p, request_form[p].replace("\t", ",")])
-            if 'audio_stream_bitrate' in request_form:
+                if p in request.GET and request.GET[p]:
+                    command.extend(['--' + p, request.GET[p].replace("\t", ",")])
+            if 'audio_stream_bitrate' in request.GET:
                 command.extend(
-                    ['--audio_stream_bitrate', str(request_form['audio_stream_bitrate'])])
+                    ['--audio_stream_bitrate', str(request.GET['audio_stream_bitrate'])])
 
             apache_safe_daemon_subprocess(command)
             wait_for_stream(session.id, audio_format)
 
         return {
-            "stream_url": "http://" + http_host + ":" +
-            str(settings.ICECAST_PORT) +
-            icecast_mount_point(session.id, audio_format),
+            "stream_url": "http://%s:%s%s" % (http_host, settings.ICECAST_PORT,
+                                              icecast2.mount_point(session.id, audio_format))
         }
     else:
-        msg = "This application is designed to be used in specific geographic locations. Apparently your phone thinks you are not at one of those locations, so you will hear a sample audio stream instead of the real deal. If you think your phone is incorrect, please restart Scapes and it will probably work. Thanks for checking it out!"
-        try:
-            msg = project.out_of_range_message_loc.filter(
-                language=session.language)[0].localized_string
-        except:
-            pass
-
-        # if project.out_of_range_url: all projects must have an out
-        # of range url
-        url = project.out_of_range_url
+        msg = t("This application is designed to be used in specific geographic"
+                " locations. Apparently your phone thinks you are not at one of"
+                " those locations, so you will hear a sample audio stream"
+                " instead of the real deal. If you think your phone is"
+                " incorrect, please restart Scapes and it will probably work."
+                " Thanks for checking it out!",
+                project.out_of_range_message_loc, session.language)
 
         return {
-            'stream_url': url,
+            'stream_url': project.out_of_range_url,
             'user_message': msg
         }
 
@@ -752,7 +736,7 @@ def modify_stream(request):
     form = request.GET
     request = form_to_request(form)
     arg_hack = json.dumps(request)
-    db.log_event("modify_stream", int(form['session_id']), form)
+    log_event("modify_stream", int(form['session_id']), form)
     logger.debug(request)
 
     if 'session_id' in form:
@@ -767,11 +751,11 @@ def modify_stream(request):
                 session.language = l
                 session.save()
             except:
-                raise roundexception.RoundException("language not supported")
+                raise RoundException("language not supported")
 
         audio_format = project.audio_format.upper()
         if stream_exists(int(form['session_id']), audio_format):
-            rounddbus.emit_stream_signal(
+            dbus_send.emit_stream_signal(
                 int(form['session_id']), "modify_stream", arg_hack)
             success = True
         else:
@@ -789,16 +773,16 @@ def move_listener(request):
     form = request.GET
     request = form_to_request(form)
     arg_hack = json.dumps(request)
-    db.log_event("move_listener", int(form['session_id']), form)
-    rounddbus.emit_stream_signal(
+    log_event("move_listener", int(form['session_id']), form)
+    dbus_send.emit_stream_signal(
         int(form['session_id']), "move_listener", arg_hack)
     return {"success": True}
 
 
 def heartbeat(request):
     form = request.GET
-    rounddbus.emit_stream_signal(int(form['session_id']), "heartbeat", "")
-    db.log_event("heartbeat", int(form['session_id']), form)
+    dbus_send.emit_stream_signal(int(form['session_id']), "heartbeat", "")
+    log_event("heartbeat", int(form['session_id']), form)
     return {"success": True}
 
 
@@ -871,22 +855,22 @@ def wait_for_stream(sessionid, audio_format):
         time.sleep(1)
         retries_left -= 1
         if retries_left < 0:
-            raise roundexception.RoundException("Stream timeout on creation")
+            raise RoundException("Stream timeout on creation")
 
 
 def stream_exists(sessionid, audio_format):
     admin = icecast2.Admin()
-    return admin.stream_exists(icecast_mount_point(sessionid, audio_format))
+    return admin.stream_exists(icecast2.mount_point(sessionid, audio_format))
 
 
 def is_listener_in_range_of_stream(form, proj):
+    # If latitude and longitude is not specified assume True.
     if not ('latitude' in form and 'longitude' in form) or not (form['latitude'] and form['longitude']):
         return True
+    # Get all active speakers
     speakers = models.Speaker.objects.filter(project=proj, activeyn=True)
 
     for speaker in speakers:
-        # only do this if latitude and longitude are included, return False
-        # otherwise
         distance = gpsmixer.distance_in_meters(
             float(form['latitude']),
             float(form['longitude']),
@@ -920,5 +904,49 @@ def form_to_request(form):
     return request
 
 
-def icecast_mount_point(sessionid, audio_format):
-    return '/stream' + str(sessionid) + "." + audio_format.lower()
+# @profile(stats=True)
+def get_config_tags(p=None, s=None):
+    if s is None and p is None:
+        raise RoundException("Must pass either a project or "
+                                            "a session")
+    language = models.Language.objects.filter(language_code='en')[0]
+    if s is not None:
+        p = s.project
+        language = s.language
+
+    m = models.MasterUI.objects.filter(project=p)
+    modes = {}
+
+    for masterui in m:
+        if masterui.active:
+            mappings = models.UIMapping.objects.filter(
+                master_ui=masterui, active=True)
+            header = t("", masterui.header_text_loc, language)
+
+            masterD = {'name': masterui.name, 'header_text': header, 'code': masterui.tag_category.name,
+                       'select': masterui.select.name, 'order': masterui.index}
+            masterOptionsList = []
+
+            default = []
+            for mapping in mappings:
+                loc_desc = t("", mapping.tag.loc_description, language)
+                if mapping.default:
+                    default.append(mapping.tag.id)
+                # masterOptionsList.append(mapping.toTagDictionary())
+                # def toTagDictionary(self):
+                    # return
+                    # {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
+
+                masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'data': mapping.tag.data,
+                                          'relationships': mapping.tag.get_relationships(),
+                                          'description': mapping.tag.description, 'shortcode': mapping.tag.value,
+                                          'loc_description': loc_desc,
+                                          'value': t("", mapping.tag.loc_msg, language)})
+            masterD["options"] = masterOptionsList
+            masterD["defaults"] = default
+            if masterui.ui_mode.name not in modes:
+                modes[masterui.ui_mode.name] = [masterD, ]
+            else:
+                modes[masterui.ui_mode.name].append(masterD)
+
+    return modes

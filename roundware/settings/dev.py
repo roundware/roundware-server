@@ -22,8 +22,6 @@ MIDDLEWARE_CLASSES = (
 ) + MIDDLEWARE_CLASSES
 
 # Bypass the INTERNAL_IPS check for Debug Toolbar
-
-
 class internal_list(list):
 
     def __contains__(self, key):
@@ -64,6 +62,21 @@ LOGGING['loggers'].update({
     },
     # The roundwared stream manager logger.
     'roundwared': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    },
+    # The Roundware Library logger.
+    'library': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    },
+    # The Roundware API1 logger.
+    'api1': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    },
+    # The Roundware API2 logger.
+    'api2': {
         'level': 'DEBUG',
         'handlers': ['console'],
     },

@@ -131,7 +131,7 @@ class MasterUIForSetupTagUISelectForm(MasterUIForSetupTagUIFormMixin,
                                                                      'rw.access_project')
                                     ).order_by('id')
 
-    def form_valid():
+    def form_valid(self):
         return True
         pass
 
@@ -186,7 +186,6 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
         return obj.tag.__unicode__()
 
     def is_valid(self):
-        # import pdb; pdb.set_trace()
         return super(MasterUIForSetupTagUIEditForm, self).is_valid()
 
     class Media:

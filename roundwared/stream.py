@@ -12,14 +12,13 @@ import gst
 import logging
 import time
 from django.conf import settings
+from roundware.rw import models
+from roundware.api1.commands import log_event
 from roundwared import asset_sorters
 from roundwared import composition
 from roundwared import icecast2
-from roundwared.server import icecast_mount_point
 from roundwared import gpsmixer
 from roundwared import recording_collection
-from roundware.rw import models
-from roundwared import db
 
 logger = logging.getLogger(__name__)
 
@@ -235,10 +234,9 @@ class RoundStream:
                     comp.wait_and_play()
 
     def cleanup(self):
-        db.log_event("cleanup_session", self.sessionid, None)
+        log_event("cleanup_session", self.sessionid)
         logger.debug("Cleaning up Session #%d" % self.sessionid)
 
-        # db.cleanup_history_for_session(self.sessionid)
         if self.pipeline:
             if self.watch_id:
                 self.pipeline.get_bus().remove_signal_watch()
@@ -263,7 +261,7 @@ class RoundStream:
         return False
 
     def is_anyone_listening(self):
-        mount_point = icecast_mount_point(self.sessionid, self.audio_format)
+        mount_point = icecast2.mount_point(self.sessionid, self.audio_format)
         listeners = self.icecast_admin.get_client_count(mount_point)
         logger.debug("Number of listeners: %d " % listeners)
         if self.last_listener_count == 0 and listeners == 0:
@@ -310,7 +308,7 @@ class RoundStreamSink (gst.Bin):
         shout2send.set_property("username", settings.ICECAST_SOURCE_USERNAME)
         shout2send.set_property("password", settings.ICECAST_SOURCE_PASSWORD)
         shout2send.set_property("mount",
-                                icecast_mount_point(sessionid, audio_format))
+                                icecast2.mount_point(sessionid, audio_format))
         # shout2send.set_property("streamname","initial name")
         # self.add(capsfilter, volume, self.taginjector, shout2send)
         self.add(capsfilter, volume, shout2send)

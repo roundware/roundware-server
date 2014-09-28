@@ -2,9 +2,10 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 from __future__ import unicode_literals
-from django.contrib.admin.util import get_model_from_relation
 from django.db import models
-from django.contrib.admin.filterspecs import FilterSpec, ChoicesFilterSpec, RelatedFilterSpec
+from django.contrib.admin.filterspecs import (FilterSpec, ChoicesFilterSpec,
+                                             RelatedFilterSpec,
+                                             DateFieldFilterSpec)
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext as _
 from models import TagCategory, Tag
@@ -68,11 +69,6 @@ class TagCategoryFilterSpec(RelatedFilterSpec):
 FilterSpec.filter_specs.insert(0, (lambda f: getattr(f, 'tag_category_filter', False),
                                    TagCategoryFilterSpec))
 
-from django.db import models
-from django.contrib.admin.filterspecs import FilterSpec, DateFieldFilterSpec
-from django.utils.translation import ugettext as _
-from datetime import datetime
-
 
 class AudioLengthFilterSpec(DateFieldFilterSpec):
 
@@ -86,7 +82,6 @@ class AudioLengthFilterSpec(DateFieldFilterSpec):
     def __init__(self, f, request, params, model, model_admin, *args, **kwargs):
         super(AudioLengthFilterSpec, self).__init__(
             f, request, params, model, model_admin, *args, **kwargs)
-        today = datetime.now()
         self.links = (
             (_('Any'), {}),
             (_('< 10s'), {'%s__lt' % self.field.name: 10000000000, }),

@@ -30,7 +30,7 @@ ROUNDWARE_SERVER_ROOT = here("../..")
 # folder(s) we pass it starting at the roundware-server root
 root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
-# Roundwared & rwstreamd.py settings - Previously in /etc/roundware/rw
+# Roundwared & rwstreamd.py settings
 ICECAST_PORT = "8000"
 ICECAST_HOST = "localhost"
 ICECAST_USERNAME = "admin"
@@ -204,13 +204,11 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'roundware.rw',
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
     'django.contrib.admin',
     'guardian',
     'chartit',
-    'roundware.notifications',
     'south',
     'validatedfile',
     'adminplus',
@@ -219,11 +217,31 @@ INSTALLED_APPS = (
     'djangoformsetjs',
     'sortedm2m',
     'rest_framework',
+    'rest_framework.authtoken',
+    'roundware.lib',
+    'roundware.rw',
+    'roundware.notifications',
+    'roundware.api1',
+    'roundware.api2',
 )
 
 REST_FRAMEWORK = {
     'PAGINATE_BY': 20,
-    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework.filters.DjangoFilterBackend',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/day'
+    }
 }
 
 # A sample logging configuration. The only tangible logging

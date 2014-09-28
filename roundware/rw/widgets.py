@@ -18,9 +18,6 @@ from django.template.loader import render_to_string
 # import floppyforms as forms
 from sortedm2m.forms import SortedCheckboxSelectMultiple
 
-from roundware.rw.models import Tag
-
-
 STATIC_URL = getattr(settings, 'STATIC_URL', settings.MEDIA_URL)
 
 
