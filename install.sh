@@ -68,11 +68,6 @@ chown $USERNAME:$USERNAME /home/$USERNAME/runserver.sh
 # Create a symbolic link to the main roundware directory
 ln -sfn $WWW_PATH /home/$USERNAME/www
 
-# Install python-software-properties to add add-apt-repository
-DEBIAN_FRONTEND=noninteractive apt-get install -y  python-software-properties
-
-# Add the REAL ffmpeg
-add-apt-repository -y ppa:jon-severinsson/ffmpeg
 apt-get update
 
 # Set MySQL root password
@@ -80,12 +75,11 @@ echo "mysql-server mysql-server/root_password password $MYSQL_ROOT" | debconf-se
 echo "mysql-server mysql-server/root_password_again password $MYSQL_ROOT" | debconf-set-selections
 
 # Install required packages non-interactive
-DEBIAN_FRONTEND=noninteractive apt-get install -y python-mysqldb python-configobj mysql-server \
-icecast2 ffmpeg apache2 pacpl python-dbus libapache2-mod-wsgi python-gst0.10 \
-gstreamer0.10-ffmpeg gstreamer0.10-plugins-base gstreamer0.10-plugins-bad \
-gstreamer0.10-plugins-good gstreamer0.10-plugins-ugly libavcodec-extra-53 \
-python-pip gstreamer-tools python-profiler libmagic1 python-lxml \
-python-dev mediainfo
+DEBIAN_FRONTEND=noninteractive apt-get install -y \
+apache2 libapache2-mod-wsgi mysql-server libav-tools mediainfo pacpl icecast2 \
+python-dev python-pip python-mysqldb python-dbus python-gst0.10 \
+gstreamer0.10-plugins-good gstreamer0.10-plugins-bad \
+gstreamer0.10-plugins-ugly
 
 # Install/upgrade virtualenv
 pip install -U virtualenv
@@ -119,8 +113,8 @@ a2dissite 000-default
 $SOURCE_PATH/deploy.sh
 
 # Setup roundware in Apache
-rm -f /etc/apache2/sites-available/roundware
-sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-apache2-sites-available-roundware > /etc/apache2/sites-available/roundware
+rm -f /etc/apache2/sites-available/roundware.conf
+sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-apache2-sites-available-roundware > /etc/apache2/sites-available/roundware.conf
 a2ensite roundware
 
 # Setup roundware log and logrotate

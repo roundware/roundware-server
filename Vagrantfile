@@ -5,9 +5,8 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "precise64"
-  # URL for Ubuntu Server 12.04 LTS (Precise Pangolin) daily
-  config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/precise/current/precise-server-cloudimg-amd64-vagrant-disk1.box"
+  # Vagrant Cloud name for Ubuntu 14.04 LTS
+  config.vm.box = config.vm.box = "ubuntu/trusty64"
   config.vm.hostname = "roundware-server"
 
   # Configure Apache port 80 to forward to host 8080
