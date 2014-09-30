@@ -1,6 +1,6 @@
 #!/bin/bash
 # Installer for Roundware Server (http://www.roundware.org/)
-# Tested with Ubuntu 12.04 LTS 64 bit
+# Tested with Ubuntu 14.04 LTS 64 bit
 
 # Enable exit on error
 set -e

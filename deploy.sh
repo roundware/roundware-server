@@ -1,6 +1,6 @@
 #!/bin/bash
 # Upgrade/Deployment for Roundware Server (http://www.roundware.org/)
-# Tested with Ubuntu 12.04 LTS 64 bit
+# Tested with Ubuntu 14.04 LTS 64 bit
 #
 # Use this to update production code.
 

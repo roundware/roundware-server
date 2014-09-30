@@ -43,6 +43,6 @@ def convert_audio_file(upload_dir, filename_prefix, filename_extension, dst_type
         if filename_extension == '.caf':
             os.system("/usr/bin/pacpl --to " + dst_type + " --outdir " +
                       settings.MEDIA_ROOT + " " + filepath + ">/dev/null")
-        else: # if filename_extension in ffmpeg supported list
-            os.system("/usr/bin/ffmpeg -y -i " + filepath + " " + os.path.join(settings.MEDIA_ROOT,
+        else: # if filename_extension in avconv supported list
+            os.system("/usr/bin/avconv -y -i " + filepath + " " + os.path.join(settings.MEDIA_ROOT,
                       filename_prefix + "." + dst_type) + " >/dev/null 2>/dev/null")

@@ -1,7 +1,7 @@
 # ROUNDWARE INSTALLATION GUIDE
 ## Overview
 
-Roundware is a client-server system. The server runs using Apache HTTP Server and mod_wsgi on Ubuntu Linux 12.04 LTS Precise Pangolin and clients are available for iOS, Android and HTML5 browsers. This document outlines the steps required to setup a basic Roundware server that can be accessed through any of these clients.
+Roundware is a client-server system. The server runs using Apache HTTP Server and mod_wsgi on Ubuntu Linux 14.04 LTS Trusty Tahr and clients are available for iOS, Android and HTML5 browsers. This document outlines the steps required to setup a basic Roundware server that can be accessed through any of these clients.
 
 For more information about Roundware functionalities and projects that use the platform, please check out: [roundware.org](http://roundware.org "Roundware")
 
@@ -90,7 +90,7 @@ You may change the database name and account info to fit your needs, but if you 
 
 ## Apache
 
-Apache must be configured to use [mod_wsgi](http://www.modwsgi.org) to host Roundware. A default config is included at `roundware-server/files/apache-config-example-wsgi`. If manually installing on a clean 12.04 machine, this file can simply be copied to the Apache configuration directory, though there are several changes that should be made to reflect your environment.
+Apache must be configured to use [mod_wsgi](http://www.modwsgi.org) to host Roundware. A default config is included at `roundware-server/files/etc-apache2-sites-available-roundware`. If manually installing on a clean 14.04 machine, this file can simply be copied to the Apache configuration directory, though there are several changes that should be made to reflect your environment.
 
 ### Configure Django, the Python framework Roundware uses.
 
@@ -133,7 +133,7 @@ as well as the Roundware log:
 
  * /var/log/roundware
 
-## Roundware Development
+## Development
 
 Roundware uses separate pip requirements files and Django settings files for development.
 If you are running Roundware as a development server, you should run:
@@ -146,14 +146,14 @@ environment variables) to add:
 
     export DJANGO_SETTINGS_MODULE=roundware.settings.dev
 
-Note also you can use a local_settings.py (not in version control) inside
-of the roundware/settings/ directory.
+Note: You can use a local_settings.py (not in version control) inside
+of the `roundware/settings/` directory.
 
-## Roundware Config
+## Config
 
-All Roundware specific settings are stored in roundware/settings/common.py
+All Roundware specific settings are stored in `roundware/settings/common.py`
 
-## Roundware Testing
+## Testing
 
 Here are some simple browser tests to see if your Roundware installation is functioning properly (substitute your RW server url):
 
@@ -168,3 +168,14 @@ To run unit and functional tests and see test coverage, you will need the develo
 To run tests and get a report of test coverage:
 
     (roundware)user@machine:~/roundware-server$ ./test.sh
+
+## Upgrading notes
+
+During significant server upgrades the Python VirtualEnv may need to be rebuilt. Enter the 
+following as root to recreate/rebuild the VirtualEnv. $USER is `roundware` or 
+`vagrant` depending on your installation type (production or vagrant.)
+
+    rm -rf /var/www/roundware/include/ /var/www/roundware/lib/ \
+    /var/www/roundware/local/ /var/www/roundware/bin/
+    su - $USER -c "virtualenv --system-site-packages /var/www/roundware"
+    ./deploy.sh
