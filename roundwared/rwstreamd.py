@@ -10,7 +10,8 @@ import getopt
 import sys
 import re
 import os
-
+import django
+django.setup()
 
 def listofint(s):
     return map(int, s.split(','))

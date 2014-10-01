@@ -15,7 +15,6 @@ from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
 
-# import floppyforms as forms
 from sortedm2m.forms import SortedCheckboxSelectMultiple
 
 STATIC_URL = getattr(settings, 'STATIC_URL', settings.MEDIA_URL)
@@ -35,7 +34,6 @@ class NonAdminRelatedFieldWidgetWrapper(RelatedFieldWidgetWrapper):
     """
 
     def __init__(self, widget, add_url, permission=True):
-        self.is_hidden = widget.is_hidden
         self.needs_multipart_form = widget.needs_multipart_form
         self.attrs = widget.attrs
         self.choices = widget.choices
@@ -65,7 +63,6 @@ class DummyWidgetWrapper(Widget):
 
     def __init__(self, widget):
         self.widget = widget
-        self.is_hidden = widget.is_hidden
         self.needs_multipart_form = widget.needs_multipart_form
         self.attrs = widget.attrs
         self.choices = widget.choices
@@ -115,8 +112,6 @@ class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
         output = [super(FilteredSelectMultiple, self).render(
             name, value, attrs, choices)]
         output.append('<script type="text/javascript">')
-
-        # import pdb; pdb.set_trace()
 
         output.append('function setupTagOrderSelectChange() {\n')
         output.append(

@@ -206,7 +206,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
-    'django.contrib.admin',
+    'django.contrib.admin.apps.SimpleAdminConfig',
     'guardian',
     'chartit',
     'validatedfile',
