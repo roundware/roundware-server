@@ -12,7 +12,6 @@ from django.conf.urls import include
 from django.contrib import admin
 
 from adminplus.sites import AdminSitePlus
-from ajax_filtered_fields.views import json_index
 
 from roundware.rw import urls as rw_urls
 
@@ -37,9 +36,6 @@ urlpatterns = patterns(
 
     url(r'^rw/', include(rw_urls)),
 
-    # can't use ajax_filtered_fields' urls.py since it relies on old default
-    # urls import
-    url(r'^ajax_filtered_fields/json_index/$', json_index),
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
