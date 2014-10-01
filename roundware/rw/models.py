@@ -9,7 +9,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db import models, transaction
-
+from validatedfile.fields import ValidatedFileField
 from roundware.rw import fields
 from django.conf import settings
 from datetime import datetime
@@ -330,7 +330,7 @@ class Asset(models.Model):
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
     filename = models.CharField(max_length=256, null=True, blank=True)
-    file = fields.RWValidatedFileField(storage=FileSystemStorage(
+    file = ValidatedFileField(storage=FileSystemStorage(
         location=settings.MEDIA_ROOT,
         base_url=settings.MEDIA_URL,),
         content_types=settings.ALLOWED_AUDIO_MIME_TYPES,

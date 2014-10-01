@@ -34,7 +34,6 @@ class RWTestCase(TestCase):
         self.maxDiff = None
 
         generator_dict = {
-            'roundware.rw.fields.RWValidatedFileField':
             rw_validated_file_field_gen
         }
         # can't set this directly in settings: db ENGINE not yet available
