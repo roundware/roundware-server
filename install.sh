@@ -109,6 +109,10 @@ a2enmod wsgi
 a2enmod headers
 a2dissite 000-default
 
+# Setup roundware log and logrotate
+touch /var/log/roundware
+chown $USERNAME:$USERNAME /var/log/roundware
+
 # Run the production upgrade/deployment script
 $SOURCE_PATH/deploy.sh
 
@@ -117,9 +121,7 @@ rm -f /etc/apache2/sites-available/roundware.conf
 sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-apache2-sites-available-roundware > /etc/apache2/sites-available/roundware.conf
 a2ensite roundware
 
-# Setup roundware log and logrotate
-touch /var/log/roundware
-chown $USERNAME:$USERNAME /var/log/roundware
+# Setup logrotate
 sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-logrotate-d-roundware > /etc/logrotate.d/roundware
 # install correct shout2send gstreamer plugin
 mv /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so.old
@@ -128,9 +130,11 @@ cp $CODE_PATH/files/64-bit/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0
 # Set $USERNAME to own all files
 chown $USERNAME:$USERNAME -R $HOME_PATH
 
-# Initialize database with syncdb and default_auth_data.json
-$CODE_PATH/roundware/manage.py loaddata $CODE_PATH/roundware/fixtures/default_auth_data.json
+# Add initial database data
 mysql -uroot -p$MYSQL_ROOT roundware < $CODE_PATH/files/rw_base.sql
+
+# Setup the default admin account
+$CODE_PATH/roundware/manage.py loaddata $CODE_PATH/roundware/fixtures/default_auth_data.json
 
 service apache2 restart
 
