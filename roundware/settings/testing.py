@@ -24,7 +24,5 @@ CACHES = {
 # True when unit tests are running. Used by roundwared.recording_collection
 TESTING = True
 
-SOUTH_TESTS_MIGRATE = False
-
 COVERAGE_OMIT_MODULES = ["roundware.rw.mommy_recipes",
                          "roundware.rw.templates", ]

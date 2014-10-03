@@ -17,6 +17,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'roundware.settings'
 # Enable Virtual Environment
 execfile(ACTIVATE_VENV, dict(__file__=ACTIVATE_VENV))
 
-import django.core.handlers.wsgi
-application = django.core.handlers.wsgi.WSGIHandler()
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
 

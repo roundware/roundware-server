@@ -134,7 +134,7 @@ chown $USERNAME:$USERNAME -R $HOME_PATH
 mysql -uroot -p$MYSQL_ROOT roundware < $CODE_PATH/files/rw_base.sql
 
 # Setup the default admin account
-$CODE_PATH/roundware/manage.py loaddata $CODE_PATH/roundware/fixtures/default_auth_data.json
+su - $USERNAME -c "$CODE_PATH/roundware/manage.py loaddata $CODE_PATH/roundware/fixtures/default_auth_data.json"
 
 service apache2 restart
 

@@ -52,10 +52,10 @@ pip install -r $CODE_PATH/requirements.txt
 chown $USERNAME:$USERNAME -R $WWW_PATH
 
 # Run database migrations
-$CODE_PATH/roundware/manage.py migrate --noinput
+su - $USERNAME -c "$CODE_PATH/roundware/manage.py migrate --noinput"
 
 # Collect static files for production
-$CODE_PATH/roundware/manage.py collectstatic --noinput
+su - $USERNAME -c "$CODE_PATH/roundware/manage.py collectstatic --noinput"
 
 service apache2 restart
 
