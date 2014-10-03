@@ -10,7 +10,7 @@ from roundware.rw.models import (UIMode, Language, LocalizedString,
                                  Tag, TagCategory, Session)
 
 
-def rw_validated_file_field_gen():
+def validated_file_field_gen():
     return gen_file_field()
 
 
@@ -40,8 +40,8 @@ class RoundwaredTestCase(TestCase):
         self.maxDiff = None
 
         generator_dict = {
-            'roundware.rw.fields.RWValidatedFileField':
-            rw_validated_file_field_gen
+            'validatedfile.fields.ValidatedFileField':
+            validated_file_field_gen
         }
         # can't set this directly in settings: db ENGINE not yet available
         setattr(settings, 'MOMMY_CUSTOM_FIELDS_GEN', generator_dict)
