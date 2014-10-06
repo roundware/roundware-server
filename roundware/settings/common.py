@@ -11,6 +11,7 @@ DEBUG = False
 TEMPLATE_DEBUG = False
 # True when unit tests are running. Used by roundwared.recording_collection
 TESTING = False
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 ADMINS = (
     ('round', 'your_email@example.com'),
@@ -206,15 +207,13 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
-    'django.contrib.admin',
+    'django.contrib.admin.apps.SimpleAdminConfig',
     'guardian',
     'chartit',
-    'south',
     'validatedfile',
     'adminplus',
     'crispy_forms',
     'floppyforms',
-    'djangoformsetjs',
     'sortedm2m',
     'rest_framework',
     'rest_framework.authtoken',

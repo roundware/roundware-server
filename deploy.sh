@@ -51,14 +51,11 @@ pip install -r $CODE_PATH/requirements.txt
 # Set $USERNAME to own all files
 chown $USERNAME:$USERNAME -R $WWW_PATH
 
-# Update database with syncdb and default_auth_data.json
-$CODE_PATH/roundware/manage.py syncdb --noinput
-# Must force authtoken to be first. See: https://github.com/tomchristie/django-rest-framework/issues/987
-$CODE_PATH/roundware/manage.py migrate rest_framework.authtoken
-$CODE_PATH/roundware/manage.py migrate
+# Run database migrations
+su - $USERNAME -c "$CODE_PATH/roundware/manage.py migrate --noinput"
 
 # Collect static files for production
-$CODE_PATH/roundware/manage.py collectstatic --noinput
+su - $USERNAME -c "$CODE_PATH/roundware/manage.py collectstatic --noinput"
 
 service apache2 restart
 

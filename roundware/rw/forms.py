@@ -19,8 +19,7 @@ from roundware.rw.widgets import (NonAdminRelatedFieldWidgetWrapper,
 
 
 def get_formset_media_js():
-    """ Don't use djangoformsetjs'.  It doesn't provide a minified version 
-        and we will use Admin's jquery-1.9.1.min.js
+    """
     """
     FORMSET_FULL = settings.STATIC_URL + 'js/jquery.formset.js'
     FORMSET_MINIFIED = settings.STATIC_URL + 'rw/js/jquery.formset.min.js'

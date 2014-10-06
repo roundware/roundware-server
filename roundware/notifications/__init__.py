@@ -3,13 +3,14 @@ import logging
 import datetime
 from django.conf import settings
 from django.db.models.signals import post_save, post_delete
-from roundware.notifications.models import ActionNotification, ENABLED_MODELS
+
 
 __author__ = 'jule'
 logger = logging.getLogger(__name__)
 
 
 def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
+    from roundware.notifications.models import ActionNotification, ENABLED_MODELS
     # get the type of model from the sender
     object_string = sender._meta.object_name.lower()
     # check whether the model is represented as being able to handle
@@ -55,6 +56,7 @@ def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
 
 
 def send_notifications_delete(sender, instance, *args, **kwargs):
+    from roundware.notifications.models import ActionNotification, ENABLED_MODELS
     object_string = sender._meta.object_name.lower()
     objects = [i[0] for i in ENABLED_MODELS if i[1].lower() == object_string]
     if objects:

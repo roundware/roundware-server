@@ -9,7 +9,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db import models, transaction
-
+from validatedfile.fields import ValidatedFileField
 from roundware.rw import fields
 from django.conf import settings
 from datetime import datetime
@@ -307,13 +307,6 @@ class Event(models.Model):
     operationid = models.IntegerField(null=True, blank=True)
     udid = models.CharField(max_length=50, null=True, blank=True)
 
-#from south.modelsinspector import add_introspection_rules
-#add_introspection_rules([], ["^roundware\.rw\.widgets\.LocationField"])
-
-
-def get_default_session():
-    return Session.objects.get(id=settings.DEFAULT_SESSION_ID)
-
 
 class Asset(models.Model):
     ASSET_MEDIA_TYPES = [('audio', 'audio'), ('video', 'video'),
@@ -326,11 +319,11 @@ class Asset(models.Model):
     }
 
     session = models.ForeignKey(
-        Session, null=True, blank=True, default=get_default_session)
+        Session, null=True, blank=True)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
     filename = models.CharField(max_length=256, null=True, blank=True)
-    file = fields.RWValidatedFileField(storage=FileSystemStorage(
+    file = ValidatedFileField(storage=FileSystemStorage(
         location=settings.MEDIA_ROOT,
         base_url=settings.MEDIA_URL,),
         content_types=settings.ALLOWED_AUDIO_MIME_TYPES,
@@ -510,7 +503,7 @@ class Asset(models.Model):
 
 
 class Envelope(models.Model):
-    session = models.ForeignKey(Session, default=get_default_session)
+    session = models.ForeignKey(Session, blank=True)
     created = models.DateTimeField(default=datetime.now)
     assets = models.ManyToManyField(Asset, blank=True)
 

@@ -17,4 +17,4 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
 
-post_save.connect(create_auth_token, get_user_model())
+post_save.connect(create_auth_token, get_user_model)

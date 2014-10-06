@@ -1,562 +1,406 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from django.db import models, migrations
 import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+import django.core.files.storage
+import validatedfile.fields
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'Language'
-        db.create_table('rw_language', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('language_code', self.gf('django.db.models.fields.CharField')(max_length=10)),
-        ))
-        db.send_create_signal('rw', ['Language'])
+    dependencies = [
+    ]
 
-        # Adding model 'LocalizedString'
-        db.create_table('rw_localizedstring', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('localized_string', self.gf('django.db.models.fields.TextField')()),
-            ('language', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Language'])),
-        ))
-        db.send_create_signal('rw', ['LocalizedString'])
-
-        # Adding model 'RepeatMode'
-        db.create_table('rw_repeatmode', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('mode', self.gf('django.db.models.fields.CharField')(max_length=50)),
-        ))
-        db.send_create_signal('rw', ['RepeatMode'])
-
-        # Adding model 'Project'
-        db.create_table('rw_project', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('latitude', self.gf('django.db.models.fields.FloatField')()),
-            ('longitude', self.gf('django.db.models.fields.FloatField')()),
-            ('pub_date', self.gf('django.db.models.fields.DateTimeField')()),
-            ('audio_format', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('auto_submit', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('max_recording_length', self.gf('django.db.models.fields.IntegerField')()),
-            ('listen_questions_dynamic', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('speak_questions_dynamic', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('sharing_url', self.gf('django.db.models.fields.CharField')(max_length=512)),
-            ('sharing_message', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('out_of_range_message', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('out_of_range_url', self.gf('django.db.models.fields.CharField')(max_length=512)),
-            ('recording_radius', self.gf('django.db.models.fields.IntegerField')(null=True)),
-            ('listen_enabled', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('geo_listen_enabled', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('speak_enabled', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('geo_speak_enabled', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('reset_tag_defaults_on_startup', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('legal_agreement', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('new_recording_email_body', self.gf('django.db.models.fields.TextField')(null=True)),
-            ('new_recording_email_recipient', self.gf('django.db.models.fields.TextField')(null=True)),
-            ('repeat_mode', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.RepeatMode'], null=True)),
-        ))
-        db.send_create_signal('rw', ['Project'])
-
-        # Adding M2M table for field sharing_message_loc on 'Project'
-        db.create_table('rw_project_sharing_message_loc', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('project', models.ForeignKey(orm['rw.project'], null=False)),
-            ('localizedstring', models.ForeignKey(orm['rw.localizedstring'], null=False))
-        ))
-        db.create_unique('rw_project_sharing_message_loc', ['project_id', 'localizedstring_id'])
-
-        # Adding M2M table for field out_of_range_message_loc on 'Project'
-        db.create_table('rw_project_out_of_range_message_loc', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('project', models.ForeignKey(orm['rw.project'], null=False)),
-            ('localizedstring', models.ForeignKey(orm['rw.localizedstring'], null=False))
-        ))
-        db.create_unique('rw_project_out_of_range_message_loc', ['project_id', 'localizedstring_id'])
-
-        # Adding M2M table for field legal_agreement_loc on 'Project'
-        db.create_table('rw_project_legal_agreement_loc', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('project', models.ForeignKey(orm['rw.project'], null=False)),
-            ('localizedstring', models.ForeignKey(orm['rw.localizedstring'], null=False))
-        ))
-        db.create_unique('rw_project_legal_agreement_loc', ['project_id', 'localizedstring_id'])
-
-        # Adding model 'Session'
-        db.create_table('rw_session', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('device_id', self.gf('django.db.models.fields.CharField')(max_length=36, null=True, blank=True)),
-            ('starttime', self.gf('django.db.models.fields.DateTimeField')()),
-            ('stoptime', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Project'])),
-            ('language', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Language'], null=True)),
-            ('client_type', self.gf('django.db.models.fields.CharField')(max_length=128, null=True, blank=True)),
-            ('client_system', self.gf('django.db.models.fields.CharField')(max_length=128, null=True, blank=True)),
-        ))
-        db.send_create_signal('rw', ['Session'])
-
-        # Adding model 'UIMode'
-        db.create_table('rw_uimode', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('data', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('rw', ['UIMode'])
-
-        # Adding model 'TagCategory'
-        db.create_table('rw_tagcategory', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('data', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('rw', ['TagCategory'])
-
-        # Adding model 'SelectionMethod'
-        db.create_table('rw_selectionmethod', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('data', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('rw', ['SelectionMethod'])
-
-        # Adding model 'Tag'
-        db.create_table('rw_tag', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('tag_category', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.TagCategory'])),
-            ('value', self.gf('django.db.models.fields.TextField')()),
-            ('description', self.gf('django.db.models.fields.TextField')()),
-            ('data', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('rw', ['Tag'])
-
-        # Adding M2M table for field loc_msg on 'Tag'
-        db.create_table('rw_tag_loc_msg', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('tag', models.ForeignKey(orm['rw.tag'], null=False)),
-            ('localizedstring', models.ForeignKey(orm['rw.localizedstring'], null=False))
-        ))
-        db.create_unique('rw_tag_loc_msg', ['tag_id', 'localizedstring_id'])
-
-        # Adding model 'MasterUI'
-        db.create_table('rw_masterui', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('ui_mode', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.UIMode'])),
-            ('tag_category', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.TagCategory'])),
-            ('select', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.SelectionMethod'])),
-            ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('index', self.gf('django.db.models.fields.IntegerField')()),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Project'])),
-        ))
-        db.send_create_signal('rw', ['MasterUI'])
-
-        # Adding model 'UIMapping'
-        db.create_table('rw_uimapping', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('master_ui', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.MasterUI'])),
-            ('index', self.gf('django.db.models.fields.IntegerField')()),
-            ('tag', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Tag'])),
-            ('default', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('active', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal('rw', ['UIMapping'])
-
-        # Adding model 'Audiotrack'
-        db.create_table('rw_audiotrack', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Project'])),
-            ('minvolume', self.gf('django.db.models.fields.FloatField')()),
-            ('maxvolume', self.gf('django.db.models.fields.FloatField')()),
-            ('minduration', self.gf('django.db.models.fields.FloatField')()),
-            ('maxduration', self.gf('django.db.models.fields.FloatField')()),
-            ('mindeadair', self.gf('django.db.models.fields.FloatField')()),
-            ('maxdeadair', self.gf('django.db.models.fields.FloatField')()),
-            ('minfadeintime', self.gf('django.db.models.fields.FloatField')()),
-            ('maxfadeintime', self.gf('django.db.models.fields.FloatField')()),
-            ('minfadeouttime', self.gf('django.db.models.fields.FloatField')()),
-            ('maxfadeouttime', self.gf('django.db.models.fields.FloatField')()),
-            ('minpanpos', self.gf('django.db.models.fields.FloatField')()),
-            ('maxpanpos', self.gf('django.db.models.fields.FloatField')()),
-            ('minpanduration', self.gf('django.db.models.fields.FloatField')()),
-            ('maxpanduration', self.gf('django.db.models.fields.FloatField')()),
-            ('repeatrecordings', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal('rw', ['Audiotrack'])
-
-        # Adding model 'EventType'
-        db.create_table('rw_eventtype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-        ))
-        db.send_create_signal('rw', ['EventType'])
-
-        # Adding model 'Event'
-        db.create_table('rw_event', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('server_time', self.gf('django.db.models.fields.DateTimeField')()),
-            ('client_time', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
-            ('session', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Session'])),
-            ('event_type', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('data', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('latitude', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
-            ('longitude', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
-            ('tags', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('operationid', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('udid', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
-        ))
-        db.send_create_signal('rw', ['Event'])
-
-        # Adding model 'Asset'
-        db.create_table('rw_asset', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('session', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Session'], null=True, blank=True)),
-            ('latitude', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('longitude', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('filename', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
-            ('volume', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('submitted', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Project'], null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('audiolength', self.gf('django.db.models.fields.BigIntegerField')(null=True, blank=True)),
-            ('language', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Language'], null=True)),
-        ))
-        db.send_create_signal('rw', ['Asset'])
-
-        # Adding M2M table for field tags on 'Asset'
-        db.create_table('rw_asset_tags', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('asset', models.ForeignKey(orm['rw.asset'], null=False)),
-            ('tag', models.ForeignKey(orm['rw.tag'], null=False))
-        ))
-        db.create_unique('rw_asset_tags', ['asset_id', 'tag_id'])
-
-        # Adding model 'Envelope'
-        db.create_table('rw_envelope', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('session', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Session'])),
-        ))
-        db.send_create_signal('rw', ['Envelope'])
-
-        # Adding M2M table for field assets on 'Envelope'
-        db.create_table('rw_envelope_assets', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('envelope', models.ForeignKey(orm['rw.envelope'], null=False)),
-            ('asset', models.ForeignKey(orm['rw.asset'], null=False))
-        ))
-        db.create_unique('rw_envelope_assets', ['envelope_id', 'asset_id'])
-
-        # Adding model 'Speaker'
-        db.create_table('rw_speaker', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Project'])),
-            ('activeyn', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('code', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('latitude', self.gf('django.db.models.fields.FloatField')()),
-            ('longitude', self.gf('django.db.models.fields.FloatField')()),
-            ('maxdistance', self.gf('django.db.models.fields.IntegerField')()),
-            ('mindistance', self.gf('django.db.models.fields.IntegerField')()),
-            ('maxvolume', self.gf('django.db.models.fields.FloatField')()),
-            ('minvolume', self.gf('django.db.models.fields.FloatField')()),
-            ('uri', self.gf('django.db.models.fields.URLField')(max_length=200)),
-            ('backupuri', self.gf('django.db.models.fields.URLField')(max_length=200)),
-        ))
-        db.send_create_signal('rw', ['Speaker'])
-
-        # Adding model 'ListeningHistoryItem'
-        db.create_table('rw_listeninghistoryitem', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('session', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Session'])),
-            ('asset', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Asset'])),
-            ('starttime', self.gf('django.db.models.fields.DateTimeField')()),
-            ('duration', self.gf('django.db.models.fields.BigIntegerField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('rw', ['ListeningHistoryItem'])
-
-        # Adding model 'Vote'
-        db.create_table('rw_vote', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('value', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('session', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Session'])),
-            ('asset', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rw.Asset'])),
-            ('type', self.gf('django.db.models.fields.CharField')(max_length=16)),
-        ))
-        db.send_create_signal('rw', ['Vote'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'Language'
-        db.delete_table('rw_language')
-
-        # Deleting model 'LocalizedString'
-        db.delete_table('rw_localizedstring')
-
-        # Deleting model 'RepeatMode'
-        db.delete_table('rw_repeatmode')
-
-        # Deleting model 'Project'
-        db.delete_table('rw_project')
-
-        # Removing M2M table for field sharing_message_loc on 'Project'
-        db.delete_table('rw_project_sharing_message_loc')
-
-        # Removing M2M table for field out_of_range_message_loc on 'Project'
-        db.delete_table('rw_project_out_of_range_message_loc')
-
-        # Removing M2M table for field legal_agreement_loc on 'Project'
-        db.delete_table('rw_project_legal_agreement_loc')
-
-        # Deleting model 'Session'
-        db.delete_table('rw_session')
-
-        # Deleting model 'UIMode'
-        db.delete_table('rw_uimode')
-
-        # Deleting model 'TagCategory'
-        db.delete_table('rw_tagcategory')
-
-        # Deleting model 'SelectionMethod'
-        db.delete_table('rw_selectionmethod')
-
-        # Deleting model 'Tag'
-        db.delete_table('rw_tag')
-
-        # Removing M2M table for field loc_msg on 'Tag'
-        db.delete_table('rw_tag_loc_msg')
-
-        # Deleting model 'MasterUI'
-        db.delete_table('rw_masterui')
-
-        # Deleting model 'UIMapping'
-        db.delete_table('rw_uimapping')
-
-        # Deleting model 'Audiotrack'
-        db.delete_table('rw_audiotrack')
-
-        # Deleting model 'EventType'
-        db.delete_table('rw_eventtype')
-
-        # Deleting model 'Event'
-        db.delete_table('rw_event')
-
-        # Deleting model 'Asset'
-        db.delete_table('rw_asset')
-
-        # Removing M2M table for field tags on 'Asset'
-        db.delete_table('rw_asset_tags')
-
-        # Deleting model 'Envelope'
-        db.delete_table('rw_envelope')
-
-        # Removing M2M table for field assets on 'Envelope'
-        db.delete_table('rw_envelope_assets')
-
-        # Deleting model 'Speaker'
-        db.delete_table('rw_speaker')
-
-        # Deleting model 'ListeningHistoryItem'
-        db.delete_table('rw_listeninghistoryitem')
-
-        # Deleting model 'Vote'
-        db.delete_table('rw_vote')
-
-
-    models = {
-        'rw.asset': {
-            'Meta': {'object_name': 'Asset'},
-            'audiolength': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'filename': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'language': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Language']", 'null': 'True'}),
-            'latitude': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
-            'longitude': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Project']", 'null': 'True', 'blank': 'True'}),
-            'session': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Session']", 'null': 'True', 'blank': 'True'}),
-            'submitted': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'tags': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['rw.Tag']", 'null': 'True', 'blank': 'True'}),
-            'volume': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'rw.audiotrack': {
-            'Meta': {'object_name': 'Audiotrack'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'maxdeadair': ('django.db.models.fields.FloatField', [], {}),
-            'maxduration': ('django.db.models.fields.FloatField', [], {}),
-            'maxfadeintime': ('django.db.models.fields.FloatField', [], {}),
-            'maxfadeouttime': ('django.db.models.fields.FloatField', [], {}),
-            'maxpanduration': ('django.db.models.fields.FloatField', [], {}),
-            'maxpanpos': ('django.db.models.fields.FloatField', [], {}),
-            'maxvolume': ('django.db.models.fields.FloatField', [], {}),
-            'mindeadair': ('django.db.models.fields.FloatField', [], {}),
-            'minduration': ('django.db.models.fields.FloatField', [], {}),
-            'minfadeintime': ('django.db.models.fields.FloatField', [], {}),
-            'minfadeouttime': ('django.db.models.fields.FloatField', [], {}),
-            'minpanduration': ('django.db.models.fields.FloatField', [], {}),
-            'minpanpos': ('django.db.models.fields.FloatField', [], {}),
-            'minvolume': ('django.db.models.fields.FloatField', [], {}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Project']"}),
-            'repeatrecordings': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
-        },
-        'rw.envelope': {
-            'Meta': {'object_name': 'Envelope'},
-            'assets': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['rw.Asset']", 'symmetrical': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'session': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Session']"})
-        },
-        'rw.event': {
-            'Meta': {'object_name': 'Event'},
-            'client_time': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
-            'data': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'event_type': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'latitude': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
-            'longitude': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
-            'operationid': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'server_time': ('django.db.models.fields.DateTimeField', [], {}),
-            'session': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Session']"}),
-            'tags': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'udid': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'})
-        },
-        'rw.eventtype': {
-            'Meta': {'object_name': 'EventType'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'rw.language': {
-            'Meta': {'object_name': 'Language'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'language_code': ('django.db.models.fields.CharField', [], {'max_length': '10'})
-        },
-        'rw.listeninghistoryitem': {
-            'Meta': {'object_name': 'ListeningHistoryItem'},
-            'asset': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Asset']"}),
-            'duration': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'session': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Session']"}),
-            'starttime': ('django.db.models.fields.DateTimeField', [], {})
-        },
-        'rw.localizedstring': {
-            'Meta': {'object_name': 'LocalizedString'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'language': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Language']"}),
-            'localized_string': ('django.db.models.fields.TextField', [], {})
-        },
-        'rw.masterui': {
-            'Meta': {'object_name': 'MasterUI'},
-            'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'index': ('django.db.models.fields.IntegerField', [], {}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Project']"}),
-            'select': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.SelectionMethod']"}),
-            'tag_category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.TagCategory']"}),
-            'ui_mode': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.UIMode']"})
-        },
-        'rw.project': {
-            'Meta': {'object_name': 'Project'},
-            'audio_format': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'auto_submit': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'geo_listen_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'geo_speak_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'latitude': ('django.db.models.fields.FloatField', [], {}),
-            'legal_agreement': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'legal_agreement_loc': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'legal_agreement_string'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['rw.LocalizedString']"}),
-            'listen_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'listen_questions_dynamic': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'longitude': ('django.db.models.fields.FloatField', [], {}),
-            'max_recording_length': ('django.db.models.fields.IntegerField', [], {}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'new_recording_email_body': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'new_recording_email_recipient': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'out_of_range_message': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'out_of_range_message_loc': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'out_of_range_msg_string'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['rw.LocalizedString']"}),
-            'out_of_range_url': ('django.db.models.fields.CharField', [], {'max_length': '512'}),
-            'pub_date': ('django.db.models.fields.DateTimeField', [], {}),
-            'recording_radius': ('django.db.models.fields.IntegerField', [], {'null': 'True'}),
-            'repeat_mode': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.RepeatMode']", 'null': 'True'}),
-            'reset_tag_defaults_on_startup': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'sharing_message': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'sharing_message_loc': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'sharing_msg_string'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['rw.LocalizedString']"}),
-            'sharing_url': ('django.db.models.fields.CharField', [], {'max_length': '512'}),
-            'speak_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'speak_questions_dynamic': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
-        },
-        'rw.repeatmode': {
-            'Meta': {'object_name': 'RepeatMode'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'mode': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'rw.selectionmethod': {
-            'Meta': {'object_name': 'SelectionMethod'},
-            'data': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'rw.session': {
-            'Meta': {'object_name': 'Session'},
-            'client_system': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
-            'client_type': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
-            'device_id': ('django.db.models.fields.CharField', [], {'max_length': '36', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'language': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Language']", 'null': 'True'}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Project']"}),
-            'starttime': ('django.db.models.fields.DateTimeField', [], {}),
-            'stoptime': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'rw.speaker': {
-            'Meta': {'object_name': 'Speaker'},
-            'activeyn': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'backupuri': ('django.db.models.fields.URLField', [], {'max_length': '200'}),
-            'code': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'latitude': ('django.db.models.fields.FloatField', [], {}),
-            'longitude': ('django.db.models.fields.FloatField', [], {}),
-            'maxdistance': ('django.db.models.fields.IntegerField', [], {}),
-            'maxvolume': ('django.db.models.fields.FloatField', [], {}),
-            'mindistance': ('django.db.models.fields.IntegerField', [], {}),
-            'minvolume': ('django.db.models.fields.FloatField', [], {}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Project']"}),
-            'uri': ('django.db.models.fields.URLField', [], {'max_length': '200'})
-        },
-        'rw.tag': {
-            'Meta': {'object_name': 'Tag'},
-            'data': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'loc_msg': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['rw.LocalizedString']", 'null': 'True', 'blank': 'True'}),
-            'tag_category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.TagCategory']"}),
-            'value': ('django.db.models.fields.TextField', [], {})
-        },
-        'rw.tagcategory': {
-            'Meta': {'object_name': 'TagCategory'},
-            'data': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'rw.uimapping': {
-            'Meta': {'object_name': 'UIMapping'},
-            'active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'default': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'index': ('django.db.models.fields.IntegerField', [], {}),
-            'master_ui': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.MasterUI']"}),
-            'tag': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Tag']"})
-        },
-        'rw.uimode': {
-            'Meta': {'object_name': 'UIMode'},
-            'data': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'rw.vote': {
-            'Meta': {'object_name': 'Vote'},
-            'asset': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Asset']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'session': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rw.Session']"}),
-            'type': ('django.db.models.fields.CharField', [], {'max_length': '16'}),
-            'value': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'})
-        }
-    }
-
-    complete_apps = ['rw']
+    operations = [
+        migrations.CreateModel(
+            name='Asset',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('latitude', models.FloatField(null=True)),
+                ('longitude', models.FloatField(null=True)),
+                ('filename', models.CharField(max_length=256, null=True, blank=True)),
+                ('file', validatedfile.fields.ValidatedFileField(help_text='Upload file', storage=django.core.files.storage.FileSystemStorage(base_url='/rwmedia/', location='/var/www/roundware/rwmedia/'), upload_to='.')),
+                ('volume', models.FloatField(default=1.0, null=True, blank=True)),
+                ('submitted', models.BooleanField(default=True)),
+                ('created', models.DateTimeField(default=datetime.datetime.now)),
+                ('audiolength', models.BigIntegerField(null=True, blank=True)),
+                ('weight', models.IntegerField(default=50, choices=[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9), (10, 10), (11, 11), (12, 12), (13, 13), (14, 14), (15, 15), (16, 16), (17, 17), (18, 18), (19, 19), (20, 20), (21, 21), (22, 22), (23, 23), (24, 24), (25, 25), (26, 26), (27, 27), (28, 28), (29, 29), (30, 30), (31, 31), (32, 32), (33, 33), (34, 34), (35, 35), (36, 36), (37, 37), (38, 38), (39, 39), (40, 40), (41, 41), (42, 42), (43, 43), (44, 44), (45, 45), (46, 46), (47, 47), (48, 48), (49, 49), (50, 50), (51, 51), (52, 52), (53, 53), (54, 54), (55, 55), (56, 56), (57, 57), (58, 58), (59, 59), (60, 60), (61, 61), (62, 62), (63, 63), (64, 64), (65, 65), (66, 66), (67, 67), (68, 68), (69, 69), (70, 70), (71, 71), (72, 72), (73, 73), (74, 74), (75, 75), (76, 76), (77, 77), (78, 78), (79, 79), (80, 80), (81, 81), (82, 82), (83, 83), (84, 84), (85, 85), (86, 86), (87, 87), (88, 88), (89, 89), (90, 90), (91, 91), (92, 92), (93, 93), (94, 94), (95, 95), (96, 96), (97, 97), (98, 98), (99, 99)])),
+                ('mediatype', models.CharField(default='audio', max_length=16, choices=[('audio', 'audio'), ('video', 'video'), ('photo', 'photo'), ('text', 'text')])),
+                ('description', models.TextField(max_length=2048, blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Audiotrack',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('minvolume', models.FloatField()),
+                ('maxvolume', models.FloatField()),
+                ('minduration', models.FloatField()),
+                ('maxduration', models.FloatField()),
+                ('mindeadair', models.FloatField()),
+                ('maxdeadair', models.FloatField()),
+                ('minfadeintime', models.FloatField()),
+                ('maxfadeintime', models.FloatField()),
+                ('minfadeouttime', models.FloatField()),
+                ('maxfadeouttime', models.FloatField()),
+                ('minpanpos', models.FloatField()),
+                ('maxpanpos', models.FloatField()),
+                ('minpanduration', models.FloatField()),
+                ('maxpanduration', models.FloatField()),
+                ('repeatrecordings', models.BooleanField(default=False)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Envelope',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(default=datetime.datetime.now)),
+                ('assets', models.ManyToManyField(to='rw.Asset', blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Event',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('server_time', models.DateTimeField()),
+                ('client_time', models.CharField(max_length=50, null=True, blank=True)),
+                ('event_type', models.CharField(max_length=50)),
+                ('data', models.TextField(null=True, blank=True)),
+                ('latitude', models.CharField(max_length=50, null=True, blank=True)),
+                ('longitude', models.CharField(max_length=50, null=True, blank=True)),
+                ('tags', models.TextField(null=True, blank=True)),
+                ('operationid', models.IntegerField(null=True, blank=True)),
+                ('udid', models.CharField(max_length=50, null=True, blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EventType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=50)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Language',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('language_code', models.CharField(max_length=10)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ListeningHistoryItem',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('starttime', models.DateTimeField()),
+                ('duration', models.BigIntegerField(null=True, blank=True)),
+                ('asset', models.ForeignKey(to='rw.Asset')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='LocalizedString',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('localized_string', models.TextField()),
+                ('language', models.ForeignKey(to='rw.Language')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='MasterUI',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=50)),
+                ('active', models.BooleanField(default=True)),
+                ('index', models.IntegerField()),
+                ('header_text_loc', models.ManyToManyField(to='rw.LocalizedString', null=True, blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Project',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=50)),
+                ('latitude', models.FloatField()),
+                ('longitude', models.FloatField()),
+                ('pub_date', models.DateTimeField(verbose_name='date published')),
+                ('audio_format', models.CharField(max_length=50)),
+                ('auto_submit', models.BooleanField(default=False)),
+                ('max_recording_length', models.IntegerField()),
+                ('listen_questions_dynamic', models.BooleanField(default=False)),
+                ('speak_questions_dynamic', models.BooleanField(default=False)),
+                ('sharing_url', models.CharField(max_length=512)),
+                ('out_of_range_url', models.CharField(max_length=512)),
+                ('recording_radius', models.IntegerField(null=True)),
+                ('listen_enabled', models.BooleanField(default=False)),
+                ('geo_listen_enabled', models.BooleanField(default=False)),
+                ('speak_enabled', models.BooleanField(default=False)),
+                ('geo_speak_enabled', models.BooleanField(default=False)),
+                ('reset_tag_defaults_on_startup', models.BooleanField(default=False)),
+                ('files_url', models.CharField(max_length=512, blank=True)),
+                ('files_version', models.CharField(max_length=16, blank=True)),
+                ('audio_stream_bitrate', models.CharField(default='128', max_length=3, choices=[('64', '64'), ('96', '96'), ('112', '112'), ('128', '128'), ('160', '160'), ('192', '192'), ('256', '256'), ('320', '320')])),
+                ('ordering', models.CharField(default='random', max_length=16, choices=[('by_like', 'by_like'), ('by_weight', 'by_weight'), ('random', 'random')])),
+                ('demo_stream_enabled', models.BooleanField(default=False)),
+                ('demo_stream_url', models.CharField(max_length=512, blank=True)),
+                ('demo_stream_message_loc', models.ManyToManyField(related_name='demo_stream_msg_string', null=True, to='rw.LocalizedString', blank=True)),
+                ('legal_agreement_loc', models.ManyToManyField(related_name='legal_agreement_string', null=True, to='rw.LocalizedString', blank=True)),
+                ('out_of_range_message_loc', models.ManyToManyField(related_name='out_of_range_msg_string', null=True, to='rw.LocalizedString', blank=True)),
+            ],
+            options={
+                'permissions': (('access_project', 'Access Project'),),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='RepeatMode',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('mode', models.CharField(max_length=50)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='SelectionMethod',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=50)),
+                ('data', models.TextField(null=True, blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Session',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('device_id', models.CharField(max_length=36, null=True, blank=True)),
+                ('starttime', models.DateTimeField()),
+                ('stoptime', models.DateTimeField(null=True, blank=True)),
+                ('client_type', models.CharField(max_length=128, null=True, blank=True)),
+                ('client_system', models.CharField(max_length=128, null=True, blank=True)),
+                ('demo_stream_enabled', models.BooleanField(default=False)),
+                ('language', models.ForeignKey(to='rw.Language', null=True)),
+                ('project', models.ForeignKey(to='rw.Project')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Speaker',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('activeyn', models.BooleanField(default=False)),
+                ('code', models.CharField(max_length=10)),
+                ('latitude', models.FloatField()),
+                ('longitude', models.FloatField()),
+                ('maxdistance', models.IntegerField()),
+                ('mindistance', models.IntegerField()),
+                ('maxvolume', models.FloatField()),
+                ('minvolume', models.FloatField()),
+                ('uri', models.URLField()),
+                ('backupuri', models.URLField()),
+                ('project', models.ForeignKey(to='rw.Project')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Tag',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('value', models.TextField()),
+                ('description', models.TextField()),
+                ('data', models.TextField(null=True, blank=True)),
+                ('filter', models.CharField(default='--', max_length=255, choices=[('--', 'No filter'), ('_within_10km', 'Assets within 10km.'), ('_ten_most_recent_days', 'Assets created within 10 days.')])),
+                ('loc_description', models.ManyToManyField(related_name='tag_desc', null=True, to='rw.LocalizedString', blank=True)),
+                ('loc_msg', models.ManyToManyField(to='rw.LocalizedString', null=True, blank=True)),
+                ('relationships', models.ManyToManyField(related_name='relationships_rel_+', null=True, to='rw.Tag', blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='TagCategory',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=50)),
+                ('data', models.TextField(null=True, blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='UIMapping',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('index', models.IntegerField()),
+                ('default', models.BooleanField(default=False)),
+                ('active', models.BooleanField(default=False)),
+                ('master_ui', models.ForeignKey(to='rw.MasterUI')),
+                ('tag', models.ForeignKey(to='rw.Tag')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='UIMode',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=50)),
+                ('data', models.TextField(null=True, blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Vote',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('value', models.IntegerField(null=True, blank=True)),
+                ('type', models.CharField(max_length=16, choices=[('like', 'like'), ('flag', 'flag')])),
+                ('asset', models.ForeignKey(to='rw.Asset')),
+                ('session', models.ForeignKey(to='rw.Session')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AddField(
+            model_name='tag',
+            name='tag_category',
+            field=models.ForeignKey(to='rw.TagCategory'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='project',
+            name='repeat_mode',
+            field=models.ForeignKey(to='rw.RepeatMode', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='project',
+            name='sharing_message_loc',
+            field=models.ManyToManyField(related_name='sharing_msg_string', null=True, to='rw.LocalizedString', blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='masterui',
+            name='project',
+            field=models.ForeignKey(to='rw.Project'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='masterui',
+            name='select',
+            field=models.ForeignKey(to='rw.SelectionMethod'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='masterui',
+            name='tag_category',
+            field=models.ForeignKey(to='rw.TagCategory'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='masterui',
+            name='ui_mode',
+            field=models.ForeignKey(to='rw.UIMode'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='listeninghistoryitem',
+            name='session',
+            field=models.ForeignKey(to='rw.Session'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='session',
+            field=models.ForeignKey(to='rw.Session'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='envelope',
+            name='session',
+            field=models.ForeignKey(to='rw.Session', blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='audiotrack',
+            name='project',
+            field=models.ForeignKey(to='rw.Project'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='initialenvelope',
+            field=models.ForeignKey(to='rw.Envelope', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='language',
+            field=models.ForeignKey(to='rw.Language', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='loc_description',
+            field=models.ManyToManyField(to='rw.LocalizedString', null=True, blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='project',
+            field=models.ForeignKey(to='rw.Project', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='session',
+            field=models.ForeignKey(blank=True, to='rw.Session', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='tags',
+            field=models.ManyToManyField(to='rw.Tag', null=True, blank=True),
+            preserve_default=True,
+        ),
+    ]
