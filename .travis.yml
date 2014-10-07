@@ -1,0 +1,17 @@
+language: python
+python:
+  - "2.7"
+before_install:
+  - sudo apt-get update
+install:
+  - sudo apt-get install python-dev build-essential python-mysqldb python-dbus python-gst0.10
+  - pip install -r requirements/dev.txt
+before_script:
+# Setup Roundware log file.
+  - sudo touch /var/log/roundware
+  - sudo chmod 777 /var/log/roundware
+# Setup rwmedia directory for mock files.
+  - sudo mkdir /var/www
+  - sudo chmod 777 /var/www
+  - export PYTHONPATH=.:/usr/lib/python2.7/dist-packages/
+script: python roundware/manage.py test --settings=roundware.settings.testing

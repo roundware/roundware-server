@@ -1,4 +1,7 @@
-# ROUNDWARE INSTALLATION GUIDE
+# ROUNDWARE SERVER
+
+[![Build Status](https://travis-ci.org/hburgund/roundware-server.svg?branch=develop)](https://travis-ci.org/hburgund/roundware-server)
+
 ## Overview
 
 Roundware is a client-server system. The server runs using Apache HTTP Server and mod_wsgi on Ubuntu Linux 14.04 LTS Trusty Tahr and clients are available for iOS, Android and HTML5 browsers. This document outlines the steps required to setup a basic Roundware server that can be accessed through any of these clients.
