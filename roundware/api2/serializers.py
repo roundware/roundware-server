@@ -9,7 +9,6 @@ from roundware.rw.models import Session
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 import logging
-from rest_framework.generics import get_object_or_404
 
 logger = logging.getLogger(__name__)
 
