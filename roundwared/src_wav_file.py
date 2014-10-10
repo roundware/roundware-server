@@ -7,6 +7,7 @@ gobject.threads_init()
 import pygst
 pygst.require("0.10")
 import gst
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ class SrcWavFile (gst.Bin):
 
         self.src_wav_file = gst.element_factory_make("filesrc")
         self.src_wav_file.set_property("location", uri)
-        self.wavparse = gst.element_factory_make("wavparse")
+        self.decodebin = gst.element_factory_make("decodebin")
         self.audioconvert = gst.element_factory_make("audioconvert")
         self.audioresample = gst.element_factory_make("audioresample")
         self.audiopanorama = gst.element_factory_make("audiopanorama")
@@ -37,16 +38,21 @@ class SrcWavFile (gst.Bin):
         self.controller.set("volume", start + fadein, volume)
         self.controller.set("volume", start + duration - fadeout, volume)
         self.controller.set("volume", start + duration, 0.0)
-        self.add(self.src_wav_file, self.wavparse, self.audioconvert,
+        self.add(self.src_wav_file, self.decodebin, self.audioconvert,
                  self.audioresample, self.audiopanorama, self.volume)
-        gst.element_link_many(self.src_wav_file, self.wavparse)
+        gst.element_link_many(self.src_wav_file, self.decodebin)
         gst.element_link_many(self.audioconvert, self.audioresample,
                               self.audiopanorama, self.volume)
 
-        def on_pad(comp, pad):
+        def pad_added(comp, pad):
             convpad = self.audioconvert.get_compatible_pad(pad, pad.get_caps())
-            pad.link(convpad)
-        self.wavparse.connect("pad-added", on_pad)
+            # Only link the pad if a compatible pad is available.
+            if convpad:
+                pad.link(convpad)
+            else:
+                logger.error("No pad available for: %s" % uri)
+
+        self.decodebin.connect("pad-added", pad_added)
         self.pad = self.volume.get_pad("src")
         self.ghostpad = gst.GhostPad("src", self.pad)
         self.add_pad(self.ghostpad)
@@ -54,7 +60,7 @@ class SrcWavFile (gst.Bin):
     def seek_to_start(self):
         if not self.already_seeked:
             self.already_seeked = True
-            self.wavparse.seek(
+            self.decodebin.seek(
                 1.0,
                 gst.Format(gst.FORMAT_TIME),
                 gst.SEEK_FLAG_ACCURATE,
@@ -65,7 +71,7 @@ class SrcWavFile (gst.Bin):
 
     def fade_out(self, nsecs):
         self.fading = True
-        pos_int = self.wavparse.query_position(gst.FORMAT_TIME, None)[0]
+        pos_int = self.decodebin.query_position(gst.FORMAT_TIME, None)[0]
         logger.debug("fade_out: got position: " + str(pos_int))
         self.controller.set_interpolation_mode(
             "volume", gst.INTERPOLATE_LINEAR)
