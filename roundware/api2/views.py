@@ -9,8 +9,8 @@ from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 from rest_framework import viewsets
-import serializers
-from permissions import AuthenticatedReadAdminWrite
+from roundware.api2 import serializers
+from roundware.api2.permissions import AuthenticatedReadAdminWrite
 import logging
 
 logger = logging.getLogger(__name__)
@@ -102,6 +102,7 @@ class StreamViewSet(viewsets.ViewSet):
             raise ParseError(serializer.errors)
 
         # TODO: Return data about the stream, only if it exists.
+
 
         return Response(serializer.data)
 

@@ -133,8 +133,15 @@ class RoundStream:
                 if tag.filter:
                     logger.debug("Tag with filter found: %s: %s" %
                                  (tag, tag.filter))
-                    self.recordingCollection.nearby_unplayed_recordings = getattr(asset_sorters, tag.filter)(
-                        assets=self.recordingCollection.all_recordings, request=self.request)
+                    # TODO: Don't use getattr to return functions.
+                    # TODO: This functionality would make better sense if it were
+                    # handled in the recordingCollection.
+                    sort_function = getattr(asset_sorters, tag.filter, None)
+                    # If there is a matching asset_sort function, apply it.
+                    if sort_function:
+                        assets = self.recordingCollection.all_recordings
+                        unplayed = sort_function(assets=assets, request=self.request)
+                        self.recordingCollection.nearby_unplayed_recordings = unplayed
 
         for comp in self.compositions:
             comp.move_listener(self.listener)

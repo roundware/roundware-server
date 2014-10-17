@@ -10,7 +10,6 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db import models, transaction
 from validatedfile.fields import ValidatedFileField
-from roundware.rw import fields
 from django.conf import settings
 from datetime import datetime
 from cache_utils.decorators import cached

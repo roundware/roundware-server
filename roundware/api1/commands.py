@@ -450,7 +450,7 @@ def op_log_event(request):
     return {"success": True}
 
 # Used by server.py many times and stream.py once!
-def log_event(event_type, session_id, requestget=None):
+def log_event(event_type, session_id, form=None):
     """
     event_type <string>
     session_id <integer>
@@ -468,12 +468,12 @@ def log_event(event_type, session_id, requestget=None):
     longitude = None
     tags = None
     data = None
-    if requestget:
-        client_time = requestget.get("client_time", None)
-        latitude = requestget.get("latitude", None)
-        longitude = requestget.get("longitude", None)
-        tags = requestget.get("tags", None)
-        data = requestget.get("data", None)
+    if form:
+        client_time = form.get("client_time", None)
+        latitude = form.get("latitude", None)
+        longitude = form.get("longitude", None)
+        tags = form.get("tags", None)
+        data = form.get("data", None)
 
     e = models.Event(session=s,
               event_type=event_type,

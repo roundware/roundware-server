@@ -273,12 +273,12 @@ LOGGING = {
         # The roundware system logger.
         'roundware': {
             'level': 'INFO',
-            'handlers': ['mail_admins', 'file'],
+            'handlers': ['file', 'mail_admins'],
         },
         # The roundwared stream manager logger.
         'roundwared': {
             'level': 'INFO',
-            'handlers': ['mail_admins', 'file'],
+            'handlers': ['file', 'mail_admins'],
         },
     },
     'formatters': {
