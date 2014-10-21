@@ -38,25 +38,27 @@ class RecordingCollection:
         self.nearby_played_recordings = []
         self.nearby_unplayed_recordings = []
         self.lock = threading.Lock()
-        self.update_request(self.request, False)
+        self.update_request(self.request, update_nearby=False)
 
-    def update_request(self, request, update_nearby = True):
+    def update_request(self, request, update_nearby=True, lock=True):
         """
         Updates/Initializes the request stored in the collection by filling
         all_recordings with assets filtered by tags. Optionally leaves
         nearby_unplayed_recordings empty so no assets are triggered until
         modify_stream or move_listener are called.
+        Lock is disabled when called by get_recording().
         """
-        logger.debug("update_request")
-        self.lock.acquire()
-        self.all_recordings = db.get_recordings(request["session_id"],
-                                                request.get("tags"))
+        if lock:
+            self.lock.acquire()
+
+        tags = getattr(self.request, "tags", None)
+        self.all_recordings = db.get_recordings(self.request["session_id"], tags)
         self.far_recordings = self.all_recordings
         # Clear the nearby recordings storage.
         self.nearby_played_recordings = []
         self.nearby_unplayed_recordings = []
         # Updating nearby_recording will start stream audio asset playback.
-        if (update_nearby):
+        if update_nearby:
             self.update_nearby_recordings(request)
         logger.debug("update_request: all_recordings count: " + str(len(self.all_recordings))
                      + ", far_recordings count: " +
@@ -64,63 +66,55 @@ class RecordingCollection:
                      + ", nearby_played_recordings count: " +
                      str(len(self.nearby_played_recordings))
                      + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
-        self.lock.release()
+        if lock:
+            self.lock.release()
 
     # Gets a new recording to play.
     # @profile(stats=True)
     def get_recording(self):
-        logger.debug("Getting a recording from the bucket.")
+        logger.debug("Getting a recording.")
         self.lock.acquire()
         recording = None
         logger.debug("We have %s unplayed recordings.",
                      len(self.nearby_unplayed_recordings))
         if len(self.nearby_unplayed_recordings) > 0:
-            index = 0
-            recording = self.nearby_unplayed_recordings.pop(index)
-
-            logger.debug("Got %s", recording.filename)
+            # TODO: This gets the FIRST item on the list, should be getting the LAST for efficiency.
+            recording = self.nearby_unplayed_recordings.pop(0)
             self.nearby_played_recordings.append(recording)
+
         elif len(self.nearby_played_recordings) > 0:
             logger.debug("Request: %s", self.request)
             p = models.Project.objects.get(id=int(self.request['project_id']))
             logger.debug("Repeat mode: %s", p.repeat_mode.mode)
-            # do this only if project setting calls for it
-            if p.is_continuous():
-                logger.debug("Continuous mode")
-                tags = getattr(self.request, "tags", None)
-                self.all_recordings = db.get_recordings(self.request["session_id"], tags)
-                self.far_recordings = self.all_recordings
-                self.nearby_played_recordings = []
-                self.nearby_unplayed_recordings = []
-                self.update_nearby_recordings(self.request)
-                logger.debug("GET_RECORDING UPDATE: all_recordings count: " + str(len(self.all_recordings))
-                             + ", far_recordings count: " +
-                             str(len(self.far_recordings))
-                             + ", nearby_played_recordings count: " +
-                             str(len(self.nearby_played_recordings))
-                             + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
-                index = 0
-                recording = self.nearby_unplayed_recordings.pop(index)
-                logger.debug("Got %s", recording.filename)
-                self.nearby_played_recordings.append(recording)
-            else:
+            # Check project settings, if continuous is enabled.
+            if not p.is_continuous():
                 logger.debug("Stop mode")
+                self.lock.release()
+                return None
+            logger.debug("Continuous mode")
+            # Update the list of nearby_unplayed_recordings.
+            self.update_request(self.request, update_nearby=True, lock=False)
+            # TODO: This gets the FIRST item on the list, should be getting the LAST for efficiency.
+            recording = self.nearby_unplayed_recordings.pop(0)
+            self.nearby_played_recordings.append(recording)
 
         # If a recording was found and unit tests are not running.
         if recording and not settings.TESTING:
+            logger.debug("Got %s", recording.filename)
             filepath = os.path.join(settings.MEDIA_ROOT, recording.filename)
-            # Check if the file exists on the server.
+            # Check if the file exists on the server, not the stream crashes.
             if not os.path.isfile(filepath):
-                recording = None
                 logger.error("File not found: %s", filepath)
+                recording = None
 
         self.lock.release()
         return recording
 
     def add_recording(self, asset_id):
         self.lock.acquire()
-        logger.debug("add_recording enter - asset id: " + str(asset_id))
+        logger.debug("asset id: " + str(asset_id))
         a = models.Asset.objects.get(id=str(asset_id))
+        # TODO: This puts the item FIRST on the list, should put the LAST for efficiency.
         self.nearby_unplayed_recordings.insert(0, a)
         self.lock.release()
 
@@ -140,7 +134,7 @@ class RecordingCollection:
             self.nearby_unplayed_recordings)
 
     # True if the collection has any recordings left to play.
-    def has_recording(self):
+    def has_recordings(self):
         return len(self.nearby_unplayed_recordings) > 0
 
     ######################################################################

@@ -69,7 +69,7 @@ class Composition:
                 self.src_wav_file.pan_to(self.current_pan_pos)
 
     def move_listener(self, posn):
-        if self.recordingCollection.has_recording():
+        if self.recordingCollection.has_recordings():
             if self.state == STATE_WAITING:
                 self.add_file()
 # FIXME: This code is responsible for swapping the playing file if there is
