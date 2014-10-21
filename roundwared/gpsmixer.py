@@ -27,12 +27,11 @@ class GPSMixer (gst.Bin):
         ghostpad = gst.GhostPad("src", pad)
         self.add_pad(ghostpad)
         addersinkpad = self.adder.get_request_pad('sink%d')
-        logger.debug("adding blank src.")
+        logger.debug("Adding blank Audio")
         blanksrc = BlankAudioSrc2()
         self.add(blanksrc)
         srcpad = blanksrc.get_pad('src')
         srcpad.link(addersinkpad)
-        logger.debug("adding blank src - ADDED")
         logger.debug("iterating through " + str(len(speakers)) + " speakers.")
         for speaker in speakers:
             vol = calculate_volume(speaker, listener)
@@ -72,19 +71,14 @@ class GPSMixer (gst.Bin):
         self.listener = new_listener
         for i in range(len(self.speakers)):
             vol = calculate_volume(self.speakers[i], self.listener)
-            logger.debug(
-                "gpsmixer: move_listener: source # " + str(i) + " has a volume of " + str(vol))
+            logger.debug("Source # %s has a volume of %s" % (i, vol))
             if vol > 0:
                 if self.sources[i] == None:
-                    logger.debug(
-                        "gpsmixer: move_listener: allocating new source")
+                    logger.debug("Allocating new source")
                     tempsrc = src_mp3_stream.SrcMP3Stream(
                         self.speakers[i].uri, vol)
-                    logger.debug(
-                        "gpsmixer: move_listener: replacing old slot in source array")
                     self.sources[i] = tempsrc
-                    logger.debug(
-                        "gpsmixer: move_listener: adding speaker: " + str(self.speakers[i].id))
+                    logger.debug("Adding speaker: %s " % self.speakers[i].id)
                     self.add(self.sources[i])
                     # self.set_state(gst.STATE_PLAYING)
 
@@ -92,37 +86,24 @@ class GPSMixer (gst.Bin):
                     addersinkpad = self.adder.get_request_pad('sink%d')
                     srcpad.link(addersinkpad)
                     self.sources[i].set_state(gst.STATE_PLAYING)
-                    logger.debug(
-                        "gpsmixer: move_listener: adding speaker SUCCESS")
                     # self.set_state(gst.STATE_PLAYING)
                 else:
                     logger.debug("already added, setting vol: " + str(vol))
                     self.sources[i].set_volume(vol)
 
             else:
-                logger.debug(
-                    "gpsmixer: move_listener: checking if speaker is already added, prior to removal")
                 if self.sources[i] != None:
                     self.sources[i].set_volume(vol)
-                    logger.debug(
-                        "gpsmixer: move_listener: removing speaker: " + str(self.speakers[i].id))
                     src_to_remove = self.sources[i].get_pad('src')
-                    logger.debug("gpsmixer: move_listener: removing speaker1")
                     # src_to_remove.set_blocked(True)
-                    logger.debug("gpsmixer: move_listener: removing speaker2")
                     # we crash whenever we set state to NULL, either here or after unlinking
                     # self.sources[i].set_state(gst.STATE_NULL)
-                    logger.debug("gpsmixer: move_listener: removing speaker3")
                     sinkpad = self.adder.get_request_pad("sink%d")
-                    logger.debug("gpsmixer: move_listener: removing speaker4")
                     src_to_remove.unlink(sinkpad)
-                    logger.debug("gpsmixer: move_listener: removing speaker5")
                     self.adder.release_request_pad(sinkpad)
-                    logger.debug("gpsmixer: move_listener: removing speaker6")
                     # self.remove(self.sources[i])
-                    logger.debug(
-                        "gpsmixer: move_listener: removing speaker - SUCCESS")
-                    #self.sources[i] = None
+                    logger.debug("Removed speaker: %s" % self.speakers[i].id)
+                    # self.sources[i] = None
                     # self.set_state(gst.STATE_PLAYING)
 
 

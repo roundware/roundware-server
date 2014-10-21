@@ -63,7 +63,7 @@ class TestRecordingCollection(RoundwaredTestCase):
         req = self.req1
         stream = RoundStream(self.session1.id, 'ogg', req)
         rc = RecordingCollection(stream, req, stream.radius)
-        self.assertEquals([self.asset1, self.asset2], rc.all_recordings)
+        self.assertEquals([self.asset1, self.asset2], rc.all)
 
     def test_correct_far_recordings(self):
         req = self.req1
@@ -75,12 +75,12 @@ class TestRecordingCollection(RoundwaredTestCase):
             # Update the list of nearby recordings
             rc.update_request(req)
 
-            self.assertEquals([], rc.far_recordings)  # everything close by
+            self.assertEquals([], rc.far)  # everything close by
 
         with patch.object(gpsmixer, 'distance_in_meters',
                           mock_distance_in_meters_far):
             rc2 = RecordingCollection(stream, req, stream.radius)  # all far
-            self.assertEquals([self.asset1, self.asset2], rc2.far_recordings)
+            self.assertEquals([self.asset1, self.asset2], rc2.far)
 
     def test_update_request_all_recordings_changes(self):
         req = self.req1
@@ -88,7 +88,7 @@ class TestRecordingCollection(RoundwaredTestCase):
         rc = RecordingCollection(stream, req, stream.radius)
         req['session_id'] = self.session2.id
         rc.update_request(req)
-        self.assertEquals([], rc.all_recordings)
+        self.assertEquals([], rc.all)
 
     def test_update_request_far_recordings_changes(self):
         req = self.req1
@@ -99,7 +99,7 @@ class TestRecordingCollection(RoundwaredTestCase):
         with patch.object(gpsmixer, 'distance_in_meters',
                           mock_distance_in_meters_far):
             rc.update_request(req)
-            self.assertEquals([self.asset1, self.asset2], rc.far_recordings)
+            self.assertEquals([self.asset1, self.asset2], rc.far)
 
     def test_update_nearby_recordings_by_random(self):
         """ test that we don't get the same order more than 8 out of 
@@ -192,7 +192,7 @@ class TestRecordingCollection(RoundwaredTestCase):
 
     def test_add_recording(self):
         """ add a specific asset id and it should show up in
-        nearby_unplayed_recordings
+        nearby_unplayed
         """
         req = self.req1
         stream = RoundStream(self.session1.id, 'ogg', req)
@@ -202,7 +202,7 @@ class TestRecordingCollection(RoundwaredTestCase):
             # Update the list of nearby recordings
             rc.update_request(req)
             self.assertEquals([self.asset1, self.asset2],
-                              rc.nearby_unplayed_recordings)
+                              rc.nearby_unplayed)
             rc.add_recording(self.asset2.id)
             self.assertEquals([self.asset1, self.asset2, self.asset2],
-                              rc.nearby_unplayed_recordings)
+                              rc.nearby_unplayed)

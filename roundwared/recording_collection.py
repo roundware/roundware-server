@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import logging
 import threading
 import os.path
+from time import time
 try:
     from profiling import profile
 except ImportError:
@@ -33,40 +34,40 @@ class RecordingCollection:
         self.radius = radius
         self.ordering = ordering
         # these are lists of model.Recording objects ie [rec1,rec2,etc]
-        self.all_recordings = []
-        self.far_recordings = []
-        self.nearby_played_recordings = []
+        self.all = []
+        self.far = []
+        self.nearby_played = []
         # The main list of assets to play, in reverse order because it is a stack.
-        self.nearby_unplayed_recordings = []
+        self.nearby_unplayed = []
         self.lock = threading.Lock()
         self.update_request(self.request, update_nearby=False)
 
     def update_request(self, request, update_nearby=True, lock=True):
         """
         Updates/Initializes the request stored in the collection by filling
-        all_recordings with assets filtered by tags. Optionally leaves
-        nearby_unplayed_recordings empty so no assets are triggered until
+        all with assets filtered by tags. Optionally leaves
+        nearby_unplayed empty so no assets are triggered until
         modify_stream or move_listener are called.
         Lock is disabled when called by get_recording().
         """
         if lock:
             self.lock.acquire()
 
-        tags = getattr(self.request, "tags", None)
-        self.all_recordings = db.get_recordings(self.request["session_id"], tags)
-        self.far_recordings = self.all_recordings
+        tags = getattr(request, "tags", None)
+        self.all = db.get_recordings(request["session_id"], tags)
+        self.far = self.all
         # Clear the nearby recordings storage.
-        self.nearby_played_recordings = []
-        self.nearby_unplayed_recordings = []
+        self.nearby_played = []
+        self.nearby_unplayed = []
         # Updating nearby_recording will start stream audio asset playback.
         if update_nearby:
             self.update_nearby_recordings(request)
-        logger.debug("update_request: all_recordings count: " + str(len(self.all_recordings))
-                     + ", far_recordings count: " +
-                     str(len(self.far_recordings))
-                     + ", nearby_played_recordings count: " +
-                     str(len(self.nearby_played_recordings))
-                     + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
+        logger.debug("all count: " + str(len(self.all))
+                     + ", far count: " +
+                     str(len(self.far))
+                     + ", nearby_played count: " +
+                     str(len(self.nearby_played))
+                     + ", nearby_unplayed count: " + str(len(self.nearby_unplayed)))
         if lock:
             self.lock.release()
 
@@ -77,25 +78,23 @@ class RecordingCollection:
         self.lock.acquire()
         recording = None
         logger.debug("We have %s unplayed recordings.",
-                     len(self.nearby_unplayed_recordings))
-        if len(self.nearby_unplayed_recordings) > 0:
-            recording = self.nearby_unplayed_recordings.pop()
-            self.nearby_played_recordings.append(recording)
+                     len(self.nearby_unplayed))
+        if self.has_recordings():
+            recording = self.nearby_unplayed.pop()
+            self.nearby_played.append(recording)
 
-        elif len(self.nearby_played_recordings) > 0:
-            logger.debug("Request: %s", self.request)
+        elif len(self.nearby_played) > 0:
             p = models.Project.objects.get(id=int(self.request['project_id']))
-            logger.debug("Repeat mode: %s", p.repeat_mode.mode)
             # Check project settings, if continuous is enabled.
             if not p.is_continuous():
                 logger.debug("Stop mode")
                 self.lock.release()
                 return None
             logger.debug("Continuous mode")
-            # Update the list of nearby_unplayed_recordings.
+            # Update the list of nearby_unplayed.
             self.update_request(self.request, update_nearby=True, lock=False)
-            recording = self.nearby_unplayed_recordings.pop()
-            self.nearby_played_recordings.append(recording)
+            recording = self.nearby_unplayed.pop()
+            self.nearby_played.append(recording)
 
         # If a recording was found and unit tests are not running.
         if recording and not settings.TESTING:
@@ -113,7 +112,7 @@ class RecordingCollection:
         self.lock.acquire()
         logger.debug("asset id: %s " % asset_id)
         a = models.Asset.objects.get(id=str(asset_id))
-        self.nearby_unplayed_recordings.append(a)
+        self.nearby_unplayed.append(a)
         self.lock.release()
 
     # Updates the collection of recordings according to a new listener
@@ -129,11 +128,11 @@ class RecordingCollection:
     def get_filenames(self):
         return map(
             lambda recording: recording.filename,
-            self.nearby_unplayed_recordings)
+            self.nearby_unplayed)
 
     # True if the collection has any recordings left to play.
     def has_recordings(self):
-        return len(self.nearby_unplayed_recordings) > 0
+        return len(self.nearby_unplayed) > 0
 
     ######################################################################
     # Private
@@ -144,19 +143,19 @@ class RecordingCollection:
         new_nearby_unplayed_recordings = []
         new_nearby_played_recordings = []
 
-        for r in self.far_recordings:
+        for r in self.far:
             if self.is_nearby(listener, r):
                 new_nearby_unplayed_recordings.append(r)
             else:
                 new_far_recordings.append(r)
 
-        for r in self.nearby_unplayed_recordings:
+        for r in self.nearby_unplayed:
             if self.is_nearby(listener, r):
                 new_nearby_unplayed_recordings.append(r)
             else:
                 new_far_recordings.append(r)
 
-        for r in self.nearby_played_recordings:
+        for r in self.nearby_played:
             if self.is_nearby(listener, r):
                 new_nearby_played_recordings.append(r)
             else:
@@ -173,9 +172,9 @@ class RecordingCollection:
             new_nearby_unplayed_recordings = \
                 order_assets_by_weight(new_nearby_unplayed_recordings)
 
-        self.far_recordings = new_far_recordings
-        self.nearby_unplayed_recordings = new_nearby_unplayed_recordings
-        self.nearby_played_recordings = new_nearby_played_recordings
+        self.far = new_far_recordings
+        self.nearby_unplayed = new_nearby_unplayed_recordings
+        self.nearby_played = new_nearby_played_recordings
 
     # True if the listener and recording are close enough to be heard.
     def is_nearby(self, listener, recording):

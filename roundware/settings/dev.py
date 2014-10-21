@@ -30,16 +30,16 @@ INTERNAL_IPS = internal_list()
 
 # PROFILING using django-profiler
 PROFILING_SQL_QUERIES = True
-LOGGING['handlers'].update({
+LOGGING['handlers'] = {
     # The console handler will display in the manage.py runserver output
     'console': {
         'level': 'DEBUG',
         'class': 'logging.StreamHandler',
-        'formatter': 'verbose'
+        'formatter': 'simple'
     },
-})
+}
 
-LOGGING['loggers'].update({
+LOGGING['loggers'] = {
     # The default logger. Enable to log everything.
     # '': {
     #     'level': 'DEBUG',
@@ -59,11 +59,13 @@ LOGGING['loggers'].update({
     'roundware': {
         'level': 'DEBUG',
         'handlers': ['console'],
+        'propagate': False,
     },
     # The roundwared stream manager logger.
     'roundwared': {
         'level': 'DEBUG',
         'handlers': ['console'],
+        'propagate': False,
     },
     # The Roundware API2 logger.
     # 'roundware.api2': {
@@ -75,4 +77,4 @@ LOGGING['loggers'].update({
     #    'level': 'DEBUG',
     #    'handlers': ['console'],
     # },
-})
+}

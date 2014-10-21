@@ -14,7 +14,6 @@ import time
 from django.conf import settings
 from roundware.rw import models
 from roundware.api1.commands import log_event
-from roundwared import asset_sorters
 from roundwared import composition
 from roundwared import icecast2
 from roundwared import gpsmixer
@@ -123,27 +122,6 @@ class RoundStream:
     # Force the recording collection to get new recordings from the DB
     def refresh_recordings(self):
         self.recordingCollection.update_request(self.request)
-
-        # filter recordings
-        if "tags" in self.request:
-            tag_ids = self.request["tags"]
-            if not hasattr(tag_ids, "__iter__"):
-                tag_ids = tag_ids.split(",")
-
-            tags = Tag.objects.filter(pk__in=tag_ids)
-            for tag in tags:
-                if tag.filter:
-                    logger.debug("Tag with filter found: %s: %s" %
-                                 (tag, tag.filter))
-                    # TODO: Don't use getattr to return functions.
-                    # TODO: This functionality would make better sense if it were
-                    # handled in the recordingCollection.
-                    sort_function = getattr(asset_sorters, tag.filter, None)
-                    # If there is a matching asset_sort function, apply it.
-                    if sort_function:
-                        assets = self.recordingCollection.all_recordings
-                        unplayed = sort_function(assets=assets, request=self.request)
-                        self.recordingCollection.nearby_unplayed_recordings = unplayed
 
         for comp in self.compositions:
             comp.move_listener(self.listener)
