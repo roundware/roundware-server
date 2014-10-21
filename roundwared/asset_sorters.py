@@ -10,26 +10,32 @@ logger = logging.getLogger(__name__)
 
 
 def order_assets_by_like(assets):
+    """
+    List is reverse order because assets are popped off the stack.
+    """
     unplayed = []
     for asset in assets:
         count = models.Asset.get_likes(asset)
         unplayed.append((count, asset))
-    logger.info('Ordering Assets by Like. Input: ' +
+    logger.debug('Ordering Assets by Like. Input: ' +
                 str([(u[0], u[1].filename) for u in unplayed]))
-    unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
-    logger.info('Ordering Assets by Like. Output: ' +
+    unplayed = sorted(unplayed, key=itemgetter(0))
+    logger.debug('Ordering Assets by Like. Output: ' +
                 str([(u[0], u[1].filename) for u in unplayed]))
     return [x[1] for x in unplayed]
 
 
 def order_assets_by_weight(assets):
+    """
+    List is reverse order because assets are popped off the stack.
+    """
     unplayed = []
     for asset in assets:
         weight = asset.weight
         unplayed.append((weight, asset))
     logger.debug('Ordering Assets by Weight. Input: ' +
                  str([(u[0], u[1].filename) for u in unplayed]))
-    unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
+    unplayed = sorted(unplayed, key=itemgetter(0))
     logger.debug('Ordering Assets by Weight. Output: ' +
                  str([(u[0], u[1].filename) for u in unplayed]))
     return [x[1] for x in unplayed]

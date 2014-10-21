@@ -121,7 +121,9 @@ class TestRecordingCollection(RoundwaredTestCase):
             self.assertTrue(matched > 0)
 
     def test_order_assets_by_like(self):
-        """ order of assets returned should be determined by number of likes
+        """
+        Order of assets returned should be determined by number of likes.
+        List is reverse order because assets are popped off the stack.
         """
         vote1 = mommy.make('rw.Vote', session=self.session1,
                            asset=self.asset2, type="like")
@@ -130,13 +132,15 @@ class TestRecordingCollection(RoundwaredTestCase):
         vote3 = mommy.make('rw.Vote', session=self.session1,
                            asset=self.asset1, type="like")
         vote1, vote2, vote3 # Use all three votes to stop unuse warnings
-        self.assertEquals([self.asset2, self.asset1],
+        self.assertEquals([self.asset1, self.asset2],
                           asset_sorters.order_assets_by_like([self.asset1, self.asset2]))
 
     def test_order_assets_by_weight(self):
-        """ order of assets returned should be determined by asset weight
         """
-        self.assertEquals([self.asset2, self.asset1],
+        Order of assets returned should be determined by asset weight
+        List is reverse order because assets are popped off the stack.
+        """
+        self.assertEquals([self.asset1, self.asset2],
                           asset_sorters.order_assets_by_weight([self.asset1,
                                                      self.asset2]))
 
@@ -197,8 +201,8 @@ class TestRecordingCollection(RoundwaredTestCase):
             rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
             # Update the list of nearby recordings
             rc.update_request(req)
-            self.assertEquals([self.asset2, self.asset1],
+            self.assertEquals([self.asset1, self.asset2],
                               rc.nearby_unplayed_recordings)
             rc.add_recording(self.asset2.id)
-            self.assertEquals([self.asset2, self.asset2, self.asset1],
+            self.assertEquals([self.asset1, self.asset2, self.asset2],
                               rc.nearby_unplayed_recordings)

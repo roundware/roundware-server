@@ -36,6 +36,7 @@ class RecordingCollection:
         self.all_recordings = []
         self.far_recordings = []
         self.nearby_played_recordings = []
+        # The main list of assets to play, in reverse order because it is a stack.
         self.nearby_unplayed_recordings = []
         self.lock = threading.Lock()
         self.update_request(self.request, update_nearby=False)
@@ -78,8 +79,7 @@ class RecordingCollection:
         logger.debug("We have %s unplayed recordings.",
                      len(self.nearby_unplayed_recordings))
         if len(self.nearby_unplayed_recordings) > 0:
-            # TODO: This gets the FIRST item on the list, should be getting the LAST for efficiency.
-            recording = self.nearby_unplayed_recordings.pop(0)
+            recording = self.nearby_unplayed_recordings.pop()
             self.nearby_played_recordings.append(recording)
 
         elif len(self.nearby_played_recordings) > 0:
@@ -94,8 +94,7 @@ class RecordingCollection:
             logger.debug("Continuous mode")
             # Update the list of nearby_unplayed_recordings.
             self.update_request(self.request, update_nearby=True, lock=False)
-            # TODO: This gets the FIRST item on the list, should be getting the LAST for efficiency.
-            recording = self.nearby_unplayed_recordings.pop(0)
+            recording = self.nearby_unplayed_recordings.pop()
             self.nearby_played_recordings.append(recording)
 
         # If a recording was found and unit tests are not running.
@@ -112,10 +111,9 @@ class RecordingCollection:
 
     def add_recording(self, asset_id):
         self.lock.acquire()
-        logger.debug("asset id: " + str(asset_id))
+        logger.debug("asset id: %s " % asset_id)
         a = models.Asset.objects.get(id=str(asset_id))
-        # TODO: This puts the item FIRST on the list, should put the LAST for efficiency.
-        self.nearby_unplayed_recordings.insert(0, a)
+        self.nearby_unplayed_recordings.append(a)
         self.lock.release()
 
     # Updates the collection of recordings according to a new listener
