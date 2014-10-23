@@ -79,7 +79,8 @@ CONTINUOUS_REPEAT_MODE = "continuous"
 STOP_REPEAT_MODE = "stop"
 
 STARTUP_NOTIFICATION_MESSAGE = ""
-
+# Number of seconds to ban an asset/recording from playing again
+REPLAY_BAN_TIME_LIMIT = 600
 ######## END ROUNDWARE SPECIFIC SETTINGS #########
 
 # change this to reflect your environment

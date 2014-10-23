@@ -3,8 +3,6 @@
 
 from __future__ import unicode_literals
 import gobject
-from roundware.rw.models import Tag
-
 gobject.threads_init()
 import pygst
 pygst.require("0.10")
@@ -111,10 +109,12 @@ class RoundStream:
         # happening on modify_streams that have only location changes
         if "tags" in self.request and self.request["tags"]:
             self.refresh_recordings()
+
+        filenames = self.recordingCollection.get_filenames()
         logging.info("Stream modification: Going to play: " \
-            + ",".join(self.recordingCollection.get_filenames()) \
+            + ",".join(filenames) \
             + " Total of " \
-            + str(len(self.recordingCollection.get_filenames()))
+            + str(len(filenames))
             + " files.")
         self.move_listener(request)
         return True
