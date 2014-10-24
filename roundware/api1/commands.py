@@ -713,6 +713,8 @@ def request_stream(request):
 
             apache_safe_daemon_subprocess(command)
             wait_for_stream(session.id, audio_format)
+            admin = icecast2.Admin()
+            admin.update_metadata(session.id, "stream_started")
 
         return {
             "stream_url": "http://%s:%s%s" % (http_host, settings.ICECAST_PORT,

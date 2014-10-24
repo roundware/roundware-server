@@ -46,7 +46,6 @@ def main():
 
 def start_stream(sessionid, audio_format, request):
     try:
-        logger.info("Starting stream " + str(sessionid))
         current_stream = RoundStream(
             sessionid, audio_format, request)
         dbus_receive.add_stream_signal_receiver(current_stream)

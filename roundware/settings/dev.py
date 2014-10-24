@@ -6,6 +6,8 @@ except ImportError:
 
 # Set Roundware API for internal calls to development environment
 API_URL = "http://127.0.0.1:8888/roundware/"
+# Change banned_timeout limit to better development testing value
+BANNED_TIMEOUT_LIMIT = 90
 
 INSTALLED_APPS = INSTALLED_APPS + (
     'discoverage',
@@ -16,6 +18,7 @@ DEBUG = True
 TEMPLATE_DEBUG = True
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 CRISPY_FAIL_SILENTLY = not DEBUG
+
 
 MIDDLEWARE_CLASSES = (
     'debug_toolbar.middleware.DebugToolbarMiddleware',

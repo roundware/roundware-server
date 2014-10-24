@@ -18,6 +18,7 @@ import logging
 import os
 from roundwared import src_wav_file
 from roundwared import db
+from roundwared import icecast2
 from django.conf import settings
 
 STATE_PLAYING = 0
@@ -92,6 +93,8 @@ class Composition:
         self.current_recording = self.recordingCollection.get_recording()
         if not self.current_recording:
             self.state = STATE_WAITING
+            admin = icecast2.Admin()
+            admin.update_metadata(self.parent.sessionid, "no_assets_nearby")
             return
 
         duration = min(
@@ -129,12 +132,15 @@ class Composition:
             (self.comp_settings.maxvolume -
                 self.comp_settings.minvolume))
 
-        logger.debug("current_recording.filename: %s, start: %s, duration: %s, fadein: %s, fadeout: %s, volume: %s",
-                                self.current_recording.filename, start, duration, fadein, fadeout, volume)
+        # logger.debug("current_recording.filename: %s, start: %s, duration: %s, fadein: %s, fadeout: %s, volume: %s",
+        #                        self.current_recording.filename, start, duration, fadein, fadeout, volume)
+        logger.info("Session %s - Playing asset %s filename: %s, duration: %.2f secs" %
+                    (self.parent.sessionid, self.current_recording.id,
+                     self.current_recording.filename, duration / 1000000000.0))
 
         self.src_wav_file = src_wav_file.SrcWavFile(
             os.path.join(settings.MEDIA_ROOT,
-                                     self.current_recording.filename),
+                         self.current_recording.filename),
             start, duration, fadein, fadeout, volume)
         self.pipeline.add(self.src_wav_file)
         self.srcpad = self.src_wav_file.get_pad('src')
@@ -156,8 +162,6 @@ class Composition:
             self.current_recording.id, self.parent.sessionid, duration)
         # logger.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
         # logger.debug("---------Composition add: self.parent.sink.shout class: " + self.parent.sink.shout.__class__.__name__)
-        #self.parent.sink.shout.set_property("streamname","asset" + str(self.current_recording.id))
-        # logger.debug("made it!!!")
 
     def event_probe(self, pad, event):
         if event.type == gst.EVENT_EOS:

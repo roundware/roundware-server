@@ -26,3 +26,6 @@ TESTING = True
 
 COVERAGE_OMIT_MODULES = ["roundware.rw.mommy_recipes",
                          "roundware.rw.templates", ]
+
+# Change banned_timeout limit to better testing value
+BANNED_TIMEOUT_LIMIT = 3

@@ -55,17 +55,16 @@ class Admin:
         xml.freeDoc()
         return results
 
-    def update_metadata(self, asset_id, session_id):
-        url = "/admin/metadata"
-        uri = self.base_uri + url + "?mount=/stream" + str(session_id) + \
-            ".mp3&mode=updinfo&charset=UTF-8&song=assetid" + str(asset_id)
+    def update_metadata(self, session_id, data):
+        logger.debug("Session %s - Update Metadata: %s", session_id, data)
+        params = {
+            'mount': '/stream%s.mp3' % session_id,
+            'mode': 'updinfo',
+            'charset': 'UTF-8',
+            'song': data,
+        }
 
-        # TODO requests.get params value should be used instead of building
-        # the GET value list manually, but the Requests library URL encodes
-        # the values and Icecast does not accept that. Tested with Icecast
-        # 2.3.2 (Ubuntu 12.04 repo version) and 2.4.0 (current compiled.)
-        # Bug report filed against Icecast: https://trac.xiph.org/ticket/2031
-        logger.debug("Request: %s, auth=%s", uri, self.auth)
-        response = requests.get(uri, auth=self.auth)
+        response = requests.get(self.base_uri + "/admin/metadata",
+                                auth=self.auth, params=params)
         response.raise_for_status()
-        logger.debug("Response: %s", response.content)
+        # logger.debug("Response: %s", response.content)
