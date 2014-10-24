@@ -37,6 +37,9 @@ class RecordingCollection:
         self.all = []
         # The main list of assets to play, in reverse order because it is a stack.
         self.nearby_unplayed = []
+        # A list of nearby played assets. We don't want to repeat nearby assets
+        # even if they are removed from the ban list(dict.)
+        self.nearby_played = []
         # A dict of temporarily banned assets, key is asset.id and value is
         # timestamp of last play time. Reset only when stream is restarted.
         self.banned = {}
@@ -75,22 +78,22 @@ class RecordingCollection:
         logger.debug("We have %s unplayed recordings.",
                      len(self.nearby_unplayed))
 
-        # If there are any recordings banned and no unplayed recordings
-        if len(self.banned) > 0 and not self.has_recordings():
+        # If there are no unplayed assets, but there are available played.
+        if not self.has_nearby_unplayed() and self.has_played():
             p = models.Project.objects.get(id=int(self.request['project_id']))
-            # Check if continuous is disabled for the project.
-            if not p.is_continuous():
-                logger.debug("Stop mode")
-                self.lock.release()
-                return None
-            logger.debug("Continuous mode")
-            # Clear the ban list
-            self.ban = {}
-            # Update the list of nearby_unplayed.
-            self.update_request(self.request, update_nearby=True, lock=False)
+            # Check if continuous is enabled for the project.
+            if p.is_continuous():
+                logger.debug("Continuous mode")
+                # Clear the ban list
+                self.ban = {}
+                # Clear the nearby played list
+                self.nearby_played = []
+                # Update the list of nearby_unplayed.
+                self.update_request(self.request, update_nearby=True,
+                                    lock=False)
 
         # If there are now any recordings available, get one.
-        if self.has_recordings():
+        if self.has_nearby_unplayed():
             recording = self.nearby_unplayed.pop()
 
         # If a recording was found.
@@ -98,6 +101,8 @@ class RecordingCollection:
             logger.debug("Got %s", recording.filename)
             # Add the recording to the ban list.
             self.banned[recording.id] = time()
+            # Add the recording to the nearby played list.
+            self.nearby_played.append(recording)
             if not settings.TESTING:
                 filepath = os.path.join(settings.MEDIA_ROOT, recording.filename)
                 # Check if the file exists on the server, not the stream crashes.
@@ -129,9 +134,17 @@ class RecordingCollection:
             lambda recording: recording.filename,
             self.nearby_unplayed)
 
-    # True if the collection has any recordings left to play.
-    def has_recordings(self):
+    def has_nearby_unplayed(self):
+        """
+        Returns true if there are any recordings left to play.
+        """
         return len(self.nearby_unplayed) > 0
+
+    def has_played(self):
+        """
+        Returns true if there are banned or nearby_played recordings.
+        """
+        return (len(self.nearby_played) > 0 and len(self.banned) > 0)
 
     # Private
     def __update_nearby(self, listener):
@@ -142,15 +155,19 @@ class RecordingCollection:
         logger.debug("Current timestamp: %d, banned assets and last play: %s" %
                      (current_time, self.banned))
 
+        # Remove no longer nearby items from the nearby played list.
+        self.nearby_played = [r for r in self.nearby_played
+                              if self.__is_nearby(listener, r)]
+        logger.debug("Radius: %s, nearby played assets: %s" %
+                     (self.radius, self.nearby_played))
         # Clear the list of nearby_unplayed assets.
         self.nearby_unplayed = []
         # Check all assets.
         for r in self.all:
-            # If asset is banned, skip it.
-            if r.id in self.banned:
-                continue
             # If the asset is nearby add it to the list of unplayed
-            if self.__is_nearby(listener, r):
+            if (r.id not in self.banned and
+                r not in self.nearby_played and
+                self.__is_nearby(listener, r)):
                 self.nearby_unplayed.append(r)
 
         logger.debug('Ordering is: ' + self.ordering)
