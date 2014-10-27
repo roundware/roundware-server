@@ -40,6 +40,8 @@ class RoundStream:
 
         self.radius = self.project.recording_radius
         self.ordering = self.project.ordering
+        # Keeps track of whether the stream has started playing audio.
+        self.started = False
 
         logger.debug("Project radius: %d meters" % self.radius)
         if self.radius == None:
@@ -231,9 +233,13 @@ class RoundStream:
                 self.cleanup()
         elif message.type == gst.MESSAGE_STATE_CHANGED:
             prev, new, pending = message.parse_state_changed()
-            if message.src == self.pipeline \
-                    and new == gst.STATE_PLAYING:
-                logger.debug("Announcing %d is playing." % self.sessionid)
+            # If the event message comes from the pipeline, the new state is
+            # "playing" and we haven't already started the compositions, then
+            # start everything.
+            if message.src == self.pipeline and new == gst.STATE_PLAYING \
+                    and not self.started:
+                logger.debug("Stream for session %d has started." % self.sessionid)
+                self.started = True
                 gobject.timeout_add(
                     settings.PING_INTERVAL,
                     self.ping)

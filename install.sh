@@ -79,7 +79,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y \
 apache2 libapache2-mod-wsgi mysql-server libav-tools mediainfo pacpl icecast2 \
 python-dev python-pip python-mysqldb python-dbus python-gst0.10 \
 gstreamer0.10-plugins-good gstreamer0.10-plugins-bad \
-gstreamer0.10-plugins-ugly
+gstreamer0.10-plugins-ugly gstreamer0.10-tools
 
 # Install/upgrade virtualenv
 pip install -U virtualenv
