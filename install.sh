@@ -60,11 +60,6 @@ fi
 # Replace the user's .profile
 cp $SOURCE_PATH/files/home-user-profile /home/$USERNAME/.profile
 
-# Add a script to start the manage.py runserver development server
-cp $SOURCE_PATH/files/home-user-runserver.sh /home/$USERNAME/runserver.sh
-chmod 700 /home/$USERNAME/runserver.sh
-chown $USERNAME:$USERNAME /home/$USERNAME/runserver.sh
-
 # Create a symbolic link to the main roundware directory
 ln -sfn $WWW_PATH /home/$USERNAME/www
 

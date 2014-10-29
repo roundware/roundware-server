@@ -487,7 +487,7 @@ def log_event(event_type, session_id, form=None):
 
 # create_envelope
 # args: (operation, session_id, [tags])
-# example: http://localhost/roundware/?operation=create_envelope&sessionid=1&tags=1,2
+# example: http://localhost/roundware/?operation=create_envelope&session_id=1
 # returns envelope_id, sharing_messsage
 # example:
 #{"envelope_id": 2}
