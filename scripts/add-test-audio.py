@@ -45,6 +45,7 @@ if 'runserver' in programs:
     print("Django Runserver is running.")
 else:
     print("Django Runserver is NOT running, start it.")
+    exit(1)
 
 print("Creating a session...")
 rconfig = requests.get(API + '/?operation=get_config&project_id=1')
