@@ -50,12 +50,12 @@ else:
 print("Creating a session...")
 rconfig = requests.get(API + '/?operation=get_config&project_id=1')
 session_id = rconfig.json()[2]['session']['session_id']
-print("Session created: %s" % session_id)
+print(rconfig.json())
 
 print("Creating an envelope...")
 renvelope = requests.get(API + '/?operation=create_envelope&session_id=' + str(session_id))
 envelope_id = renvelope.json()['envelope_id']
-print("Envelope created: %s" % envelope_id)
+print(renvelope.json())
 
 # Add asset to envelope
 for asset in ASSETS:
@@ -67,7 +67,7 @@ for asset in ASSETS:
     asset['tags'] = "3,5,8"
     files = {'file': open(ASSET_PATH + asset['filename'], 'rb')}
     rasset = requests.post(API + '/?', params=asset, files=files)
-    print("Asset created: %s" % rasset.json()['asset_id'])
+    print(rasset.json())
 
 print("DONE!")
 
