@@ -505,7 +505,7 @@ def create_envelope(request):
     return {"envelope_id": env.id}
 
 # add_asset_to_envelope (POST method)
-# args (operation, envelope_id, file, latitude, longitude, [tagids])
+# args (operation, envelope_id, session_id, file, latitude, longitude, [tagids])
 # example: http://localhost/roundware/?operation=add_asset_to_envelope
 # OR
 # add_asset_to_envelope (GET method)
@@ -527,7 +527,7 @@ def add_asset_to_envelope(request):
                 "Invalid Asset ID Provided. No Asset exists with ID %s" % asset_id)
 
     envelope_id = get_parameter_from_request(request, 'envelope_id', True)
-    logger.debug("Found asset_id: %d, envelope_id: %d", asset_id, envelope_id)
+    logger.debug("Found envelope_id: %s", envelope_id)
 
     try:
         envelope = models.Envelope.objects.select_related(
@@ -602,6 +602,7 @@ def add_asset_to_envelope(request):
         tagset = []
         tags = get_parameter_from_request(request, 'tags')
         if tags is not None:
+            print(tags)
             ids = tags.split(',')
             tagset = models.Tag.objects.filter(id__in=ids)
 
