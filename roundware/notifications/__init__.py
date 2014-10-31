@@ -17,11 +17,10 @@ def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
     # notifications
     objects = [i[0] for i in ENABLED_MODELS if i[1].lower() == object_string]
     if objects:
-        logger.info("Add or Edit %s, created: %s" % (object_string, created))
+        # logger.info("Add or Edit %s, created: %s" % (object_string, created))
         # 0 = add
         # 1 = edit
         action = 0 if created else 1
-        logger.debug("%s %s", object_string, instance.id)
         object_int = objects[0]
         # find the time between this notifications and the last time this
         # notification was sent
@@ -36,7 +35,7 @@ def send_notifications_add_edit(sender, instance, created, *args, **kwargs):
             action=action,
             active=True,
         )
-        logger.debug("Enabled notifications: %s", notifications)
+        # logger.debug("Enabled notifications: %s", notifications)
         # loop through and execute them
         for n in notifications:
             # only execute notification if we're working with a different object

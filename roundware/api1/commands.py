@@ -487,7 +487,7 @@ def log_event(event_type, session_id, form=None):
 
 # create_envelope
 # args: (operation, session_id, [tags])
-# example: http://localhost/roundware/?operation=create_envelope&sessionid=1&tags=1,2
+# example: http://localhost/roundware/?operation=create_envelope&session_id=1
 # returns envelope_id, sharing_messsage
 # example:
 #{"envelope_id": 2}
@@ -505,7 +505,7 @@ def create_envelope(request):
     return {"envelope_id": env.id}
 
 # add_asset_to_envelope (POST method)
-# args (operation, envelope_id, file, latitude, longitude, [tagids])
+# args (operation, envelope_id, session_id, file, latitude, longitude, [tagids])
 # example: http://localhost/roundware/?operation=add_asset_to_envelope
 # OR
 # add_asset_to_envelope (GET method)
@@ -527,7 +527,7 @@ def add_asset_to_envelope(request):
                 "Invalid Asset ID Provided. No Asset exists with ID %s" % asset_id)
 
     envelope_id = get_parameter_from_request(request, 'envelope_id', True)
-    logger.debug("Found asset_id: %d, envelope_id: %d", asset_id, envelope_id)
+    logger.debug("Found envelope_id: %s", envelope_id)
 
     try:
         envelope = models.Envelope.objects.select_related(
@@ -537,7 +537,6 @@ def add_asset_to_envelope(request):
             "Invalid Envelope ID Provided. No Envelope exists with ID %s" % envelope_id)
 
     session = envelope.session
-
     log_event("start_upload", session.id, request.GET)
 
     fileitem = asset.file if asset else request.FILES.get('file')
@@ -553,16 +552,18 @@ def add_asset_to_envelope(request):
         mediatype = "audio"
 
     # copy the file to a unique name (current time and date)
-    logger.debug("Processing " + fileitem.name)
+    logger.debug("Session %s - Processing:%s", session.id, fileitem.name)
     (filename_prefix, filename_extension) = os.path.splitext(fileitem.name)
 
-    dest_filename = time.strftime("%Y%m%d-%H%M%S-") + str(session.id) + \
-        filename_extension
+    dest_file = time.strftime("%Y%m%d-%H%M%S-") + str(session.id)
+    dest_filename = dest_file + filename_extension
     dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
-    if os.path.isfile(dest_filepath):
-        raise RoundException("File already exists: %s" %
-                                            dest_filepath)
-
+    count = 0
+    # If the file exists add underscore and a number until it doesn't.`
+    while (os.path.isfile(dest_filepath)):
+        dest_filename = "%s_%d%s" % (dest_file, count, filename_extension)
+        dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
+        count += 1
 
     fileout = open(dest_filepath, 'wb')
     fileout.write(fileitem.file.read())
@@ -646,6 +647,8 @@ def add_asset_to_envelope(request):
 
     envelope.assets.add(asset)
     envelope.save()
+    logger.info("Session %s - Asset %s created for file: %s",
+                session.id, asset.id, dest_filename)
 
     dbus_send.emit_stream_signal(0, "refresh_recordings", "")
     return {"success": True,

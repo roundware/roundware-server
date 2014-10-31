@@ -67,6 +67,5 @@ class Admin:
         # Bug report filed against Icecast: https://trac.xiph.org/ticket/2031
         logger.debug("Request: %s, auth=%s", uri, self.auth)
         response = requests.get(uri, auth=self.auth)
-        logger.debug(response.url)
         response.raise_for_status()
         logger.debug("Response: %s", response.content)
