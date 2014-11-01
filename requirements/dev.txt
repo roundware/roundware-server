@@ -4,6 +4,7 @@ django-debug-toolbar
 django-profiler==2.0
 
 #testing.  
+coverage==3.7.1
 django-discoverage==1.0.0
 webtest==2.0.9
 django-webtest==1.7.5

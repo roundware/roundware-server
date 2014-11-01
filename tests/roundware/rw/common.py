@@ -7,9 +7,6 @@ from mock import patch
 from model_mommy.generators import gen_file_field
 
 
-TESTS_APPS = ('rw',)  # django-discoverage
-
-
 def use_locmemcache(module, varname):
     locmem_cache = cache.get_cache(
         'django.core.cache.backends.locmem.LocMemCache')
