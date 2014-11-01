@@ -11,7 +11,7 @@ from django.conf import settings
 from roundware.rw.models import (ListeningHistoryItem, Asset, Project,
                                  Audiotrack, Session, Vote, Envelope,
                                  Speaker, LocalizedString, MasterUI, UIMapping)
-from roundwared.tests.common import (RoundwaredTestCase, FakeRequest,
+from tests.roundwared.common import (RoundwaredTestCase, FakeRequest,
                      mock_distance_in_meters_near,
                      mock_distance_in_meters_far)
 from roundware.lib.exception import RoundException
