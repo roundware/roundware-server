@@ -11,7 +11,7 @@ DEBUG = False
 TEMPLATE_DEBUG = False
 # True when unit tests are running. Used by roundwared.recording_collection
 TESTING = False
-TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+TEST_RUNNER = 'discoverage.runner.DiscoverageRunner'
 
 ADMINS = (
     ('round', 'your_email@example.com'),
