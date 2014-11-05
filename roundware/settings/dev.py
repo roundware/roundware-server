@@ -10,7 +10,6 @@ API_URL = "http://127.0.0.1:8888/roundware/"
 BANNED_TIMEOUT_LIMIT = 90
 
 INSTALLED_APPS = INSTALLED_APPS + (
-    'discoverage',
     'debug_toolbar',
 )
 

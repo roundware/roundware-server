@@ -7,3 +7,5 @@ roundware/settings/local_settings.py
 build
 static
 local_settings.py
+.coverage
+

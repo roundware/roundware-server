@@ -28,6 +28,7 @@ A VagrantFile is included for local development and testing with [Vagrant](http:
     user@local-machine:~ $ cd roundware-server
     user@local-machine:~/roundware-server $ vagrant up
     user@local-machine:~/roundware-server $ vagrant ssh
+    (roundware)vagrant@roundware-server:~$ cd roundware-server/scripts
     (roundware)vagrant@roundware-server:~$ ./runserver.sh
 
 Notes:

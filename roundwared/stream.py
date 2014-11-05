@@ -26,6 +26,7 @@ class RoundStream:
     ######################################################################
 
     def __init__(self, sessionid, audio_format, request):
+        self.compositions = []
         self.sessionid = sessionid
         self.request = request
         self.bitrate = request["audio_stream_bitrate"]
@@ -118,7 +119,7 @@ class RoundStream:
             comp.move_listener(self.listener)
 
     def move_listener(self, listener):
-        if listener['latitude'] != False and listener['longitude'] != False:
+        if listener['latitude'] and listener['longitude']:
             self.heartbeat()
             self.listener = listener
             logger.debug("move_listener(%s,%s)", listener['latitude'],

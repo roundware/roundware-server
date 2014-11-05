@@ -45,6 +45,14 @@ class TestRoundStream(RoundwaredTestCase):
         stream = RoundStream(self.session1.id, 'ogg', req)
         self.assertEquals(16, stream.radius)
 
+    def test_modify_stream(self):
+        req = self.req1
+        req["audio_stream_bitrate"] = '128'
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        req["latitude"] = 1
+        req["longitude"] = 1
+        stream.modify_stream(req)
+
     def test_new_stream_ordering_from_project(self):
         req = self.req1
         req["audio_stream_bitrate"] = '128'

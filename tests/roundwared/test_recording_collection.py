@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-import time
 from model_mommy import mommy
 from mock import patch
 
@@ -9,7 +8,9 @@ from roundwared.recording_collection import RecordingCollection
 from roundwared.stream import RoundStream
 from roundwared import gpsmixer
 from roundwared import asset_sorters
-
+from django.conf import settings
+from time import sleep
+settings.DEBUG = True
 
 class TestRecordingCollection(RoundwaredTestCase):
 
@@ -32,6 +33,9 @@ class TestRecordingCollection(RoundwaredTestCase):
                      "project_id": self.project1.id,
                      "audio_stream_bitrate": '128',
                      "latitude": 0.1, "longitude": 0.1}
+        self.req2 = {"session_id": self.session1.id,
+                     "project_id": self.project1.id,
+                     "audio_stream_bitrate": '128'}
         self.asset1 = mommy.make(Asset, project=self.project1,
                                  language=self.english,
                                  tags=[self.tag1],
@@ -117,7 +121,7 @@ class TestRecordingCollection(RoundwaredTestCase):
                                                      self.asset2]))
 
     def test_get_recording_until_none_repeatmode_stop(self):
-        """ test that we get the next unplayed nearby recording, until there
+        """ test that we get the next playlist nearby recording, until there
         are none left.  project in stop repeatmode should then not 
         return any recordings.
         """
@@ -130,15 +134,43 @@ class TestRecordingCollection(RoundwaredTestCase):
             # Update the list of nearby recordings
             rc.update_request(req)
 
-            next_rec = rc.get_recording()
-            self.assertEquals(self.asset2, next_rec)
-            next_rec = rc.get_recording()
-            self.assertEquals(self.asset1, next_rec)
-            next_rec = rc.get_recording()
-            self.assertEquals(None, next_rec)
+            self.assertEquals(self.asset2, rc.get_recording())
+            self.assertEquals(self.asset1, rc.get_recording())
+            self.assertIsNone(rc.get_recording())
+
+    def test_get_recording_until_none_then_move(self):
+        """ test that we get the next playlist nearby recording, until there
+        are none left. Then move away and back again. Wait for the ban time out
+        and they should be available.
+        """
+        req = self.req1
+        req["project_id"] = self.project1.id # required by get_recording
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+        # Update the list of nearby recordings
+        rc.update_request(req)
+        # Listen to the two nearby
+        self.assertEquals(self.asset2, rc.get_recording())
+        self.assertEquals(self.asset1, rc.get_recording())
+        # Check there is nothing left
+        self.assertIsNone(rc.get_recording())
+        # Move away
+        req['latitude'] = 2
+        rc.move_listener(req)
+        # Check for nothing
+        self.assertIsNone(rc.get_recording())
+        # Wait for the BANNED_TIMEOUT_LIMIT to pass
+        sleep(3)
+        # Move back
+        req['latitude'] = 0.1
+        rc.move_listener(req)
+        # Check the assets are available again.
+        self.assertEquals(self.asset2, rc.get_recording())
+        self.assertEquals(self.asset1, rc.get_recording())
+
 
     def test_get_recording_until_none_repeatmode_continuous(self):
-        """ test that we get the next unplayed nearby recording, until there
+        """ test that we get the next playlist nearby recording, until there
         are none left.  project in continuous repeatmode should then the
         first played recording 
         """
@@ -152,28 +184,24 @@ class TestRecordingCollection(RoundwaredTestCase):
             # Update the list of nearby recordings
             rc.update_request(req)
 
-            next_rec = rc.get_recording()
-            self.assertEquals(self.asset2, next_rec)
-            next_rec = rc.get_recording()
-            self.assertEquals(self.asset1, next_rec)
-            # Wait 3 seconds for the testing settings.BANNED_TIMEOUT_LIMIT passes
-            time.sleep(3)
-            next_rec = rc.get_recording()
-            self.assertEquals(self.asset2, next_rec)
+            self.assertEquals(self.asset2, rc.get_recording())
+            self.assertEquals(self.asset1, rc.get_recording())
+            self.assertEquals(self.asset2, rc.get_recording())
 
     def test_add_recording(self):
         """ add a specific asset id and it should show up in
-        unplayed
+        playlist
         """
-        req = self.req1
+        # Request #2 has no lat/long to test that code
+        req = self.req2
         stream = RoundStream(self.session1.id, 'ogg', req)
         with patch.object(gpsmixer, 'distance_in_meters',
                           mock_distance_in_meters_near):
-            rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+            rc = RecordingCollection(stream, req, stream.radius, 'by_like')
             # Update the list of nearby recordings
             rc.update_request(req)
             self.assertEquals([self.asset1, self.asset2],
-                              rc.unplayed)
+                              rc.playlist)
             rc.add_recording(self.asset2.id)
             self.assertEquals([self.asset1, self.asset2, self.asset2],
-                              rc.unplayed)
+                              rc.playlist)

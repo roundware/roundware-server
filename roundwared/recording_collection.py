@@ -10,7 +10,7 @@ import os.path
 from time import time
 try:
     from profiling import profile
-except ImportError:
+except ImportError: # pragma: no cover
     pass
 
 from django.conf import settings
@@ -36,10 +36,10 @@ class RecordingCollection:
         # these are lists of model.Recording objects ie [rec1,rec2,etc]
         self.all = []
         # The main list of assets to play, in reverse order because it is a stack.
-        self.unplayed = []
+        self.playlist = []
         # A list of nearby played assets. We don't want to repeat nearby assets
         # even if they are removed from the ban list(dict.)
-        self.banned_nearby = []
+        self.banned_proximity = []
         # A dict of temporarily banned_timeout assets, key is asset.id and value is
         # timestamp of last play time. Reset only when stream is restarted.
         self.banned_timeout = {}
@@ -50,7 +50,7 @@ class RecordingCollection:
         """
         Updates/Initializes the request stored in the collection by filling
         all with assets filtered by tags. Optionally leaves
-        unplayed empty so no assets are triggered until
+        playlist empty so no assets are triggered until
         modify_stream or move_listener are called.
         Lock is disabled when called by get_recording().
         """
@@ -59,13 +59,13 @@ class RecordingCollection:
 
         tags = getattr(request, "tags", None)
         self.all = db.get_recordings(request["session_id"], tags)
-        # Updating nearby_recording will start stream audio asset playback.
+        # Updating nearby_recording will start stream audio asset play back.
         if update_nearby:
             self._update_nearby(request)
-        logger.debug("Asset Counts - all: %s, unplayed: %s, banned_nearby: %s, banned_timeout: %s." %
+        logger.debug("Asset Counts - all: %s, playlist: %s, banned_proximity: %s, banned_timeout: %s." %
                      (len(self.all),
-                      len(self.unplayed),
-                      len(self.banned_nearby),
+                      len(self.playlist),
+                      len(self.banned_proximity),
                       len(self.banned_timeout),
                       ))
         if lock:
@@ -76,26 +76,26 @@ class RecordingCollection:
     def get_recording(self):
         self.lock.acquire()
         recording = None
-        logger.debug("We have %s unplayed recordings.",
-                     len(self.unplayed))
+        logger.debug("We have %s playlist recordings.",
+                     len(self.playlist))
 
-        # If there are no unplayed assets, but there are available played.
+        # If there are no playlist assets, but there are available played.
         if not self.has_nearby_unplayed() and self.has_played():
             p = models.Project.objects.get(id=int(self.request['project_id']))
             # Check if continuous is enabled for the project.
             if p.is_continuous():
                 logger.debug("Playback mode: continuous")
                 # Clear the ban list
-                self.ban = {}
+                self.banned_timeout = {}
                 # Clear the nearby played list
-                self.banned_nearby = []
-                # Update the list of unplayed.
+                self.banned_proximity = []
+                # Update the list of playlist.
                 self.update_request(self.request, update_nearby=True,
                                     lock=False)
 
         # If there are now any recordings available, get one.
         if self.has_nearby_unplayed():
-            recording = self.unplayed.pop()
+            recording = self.playlist.pop()
 
         # If a recording was found.
         if recording:
@@ -103,7 +103,7 @@ class RecordingCollection:
             # Add the recording to the ban list.
             self.banned_timeout[recording.id] = time()
             # Add the recording to the nearby played list.
-            self.banned_nearby.append(recording)
+            self.banned_proximity.append(recording)
             if not settings.TESTING:
                 filepath = os.path.join(settings.MEDIA_ROOT, recording.filename)
                 # Check if the file exists on the server, not the stream crashes.
@@ -118,7 +118,7 @@ class RecordingCollection:
         self.lock.acquire()
         logger.debug("asset id: %s " % asset_id)
         a = models.Asset.objects.get(id=str(asset_id))
-        self.unplayed.append(a)
+        self.playlist.append(a)
         self.lock.release()
 
     # Updates the collection of recordings according to a new listener
@@ -133,19 +133,19 @@ class RecordingCollection:
     def get_filenames(self):
         return map(
             lambda recording: recording.filename,
-            self.unplayed)
+            self.playlist)
 
     def has_nearby_unplayed(self):
         """
         Returns true if there are any recordings left to play.
         """
-        return len(self.unplayed) > 0
+        return len(self.playlist) > 0
 
     def has_played(self):
         """
-        Returns true if there are banned_timeout or banned_nearby recordings.
+        Returns true if there are banned_timeout or banned_proximity recordings.
         """
-        return (len(self.banned_nearby) > 0 and len(self.banned_timeout) > 0)
+        return (len(self.banned_proximity) > 0 and len(self.banned_timeout) > 0)
 
     # Private
     def _update_nearby(self, listener):
@@ -154,7 +154,7 @@ class RecordingCollection:
         self.banned_timeout = {id:lastplay for id, lastplay in self.banned_timeout.iteritems()
                        if (lastplay + settings.BANNED_TIMEOUT_LIMIT) > current_time}
         # Remove no longer nearby items from the nearby played list.
-        self.banned_nearby = [r for r in self.banned_nearby
+        self.banned_proximity = [r for r in self.banned_proximity
                               if self._is_nearby(listener, r)]
         # If debug, print some nice details.
         if settings.DEBUG:
@@ -165,25 +165,25 @@ class RecordingCollection:
 
             logger.debug("Timeout banned assets and seconds remaining: %s" %
                          time_remaining)
-            logger.debug("Nearby banned assets: %s" %
-                         self.banned_nearby)
+            logger.debug("Proximity banned assets: %s" %
+                         self.banned_proximity)
 
-        self.unplayed = []
+        self.playlist = []
         for r in self.all:
             # If the asset is nearby, not nearby banned_timeout and not timeout banned_timeout,
-            # then add it to the list of unplayed items.
+            # then add it to the list of playlist items.
             if (r.id not in self.banned_timeout and
-                    r not in self.banned_nearby and
+                    r not in self.banned_proximity and
                     self._is_nearby(listener, r)):
-                self.unplayed.append(r)
+                self.playlist.append(r)
 
         logger.debug('Ordering is: ' + self.ordering)
         if self.ordering == 'random':
-            self.unplayed = order_assets_randomly(self.unplayed)
+            self.playlist = order_assets_randomly(self.playlist)
         elif self.ordering == 'by_like':
-            self.unplayed = order_assets_by_like(self.unplayed)
+            self.playlist = order_assets_by_like(self.playlist)
         elif self.ordering == 'by_weight':
-            self.unplayed = order_assets_by_weight(self.unplayed)
+            self.playlist = order_assets_by_weight(self.playlist)
 
 
     # Private

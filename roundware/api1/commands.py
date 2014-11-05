@@ -650,6 +650,7 @@ def add_asset_to_envelope(request):
     logger.info("Session %s - Asset %s created for file: %s",
                 session.id, asset.id, dest_filename)
 
+    # Refresh recordings for ALL existing streams.
     dbus_send.emit_stream_signal(0, "refresh_recordings", "")
     return {"success": True,
             "asset_id": asset.id}
