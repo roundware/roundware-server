@@ -34,8 +34,6 @@ class Composition:
 
     def __init__(self, parent, pipeline, adder, comp_settings, recordingColl):
         self.parent = parent
-        # logger.debug("---------Composition init: self.parent class: " + self.parent.__class__.__name__)
-        # logger.debug("---------Composition init: self.parent.sessionid: " + str(self.parent.sessionid))
         self.pipeline = pipeline
         self.adder = adder
         self.comp_settings = comp_settings
@@ -150,18 +148,10 @@ class Composition:
         (ret, cur, pen) = self.pipeline.get_state()
         self.src_wav_file.set_state(cur)
         self.state = STATE_PLAYING
-        # logger.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
-        # self.parent.sink.taginjector.set_property("tags","title=\"asset_id=456\"")
-        # logger.debug("trying...")
-        # logger.debug("---------Composition add")
-        # logger.debug("---------Composition add: self.parent class: " + self.parent.__class__.__name__)
-        # logger.debug("---------Composition add: self.recording class: " + self.current_recording.__class__.__name__)
-        # logger.debug("---------Composition add: self.parent.sessionid: " + str(self.parent.sessionid))
-        # placeholder for refactor after we upgrade and fix taginject issue
+        metadata = 'artist="Roundware",title="asset=%s&tag=4,4,4&unplayed=7"' % self.current_recording.id
+        self.parent.sink.taginjector.set_property("tags", metadata)
         db.add_asset_to_session_history_and_update_metadata(
             self.current_recording.id, self.parent.sessionid, duration)
-        # logger.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
-        # logger.debug("---------Composition add: self.parent.sink.shout class: " + self.parent.sink.shout.__class__.__name__)
 
     def event_probe(self, pad, event):
         if event.type == gst.EVENT_EOS:

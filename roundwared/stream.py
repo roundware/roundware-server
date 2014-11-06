@@ -278,8 +278,7 @@ class RoundStreamSink (gst.Bin):
 
     def __init__(self, sessionid, audio_format, bitrate):
         gst.Bin.__init__(self)
-        # self.taginjector = gst.element_factory_make("taginject")
-        # self.taginjector.set_property("tags","title=\"asset_id=123\"")
+        self.taginjector = gst.element_factory_make("taginject")
 
         capsfilter = gst.element_factory_make("capsfilter")
         volume = gst.element_factory_make("volume")
@@ -289,9 +288,8 @@ class RoundStreamSink (gst.Bin):
         shout2send.set_property("password", settings.ICECAST_SOURCE_PASSWORD)
         shout2send.set_property("mount",
                                 icecast2.mount_point(sessionid, audio_format))
-        # shout2send.set_property("streamname","initial name")
-        # self.add(capsfilter, volume, self.taginjector, shout2send)
-        self.add(capsfilter, volume, shout2send)
+        shout2send.set_property("streamname", "initial name")
+        self.add(capsfilter, volume, self.taginjector, shout2send)
         capsfilter.link(volume)
 
         if audio_format.upper() == "MP3":
@@ -303,8 +301,7 @@ class RoundStreamSink (gst.Bin):
             lame.set_property("bitrate", int(bitrate))
             logger.debug("roundstreamsink: bitrate: " + str(int(bitrate)))
             self.add(lame)
-            #gst.element_link_many(volume, lame, self.taginjector, shout2send)
-            gst.element_link_many(volume, lame, shout2send)
+            gst.element_link_many(volume, lame, self.taginjector, shout2send)
         elif audio_format.upper() == "OGG":
             capsfilter.set_property(
                 "caps",
@@ -313,8 +310,7 @@ class RoundStreamSink (gst.Bin):
             vorbisenc = gst.element_factory_make("vorbisenc")
             oggmux = gst.element_factory_make("oggmux")
             self.add(vorbisenc, oggmux)
-            #gst.element_link_many(volume, vorbisenc, oggmux, self.taginjector, shout2send)
-            gst.element_link_many(volume, vorbisenc, oggmux, shout2send)
+            gst.element_link_many(volume, vorbisenc, oggmux, self.taginjector, shout2send)
         else:
             raise "Invalid format"
 
