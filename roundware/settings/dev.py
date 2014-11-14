@@ -6,9 +6,10 @@ except ImportError:
 
 # Set Roundware API for internal calls to development environment
 API_URL = "http://127.0.0.1:8888/roundware/"
+# Change banned_timeout limit to better development testing value
+BANNED_TIMEOUT_LIMIT = 90
 
 INSTALLED_APPS = INSTALLED_APPS + (
-    'discoverage',
     'debug_toolbar',
 )
 
@@ -16,6 +17,7 @@ DEBUG = True
 TEMPLATE_DEBUG = True
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 CRISPY_FAIL_SILENTLY = not DEBUG
+
 
 MIDDLEWARE_CLASSES = (
     'debug_toolbar.middleware.DebugToolbarMiddleware',
@@ -30,16 +32,16 @@ INTERNAL_IPS = internal_list()
 
 # PROFILING using django-profiler
 PROFILING_SQL_QUERIES = True
-LOGGING['handlers'].update({
+LOGGING['handlers'] = {
     # The console handler will display in the manage.py runserver output
     'console': {
         'level': 'DEBUG',
         'class': 'logging.StreamHandler',
-        'formatter': 'verbose'
+        'formatter': 'simple'
     },
-})
+}
 
-LOGGING['loggers'].update({
+LOGGING['loggers'] = {
     # The default logger. Enable to log everything.
     # '': {
     #     'level': 'DEBUG',
@@ -59,11 +61,13 @@ LOGGING['loggers'].update({
     'roundware': {
         'level': 'DEBUG',
         'handlers': ['console'],
+        'propagate': False,
     },
     # The roundwared stream manager logger.
     'roundwared': {
         'level': 'DEBUG',
         'handlers': ['console'],
+        'propagate': False,
     },
     # The Roundware API2 logger.
     # 'roundware.api2': {
@@ -75,4 +79,4 @@ LOGGING['loggers'].update({
     #    'level': 'DEBUG',
     #    'handlers': ['console'],
     # },
-})
+}

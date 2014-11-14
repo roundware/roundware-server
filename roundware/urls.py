@@ -24,9 +24,9 @@ urlpatterns = patterns(
     url(r'^dashboard/$', 'rw.views.chart_views'),
 
     # V1 DRF API
-    url(r'^api/1/', include('api1.urls')),
+    url(r'^api/1/', include('roundware.api1.urls')),
     # V2 RESTful DRF API
-    url(r'^api/2/', include('api2.urls')),
+    url(r'^api/2/', include('roundware.api2.urls')),
 
     # Use Django Admin login as overall login
     url(r'^accounts/login/$', 'django.contrib.auth.views.login',

@@ -148,10 +148,8 @@ def filter_recs_for_tags(p, tagids_from_request, l):
 
 # Used by composition.py only
 def add_asset_to_session_history_and_update_metadata(asset_id, session_id, duration):
-    logger.debug("Called with recording " +
-                 str(asset_id) + " session_id: " + str(session_id) + " duration: " + str(int(duration)))
     admin = icecast2.Admin()
-    admin.update_metadata(asset_id, session_id)
+    admin.update_metadata(session_id, "asset:%s" % asset_id)
 
     s = Session.objects.get(id=session_id)
     asset = Asset.objects.get(id=asset_id)

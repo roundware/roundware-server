@@ -11,7 +11,7 @@ DEBUG = False
 TEMPLATE_DEBUG = False
 # True when unit tests are running. Used by roundwared.recording_collection
 TESTING = False
-TEST_RUNNER = 'discoverage.runner.DiscoverageRunner'
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 ADMINS = (
     ('round', 'your_email@example.com'),
@@ -79,7 +79,8 @@ CONTINUOUS_REPEAT_MODE = "continuous"
 STOP_REPEAT_MODE = "stop"
 
 STARTUP_NOTIFICATION_MESSAGE = ""
-
+# Number of seconds to ban an asset/recording from playing again
+BANNED_TIMEOUT_LIMIT = 1800
 ######## END ROUNDWARE SPECIFIC SETTINGS #########
 
 # change this to reflect your environment
@@ -287,7 +288,8 @@ LOGGING = {
             'datefmt': "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': "%(asctime)s %(levelname)s <%(name)s.%(funcName)s:%(lineno)s> %(message)s",
+            'datefmt': "%H:%M:%S"
         },
     },
 }

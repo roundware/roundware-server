@@ -3,8 +3,6 @@
 
 from __future__ import unicode_literals
 import gobject
-from roundware.rw.models import Tag
-
 gobject.threads_init()
 import pygst
 pygst.require("0.10")
@@ -14,7 +12,6 @@ import time
 from django.conf import settings
 from roundware.rw import models
 from roundware.api1.commands import log_event
-from roundwared import asset_sorters
 from roundwared import composition
 from roundwared import icecast2
 from roundwared import gpsmixer
@@ -29,7 +26,7 @@ class RoundStream:
     ######################################################################
 
     def __init__(self, sessionid, audio_format, request):
-        logger.debug("Begin stream")
+        self.compositions = []
         self.sessionid = sessionid
         self.request = request
         self.bitrate = request["audio_stream_bitrate"]
@@ -60,7 +57,7 @@ class RoundStream:
                 self, request, self.radius, str(self.ordering))
 
     def start(self):
-        logger.info("Serving stream for session #%s" % self.sessionid)
+        logger.info("Session %s - Starting stream", self.sessionid)
 
         self.pipeline = gst.Pipeline()
         self.adder = gst.element_factory_make("adder")
@@ -69,25 +66,17 @@ class RoundStream:
         self.pipeline.add(self.adder, self.sink)
         self.adder.link(self.sink)
 
-        logger.info("Stream: start: Going to play: "
-                    + ",".join(self.recordingCollection.get_filenames())
-                    + " Total of "
-                    + str(len(self.recordingCollection.get_filenames()))
-                    + " files.")
-
         self.add_music_source()
         self.add_voice_compositions()
         self.add_message_watcher()
 
         self.pipeline.set_state(gst.STATE_PLAYING)
-        gobject.timeout_add(
-            settings.STEREO_PAN_INTERVAL,
-            self.stereo_pan)
+        gobject.timeout_add(settings.STEREO_PAN_INTERVAL, self.stereo_pan)
         self.main_loop.run()
 
     def play_asset(self, request):
         asset_id = request['asset_id'][0]
-        logger.debug("Stream Play asset: " + str(asset_id))
+        logger.debug("Stream Play asset: %s", asset_id)
         for comp in self.compositions:
             comp.play_asset(asset_id)
 
@@ -112,10 +101,12 @@ class RoundStream:
         # happening on modify_streams that have only location changes
         if "tags" in self.request and self.request["tags"]:
             self.refresh_recordings()
+
+        filenames = self.recordingCollection.get_filenames()
         logging.info("Stream modification: Going to play: " \
-            + ",".join(self.recordingCollection.get_filenames()) \
+            + ",".join(filenames) \
             + " Total of " \
-            + str(len(self.recordingCollection.get_filenames()))
+            + str(len(filenames))
             + " files.")
         self.move_listener(request)
         return True
@@ -124,39 +115,15 @@ class RoundStream:
     def refresh_recordings(self):
         self.recordingCollection.update_request(self.request)
 
-        # filter recordings
-        if "tags" in self.request:
-            tag_ids = self.request["tags"]
-            if not hasattr(tag_ids, "__iter__"):
-                tag_ids = tag_ids.split(",")
-
-            tags = Tag.objects.filter(pk__in=tag_ids)
-            for tag in tags:
-                if tag.filter:
-                    logger.debug("Tag with filter found: %s: %s" %
-                                 (tag, tag.filter))
-                    # TODO: Don't use getattr to return functions.
-                    # TODO: This functionality would make better sense if it were
-                    # handled in the recordingCollection.
-                    sort_function = getattr(asset_sorters, tag.filter, None)
-                    # If there is a matching asset_sort function, apply it.
-                    if sort_function:
-                        assets = self.recordingCollection.all_recordings
-                        unplayed = sort_function(assets=assets, request=self.request)
-                        self.recordingCollection.nearby_unplayed_recordings = unplayed
-
         for comp in self.compositions:
             comp.move_listener(self.listener)
 
     def move_listener(self, listener):
-        if listener['latitude'] != False and listener['longitude'] != False:
-            logger.debug(
-                "stream: move_listener: recvd lat and long, moving...")
+        if listener['latitude'] and listener['longitude']:
             self.heartbeat()
             self.listener = listener
-            logger.debug("move_listener("
-                         + str(listener['latitude']) + ","
-                         + str(listener['longitude']) + ")")
+            logger.debug("move_listener(%s,%s)", listener['latitude'],
+                         listener['longitude'])
             if self.gps_mixer:
                 self.gps_mixer.move_listener(listener)
             self.recordingCollection.move_listener(listener)
@@ -248,7 +215,7 @@ class RoundStream:
 
     def cleanup(self):
         log_event("cleanup_session", self.sessionid)
-        logger.debug("Cleaning up Session #%d" % self.sessionid)
+        logger.info("Session %d - Stream cleanup", self.sessionid)
 
         if self.pipeline:
             if self.watch_id:
