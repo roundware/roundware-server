@@ -5,7 +5,7 @@ sidebar_current: "why"
 
 # Why Roundware?
 
-Roundware was initially developed in 2007 (pre-smartphone apps, OMG!!) by [Halsey Burgund](http://halseyburgund.com) as a technical platform
+Roundware was initially developed in 2007 (pre-smartphone apps, OMG!!) by sound artist [Halsey Burgund](http://halseyburgund.com) as a technical platform
 for him to realize his location-sensitive, contributory audio installations.
 Over the years, it has evolved to incorporate more functionality as well as becoming
 easier to administrate and more robust.
