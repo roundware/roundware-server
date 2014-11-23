@@ -176,13 +176,27 @@
                                     </ul>
                                     <% end %>
 
-                                    <li<%= sidebar_current("other") %>><a href="/docs/other/index.html">Other</a></li>
+                                    <li<%= sidebar_current("admin") %>><a href="/docs/admin/index.html">Admin</a></li>
+                                    <% if sidebar_section == "admin" %>
+                                    <ul class="sub unstyled">
+                                        <li<%= sidebar_current("admin-project") %>><a href="/docs/admin/project.html">Project</a></li>
+                                        <li<%= sidebar_current("admin-asset") %>><a href="/docs/admin/asset.html">Assets</a></li>
+                                        <li<%= sidebar_current("admin-tag") %>><a href="/docs/admin/tag.html">Tags</a></li>
+                                        <li<%= sidebar_current("admin-speaker") %>><a href="/docs/admin/speaker.html">Speakers</a></li>
+                                        <li<%= sidebar_current("admin-audiotrack") %>><a href="/docs/admin/audiotrack.html">Audiotracks</a></li>
+                                        <li<%= sidebar_current("admin-notifications") %>><a href="/docs/admin/notifications.html">Notifications</a></li>
+                                        <li<%= sidebar_current("admin-authentication") %>><a href="/docs/admin/authentication.html">Users and Groups</a></li>
+                                        <li<%= sidebar_current("admin-permissions") %>><a href="/docs/admin/permissions.html">Object Permissions</a></li>
+                                    </ul>
+                                    <% end %>
+
+                                    <!-- <li<%= sidebar_current("other") %>><a href="/docs/other/index.html">Other</a></li>
                                     <% if sidebar_section == "other" %>
                                     <ul class="sub unstyled">
                                         <li<%= sidebar_current("other-debugging") %>><a href="/docs/other/other.html">Other Stuff</a></li>
                                         <li<%= sidebar_current("other-envvars") %>><a href="/docs/other/more.html">More Other Stuff</a></li>
                                     </ul>
-                                    <% end %>
+                                    <% end %> -->
                                 </ul>
                             </aside> <!-- /.sidebar -->
                         </div> <!-- /.sidebar -->
