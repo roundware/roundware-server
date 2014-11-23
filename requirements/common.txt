@@ -31,3 +31,5 @@ django-sortedm2m==0.8.1
 python-dateutil==2.2
 # Used in roundwared/icecast2.py
 requests==2.4.1
+# Used in admin, including Batch Tag Add
+django-formset-js==0.4.0

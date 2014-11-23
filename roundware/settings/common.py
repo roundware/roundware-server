@@ -215,6 +215,7 @@ INSTALLED_APPS = (
     'adminplus',
     'crispy_forms',
     'floppyforms',
+    'djangoformsetjs',
     'sortedm2m',
     'rest_framework',
     'rest_framework.authtoken',
