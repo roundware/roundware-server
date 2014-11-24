@@ -47,9 +47,9 @@
 #   end
 # end
 
-set :css_dir, 'stylesheets'
-set :js_dir, 'javascripts'
-set :images_dir, 'images'
+set :css_dir, 'doccss'
+set :js_dir, 'docjs'
+set :images_dir, 'docimg'
 
 # Use the RedCarpet Markdown engine
 set :markdown_engine, :redcarpet

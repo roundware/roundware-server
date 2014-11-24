@@ -22,7 +22,7 @@ use HashiCorp::Rack::RedirectV1Docs
 # to do.
 use Rack::StaticCache,
   root: "build",
-  urls: ["/images", "/javascripts", "/stylesheets"],
+  urls: ["/docimg", "/docjs", "/doccss"],
   duration: 2,
   versioning: false
 

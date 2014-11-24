@@ -86,15 +86,6 @@
                                     </ul>
                                     <% end %>
 
-                                    <!-- <li<%= sidebar_current("gettingstarted") %>><a href="/docs/getting-started/index.html">Getting Started</a></li>
-                                    <% if sidebar_section == "gettingstarted" %>
-                                    <ul class="sub unstyled">
-                                        <li<%= sidebar_current("gettingstarted-projectsetup") %>><a href="/docs/getting-started/project_setup.html">Project Setup</a></li>
-                                        <li<%= sidebar_current("gettingstarted-boxes") %>><a href="/docs/getting-started/boxes.html">Boxes</a></li>
-                                        <li<%= sidebar_current("gettingstarted-up") %>><a href="/docs/getting-started/up.html">Up and SSH</a></li>
-                                    </ul>
-                                    <% end %> -->
-
                                     <li<%= sidebar_current("api") %>><a href="/docs/api/index.html">API</a></li>
                                     <% if sidebar_section == "api" %>
                                     <ul class="sub unstyled nocap">
@@ -120,6 +111,7 @@
                                     <% if sidebar_section == "setup" %>
                                     <ul class="sub unstyled">
                                         <li<%= sidebar_current("setup-project") %>><a href="/docs/setup/project.html">Project</a></li>
+                                        <li<%= sidebar_current("setup-asset") %>><a href="/docs/setup/asset.html">Asset</a></li>
                                         <li<%= sidebar_current("setup-speaker") %>><a href="/docs/setup/speaker.html">Speakers</a></li>
                                         <li<%= sidebar_current("setup-audiotrack") %>><a href="/docs/setup/audiotrack.html">Audiotracks</a></li>
                                         <li<%= sidebar_current("setup-modes") %>><a href="/docs/setup/mode.html">Modes</a></li>
@@ -141,26 +133,22 @@
 
                                     <li <%= sidebar_current("tags") %>><a href="/docs/tags/index.html">Tags</a></li>
                                     <% if sidebar_section == "tags" %>
-                                    <ul class="sub unstyled">
-                                        <li<%= sidebar_current("tags-relationships") %>><a href="/docs/tags/relationships.html">Relationships</a></li>
-                                        <li<%= sidebar_current("tags-data") %>><a href="/docs/tags/data.html">Data Field Usage</a></li>
-                                    </ul>
                                     <% end %>
 
                                     <li<%= sidebar_current("ios") %>><a href="/docs/ios/index.html">iOS Client</a></li>
                                     <% if sidebar_section == "ios" %>
-                                    <ul class="sub unstyled">
+                                    <!-- <ul class="sub unstyled">
                                         <li<%= sidebar_current("ios-basic") %>><a href="/docs/ios/basic_usage.html">Basic Usage</a></li>
                                         <li<%= sidebar_current("ios-webviews") %>><a href="/docs/ios/webviews.html">Webviews</a></li>
-                                    </ul>
+                                    </ul> -->
                                     <% end %>
 
                                     <li<%= sidebar_current("android") %>><a href="/docs/android/index.html">Android Client</a></li>
                                     <% if sidebar_section == "android" %>
-                                    <ul class="sub unstyled">
+                                    <!-- <ul class="sub unstyled">
                                         <li<%= sidebar_current("android-basic") %>><a href="/docs/android/basic_usage.html">Basic Usage</a></li>
                                         <li<%= sidebar_current("android-webviews") %>><a href="/docs/android/webviews.html">Webviews</a></li>
-                                    </ul>
+                                    </ul> -->
                                     <% end %>
 
                                     <li<%= sidebar_current("web") %>><a href="/docs/web/index.html">Web</a></li>
