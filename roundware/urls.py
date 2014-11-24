@@ -38,6 +38,8 @@ urlpatterns = patterns(
 
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+admin.site.site_header = 'Roundware Administration'
+
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns += patterns(
