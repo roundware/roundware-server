@@ -32,8 +32,8 @@ class Composition:
     # PUBLIC
     ######################################################################
 
-    def __init__(self, parent, pipeline, adder, comp_settings, recordingColl):
-        self.parent = parent
+    def __init__(self, stream, pipeline, adder, comp_settings, recordingColl):
+        self.stream = stream
         self.pipeline = pipeline
         self.adder = adder
         self.comp_settings = comp_settings
@@ -91,8 +91,7 @@ class Composition:
         self.current_recording = self.recordingCollection.get_recording()
         if not self.current_recording:
             self.state = STATE_WAITING
-            admin = icecast2.Admin()
-            admin.update_metadata(self.parent.sessionid, "no_assets_nearby")
+            self.stream.set_metadata("no_assets_nearby")
             return
 
         duration = min(
@@ -133,7 +132,7 @@ class Composition:
         # logger.debug("current_recording.filename: %s, start: %s, duration: %s, fadein: %s, fadeout: %s, volume: %s",
         #                        self.current_recording.filename, start, duration, fadein, fadeout, volume)
         logger.info("Session %s - Playing asset %s filename: %s, duration: %.2f secs" %
-                    (self.parent.sessionid, self.current_recording.id,
+                    (self.stream.sessionid, self.current_recording.id,
                      self.current_recording.filename, duration / 1000000000.0))
 
         self.src_wav_file = src_wav_file.SrcWavFile(
@@ -148,10 +147,13 @@ class Composition:
         (ret, cur, pen) = self.pipeline.get_state()
         self.src_wav_file.set_state(cur)
         self.state = STATE_PLAYING
-        metadata = 'artist="Roundware",title="asset=%s&tag=4,4,4&unplayed=7"' % self.current_recording.id
-        self.parent.sink.taginjector.set_property("tags", metadata)
-        db.add_asset_to_session_history_and_update_metadata(
-            self.current_recording.id, self.parent.sessionid, duration)
+
+        # TODO: Add remaining unplayed count.
+        tags = [str(tag.id) for tag in self.current_recording.tags.all()]
+        self.stream.set_metadata("asset=%s&tags=%s" % (self.current_recording.id, ','.join(tags)))
+
+        db.add_asset_to_session_history(
+            self.current_recording.id, self.stream.sessionid, duration)
 
     def event_probe(self, pad, event):
         if event.type == gst.EVENT_EOS:

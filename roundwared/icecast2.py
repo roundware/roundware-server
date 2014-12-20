@@ -54,17 +54,3 @@ class Admin:
         # Must get the complete results before running freeDoc()
         xml.freeDoc()
         return results
-
-    def update_metadata(self, session_id, data):
-        logger.debug("Session %s - Update Metadata: %s", session_id, data)
-        params = {
-            'mount': '/stream%s.mp3' % session_id,
-            'mode': 'updinfo',
-            'charset': 'UTF-8',
-            'song': data,
-        }
-
-        response = requests.get(self.base_uri + "/admin/metadata",
-                                auth=self.auth, params=params)
-        response.raise_for_status()
-        # logger.debug("Response: %s", response.content)

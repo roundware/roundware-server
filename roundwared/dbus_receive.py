@@ -8,7 +8,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 import json
 
 
-def add_stream_signal_receiver(stream):
+def add_signal_receiver(stream):
     def handler(sessionid, operation, args):
         if stream.sessionid == sessionid:
             if operation == "modify_stream":

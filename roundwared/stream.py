@@ -15,7 +15,7 @@ from roundware.api1.commands import log_event
 from roundwared import composition
 from roundwared import icecast2
 from roundwared import gpsmixer
-from roundwared import recording_collection
+from roundwared.recording_collection import RecordingCollection
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +52,7 @@ class RoundStream:
         self.main_loop = gobject.MainLoop()
         self.icecast_admin = icecast2.Admin()
         self.heartbeat()
-        self.recordingCollection = \
-            recording_collection.RecordingCollection(
+        self.recordingCollection = RecordingCollection(
                 self, request, self.radius, str(self.ordering))
 
     def start(self):
@@ -63,10 +62,11 @@ class RoundStream:
         self.adder = gst.element_factory_make("adder")
         self.sink = RoundStreamSink(
             self.sessionid, self.audio_format, self.bitrate)
+        self.set_metadata("stream_started")
         self.pipeline.add(self.adder, self.sink)
         self.adder.link(self.sink)
 
-        self.add_music_source()
+        self.add_speakers()
         self.add_voice_compositions()
         self.add_message_watcher()
 
@@ -76,7 +76,7 @@ class RoundStream:
 
     def play_asset(self, request):
         asset_id = request['asset_id'][0]
-        logger.debug("Stream Play asset: %s", asset_id)
+        logger.debug("Stream play asset: %s", asset_id)
         for comp in self.compositions:
             comp.play_asset(asset_id)
 
@@ -92,6 +92,11 @@ class RoundStream:
         self.activity_timestamp = time.time()
         # logger.debug("update time="+str(self.activity_timestamp))
 
+    # Sets the stream metadata using tag injection.
+    def set_metadata(self, data):
+        metadata = 'artist="Roundware",title="%s"' % data
+        self.sink.taginjector.set_property("tags", metadata)
+
     def modify_stream(self, request):
         self.heartbeat()
         self.request = request
@@ -103,7 +108,7 @@ class RoundStream:
             self.refresh_recordings()
 
         filenames = self.recordingCollection.get_filenames()
-        logging.info("Stream modification: Going to play: " \
+        logger.info("Stream modification: Going to play: " \
             + ",".join(filenames) \
             + " Total of " \
             + str(len(filenames))
@@ -151,7 +156,7 @@ class RoundStream:
         addersinkpad = self.adder.get_request_pad('sink%d')
         srcpad.link(addersinkpad)
 
-    def add_music_source(self):
+    def add_speakers(self):
         speakers = models.Speaker.objects.filter(
             project=self.project).filter(activeyn=True)
         # FIXME: We might need to unconditionally add blankaudio.
@@ -186,6 +191,7 @@ class RoundStream:
             # self.recordingCollection),
             #[c])
 
+    # Gst Pipeline Bus Signal watcher
     def get_message(self, bus, message):
         # logger.debug(message.src.get_name() + str(message.type))
         if message.type == gst.MESSAGE_ERROR:
@@ -278,17 +284,18 @@ class RoundStreamSink (gst.Bin):
 
     def __init__(self, sessionid, audio_format, bitrate):
         gst.Bin.__init__(self)
-        self.taginjector = gst.element_factory_make("taginject")
 
         capsfilter = gst.element_factory_make("capsfilter")
         volume = gst.element_factory_make("volume")
         volume.set_property("volume", settings.MASTER_VOLUME)
+        # Create Metatag Injector
+        self.taginjector = gst.element_factory_make("taginject")
         shout2send = gst.element_factory_make("shout2send")
         shout2send.set_property("username", settings.ICECAST_SOURCE_USERNAME)
         shout2send.set_property("password", settings.ICECAST_SOURCE_PASSWORD)
         shout2send.set_property("mount",
                                 icecast2.mount_point(sessionid, audio_format))
-        shout2send.set_property("streamname", "initial name")
+
         self.add(capsfilter, volume, self.taginjector, shout2send)
         capsfilter.link(volume)
 
@@ -299,7 +306,7 @@ class RoundStreamSink (gst.Bin):
                     "audio/x-raw-int,rate=44100,channels=2,width=16,depth=16,signed=(boolean)true"))
             lame = gst.element_factory_make("lame")
             lame.set_property("bitrate", int(bitrate))
-            logger.debug("roundstreamsink: bitrate: " + str(int(bitrate)))
+            logger.debug("roundstreamsink: bitrate: " + str(bitrate))
             self.add(lame)
             gst.element_link_many(volume, lame, self.taginjector, shout2send)
         elif audio_format.upper() == "OGG":
