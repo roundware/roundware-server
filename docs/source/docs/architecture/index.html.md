@@ -45,7 +45,7 @@ The stream is created by instantiating the object. Walking backwards from there 
 
 So, basically, you call a web service with a bunch of arguments, they are turned into command line arguments, and passed to a script that is forked off. The web service terminates, sending back the session\_id and URL of the stream and the forked process plays the audio to icecast.
 
-With that data, the stream is created. The stream pulls from two major sources on creation. It pulls audiotracks from the database and also speakers. Audiotracks are where the recordings are played and speakers are where the background audio is played. All the speakers and compositions are pulled together and mixed (in the audio sense) in an adder (a gstreamer object) then it's sent to a sink specialized for Roundware that encodes it to the right format and sends it to the icecast server.
+With that data, the stream is created. The stream pulls from two major sources on creation. It pulls audiotracks from the database and also speakers. Audiotracks are where the recordings are played and speakers are where the background audio is played. All the speakers and audiotracks/recordings are pulled together and mixed (in the audio sense) in an adder (a gstreamer object) then it's sent to a sink specialized for Roundware that encodes it to the right format and sends it to the icecast server.
 
 **Cleanup:**
 

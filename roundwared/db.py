@@ -143,7 +143,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
         "filter_recs_for_tags returned %s Assets" % (len(recs)))
     return recs
 
-# Used by composition.py only
+# Used by audiotrack.py only
 def add_asset_to_session_history(asset_id, session_id, duration):
     s = Session.objects.get(id=session_id)
     asset = Asset.objects.get(id=asset_id)
