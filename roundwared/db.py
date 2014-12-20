@@ -9,15 +9,12 @@ try:
 except ImportError:
     pass
 from django.conf import settings
-from roundware.lib.exception import RoundException
 from roundware.rw.models import (Session,
-                                 Event,
                                  Asset,
                                  Tag,
                                  MasterUI,
                                  UIMapping,
                                  ListeningHistoryItem)
-from roundwared import icecast2
 from cache_utils.decorators import cached
 logger = logging.getLogger(__name__)
 
@@ -146,11 +143,8 @@ def filter_recs_for_tags(p, tagids_from_request, l):
         "filter_recs_for_tags returned %s Assets" % (len(recs)))
     return recs
 
-# Used by composition.py only
-def add_asset_to_session_history_and_update_metadata(asset_id, session_id, duration):
-    admin = icecast2.Admin()
-    admin.update_metadata(session_id, "asset:%s" % asset_id)
-
+# Used by audiotrack.py only
+def add_asset_to_session_history(asset_id, session_id, duration):
     s = Session.objects.get(id=session_id)
     asset = Asset.objects.get(id=asset_id)
     try:

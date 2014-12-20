@@ -46,10 +46,9 @@ def main():
 
 def start_stream(sessionid, audio_format, request):
     try:
-        current_stream = RoundStream(
-            sessionid, audio_format, request)
-        dbus_receive.add_stream_signal_receiver(current_stream)
-        current_stream.start()
+        stream = RoundStream(sessionid, audio_format, request)
+        dbus_receive.add_signal_receiver(stream)
+        stream.start()
     except:
         logger.error(traceback.format_exc())
 

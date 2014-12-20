@@ -2,7 +2,7 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 # TODO: Figure out how to get the main pipeline to send EOS
-#   when all compositions are finished (only happens
+#   when all audiotracks are finished (only happens
 #   when repeat is off)
 # TODO: Reimplement panning using a gst.Controller
 # TODO: Remove stero_pan from public interface
@@ -27,18 +27,16 @@ STATE_WAITING = 2
 logger = logging.getLogger(__name__)
 
 
-class Composition:
+class AudioTrack:
     ######################################################################
     # PUBLIC
     ######################################################################
 
-    def __init__(self, parent, pipeline, adder, comp_settings, recordingColl):
-        self.parent = parent
-        # logger.debug("---------Composition init: self.parent class: " + self.parent.__class__.__name__)
-        # logger.debug("---------Composition init: self.parent.sessionid: " + str(self.parent.sessionid))
+    def __init__(self, stream, pipeline, adder, settings, recordingColl):
+        self.stream = stream
         self.pipeline = pipeline
         self.adder = adder
-        self.comp_settings = comp_settings
+        self.settings = settings
         self.recordingCollection = recordingColl
         self.current_pan_pos = 0
         self.target_pan_pos = 0
@@ -51,8 +49,8 @@ class Composition:
             self.add_file()
             return False
         deadair = random.randint(
-            self.comp_settings.mindeadair,
-            self.comp_settings.maxdeadair) / gst.MSECOND
+            self.settings.mindeadair,
+            self.settings.maxdeadair) / gst.MSECOND
         gobject.timeout_add(deadair, callback)
 
     def stereo_pan(self):
@@ -93,8 +91,7 @@ class Composition:
         self.current_recording = self.recordingCollection.get_recording()
         if not self.current_recording:
             self.state = STATE_WAITING
-            admin = icecast2.Admin()
-            admin.update_metadata(self.parent.sessionid, "no_assets_nearby")
+            self.stream.set_metadata("no_assets_nearby")
             return
 
         duration = min(
@@ -103,9 +100,9 @@ class Composition:
                 # FIXME: I don't allow less than a second to
                 # play currently. Mostly because playing zero
                 # is an error. Revisit this.
-                max(self.comp_settings.minduration,
+                max(self.settings.minduration,
                     gst.SECOND),
-                max(self.comp_settings.maxduration,
+                max(self.settings.maxduration,
                     gst.SECOND)))
 
         start = random.randint(
@@ -113,11 +110,11 @@ class Composition:
             self.current_recording.audiolength - duration)
 
         fadein = random.randint(
-            self.comp_settings.minfadeintime,
-            self.comp_settings.maxfadeintime)
+            self.settings.minfadeintime,
+            self.settings.maxfadeintime)
         fadeout = random.randint(
-            self.comp_settings.minfadeouttime,
-            self.comp_settings.maxfadeouttime)
+            self.settings.minfadeouttime,
+            self.settings.maxfadeouttime)
 
         # FIXME: Instead of doing this divide by two, instead,
         # decrease them by the same percentage. Remember it's
@@ -127,15 +124,15 @@ class Composition:
             fadeout = duration / 2
 
         volume = self.current_recording.volume * (
-            self.comp_settings.minvolume +
+            self.settings.minvolume +
             random.random() *
-            (self.comp_settings.maxvolume -
-                self.comp_settings.minvolume))
+            (self.settings.maxvolume -
+                self.settings.minvolume))
 
         # logger.debug("current_recording.filename: %s, start: %s, duration: %s, fadein: %s, fadeout: %s, volume: %s",
         #                        self.current_recording.filename, start, duration, fadein, fadeout, volume)
         logger.info("Session %s - Playing asset %s filename: %s, duration: %.2f secs" %
-                    (self.parent.sessionid, self.current_recording.id,
+                    (self.stream.sessionid, self.current_recording.id,
                      self.current_recording.filename, duration / 1000000000.0))
 
         self.src_wav_file = src_wav_file.SrcWavFile(
@@ -150,18 +147,13 @@ class Composition:
         (ret, cur, pen) = self.pipeline.get_state()
         self.src_wav_file.set_state(cur)
         self.state = STATE_PLAYING
-        # logger.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
-        # self.parent.sink.taginjector.set_property("tags","title=\"asset_id=456\"")
-        # logger.debug("trying...")
-        # logger.debug("---------Composition add")
-        # logger.debug("---------Composition add: self.parent class: " + self.parent.__class__.__name__)
-        # logger.debug("---------Composition add: self.recording class: " + self.current_recording.__class__.__name__)
-        # logger.debug("---------Composition add: self.parent.sessionid: " + str(self.parent.sessionid))
-        # placeholder for refactor after we upgrade and fix taginject issue
-        db.add_asset_to_session_history_and_update_metadata(
-            self.current_recording.id, self.parent.sessionid, duration)
-        # logger.debug("---------Composition add: self.parent.sink class: " + self.parent.sink.__class__.__name__)
-        # logger.debug("---------Composition add: self.parent.sink.shout class: " + self.parent.sink.shout.__class__.__name__)
+
+        # TODO: Add remaining unplayed count.
+        tags = [str(tag.id) for tag in self.current_recording.tags.all()]
+        self.stream.set_metadata("asset=%s&tags=%s" % (self.current_recording.id, ','.join(tags)))
+
+        db.add_asset_to_session_history(
+            self.current_recording.id, self.stream.sessionid, duration)
 
     def event_probe(self, pad, event):
         if event.type == gst.EVENT_EOS:
@@ -185,19 +177,17 @@ class Composition:
         return False
 
     def set_new_pan_target(self):
-        pan_step_size = (self.comp_settings.maxpanpos -
-                         self.comp_settings.minpanpos) / \
+        pan_step_size = (self.settings.maxpanpos -
+                         self.settings.minpanpos) / \
             settings.NUM_PAN_STEPS
-        target_pan_step = random.randint(
-            0,
-            settings.NUM_PAN_STEPS)
+        target_pan_step = random.randint(0, settings.NUM_PAN_STEPS)
         self.target_pan_pos = -1 + target_pan_step * pan_step_size
 
     def set_new_pan_duration(self):
         duration_in_gst_units = \
             random.randint(
-                self.comp_settings.minpanduration,
-                self.comp_settings.maxpanduration)
+                self.settings.minpanduration,
+                self.settings.maxpanduration)
         duration_in_miliseconds = duration_in_gst_units / gst.MSECOND
         self.pan_steps_left = duration_in_miliseconds / \
             settings.STEREO_PAN_INTERVAL
@@ -205,8 +195,8 @@ class Composition:
     def skip_ahead(self):
         logger.debug("skip_ahead 1")
         fadeoutnsecs = random.randint(
-            self.comp_settings.minfadeouttime,
-            self.comp_settings.maxfadeouttime)
+            self.settings.minfadeouttime,
+            self.settings.maxfadeouttime)
         if self.src_wav_file != None and not self.src_wav_file.fading:
             self.src_wav_file.fade_out(fadeoutnsecs)
             logger.debug("skip_ahead 2")
@@ -219,6 +209,6 @@ class Composition:
             logger.debug("skip_ahead: no src_wav_file")
 
     def play_asset(self, asset_id):
-        logger.debug("Composition play asset: " + str(asset_id))
+        logger.debug("AudioTrack play asset: " + str(asset_id))
         self.recordingCollection.add_recording(asset_id)
         self.skip_ahead()
