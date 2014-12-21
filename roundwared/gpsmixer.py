@@ -27,7 +27,7 @@ class GPSMixer (gst.Bin):
         ghostpad = gst.GhostPad("src", pad)
         self.add_pad(ghostpad)
         addersinkpad = self.adder.get_request_pad('sink%d')
-        logger.debug("Adding blank Audio")
+        logger.debug("Adding blank audio")
         blanksrc = BlankAudioSrc2()
         self.add(blanksrc)
         srcpad = blanksrc.get_pad('src')
