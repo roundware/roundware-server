@@ -9,6 +9,7 @@ pygst.require("0.10")
 import gst
 import logging
 import time
+import urllib
 from django.conf import settings
 from roundware.rw import models
 from roundware.api1.commands import log_event
@@ -62,7 +63,7 @@ class RoundStream:
         self.adder = gst.element_factory_make("adder")
         self.sink = RoundStreamSink(
             self.sessionid, self.audio_format, self.bitrate)
-        self.set_metadata("stream_started")
+        self.set_metadata({'stream_started': True})
         self.pipeline.add(self.adder, self.sink)
         self.adder.link(self.sink)
 
@@ -92,8 +93,8 @@ class RoundStream:
         self.activity_timestamp = time.time()
 
     # Sets the stream metadata using tag injection.
-    def set_metadata(self, data):
-        metadata = 'artist="Roundware",title="%s"' % data
+    def set_metadata(self, query):
+        metadata = 'artist="Roundware",title="%s"' % urllib.urlencode(query)
         self.sink.taginjector.set_property("tags", metadata)
 
     def modify_stream(self, request):

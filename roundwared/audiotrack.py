@@ -18,7 +18,6 @@ import logging
 import os
 from roundwared import src_wav_file
 from roundwared import db
-from roundwared import icecast2
 from django.conf import settings
 
 STATE_PLAYING = 0
@@ -32,12 +31,12 @@ class AudioTrack:
     # PUBLIC
     ######################################################################
 
-    def __init__(self, stream, pipeline, adder, settings, recordingColl):
+    def __init__(self, stream, pipeline, adder, settings, recording_collection):
         self.stream = stream
         self.pipeline = pipeline
         self.adder = adder
         self.settings = settings
-        self.recordingCollection = recordingColl
+        self.rc = recording_collection
         self.current_pan_pos = 0
         self.target_pan_pos = 0
         self.state = STATE_WAITING
@@ -68,7 +67,7 @@ class AudioTrack:
                 self.src_wav_file.pan_to(self.current_pan_pos)
 
     def move_listener(self, posn):
-        if self.recordingCollection.has_nearby_unplayed():
+        if self.rc.has_nearby_unplayed():
             if self.state == STATE_WAITING:
                 self.add_file()
 # FIXME: This code is responsible for swapping the playing file if there is
@@ -76,7 +75,7 @@ class AudioTrack:
 #   Problem is it sounds bad without the ability to fade it out.
 #   Uncomment this when fading works.
 #           elif self.state == STATE_PLAYING:
-#               if not self.recordingCollection.is_nearby(
+#               if not self.rc.is_nearby(
 #                       listener,
 #                       self.currently_playing_recording):
 # FIXME: This should fade out.
@@ -88,10 +87,10 @@ class AudioTrack:
     ######################################################################
 
     def add_file(self):
-        self.current_recording = self.recordingCollection.get_recording()
+        self.current_recording = self.rc.get_recording()
         if not self.current_recording:
             self.state = STATE_WAITING
-            self.stream.set_metadata("no_assets_nearby")
+            self.set_track_metadata()
             return
 
         duration = min(
@@ -143,21 +142,27 @@ class AudioTrack:
         self.srcpad = self.src_wav_file.get_pad('src')
         self.addersinkpad = self.adder.get_request_pad('sink%d')
         self.srcpad.link(self.addersinkpad)
+        # Add event watcher/callback
         self.addersinkpad.add_event_probe(self.event_probe)
         (ret, cur, pen) = self.pipeline.get_state()
         self.src_wav_file.set_state(cur)
         self.state = STATE_PLAYING
 
-        # TODO: Add remaining unplayed count.
+        # Generate metadata for the current asset.
         tags = [str(tag.id) for tag in self.current_recording.tags.all()]
-        self.stream.set_metadata("asset=%s&tags=%s" % (self.current_recording.id, ','.join(tags)))
+        self.set_track_metadata({'asset': self.current_recording.id,
+                   'tags': ','.join(tags)})
 
         db.add_asset_to_session_history(
             self.current_recording.id, self.stream.sessionid, duration)
 
     def event_probe(self, pad, event):
+        # End of current audio asset, start a new asset.
         if event.type == gst.EVENT_EOS:
+            self.set_track_metadata({'asset': self.current_recording.id,
+                        'complete': True, })
             gobject.idle_add(self.clean_up_wait_and_play)
+        # New asset added, seek to it's starting timestamp.
         elif event.type == gst.EVENT_NEWSEGMENT:
             gobject.idle_add(self.src_wav_file.seek_to_start)
         return True
@@ -193,22 +198,29 @@ class AudioTrack:
             settings.STEREO_PAN_INTERVAL
 
     def skip_ahead(self):
-        logger.debug("skip_ahead 1")
         fadeoutnsecs = random.randint(
             self.settings.minfadeouttime,
             self.settings.maxfadeouttime)
         if self.src_wav_file != None and not self.src_wav_file.fading:
             self.src_wav_file.fade_out(fadeoutnsecs)
-            logger.debug("skip_ahead 2")
             # 1st arg is in milliseconds
             # 1000000000
             #gobject.timeout_add(fadeoutnsecs/gst.MSECOND, self.clean_up_wait_and_play)
-            logger.debug("skip_ahead 3")
             self.clean_up_wait_and_play()
         else:
             logger.debug("skip_ahead: no src_wav_file")
 
     def play_asset(self, asset_id):
         logger.debug("AudioTrack play asset: " + str(asset_id))
-        self.recordingCollection.add_recording(asset_id)
+        self.rc.add_recording(asset_id)
         self.skip_ahead()
+
+    def set_track_metadata(self, metadata={}):
+        """
+        Sets Audiotrack specific metadata.
+        """
+        data = {'audiotrack': self.settings.id,
+                'remaining': self.rc.count(),
+                }
+        data.update(metadata)
+        self.stream.set_metadata(data)

@@ -64,7 +64,7 @@ class RecordingCollection:
             self._update_nearby(request)
         logger.debug("Asset Counts - all: %s, playlist: %s, banned_proximity: %s, banned_timeout: %s." %
                      (len(self.all),
-                      len(self.playlist),
+                      self.count(),
                       len(self.banned_proximity),
                       len(self.banned_timeout),
                       ))
@@ -77,7 +77,7 @@ class RecordingCollection:
         self.lock.acquire()
         recording = None
         logger.debug("We have %s playlist recordings.",
-                     len(self.playlist))
+                     self.count())
 
         # If there are no playlist assets, but there are available played.
         if not self.has_nearby_unplayed() and self.has_played():
@@ -140,6 +140,9 @@ class RecordingCollection:
         Returns true if there are any recordings left to play.
         """
         return len(self.playlist) > 0
+
+    def count(self):
+        return len(self.playlist)
 
     def has_played(self):
         """
