@@ -33,7 +33,7 @@ def get_recordings(session_id, tags=None):
 
     logger.debug("Got session_id: %s", session_id)
     session = Session.objects.select_related('project',
-                                           'language').get(id=session_id)
+                                             'language').get(id=session_id)
     project = session.project
 
     tag_list = None
@@ -142,6 +142,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     logger.debug(
         "filter_recs_for_tags returned %s Assets" % (len(recs)))
     return recs
+
 
 # Used by audiotrack.py only
 def add_asset_to_session_history(asset_id, session_id, duration):

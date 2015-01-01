@@ -3,7 +3,8 @@ from model_mommy import mommy
 from mock import patch
 
 from .common import (RoundwaredTestCase, mock_distance_in_meters_near)
-from roundware.rw.models import (Session, Asset, Project, MasterUI, UIMapping)
+from roundware.rw.models import (Session, Asset,
+                                 Project, MasterUI, UIMapping, Tag)
 from roundwared.recording_collection import RecordingCollection
 from roundwared.stream import RoundStream
 from roundwared import gpsmixer
@@ -11,6 +12,7 @@ from roundwared import asset_sorters
 from django.conf import settings
 from time import sleep
 settings.DEBUG = True
+
 
 class TestRecordingCollection(RoundwaredTestCase):
 
@@ -29,6 +31,11 @@ class TestRecordingCollection(RoundwaredTestCase):
                                    language=self.english)
         self.session2 = mommy.make(Session, project=self.project2,
                                    language=self.english)
+        # A new tag only for asset #3.
+        self.tag2 = mommy.make(Tag, data="{'json':'value'}",
+                               loc_msg=[self.english_msg, self.spanish_msg],
+                               tag_category=self.tagcat1,
+                               value='tag2', id=2)
         self.req1 = {"session_id": self.session1.id,
                      "project_id": self.project1.id,
                      "audio_stream_bitrate": '128',
@@ -46,6 +53,11 @@ class TestRecordingCollection(RoundwaredTestCase):
                                  tags=[self.tag1],
                                  audiolength=2000, weight=100,
                                  latitude=0.1, longitude=0.1)
+        self.asset3 = mommy.make(Asset, project=self.project1,
+                                 language=self.english,
+                                 tags=[self.tag2],
+                                 audiolength=2000, weight=200,
+                                 latitude=0.1, longitude=0.1)
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=self.ui_mode_listen,
                                     tag_category=self.tagcat1)
@@ -54,7 +66,8 @@ class TestRecordingCollection(RoundwaredTestCase):
                                     tag_category=self.tagcat1)
         self.uimapping1 = mommy.make(UIMapping, master_ui=self.masterui1,
                                      tag=self.tag1, default=True, active=True)
-
+        self.uimapping2 = mommy.make(UIMapping, master_ui=self.masterui1,
+                                     tag=self.tag2, default=True, active=True)
 
     def test_instantiate_recording_collection(self):
         req = self.req1
@@ -67,7 +80,7 @@ class TestRecordingCollection(RoundwaredTestCase):
         req = self.req1
         stream = RoundStream(self.session1.id, 'ogg', req)
         rc = RecordingCollection(stream, req, stream.radius)
-        self.assertEquals([self.asset1, self.asset2], rc.all)
+        self.assertEquals([self.asset1, self.asset2, self.asset3], rc.all)
 
     def test_update_request_all_recordings_changes(self):
         req = self.req1
@@ -78,7 +91,7 @@ class TestRecordingCollection(RoundwaredTestCase):
         self.assertEquals([], rc.all)
 
     def test_update_nearby_recordings_by_random(self):
-        """ test that we don't get the same order more than 8 out of 
+        """ test that we don't get the same order more than 8 out of
         10 tests.... not that scientific but probably reasonable
         """
         req = self.req1
@@ -107,9 +120,11 @@ class TestRecordingCollection(RoundwaredTestCase):
                            asset=self.asset2, type="like")
         vote3 = mommy.make('rw.Vote', session=self.session1,
                            asset=self.asset1, type="like")
-        vote1, vote2, vote3 # Use all three votes to stop unuse warnings
+        # Use all three votes to stop unuse warnings
+        vote1, vote2, vote3
         self.assertEquals([self.asset1, self.asset2],
-                          asset_sorters.order_assets_by_like([self.asset1, self.asset2]))
+                          asset_sorters.order_assets_by_like([self.asset1,
+                                                              self.asset2]))
 
     def test_order_assets_by_weight(self):
         """
@@ -118,11 +133,12 @@ class TestRecordingCollection(RoundwaredTestCase):
         """
         self.assertEquals([self.asset1, self.asset2],
                           asset_sorters.order_assets_by_weight([self.asset1,
-                                                     self.asset2]))
+                                                               self.asset2]))
 
     def test_get_recording_until_none_repeatmode_stop(self):
-        """ test that we get the next playlist nearby recording, until there
-        are none left.  project in stop repeatmode should then not 
+        """
+        test that we get the next playlist nearby recording, until there
+        are none left. project in stop repeatmode should then not
         return any recordings.
         """
         req = self.req1
@@ -134,6 +150,7 @@ class TestRecordingCollection(RoundwaredTestCase):
             # Update the list of nearby recordings
             rc.update_request(req)
 
+            self.assertEquals(self.asset3, rc.get_recording())
             self.assertEquals(self.asset2, rc.get_recording())
             self.assertEquals(self.asset1, rc.get_recording())
             self.assertIsNone(rc.get_recording())
@@ -144,12 +161,14 @@ class TestRecordingCollection(RoundwaredTestCase):
         and they should be available.
         """
         req = self.req1
-        req["project_id"] = self.project1.id # required by get_recording
+        # required by get_recording
+        req["project_id"] = self.project1.id
         stream = RoundStream(self.session1.id, 'ogg', req)
         rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
         # Update the list of nearby recordings
         rc.update_request(req)
-        # Listen to the two nearby
+        # Listen to the three nearby
+        self.assertEquals(self.asset3, rc.get_recording())
         self.assertEquals(self.asset2, rc.get_recording())
         self.assertEquals(self.asset1, rc.get_recording())
         # Check there is nothing left
@@ -165,14 +184,14 @@ class TestRecordingCollection(RoundwaredTestCase):
         req['latitude'] = 0.1
         rc.move_listener(req)
         # Check the assets are available again.
+        self.assertEquals(self.asset3, rc.get_recording())
         self.assertEquals(self.asset2, rc.get_recording())
         self.assertEquals(self.asset1, rc.get_recording())
-
 
     def test_get_recording_until_none_repeatmode_continuous(self):
         """ test that we get the next playlist nearby recording, until there
         are none left.  project in continuous repeatmode should then the
-        first played recording 
+        first played recording.
         """
         self.project1.repeat_mode.mode = "continuous"
         self.project1.repeat_mode.save()
@@ -184,9 +203,10 @@ class TestRecordingCollection(RoundwaredTestCase):
             # Update the list of nearby recordings
             rc.update_request(req)
 
+            self.assertEquals(self.asset3, rc.get_recording())
             self.assertEquals(self.asset2, rc.get_recording())
             self.assertEquals(self.asset1, rc.get_recording())
-            self.assertEquals(self.asset2, rc.get_recording())
+            self.assertEquals(self.asset3, rc.get_recording())
 
     def test_add_recording(self):
         """ add a specific asset id and it should show up in
@@ -200,8 +220,32 @@ class TestRecordingCollection(RoundwaredTestCase):
             rc = RecordingCollection(stream, req, stream.radius, 'by_like')
             # Update the list of nearby recordings
             rc.update_request(req)
-            self.assertEquals([self.asset1, self.asset2],
+            self.assertEquals([self.asset1, self.asset2, self.asset3],
                               rc.playlist)
             rc.add_recording(self.asset2.id)
-            self.assertEquals([self.asset1, self.asset2, self.asset2],
-                              rc.playlist)
+            self.assertEquals([self.asset1, self.asset2, self.asset3,
+                               self.asset2], rc.playlist)
+
+    def test_limit_asset_by_tag(self):
+        """ test that only tag1 assets are returned when request["tags"] is specified.
+        """
+        req = self.req1
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        with patch.object(gpsmixer, 'distance_in_meters',
+                          mock_distance_in_meters_near):
+            rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+
+            # Return assets with tag1.
+            req['tags'] = str(self.tag1.id)
+            rc.update_request(req)
+
+            self.assertEquals(self.asset2, rc.get_recording())
+            self.assertEquals(self.asset1, rc.get_recording())
+
+            # Return all assets, tests comma detection.
+            req['tags'] = "%s,%s" % (self.tag1.id, self.tag2.id)
+
+            rc.update_request(req)
+            self.assertEquals(self.asset3, rc.get_recording())
+            # Only Asset3 returned because others are banned.
+            self.assertEquals(None, rc.get_recording())
