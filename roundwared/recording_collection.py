@@ -57,7 +57,7 @@ class RecordingCollection:
         if lock:
             self.lock.acquire()
 
-        tags = getattr(request, "tags", None)
+        tags = request.get("tags", None)
         self.all = db.get_recordings(request["session_id"], tags)
         # Updating nearby_recording will start stream audio asset play back.
         if update_nearby:
