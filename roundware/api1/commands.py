@@ -603,7 +603,7 @@ def add_asset_to_envelope(request):
         tagset = []
         tags = get_parameter_from_request(request, 'tags')
         if tags is not None:
-            ids = tags.split(',')
+            ids = tags.rstrip(',').split(',')
             tagset = models.Tag.objects.filter(id__in=ids)
 
         # get optional submitted parameter from request (Y, N or blank
