@@ -1,0 +1,985 @@
+[
+{
+  "fields": {
+    "language_code": "en"
+  },
+  "model": "rw.language",
+  "pk": 1
+},
+{
+  "fields": {
+    "language_code": "es"
+  },
+  "model": "rw.language",
+  "pk": 2
+},
+{
+  "fields": {
+    "localized_string": "male",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 5
+},
+{
+  "fields": {
+    "localized_string": "hombre",
+    "language": 2
+  },
+  "model": "rw.localizedstring",
+  "pk": 6
+},
+{
+  "fields": {
+    "localized_string": "female",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 7
+},
+{
+  "fields": {
+    "localized_string": "mujer",
+    "language": 2
+  },
+  "model": "rw.localizedstring",
+  "pk": 8
+},
+{
+  "fields": {
+    "localized_string": "Why are you using Roundware?",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 9
+},
+{
+  "fields": {
+    "localized_string": "\u00bfPor qu\u00e9 utiliza Roundware?",
+    "language": 2
+  },
+  "model": "rw.localizedstring",
+  "pk": 10
+},
+{
+  "fields": {
+    "localized_string": "Artist",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 15
+},
+{
+  "fields": {
+    "localized_string": "Artista",
+    "language": 2
+  },
+  "model": "rw.localizedstring",
+  "pk": 16
+},
+{
+  "fields": {
+    "localized_string": "Visitor",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 17
+},
+{
+  "fields": {
+    "localized_string": "Visitante",
+    "language": 2
+  },
+  "model": "rw.localizedstring",
+  "pk": 18
+},
+{
+  "fields": {
+    "localized_string": "Leave feedback",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 41
+},
+{
+  "fields": {
+    "localized_string": "Dejar comentario",
+    "language": 2
+  },
+  "model": "rw.localizedstring",
+  "pk": 42
+},
+{
+  "fields": {
+    "localized_string": "Respond to something you've heard.",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 43
+},
+{
+  "fields": {
+    "localized_string": "Responde sobre algo que has escuchado.",
+    "language": 2
+  },
+  "model": "rw.localizedstring",
+  "pk": 44
+},
+{
+  "fields": {
+    "localized_string": "You are out of range of this Roundware project.  Please go somewhere within range and try again.  Thank you.",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 47
+},
+{
+  "fields": {
+    "localized_string": "Est\u00e1 fuera del alcance de este proyecto Roundware. Por favor, vaya en alguna parte dentro del rango y vuelve a intentarlo. Gracias.",
+    "language": 2
+  },
+  "model": "rw.localizedstring",
+  "pk": 48
+},
+{
+  "fields": {
+    "localized_string": "Check out this awesome recording I made using Roundware!",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 49
+},
+{
+  "fields": {
+    "localized_string": "Echa un vistazo a este impresionante grabaci\u00f3n que hice usando Roundware!",
+    "language": 2
+  },
+  "model": "rw.localizedstring",
+  "pk": 50
+},
+{
+  "fields": {
+    "localized_string": "Herein should be the brief legal agreement that participants need to agree to in order to make and submit a recording to a Roundware project.",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 53
+},
+{
+  "fields": {
+    "localized_string": "En esto deber\u00eda ser el acuerdo escrito legal que los participantes deben ponerse de acuerdo a fin de realizar y presentar una grabaci\u00f3n a un proyecto Roundware.",
+    "language": 2
+  },
+  "model": "rw.localizedstring",
+  "pk": 54
+},
+{
+  "fields": {
+    "localized_string": "What genders do you want to listen to?",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 55
+},
+{
+  "fields": {
+    "localized_string": "\u00bfQu\u00e9 g\u00e9neros Qu\u00e9 quieres escuchar?",
+    "language": 2
+  },
+  "model": "rw.localizedstring",
+  "pk": 56
+},
+{
+  "fields": {
+    "localized_string": "Curator",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 57
+},
+{
+  "fields": {
+    "localized_string": "recent recordings",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 58
+},
+{
+  "fields": {
+    "localized_string": "nearby recordings",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 59
+},
+{
+  "fields": {
+    "localized_string": "Who do you want to hear?",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 60
+},
+{
+  "fields": {
+    "localized_string": "Who are you?",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 61
+},
+{
+  "fields": {
+    "localized_string": "What do you want to talk about?",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 62
+},
+{
+  "fields": {
+    "localized_string": "What do you want to listen to?",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 63
+},
+{
+  "fields": {
+    "localized_string": "What gender are you?",
+    "language": 1
+  },
+  "model": "rw.localizedstring",
+  "pk": 64
+},
+{
+  "fields": {
+    "mode": "stop"
+  },
+  "model": "rw.repeatmode",
+  "pk": 1
+},
+{
+  "fields": {
+    "mode": "continuous"
+  },
+  "model": "rw.repeatmode",
+  "pk": 2
+},
+{
+  "fields": {
+    "geo_speak_enabled": true,
+    "sharing_message_loc": [
+      49,
+      50
+    ],
+    "legal_agreement_loc": [
+      53,
+      54
+    ],
+    "files_version": "1",
+    "out_of_range_url": "http://scapesaudio.dyndns.org:8000/mg_outofrange.mp3",
+    "speak_questions_dynamic": false,
+    "files_url": "http://halseyburgund.com/dev/rw-base/webview/rw.zip",
+    "recording_radius": 20,
+    "demo_stream_enabled": false,
+    "max_recording_length": 30,
+    "listen_enabled": true,
+    "ordering": "random",
+    "reset_tag_defaults_on_startup": true,
+    "latitude": 1.0,
+    "audio_stream_bitrate": "128",
+    "geo_listen_enabled": true,
+    "audio_format": "mp3",
+    "out_of_range_message_loc": [
+      47,
+      48
+    ],
+    "repeat_mode": 1,
+    "auto_submit": true,
+    "listen_questions_dynamic": false,
+    "demo_stream_url": "http://scapesaudio.dyndns.org:8000/scapes1.mp3",
+    "pub_date": "2011-12-06T16:06:32",
+    "speak_enabled": true,
+    "name": "Test Project",
+    "longitude": 1.0,
+    "sharing_url": "http://roundware.org/r/eid=[id]",
+    "demo_stream_message_loc": [
+      47,
+      48
+    ]
+  },
+  "model": "rw.project",
+  "pk": 1
+},
+{
+  "fields": {
+    "client_system": null,
+    "language": 1,
+    "project": 1,
+    "stoptime": null,
+    "client_type": null,
+    "starttime": "2014-01-25T13:44:49",
+    "demo_stream_enabled": false,
+    "device_id": "session-for-admin-uploads"
+  },
+  "model": "rw.session",
+  "pk": -10
+},
+{
+  "fields": {
+    "client_system": null,
+    "language": 1,
+    "project": 1,
+    "stoptime": "2012-08-27T00:15:52",
+    "client_type": null,
+    "starttime": "2012-08-27T00:11:48",
+    "demo_stream_enabled": false,
+    "device_id": "test-session"
+  },
+  "model": "rw.session",
+  "pk": 1
+},
+{
+  "fields": {
+    "data": "",
+    "name": "listen"
+  },
+  "model": "rw.uimode",
+  "pk": 1
+},
+{
+  "fields": {
+    "data": "",
+    "name": "speak"
+  },
+  "model": "rw.uimode",
+  "pk": 2
+},
+{
+  "fields": {
+    "data": "",
+    "name": "question"
+  },
+  "model": "rw.tagcategory",
+  "pk": 2
+},
+{
+  "fields": {
+    "data": "",
+    "name": "gender"
+  },
+  "model": "rw.tagcategory",
+  "pk": 3
+},
+{
+  "fields": {
+    "data": "",
+    "name": "usertype"
+  },
+  "model": "rw.tagcategory",
+  "pk": 4
+},
+{
+  "fields": {
+    "data": "",
+    "name": "admin"
+  },
+  "model": "rw.tagcategory",
+  "pk": 6
+},
+{
+  "fields": {
+    "data": "",
+    "name": "channel"
+  },
+  "model": "rw.tagcategory",
+  "pk": 7
+},
+{
+  "fields": {
+    "relationships": [
+      3,
+      4,
+      5,
+      8,
+      9,
+      22,
+      23
+    ],
+    "loc_msg": [
+      5,
+      6
+    ],
+    "description": "male",
+    "value": "male",
+    "filter": "",
+    "loc_description": [],
+    "data": "class=tag-one",
+    "tag_category": 3
+  },
+  "model": "rw.tag",
+  "pk": 3
+},
+{
+  "fields": {
+    "relationships": [
+      3,
+      4,
+      5,
+      8,
+      9,
+      22,
+      23
+    ],
+    "loc_msg": [
+      7,
+      8
+    ],
+    "description": "female",
+    "value": "female",
+    "filter": "",
+    "loc_description": [],
+    "data": "class=tag-one",
+    "tag_category": 3
+  },
+  "model": "rw.tag",
+  "pk": 4
+},
+{
+  "fields": {
+    "relationships": [
+      3,
+      4,
+      5,
+      8,
+      9,
+      22,
+      23
+    ],
+    "loc_msg": [
+      9,
+      10
+    ],
+    "description": "Why are you using Roundware?",
+    "value": "Why RW?",
+    "filter": "",
+    "loc_description": [],
+    "data": "class=tag-one",
+    "tag_category": 2
+  },
+  "model": "rw.tag",
+  "pk": 5
+},
+{
+  "fields": {
+    "relationships": [
+      3,
+      4,
+      5,
+      8,
+      9,
+      22,
+      23
+    ],
+    "loc_msg": [
+      15,
+      16
+    ],
+    "description": "Artist",
+    "value": "Artist",
+    "filter": "",
+    "loc_description": [],
+    "data": "class=tag-one",
+    "tag_category": 4
+  },
+  "model": "rw.tag",
+  "pk": 8
+},
+{
+  "fields": {
+    "relationships": [
+      3,
+      4,
+      5,
+      8,
+      9,
+      22,
+      23
+    ],
+    "loc_msg": [
+      17,
+      18
+    ],
+    "description": "Visitor",
+    "value": "Visitor",
+    "filter": "",
+    "loc_description": [],
+    "data": "class=tag-one",
+    "tag_category": 4
+  },
+  "model": "rw.tag",
+  "pk": 9
+},
+{
+  "fields": {
+    "relationships": [],
+    "loc_msg": [
+      41,
+      42
+    ],
+    "description": "Leave feedback",
+    "value": "feedback",
+    "filter": "",
+    "loc_description": [],
+    "data": "",
+    "tag_category": 6
+  },
+  "model": "rw.tag",
+  "pk": 21
+},
+{
+  "fields": {
+    "relationships": [
+      3,
+      4,
+      5,
+      8,
+      9,
+      22,
+      23
+    ],
+    "loc_msg": [
+      43,
+      44
+    ],
+    "description": "Respond to something you've heard.",
+    "value": "respond",
+    "filter": "",
+    "loc_description": [],
+    "data": "class=tag-one",
+    "tag_category": 2
+  },
+  "model": "rw.tag",
+  "pk": 22
+},
+{
+  "fields": {
+    "relationships": [
+      3,
+      4,
+      5,
+      8,
+      9,
+      22,
+      23
+    ],
+    "loc_msg": [
+      57
+    ],
+    "description": "curator",
+    "value": "curator",
+    "filter": "",
+    "loc_description": [],
+    "data": "class=tag-one",
+    "tag_category": 4
+  },
+  "model": "rw.tag",
+  "pk": 23
+},
+{
+  "fields": {
+    "relationships": [],
+    "loc_msg": [
+      58
+    ],
+    "description": "recent",
+    "value": "recent",
+    "filter": "_ten_most_recent_days",
+    "loc_description": [
+      58
+    ],
+    "data": "",
+    "tag_category": 7
+  },
+  "model": "rw.tag",
+  "pk": 24
+},
+{
+  "fields": {
+    "relationships": [],
+    "loc_msg": [
+      59
+    ],
+    "description": "nearby",
+    "value": "nearby",
+    "filter": "_within_10km",
+    "loc_description": [
+      59
+    ],
+    "data": "",
+    "tag_category": 7
+  },
+  "model": "rw.tag",
+  "pk": 25
+},
+{
+  "fields": {
+    "index": 1,
+    "name": "What genders do you want to listen to?",
+    "select_method": "MO",
+    "project": 1,
+    "ui_mode": 1,
+    "active": true,
+    "header_text_loc": [
+      55,
+      56
+    ],
+    "tag_category": 3
+  },
+  "model": "rw.masterui",
+  "pk": 1
+},
+{
+  "fields": {
+    "index": 3,
+    "name": "What do you want to listen to?",
+    "select_method": "MO",
+    "project": 1,
+    "ui_mode": 1,
+    "active": true,
+    "header_text_loc": [
+      63
+    ],
+    "tag_category": 2
+  },
+  "model": "rw.masterui",
+  "pk": 3
+},
+{
+  "fields": {
+    "index": 1,
+    "name": "What gender are you?",
+    "select_method": "SI",
+    "project": 1,
+    "ui_mode": 2,
+    "active": true,
+    "header_text_loc": [
+      64
+    ],
+    "tag_category": 3
+  },
+  "model": "rw.masterui",
+  "pk": 4
+},
+{
+  "fields": {
+    "index": 3,
+    "name": "What do you want to talk about?",
+    "select_method": "SI",
+    "project": 1,
+    "ui_mode": 2,
+    "active": true,
+    "header_text_loc": [
+      62
+    ],
+    "tag_category": 2
+  },
+  "model": "rw.masterui",
+  "pk": 6
+},
+{
+  "fields": {
+    "index": 2,
+    "name": "Who do you want to hear?",
+    "select_method": "MO",
+    "project": 1,
+    "ui_mode": 1,
+    "active": true,
+    "header_text_loc": [
+      60
+    ],
+    "tag_category": 4
+  },
+  "model": "rw.masterui",
+  "pk": 7
+},
+{
+  "fields": {
+    "index": 2,
+    "name": "Who are you?",
+    "select_method": "SI",
+    "project": 1,
+    "ui_mode": 2,
+    "active": true,
+    "header_text_loc": [
+      61
+    ],
+    "tag_category": 4
+  },
+  "model": "rw.masterui",
+  "pk": 8
+},
+{
+  "fields": {
+    "default": true,
+    "index": 2,
+    "master_ui": 1,
+    "tag": 3,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 1
+},
+{
+  "fields": {
+    "default": true,
+    "index": 1,
+    "master_ui": 1,
+    "tag": 4,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 2
+},
+{
+  "fields": {
+    "default": true,
+    "index": 1,
+    "master_ui": 3,
+    "tag": 5,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 5
+},
+{
+  "fields": {
+    "default": false,
+    "index": 2,
+    "master_ui": 4,
+    "tag": 3,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 8
+},
+{
+  "fields": {
+    "default": false,
+    "index": 1,
+    "master_ui": 4,
+    "tag": 4,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 9
+},
+{
+  "fields": {
+    "default": false,
+    "index": 1,
+    "master_ui": 6,
+    "tag": 5,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 12
+},
+{
+  "fields": {
+    "default": true,
+    "index": 1,
+    "master_ui": 7,
+    "tag": 8,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 15
+},
+{
+  "fields": {
+    "default": true,
+    "index": 2,
+    "master_ui": 7,
+    "tag": 9,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 16
+},
+{
+  "fields": {
+    "default": false,
+    "index": 1,
+    "master_ui": 8,
+    "tag": 9,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 17
+},
+{
+  "fields": {
+    "default": false,
+    "index": 2,
+    "master_ui": 8,
+    "tag": 8,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 53
+},
+{
+  "fields": {
+    "default": true,
+    "index": 2,
+    "master_ui": 3,
+    "tag": 22,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 54
+},
+{
+  "fields": {
+    "default": false,
+    "index": 2,
+    "master_ui": 6,
+    "tag": 22,
+    "active": true
+  },
+  "model": "rw.uimapping",
+  "pk": 55
+},
+{
+  "fields": {
+    "minpanpos": 0.0,
+    "minvolume": 1.0,
+    "maxfadeouttime": 2000000000.0,
+    "mindeadair": 1000000000.0,
+    "maxpanduration": 10000000000.0,
+    "minpanduration": 5000000000.0,
+    "maxpanpos": 0.0,
+    "project": 1,
+    "minfadeintime": 100000000.0,
+    "maxdeadair": 3000000000.0,
+    "minfadeouttime": 100000000.0,
+    "repeatrecordings": false,
+    "minduration": 10000000000.0,
+    "maxvolume": 1.0,
+    "maxduration": 30000000000.0,
+    "maxfadeintime": 500000000.0
+  },
+  "model": "rw.audiotrack",
+  "pk": 1
+},
+{
+  "fields": {
+    "server_time": "2015-01-03T01:41:39",
+    "event_type": "request_stream",
+    "tags": null,
+    "longitude": null,
+    "latitude": null,
+    "session": 1,
+    "client_time": null,
+    "data": null
+  },
+  "model": "rw.event",
+  "pk": 1
+},
+{
+  "fields": {
+    "server_time": "2015-01-03T01:42:15",
+    "event_type": "move_listener",
+    "tags": null,
+    "longitude": "1",
+    "latitude": "1",
+    "session": 1,
+    "client_time": null,
+    "data": null
+  },
+  "model": "rw.event",
+  "pk": 2
+},
+{
+  "fields": {
+    "server_time": "2015-01-03T01:42:26",
+    "event_type": "move_listener",
+    "tags": null,
+    "longitude": "2",
+    "latitude": "1",
+    "session": 1,
+    "client_time": null,
+    "data": null
+  },
+  "model": "rw.event",
+  "pk": 3
+},
+{
+  "fields": {
+    "project": 1,
+    "weight": 50,
+    "language": 1,
+    "created": "2012-07-24T18:06:40",
+    "tags": [
+      3,
+      5,
+      8
+    ],
+    "mediatype": "audio",
+    "longitude": 1.0,
+    "filename": "rw_test_audio1.wav",
+    "volume": 1.0,
+    "session": 1,
+    "submitted": true,
+    "file": "",
+    "initialenvelope": null,
+    "latitude": 1.0,
+    "loc_description": [],
+    "audiolength": 30000000000,
+    "description": ""
+  },
+  "model": "rw.asset",
+  "pk": 1
+},
+{
+  "fields": {
+    "session": 1,
+    "assets": [
+      1
+    ],
+    "created": "2013-01-21T10:36:44"
+  },
+  "model": "rw.envelope",
+  "pk": 1
+},
+{
+  "fields": {
+    "code": "1",
+    "backupuri": "http://scapesaudio.dyndns.org:8000/scapes1.mp3",
+    "uri": "http://scapesaudio.dyndns.org:8000/scapes1.mp3",
+    "longitude": 1.0,
+    "activeyn": true,
+    "project": 1,
+    "minvolume": 0.0,
+    "mindistance": 10000,
+    "latitude": 1.0,
+    "maxvolume": 0.5,
+    "maxdistance": 20000
+  },
+  "model": "rw.speaker",
+  "pk": 1
+},
+{
+  "fields": {
+    "duration": 19554349821,
+    "session": 1,
+    "asset": 1,
+    "starttime": "2015-01-03T01:42:15"
+  },
+  "model": "rw.listeninghistoryitem",
+  "pk": 1
+}
+]
