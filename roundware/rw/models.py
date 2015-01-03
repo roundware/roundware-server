@@ -148,14 +148,6 @@ class TagCategory(models.Model):
         return str(self.id) + ":" + self.name
 
 
-class SelectionMethod(models.Model):
-    name = models.CharField(max_length=50)
-    data = models.TextField(null=True, blank=True)
-
-    def __unicode__(self):
-        return str(self.id) + ":" + self.name
-
-
 class Tag(models.Model):
     FILTERS = (
         ("--", "No filter"),
@@ -192,12 +184,21 @@ class Tag(models.Model):
 
 
 class MasterUI(models.Model):
+    SINGLE = 'SI'
+    MULTI = 'MU'
+    MULTI_MIN_ONE = 'MO'
+    SELECT_METHODS = (
+        (SINGLE, 'single'),
+        (MULTI, 'multi'),
+        (MULTI_MIN_ONE, 'multi_at_least_one'),
+    )
     name = models.CharField(max_length=50)
     header_text_loc = models.ManyToManyField(
         LocalizedString, null=True, blank=True)
     ui_mode = models.ForeignKey(UIMode)
     tag_category = models.ForeignKey(TagCategory)
-    select = models.ForeignKey(SelectionMethod)
+    select = models.CharField(default=SINGLE, max_length=2, blank=False,
+                                     choices=SELECT_METHODS)
     active = models.BooleanField(default=True)
     index = models.IntegerField()
     project = models.ForeignKey(Project)
@@ -209,7 +210,11 @@ class MasterUI(models.Model):
     get_header_text_loc.allow_tags = True
 
     def toTagDictionary(self):
-        return {'name': self.name, 'code': self.tag_category.name, 'select': self.select.name, 'order': self.index}
+        return {'name': self.name,
+                'code': self.tag_category.name,
+                'select': self.get_select_display(),
+                'order': self.index
+                }
 
     def save(self, *args, **kwargs):
         # invalidate cached value for tag categories for all ui_modes for the
@@ -285,11 +290,6 @@ class Audiotrack(models.Model):
 
     def __unicode__(self):
         return "Track " + str(self.id)
-
-
-class EventType(models.Model):
-    name = models.CharField(max_length=50)
-    ordering = ['id']
 
 
 class Event(models.Model):

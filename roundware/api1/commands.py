@@ -26,6 +26,7 @@ from roundwared import gpsmixer
 
 logger = logging.getLogger(__name__)
 
+
 def t(msg, field, language):
     """
     Locates the translation for the msg in the field object for the provided
@@ -37,6 +38,7 @@ def t(msg, field, language):
     except:
         pass
     return msg
+
 
 def check_for_single_audiotrack(session_id):
     ret = False
@@ -52,7 +54,7 @@ def get_current_streaming_asset(request):
     form = request.GET
     if 'session_id' not in form:
         raise RoundException("a session_id is required for this operation")
-    if check_for_single_audiotrack(form.get('session_id')) != True:
+    if check_for_single_audiotrack(form.get('session_id')) is not True:
         raise RoundException(
             "this operation is only valid for projects with 1 audiotrack")
     else:
@@ -64,6 +66,7 @@ def get_current_streaming_asset(request):
                 "current_server_time": datetime.datetime.now().isoformat()}
     else:
         return {"user_error_message": "no asset found"}
+
 
 def _get_current_streaming_asset(session_id):
     try:
@@ -155,6 +158,7 @@ def vote_asset(request):
             form.get('value')), type=form.get('vote_type'))
     v.save()
     return {"success": True}
+
 
 # @profile(stats=True)
 def get_config(request):
@@ -400,7 +404,6 @@ def get_available_assets(request):
         raise RoundException("This operation requires that you pass a "
                              "project_id, asset_id, or envelope_id")
 
-
     assets_info = {}
     assets_info['number_of_assets'] = {}
     for mtype in asset_media_types:
@@ -439,6 +442,7 @@ def get_available_assets(request):
     assets_info['assets'] = assets_list
     return assets_info
 
+
 def op_log_event(request):
     form = request.GET
     if 'session_id' not in form:
@@ -448,6 +452,7 @@ def op_log_event(request):
     log_event(form.get('event_type'), form.get('session_id'), form)
 
     return {"success": True}
+
 
 # Used by server.py many times and stream.py once!
 def log_event(event_type, session_id, form=None):
@@ -492,6 +497,7 @@ def log_event(event_type, session_id, form=None):
 # example:
 #{"envelope_id": 2}
 
+
 # @profile(stats=True)
 def create_envelope(request):
     form = request.GET
@@ -503,6 +509,7 @@ def create_envelope(request):
     env.save()
 
     return {"envelope_id": env.id}
+
 
 # add_asset_to_envelope (POST method)
 # args (operation, envelope_id, session_id, file, latitude, longitude, [tagids])
@@ -637,7 +644,6 @@ def add_asset_to_envelope(request):
         for t in tagset:
             asset.tags.add(t)
 
-
     # get the audiolength of the file only if mediatype is audio and
     # update the Asset
     if mediatype == "audio":
@@ -668,6 +674,7 @@ def get_parameter_from_request(request, name, required=False):
                 raise RoundException(
                     name + " is required for this operation")
     return ret
+
 
 # @profile(stats=True)
 def request_stream(request):
@@ -732,6 +739,7 @@ def request_stream(request):
             'stream_url': project.out_of_range_url,
             'user_message': msg
         }
+
 
 def modify_stream(request):
     success = False
@@ -829,6 +837,7 @@ def get_events(request):
     else:
         return {"error": "no session_id"}
 
+
 def apache_safe_daemon_subprocess(command):
     logger.debug(str(command))
     env = os.environ.copy()
@@ -845,6 +854,7 @@ def apache_safe_daemon_subprocess(command):
     # (stdout, stderr) = proc.communicate()
     # logger.debug("subprocess_stdout: " + stdout)
     # logger.debug("subprocess_stdout: " + stderr)
+
 
 def wait_for_stream(sessionid, audio_format):
     """
@@ -911,8 +921,7 @@ def form_to_request(form):
 # @profile(stats=True)
 def get_config_tags(p=None, s=None):
     if s is None and p is None:
-        raise RoundException("Must pass either a project or "
-                                            "a session")
+        raise RoundException("Must pass either a project or a session")
     language = models.Language.objects.filter(language_code='en')[0]
     if s is not None:
         p = s.project
@@ -927,8 +936,12 @@ def get_config_tags(p=None, s=None):
                 master_ui=masterui, active=True)
             header = t("", masterui.header_text_loc, language)
 
-            masterD = {'name': masterui.name, 'header_text': header, 'code': masterui.tag_category.name,
-                       'select': masterui.select.name, 'order': masterui.index}
+            masterD = {'name': masterui.name,
+                       'header_text': header,
+                       'code': masterui.tag_category.name,
+                       'select': masterui.get_select_display(),
+                       'order': masterui.index
+                       }
             masterOptionsList = []
 
             default = []

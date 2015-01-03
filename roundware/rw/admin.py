@@ -309,11 +309,6 @@ class TagCategoryAdmin(admin.ModelAdmin):
     ordering = ['id']
 
 
-class SelectionMethodAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'data')
-    ordering = ['id']
-
-
 # MasterUIs describe screens containing choices limited to one mode (Speak, Listen),
 #  and one tag category.
 class MasterUIAdmin(ProjectProtectedModelAdmin):
@@ -460,9 +455,7 @@ admin.site.register(UIMode, UIModeAdmin)
 admin.site.register(TagCategory, TagCategoryAdmin)
 admin.site.register(MasterUI, MasterUIAdmin)
 admin.site.register(UIMapping, UIMappingAdmin)
-admin.site.register(SelectionMethod, SelectionMethodAdmin)
 admin.site.register(Project, ProjectAdmin)
-admin.site.register(EventType)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Asset, AssetAdmin)
 admin.site.register(Speaker, SpeakerAdmin)
