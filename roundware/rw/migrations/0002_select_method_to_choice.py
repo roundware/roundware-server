@@ -20,9 +20,9 @@ def select_foreign_to_char(apps, schema_editor):
     +----+--------------------+------+
     3 rows in set (0.00 sec)
     """
-    SINGLE = 'SI'
-    MULTI = 'MU'
-    MULTI_MIN_ONE = 'MO'
+    SINGLE = 'single'
+    MULTI = 'multi'
+    MULTI_MIN_ONE = 'min_one'
 
     values = {1: SINGLE,
               2: MULTI,
@@ -48,11 +48,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='masterui',
             name='select_new',
-            field=models.CharField(default='SI',
-                                   max_length=2,
-                                   choices=[('SI', 'single'),
-                                            ('MU', 'multi'),
-                                            ('MO', 'multi_at_least_one')]),
+            field=models.CharField(default='single',
+                                   max_length=7,
+                                   choices=[('single', 'single'),
+                                            ('multi', 'multi'),
+                                            ('min_one', 'multi_at_least_one')]),
             preserve_default=True,
         ),
         migrations.RunPython(select_foreign_to_char),

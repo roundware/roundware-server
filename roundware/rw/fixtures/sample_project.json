@@ -344,22 +344,6 @@
 {
   "fields": {
     "data": "",
-    "name": "listen"
-  },
-  "model": "rw.uimode",
-  "pk": 1
-},
-{
-  "fields": {
-    "data": "",
-    "name": "speak"
-  },
-  "model": "rw.uimode",
-  "pk": 2
-},
-{
-  "fields": {
-    "data": "",
     "name": "question"
   },
   "model": "rw.tagcategory",
@@ -628,9 +612,9 @@
   "fields": {
     "index": 1,
     "name": "What genders do you want to listen to?",
-    "select_method": "MO",
+    "select_method": "min_one",
     "project": 1,
-    "ui_mode": 1,
+    "ui_mode": "listen",
     "active": true,
     "header_text_loc": [
       55,
@@ -645,9 +629,9 @@
   "fields": {
     "index": 3,
     "name": "What do you want to listen to?",
-    "select_method": "MO",
+    "select_method": "min_one",
     "project": 1,
-    "ui_mode": 1,
+    "ui_mode": "listen",
     "active": true,
     "header_text_loc": [
       63
@@ -661,9 +645,9 @@
   "fields": {
     "index": 1,
     "name": "What gender are you?",
-    "select_method": "SI",
+    "select_method": "single",
     "project": 1,
-    "ui_mode": 2,
+    "ui_mode": "speak",
     "active": true,
     "header_text_loc": [
       64
@@ -677,9 +661,9 @@
   "fields": {
     "index": 3,
     "name": "What do you want to talk about?",
-    "select_method": "SI",
+    "select_method": "single",
     "project": 1,
-    "ui_mode": 2,
+    "ui_mode": "speak",
     "active": true,
     "header_text_loc": [
       62
@@ -693,9 +677,9 @@
   "fields": {
     "index": 2,
     "name": "Who do you want to hear?",
-    "select_method": "MO",
+    "select_method": "min_one",
     "project": 1,
-    "ui_mode": 1,
+    "ui_mode": "listen",
     "active": true,
     "header_text_loc": [
       60
@@ -709,9 +693,9 @@
   "fields": {
     "index": 2,
     "name": "Who are you?",
-    "select_method": "SI",
+    "select_method": "single",
     "project": 1,
-    "ui_mode": 2,
+    "ui_mode": "speak",
     "active": true,
     "header_text_loc": [
       61
@@ -935,7 +919,6 @@
     "session": 1,
     "submitted": true,
     "file": "",
-    "initialenvelope": null,
     "latitude": 1.0,
     "loc_description": [],
     "audiolength": 30000000000,

@@ -72,9 +72,6 @@ EMAIL_HOST_PASSWORD = 'password'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-LISTEN_UIMODE = "listen"
-SPEAK_UIMODE = "speak"
-
 CONTINUOUS_REPEAT_MODE = "continuous"
 STOP_REPEAT_MODE = "stop"
 

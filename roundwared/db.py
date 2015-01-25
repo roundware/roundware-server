@@ -86,7 +86,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     recs = []
     tag_ids_per_cat_dict = {}
 
-    project_cats = p.get_tag_cats_by_ui_mode(settings.LISTEN_UIMODE)
+    project_cats = p.get_tag_cats_by_ui_mode(MasterUI.LISTEN)
     logger.debug("Project tag categories: %s", project_cats)
     for cat in project_cats:
         # for each tag category a list of all of the tags with that cat

@@ -961,9 +961,9 @@ def get_config_tags(p=None, s=None):
                                           'value': t("", mapping.tag.loc_msg, language)})
             masterD["options"] = masterOptionsList
             masterD["defaults"] = default
-            if masterui.ui_mode.name not in modes:
-                modes[masterui.ui_mode.name] = [masterD, ]
+            if masterui.ui_mode not in modes:
+                modes[masterui.ui_mode] = [masterD, ]
             else:
-                modes[masterui.ui_mode.name].append(masterD)
+                modes[masterui.ui_mode].append(masterD)
 
     return modes

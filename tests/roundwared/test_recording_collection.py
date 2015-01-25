@@ -59,10 +59,10 @@ class TestRecordingCollection(RoundwaredTestCase):
                                  audiolength=2000, weight=200,
                                  latitude=0.1, longitude=0.1)
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=self.ui_mode_listen,
+                                    ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)
         self.masterui2 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=self.ui_mode_listen,
+                                    ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)
         self.uimapping1 = mommy.make(UIMapping, master_ui=self.masterui1,
                                      tag=self.tag1, default=True, active=True)

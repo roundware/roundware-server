@@ -135,7 +135,7 @@ class TestProtectedAdmin(RWTestCase):
         self.site = AdminSite
         self.permitted_project = mommy.make('rw.Project', name='permitted')
         self.excluded_project = mommy.make('rw.Project', name='excluded')
-        self.ui_mode = mommy.make('rw.UIMode')
+        self.ui_mode = MasterUI.LISTEN
         self.default_session = mommy.make_recipe('rw.default_session')
         self.default_session_id = self.default_session.id
         self.tag_category = mommy.make('rw.TagCategory')
@@ -200,7 +200,7 @@ class TestProtectedAdmin(RWTestCase):
         """
         protected_model_test_data = [
             ['Session', [['starttime', '1999-01-01']]],
-            ['MasterUI', [['ui_mode_id', self.ui_mode.id],
+            ['MasterUI', [['ui_mode', self.ui_mode],
                           ['tag_category_id', self.tag_category.id],
                           ['select', self.selection_method],
                           ['index', 3],
@@ -276,7 +276,7 @@ class TestProtectedAdmin(RWTestCase):
         ]
 
         extra_params = {
-            'ui_mode_id': self.ui_mode.id,
+            'ui_mode': self.ui_mode,
             'tag_category_id': self.tag_category.id,
             'select': self.selection_method,
             'index': 3

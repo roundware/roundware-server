@@ -18,7 +18,7 @@ class TestMasterUI(RWTestCase):
         # make masterui, makes our tagcategory, uimode, project,
         # selectionmethod
         self.masterui = mommy.make('rw.MasterUI')
-        self.other_uimode = mommy.make('rw.UIMode')
+        self.other_uimode = models.MasterUI.SPEAK
         self.project = self.masterui.project
 
     @use_locmemcache(models, 'cache')
@@ -26,8 +26,8 @@ class TestMasterUI(RWTestCase):
         """ test that cached value for tag categories for the MasterUI's mode
         is invalidated after MasterUI saved.
         """
-        ui_mode_name = self.masterui.ui_mode.name
-        get_orig_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode_name)
+        ui_mode = self.masterui.ui_mode
+        get_orig_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode)
 
         # is original tag_cat of masterui returned by Project's method
         self.assertIn(self.masterui.tag_category, get_orig_tag_cats)
@@ -36,13 +36,13 @@ class TestMasterUI(RWTestCase):
         self.masterui.ui_mode = self.other_uimode
 
         # should still get old tag categories... cached
-        get_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode_name)
+        get_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode)
         self.assertIn(self.masterui.tag_category, get_tag_cats)
 
         # save the masterui, now should not get old tag categories...
         # cached copy invalidated
         self.masterui.save()
-        get_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode_name)
+        get_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode)
         self.assertNotIn(self.masterui.tag_category, get_tag_cats)
 
 
@@ -51,12 +51,12 @@ class TestProject(RWTestCase):
     def setUp(self):
         super(type(self), TestProject).setUp(self)
         self.project = mommy.make('rw.Project')
-        self.ui_mode = mommy.make('rw.UIMode')
+        self.ui_mode = models.MasterUI.LISTEN
 
     def test_no_tag_cats_returned_new_project(self):
         """ test no tag_categories returned for a new project with no masterui
         """
-        cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode.name)
+        cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode)
         self.assertTrue(len(cats) == 0)
 
     def test_correct_tag_cats_returned(self):
@@ -65,17 +65,16 @@ class TestProject(RWTestCase):
         """
         masterui = mommy.make('rw.MasterUI', project=self.project,
                               ui_mode=self.ui_mode)
-        cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode.name)
+        cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode)
         self.assertIn(masterui.tag_category, cats)
 
     def test_no_tag_cats_returned_wrong_uimode(self):
         """ test no tag_categories returned if we specify a uimode that 
             is not connected to project via a MasterUI
         """
-        other_ui_mode = mommy.make('rw.UIMode', name='bogus')
         other_master_ui = mommy.make('rw.MasterUI', project=self.project,
-                                     ui_mode=other_ui_mode)
-        cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode.name)
+                                     ui_mode=models.MasterUI.SPEAK)
+        cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode)
         self.assertNotIn(other_master_ui.tag_category, cats)
 
 

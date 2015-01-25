@@ -6,7 +6,7 @@ from model_mommy import mommy
 from model_mommy.generators import gen_file_field
 
 from roundware.settings import DEFAULT_SESSION_ID
-from roundware.rw.models import (UIMode, Language, LocalizedString,
+from roundware.rw.models import (Language, LocalizedString,
                                  Tag, TagCategory, Session)
 
 
@@ -47,8 +47,6 @@ class RoundwaredTestCase(TestCase):
         setattr(settings, 'MOMMY_CUSTOM_FIELDS_GEN', generator_dict)
 
         self.default_session = mommy.make(Session, id=DEFAULT_SESSION_ID)
-        self.ui_mode_listen = mommy.make(UIMode, name="listen")
-        self.ui_mode_speak = mommy.make(UIMode, name="speak")
         self.english = mommy.make(Language, language_code='en')
         self.spanish = mommy.make(Language, language_code='es')
         self.english_msg = mommy.make(LocalizedString, localized_string="One",

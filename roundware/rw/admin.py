@@ -299,11 +299,6 @@ class SessionAdmin(ProjectProtectedModelAdmin):
     ordering = ['-id']
 
 
-class UIModeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'data')
-    ordering = ['id']
-
-
 class TagCategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'data')
     ordering = ['id']
@@ -451,7 +446,6 @@ admin.site.register(LocalizedString, LocalizedStringAdmin)
 admin.site.register(Session, SessionAdmin)
 admin.site.register(Audiotrack, AudiotrackAdmin)
 admin.site.register(Tag, TagAdmin)
-admin.site.register(UIMode, UIModeAdmin)
 admin.site.register(TagCategory, TagCategoryAdmin)
 admin.site.register(MasterUI, MasterUIAdmin)
 admin.site.register(UIMapping, UIMappingAdmin)

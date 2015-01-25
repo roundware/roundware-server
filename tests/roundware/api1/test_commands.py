@@ -707,7 +707,7 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
                                       localized_string="Cabeza",
                                       language=self.spanish)
         self.masterui = mommy.make(MasterUI, active=True,
-                                   ui_mode=self.ui_mode_listen, index=1,
+                                   ui_mode=MasterUI.LISTEN, index=1,
                                    tag_category__name='TagCatName',
                                    header_text_loc=[self.english_hdr,
                                                     self.spanish_hdr])

@@ -94,13 +94,13 @@ class Project(models.Model):
 
     @cached(60 * 60)
     def get_tag_cats_by_ui_mode(self, ui_mode):
-        """ Return TagCategories for this project for specified UIMode
-            by name, like 'listen' or 'speak'.
-            Pass name of UIMode. MasterUI must be active
+        """ Return TagCategories for this project for specified MasterUI.mode
+            by key MasterUI.SPEAK or MasterUI.LISTEN.
+            MasterUI must be active
         """
         logger.debug('inside get_tag_cats_by_ui_mode... not from cache')
         master_uis = MasterUI.objects.select_related('tag_category').filter(
-            project=self, ui_mode__name=ui_mode, active=True)
+            project=self, ui_mode=ui_mode, active=True)
         return [mui.tag_category for mui in master_uis]
 
     @cached(60 * 60)
@@ -130,14 +130,6 @@ class Session(models.Model):
 
     def __unicode__(self):
         return str(self.id)
-
-
-class UIMode(models.Model):
-    name = models.CharField(max_length=50)
-    data = models.TextField(null=True, blank=True)
-
-    def __unicode__(self):
-        return str(self.id) + ":" + self.name
 
 
 class TagCategory(models.Model):
@@ -184,21 +176,28 @@ class Tag(models.Model):
 
 
 class MasterUI(models.Model):
-    SINGLE = 'SI'
-    MULTI = 'MU'
-    MULTI_MIN_ONE = 'MO'
+    SINGLE = 'single'
+    MULTI = 'multi'
+    MULTI_MIN_ONE = 'min_one'
     SELECT_METHODS = (
         (SINGLE, 'single'),
         (MULTI, 'multi'),
         (MULTI_MIN_ONE, 'multi_at_least_one'),
     )
+    LISTEN = 'listen'
+    SPEAK = 'speak'
+    UI_MODES = (
+        (LISTEN, 'listen'),
+        (SPEAK, 'speak')
+    )
     name = models.CharField(max_length=50)
     header_text_loc = models.ManyToManyField(
         LocalizedString, null=True, blank=True)
-    ui_mode = models.ForeignKey(UIMode)
+    ui_mode = models.CharField(default=LISTEN, max_length=6, blank=False,
+                               choices=UI_MODES)
     tag_category = models.ForeignKey(TagCategory)
-    select = models.CharField(default=SINGLE, max_length=2, blank=False,
-                                     choices=SELECT_METHODS)
+    select = models.CharField(default=SINGLE, max_length=7, blank=False,
+                              choices=SELECT_METHODS)
     active = models.BooleanField(default=True)
     index = models.IntegerField()
     project = models.ForeignKey(Project)
@@ -220,17 +219,17 @@ class MasterUI(models.Model):
         # invalidate cached value for tag categories for all ui_modes for the
         # associated project.
         logger.debug("invalidating Project.get_tags_by_ui_mode for project "
-                     " %s and UIMode %s" % (self.project, self.ui_mode.name))
+                     " %s and UI Mode %s" % (self.project, self.get_ui_mode_display()))
         try:
             old_instance = MasterUI.objects.get(pk=self.pk)
-            old_ui_mode = old_instance.ui_mode.name
+            old_ui_mode = old_instance.ui_mode
             Project.get_tag_cats_by_ui_mode.invalidate(old_ui_mode)
         except ObjectDoesNotExist:
             pass
         super(MasterUI, self).save(*args, **kwargs)
 
     def __unicode__(self):
-        return str(self.id) + ":" + self.project.name + ":" + self.ui_mode.name + ":" + self.name
+        return str(self.id) + ":" + self.project.name + ":" + self.get_ui_mode_display() + ":" + self.name
 
 
 class UIMapping(models.Model):
@@ -302,9 +301,6 @@ class Event(models.Model):
     latitude = models.CharField(max_length=50, null=True, blank=True)
     longitude = models.CharField(max_length=50, null=True, blank=True)
     tags = models.TextField(null=True, blank=True)
-
-    operationid = models.IntegerField(null=True, blank=True)
-    udid = models.CharField(max_length=50, null=True, blank=True)
 
 
 class Asset(models.Model):
