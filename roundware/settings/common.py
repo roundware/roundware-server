@@ -72,9 +72,6 @@ EMAIL_HOST_PASSWORD = 'password'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-CONTINUOUS_REPEAT_MODE = "continuous"
-STOP_REPEAT_MODE = "stop"
-
 STARTUP_NOTIFICATION_MESSAGE = ""
 # Number of seconds to ban an asset/recording from playing again
 BANNED_TIMEOUT_LIMIT = 1800

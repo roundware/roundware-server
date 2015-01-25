@@ -24,7 +24,7 @@ class TestRecordingCollection(RoundwaredTestCase):
 
         self.project1 = mommy.make(Project, name='Project One',
                                    recording_radius=10,
-                                   repeat_mode__mode="stop")
+                                   repeat_mode=Project.STOP)
         self.project2 = mommy.make(Project, name='Project One',
                                    recording_radius=20)
         self.session1 = mommy.make(Session, project=self.project1,
@@ -193,8 +193,8 @@ class TestRecordingCollection(RoundwaredTestCase):
         are none left.  project in continuous repeatmode should then the
         first played recording.
         """
-        self.project1.repeat_mode.mode = "continuous"
-        self.project1.repeat_mode.save()
+        self.project1.repeat_mode = Project.CONTINOUS
+        self.project1.save()
         req = self.req1
         stream = RoundStream(self.session1.id, 'ogg', req)
         with patch.object(gpsmixer, 'distance_in_meters',

@@ -255,20 +255,6 @@
 },
 {
   "fields": {
-    "mode": "stop"
-  },
-  "model": "rw.repeatmode",
-  "pk": 1
-},
-{
-  "fields": {
-    "mode": "continuous"
-  },
-  "model": "rw.repeatmode",
-  "pk": 2
-},
-{
-  "fields": {
     "geo_speak_enabled": true,
     "sharing_message_loc": [
       49,
@@ -296,7 +282,7 @@
       47,
       48
     ],
-    "repeat_mode": 1,
+    "repeat_mode": "stop",
     "auto_submit": true,
     "listen_questions_dynamic": false,
     "demo_stream_url": "http://scapesaudio.dyndns.org:8000/scapes1.mp3",

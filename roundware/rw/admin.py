@@ -260,11 +260,6 @@ class VoteAdmin(ProjectProtectedThroughAssetModelAdmin):
     ordering = ['id']
 
 
-class RepeatModeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'mode')
-    ordering = ['id']
-
-
 class ProjectAdmin(GuardedModelAdmin):
     list_display = ('id', 'name', 'latitude', 'longitude',
                     'max_recording_length', 'recording_radius')
@@ -456,4 +451,3 @@ admin.site.register(Speaker, SpeakerAdmin)
 admin.site.register(Envelope, EnvelopeAdmin)
 admin.site.register(ListeningHistoryItem, ListeningHistoryItemAdmin)
 admin.site.register(Vote, VoteAdmin)
-admin.site.register(RepeatMode, RepeatModeAdmin)

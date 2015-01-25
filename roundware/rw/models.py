@@ -34,14 +34,24 @@ class LocalizedString(models.Model):
         return str(self.id) + ": Language Code: " + self.language.language_code + ", String: " + self.localized_string
 
 
-class RepeatMode(models.Model):
-    mode = models.CharField(max_length=50)
-
-    def __unicode__(self):
-        return str(self.id) + ": " + self.mode
-
-
 class Project(models.Model):
+    BITRATES = (
+        ('64', '64'),
+        ('96', '96'),
+        ('112', '112'),
+        ('128', '128'),
+        ('160', '160'),
+        ('192', '192'),
+        ('256', '256'),
+        ('320', '320'),
+    )
+    STOP = 'stop'
+    CONTINOUS = 'continous'
+    REPEAT_MODES = (
+        (STOP, 'stop'),
+        (CONTINOUS, 'continous'),
+    )
+
     name = models.CharField(max_length=50)
     latitude = models.FloatField()
     longitude = models.FloatField()
@@ -65,21 +75,13 @@ class Project(models.Model):
     reset_tag_defaults_on_startup = models.BooleanField(default=False)
     legal_agreement_loc = models.ManyToManyField(
         LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
-    repeat_mode = models.ForeignKey(RepeatMode, null=True)
+    repeat_mode = models.CharField(default=STOP, max_length=9, blank=False,
+                               choices=REPEAT_MODES)
+
     files_url = models.CharField(max_length=512, blank=True)
     files_version = models.CharField(max_length=16, blank=True)
-    BITRATE_CHOICES = (
-        ('64', '64'),
-        ('96', '96'),
-        ('112', '112'),
-        ('128', '128'),
-        ('160', '160'),
-        ('192', '192'),
-        ('256', '256'),
-        ('320', '320'),
-    )
     audio_stream_bitrate = models.CharField(
-        max_length=3, choices=BITRATE_CHOICES, default='128')
+        max_length=3, choices=BITRATES, default='128')
     ordering_choices = [('by_like', 'by_like'),
                         ('by_weight', 'by_weight'),
                         ('random', 'random')]
@@ -105,13 +107,7 @@ class Project(models.Model):
 
     @cached(60 * 60)
     def is_continuous(self):
-        try:
-            if self.repeat_mode.mode == settings.CONTINUOUS_REPEAT_MODE:
-                return True
-            else:
-                return False
-        except AttributeError:
-            return False
+        return self.repeat_mode == Project.CONTINOUS
 
     class Meta:
         permissions = (('access_project', 'Access Project'),)
