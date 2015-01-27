@@ -197,8 +197,8 @@ class MasterUIForSetupTagUIEditForm(MasterUIForSetupTagUIFormMixin,
 
     class Meta:
         model = MasterUI
-        fields = ['id', 'project', 'ui_mode', 'tag_category', 'select', 'active',
-                  'index', 'name', 'header_text_loc',
+        fields = ['id', 'project', 'ui_mode', 'tag_category', 'select',
+                  'active', 'index', 'name', 'header_text_loc',
                   'ui_mappings_tags', 'ui_mappings_tag_order',
                   ]
         widgets = {  # floppyforms requires override orig widgets to use theirs

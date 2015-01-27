@@ -24,7 +24,7 @@ class TestRecordingCollection(RoundwaredTestCase):
 
         self.project1 = mommy.make(Project, name='Project One',
                                    recording_radius=10,
-                                   repeat_mode__mode="stop")
+                                   repeat_mode=Project.STOP)
         self.project2 = mommy.make(Project, name='Project One',
                                    recording_radius=20)
         self.session1 = mommy.make(Session, project=self.project1,
@@ -59,10 +59,10 @@ class TestRecordingCollection(RoundwaredTestCase):
                                  audiolength=2000, weight=200,
                                  latitude=0.1, longitude=0.1)
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=self.ui_mode_listen,
+                                    ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)
         self.masterui2 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=self.ui_mode_listen,
+                                    ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)
         self.uimapping1 = mommy.make(UIMapping, master_ui=self.masterui1,
                                      tag=self.tag1, default=True, active=True)
@@ -193,8 +193,8 @@ class TestRecordingCollection(RoundwaredTestCase):
         are none left.  project in continuous repeatmode should then the
         first played recording.
         """
-        self.project1.repeat_mode.mode = "continuous"
-        self.project1.repeat_mode.save()
+        self.project1.repeat_mode = Project.CONTINOUS
+        self.project1.save()
         req = self.req1
         stream = RoundStream(self.session1.id, 'ogg', req)
         with patch.object(gpsmixer, 'distance_in_meters',

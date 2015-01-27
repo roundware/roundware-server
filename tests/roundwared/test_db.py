@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-import datetime
 from model_mommy import mommy
 
 from .common import RoundwaredTestCase
@@ -28,16 +27,16 @@ class TestGetRecordings(RoundwaredTestCase):
         self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2')
         self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3')
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=self.ui_mode_listen,
+                                    ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)
         self.masterui2 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=self.ui_mode_listen,
+                                    ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat2)
         self.masterui2 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=self.ui_mode_listen,
+                                    ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat3)
         self.masterui4 = mommy.make(MasterUI, project=self.project2,
-                                    ui_mode=self.ui_mode_listen,
+                                    ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat2)
         # Add one default tag to project1
         self.uimapping1 = mommy.make(UIMapping, master_ui=self.masterui1,
@@ -134,13 +133,13 @@ class TestFilterRecsForTags(RoundwaredTestCase):
         self.project1 = mommy.make(Project, name='Project One')
         self.project2 = mommy.make(Project, name='Project Two')
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=self.ui_mode_listen,
+                                    ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat2)
         self.masterui2 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=self.ui_mode_listen,
+                                    ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat3)
         self.masterui3 = mommy.make(MasterUI, project=self.project2,
-                                    ui_mode=self.ui_mode_listen,
+                                    ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)
         self.asset1 = mommy.make(Asset, project=self.project1,
                                  language=self.english,

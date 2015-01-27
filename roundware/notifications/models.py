@@ -46,8 +46,9 @@ class ActionNotification(models.Model):
     message = models.TextField()
     subject = models.CharField(max_length=255, blank=True)
     notification = models.ForeignKey(ModelNotification)
-    last_sent_time = models.DateTimeField(
-        null=True, default=datetime.datetime.now() - datetime.timedelta(hours=1))
+    # TODO: The default for last_sent_time is supposed to be:
+    # datetime.datetime.now() - datetime.timedelta(hours=1)
+    last_sent_time = models.DateTimeField(null=True)
     last_sent_reference = models.IntegerField(null=True)
     active = models.BooleanField(default=True)
 

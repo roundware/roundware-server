@@ -260,11 +260,6 @@ class VoteAdmin(ProjectProtectedThroughAssetModelAdmin):
     ordering = ['id']
 
 
-class RepeatModeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'mode')
-    ordering = ['id']
-
-
 class ProjectAdmin(GuardedModelAdmin):
     list_display = ('id', 'name', 'latitude', 'longitude',
                     'max_recording_length', 'recording_radius')
@@ -299,17 +294,7 @@ class SessionAdmin(ProjectProtectedModelAdmin):
     ordering = ['-id']
 
 
-class UIModeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'data')
-    ordering = ['id']
-
-
 class TagCategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'data')
-    ordering = ['id']
-
-
-class SelectionMethodAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'data')
     ordering = ['id']
 
@@ -456,17 +441,13 @@ admin.site.register(LocalizedString, LocalizedStringAdmin)
 admin.site.register(Session, SessionAdmin)
 admin.site.register(Audiotrack, AudiotrackAdmin)
 admin.site.register(Tag, TagAdmin)
-admin.site.register(UIMode, UIModeAdmin)
 admin.site.register(TagCategory, TagCategoryAdmin)
 admin.site.register(MasterUI, MasterUIAdmin)
 admin.site.register(UIMapping, UIMappingAdmin)
-admin.site.register(SelectionMethod, SelectionMethodAdmin)
 admin.site.register(Project, ProjectAdmin)
-admin.site.register(EventType)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Asset, AssetAdmin)
 admin.site.register(Speaker, SpeakerAdmin)
 admin.site.register(Envelope, EnvelopeAdmin)
 admin.site.register(ListeningHistoryItem, ListeningHistoryItemAdmin)
 admin.site.register(Vote, VoteAdmin)
-admin.site.register(RepeatMode, RepeatModeAdmin)
