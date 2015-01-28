@@ -598,7 +598,7 @@
   "fields": {
     "index": 1,
     "name": "What genders do you want to listen to?",
-    "select_method": "min_one",
+    "select": "min_one",
     "project": 1,
     "ui_mode": "listen",
     "active": true,
@@ -615,7 +615,7 @@
   "fields": {
     "index": 3,
     "name": "What do you want to listen to?",
-    "select_method": "min_one",
+    "select": "min_one",
     "project": 1,
     "ui_mode": "listen",
     "active": true,
@@ -631,7 +631,7 @@
   "fields": {
     "index": 1,
     "name": "What gender are you?",
-    "select_method": "single",
+    "select": "single",
     "project": 1,
     "ui_mode": "speak",
     "active": true,
@@ -647,7 +647,7 @@
   "fields": {
     "index": 3,
     "name": "What do you want to talk about?",
-    "select_method": "single",
+    "select": "single",
     "project": 1,
     "ui_mode": "speak",
     "active": true,
@@ -663,7 +663,7 @@
   "fields": {
     "index": 2,
     "name": "Who do you want to hear?",
-    "select_method": "min_one",
+    "select": "min_one",
     "project": 1,
     "ui_mode": "listen",
     "active": true,
@@ -679,7 +679,7 @@
   "fields": {
     "index": 2,
     "name": "Who are you?",
-    "select_method": "single",
+    "select": "single",
     "project": 1,
     "ui_mode": "speak",
     "active": true,
