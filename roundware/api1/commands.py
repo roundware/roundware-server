@@ -299,12 +299,17 @@ def get_available_assets(request):
         except models.LocalizedString.DoesNotExist:
             # try object's specified language
             asset_lang = asset.language
-            if asset_lang and retlng != asset_lang:
-                localization = tag.loc_msg.get(language=asset_lang)
-            else:
-                # fall back to English
-                eng_id = models.Language.objects.get(language_code='en')
-                localization = tag.loc_msg.get(language=eng_id)
+            try:
+                if asset_lang and best_lang_id != asset_lang:
+                    localization = tag.loc_msg.get(language=asset_lang)
+                else:
+                    # fall back to English
+                    english = models.Language.objects.get(language_code='en')
+                    localization = tag.loc_msg.get(language=english)
+            except models.LocalizedString.DoesNotExist:
+                # Worst case return the unlocalized value.
+                # Yes, Tag.loc_msg = Tag.value.
+                return tag.value
         return localization.localized_string
 
     form = request.GET
