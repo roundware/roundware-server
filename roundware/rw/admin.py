@@ -86,6 +86,27 @@ class ProjectProtectedModelAdmin(admin.ModelAdmin):
         return qset.filter(project__in=get_objects_for_user(request.user, 'rw.access_project'))
 
 
+def copy_asset(modeladmin, request, queryset):
+    for obj in queryset:
+        tags = obj.tags.all()
+        obj.pk = None
+        obj.save()
+        for i in tags:
+            obj.tags.add(i)
+copy_asset.short_description = "Copy selected assets"
+
+def copy_asset_with_votes(modeladmin, request, queryset):
+    for obj in queryset:
+        tags = obj.tags.all()
+        votes = obj.vote_set.all()
+        obj.pk = None
+        obj.save()
+        for i in tags:
+            obj.tags.add(i)
+        for i in votes:
+            obj.vote_set.add(i)
+copy_asset_with_votes.short_description = "Copy selected assets while retaining votes"
+
 class AssetAdmin(ProjectProtectedModelAdmin):
     valid_lookups = ('tags__tag_category__name', 'tags__description')
 
@@ -127,27 +148,6 @@ class AssetAdmin(ProjectProtectedModelAdmin):
         # only call add_asset_to_envelope when the model is being added.
         if not change:
             add_asset_to_envelope(instance=obj)
-
-    def copy_asset(self, modeladmin, request, queryset):
-        for obj in queryset:
-            tags = obj.tags.all()
-            obj.pk = None
-            obj.save()
-            for i in tags:
-                obj.tags.add(i)
-    copy_asset.short_description = "Copy selected assets"
-
-    def copy_asset_with_votes(self, modeladmin, request, queryset):
-        for obj in queryset:
-            tags = obj.tags.all()
-            votes = obj.vote_set.all()
-            obj.pk = None
-            obj.save()
-            for i in tags:
-                obj.tags.add(i)
-            for i in votes:
-                obj.vote_set.add(i)
-    copy_asset_with_votes.short_description = "Copy selected assets while retaining votes"
 
     actions = [copy_asset, copy_asset_with_votes]
     actions_on_bottom = True
