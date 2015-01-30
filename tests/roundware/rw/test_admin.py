@@ -15,9 +15,9 @@ from model_mommy import mommy
 from .common import FakeRequest, RWTestCase
 
 
-def str_to_class(str):
+def str_to_class(string):
     # print __name__
-    return getattr(sys.modules[__name__], str)
+    return getattr(sys.modules[__name__], string)
 
 
 class TestAssetAdmin(RWTestCase, WebTest):
@@ -82,7 +82,7 @@ class TestAssetAdmin(RWTestCase, WebTest):
         self.assertNotIn(str(self.asset2.id), response3.text)
 
     def need_updating_for_boostrapped_test_func_filter_by_audiolength_show_correct_filters(self):
-        """ test we get custom filter providing filters by range of 
+        """ test we get custom filter providing filters by range of
         audiolengths on assets
         """
         self._login(username=self.username, password='foo')
@@ -135,12 +135,12 @@ class TestProtectedAdmin(RWTestCase):
         self.site = AdminSite
         self.permitted_project = mommy.make('rw.Project', name='permitted')
         self.excluded_project = mommy.make('rw.Project', name='excluded')
-        self.ui_mode = mommy.make('rw.UIMode')
+        self.ui_mode = MasterUI.LISTEN
         self.default_session = mommy.make_recipe('rw.default_session')
         self.default_session_id = self.default_session.id
         self.tag_category = mommy.make('rw.TagCategory')
         self.tag = mommy.make('rw.Tag')
-        self.selection_method = mommy.make('rw.SelectionMethod')
+        self.selection_method = MasterUI.SINGLE
         # self.permitted_project = Project.objects.create(name="permitted", latitude=1, longitude=1,
         #     pub_date="1111-11-11", max_recording_length=1)
         # self.excluded_project = Project.objects.create(name="excluded", latitude=1, longitude=1,
@@ -200,9 +200,10 @@ class TestProtectedAdmin(RWTestCase):
         """
         protected_model_test_data = [
             ['Session', [['starttime', '1999-01-01']]],
-            ['MasterUI', [['ui_mode_id', self.ui_mode.id],
+            ['MasterUI', [['ui_mode', self.ui_mode],
                           ['tag_category_id', self.tag_category.id],
-                          ['select_id', self.selection_method.id], ['index', 3],
+                          ['select', self.selection_method],
+                          ['index', 3],
                           ['min_volume', 3], ]],
             ['Audiotrack', [['minvolume', 1], ['maxvolume', 2],
                             ['minduration', 3], ['maxduration', 4],
@@ -275,9 +276,9 @@ class TestProtectedAdmin(RWTestCase):
         ]
 
         extra_params = {
-            'ui_mode_id': self.ui_mode.id,
+            'ui_mode': self.ui_mode,
             'tag_category_id': self.tag_category.id,
-            'select_id': self.selection_method.id,
+            'select': self.selection_method,
             'index': 3
         }
 

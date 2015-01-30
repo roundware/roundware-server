@@ -692,6 +692,7 @@ class TestServer(RoundwaredTestCase):
     def test_project_out_of_range_message_localized(self):
         pass
 
+
 class TestGetConfigTagJSON(RoundwaredTestCase):
     """ test various permutations of server.get_config_tag
     """
@@ -706,7 +707,7 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
                                       localized_string="Cabeza",
                                       language=self.spanish)
         self.masterui = mommy.make(MasterUI, active=True,
-                                   ui_mode=self.ui_mode_listen, index=1,
+                                   ui_mode=MasterUI.LISTEN, index=1,
                                    tag_category__name='TagCatName',
                                    header_text_loc=[self.english_hdr,
                                                     self.spanish_hdr])
@@ -736,7 +737,7 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
             {'name': self.masterui.name,
              'header_text': "Head",
              'code': 'TagCatName',
-             'select': self.masterui.select.name,
+             'select': self.masterui.get_select_display(),
              'order': 1,
              'defaults': [self.ui_mapping_one.tag.id],
              'options': [{
@@ -810,6 +811,7 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
         config = get_config_tags(None, self.spanish_sess)
         self.assertEquals('Uno',
                           config['listen'][0]['options'][0]['value'])
+
 
 class TestListeningHistoryDB(RoundwaredTestCase):
 

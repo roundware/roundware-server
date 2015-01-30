@@ -125,11 +125,11 @@ cp $CODE_PATH/files/64-bit/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0
 # Set $USERNAME to own all files
 chown $USERNAME:$USERNAME -R $HOME_PATH
 
-# Add initial database data
-mysql -uroot -p$MYSQL_ROOT roundware < $CODE_PATH/files/rw_base.sql
-
 # Setup the default admin account
-su - $USERNAME -c "$CODE_PATH/roundware/manage.py loaddata $CODE_PATH/roundware/fixtures/default_auth_data.json"
+su - $USERNAME -c "$CODE_PATH/roundware/manage.py loaddata default_auth.json"
+
+# Setup the sample project
+su - $USERNAME -c "$CODE_PATH/roundware/manage.py loaddata sample_project.json"
 
 service apache2 restart
 
