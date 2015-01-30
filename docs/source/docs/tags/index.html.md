@@ -20,6 +20,64 @@ tags for their contributions, so most Roundware projects have between 2-3 tag ca
 
 Also see more info on [Tag Setup](../setup/tag.html) and [Tag Admin](../admin/tag.html).
 
+### Tag Filtering
+
+Since tags are grouped by ```tag_category```, the filtering mechanism becomes slightly more complex than a
+simple AND or OR filter of tag ids.
+
+* Within each ```tag_category```, filters work as an OR filter such that any asset tagged with any one of the
+tag ids passed is included.
+* Between the represented ```tag_categories```, filtering is done with an AND filter.
+* Any ```tag_category``` not represented by any of the tag ids present in the request will be ignored entirely such
+that no further filtering occurs per that ```tag_category```.
+
+#### Example
+
+Let's say we have three tag categories and respective tag ids: ```gender``` [tag ids 1, 2], ```age``` [tag ids 3, 4], and ```question``` [tag ids 5, 6].
+And we have two assets:
+
+*Asset A* - tag ids 1, 3, 5
+
+*Asset B* - tag ids 2, 4, 5
+
+<table class="table table-striped table-bordered mr-types">
+    <thead>
+        <tr>
+            <th>Tag id parameters</th>
+            <th>Boolean interpretation</th>
+            <th>Assets returned</th>
+            <th>Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1, 3, 4, 5, 6</td>
+            <td>1 AND (3 OR 4) AND (5 OR 6)</td>
+            <td>B</td>
+            <td>even though B contains tag ids 4 and 5, since it doesn't include tag id 1, it is filtered out</td>
+        </tr>
+        <tr>
+            <td>1, 4, 5</td>
+            <td>1 AND 4 AND 5</td>
+            <td>NONE</td>
+            <td>no assets are returned despite the fact that assets exist with each of the individual tags passed;
+                one from each tag category is not matched in any available asset, hence nothing returned</td>
+        </tr>
+        <tr>
+            <td>1, 2, 3, 4, 6</td>
+            <td>(1 OR 2) AND (3 OR 4) AND 6</td>
+            <td>NONE</td>
+            <td>neither A nor B contain tag id 6, so nothing is returned</td>
+        </tr>
+        <tr>
+            <td>1, 2, 3, 4</td>
+            <td>(1 OR 2) AND (3 OR 4)</td>
+            <td>A, B</td>
+            <td>question tag category is ignored entirely as no tag id in the category was passed</td>
+        </tr>
+    </tbody>
+</table>
+
 ### Tag Relationships
 
 Tags can be related to each other in order to create tag hierarchies.  For example, say there is a project with two
