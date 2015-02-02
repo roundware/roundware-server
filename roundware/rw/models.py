@@ -559,6 +559,21 @@ class Vote(models.Model):
         return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)
 
 
+class TimedAsset(models.Model):
+    """
+    Items to play at specific times of the stream duration.
+    """
+    project = models.ForeignKey(Project)
+    asset = models.ForeignKey(Asset)
+    # Asset start time in seconds
+    start = models.FloatField()
+    # Asset end time in seconds
+    end = models.FloatField()
+
+    def __unicode__(self):
+        return "%s: Asset id: %s: Start: %s: End: %s" % (self.id, self.asset.id, self.start, self.end)
+
+
 def get_field_names_from_model(model):
     """Pass in a model class. Return list of strings of field names"""
     return [f.name for f in model._meta.fields]

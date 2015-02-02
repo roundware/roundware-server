@@ -73,7 +73,7 @@ class AudioTrack:
                 self.src_wav_file.pan_to(self.current_pan_pos)
 
     def move_listener(self, posn):
-        if self.rc.has_nearby_unplayed() and not self.timeout_exists:
+        if not self.timeout_exists:
             self.add_file()
 # FIXME: This code is responsible for swapping the playing file if there is
 #   a closer one to play and we've walked out of range of another.

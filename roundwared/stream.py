@@ -123,22 +123,22 @@ class RoundStream:
         for track in self.audiotracks:
             track.move_listener(self.listener)
 
-    def move_listener(self, listener):
-        if listener['latitude'] and listener['longitude']:
+    def move_listener(self, request):
+        if request['latitude'] and request['longitude']:
             self.heartbeat()
-            self.listener = listener
-            logger.debug("move_listener(%s,%s)", listener['latitude'],
-                         listener['longitude'])
+            self.listener = request
+            logger.debug("move_listener(%s,%s)", request['latitude'],
+                         request['longitude'])
             if self.gps_mixer:
-                self.gps_mixer.move_listener(listener)
-            self.recordingCollection.move_listener(listener)
+                self.gps_mixer.move_listener(request)
+            self.recordingCollection.move_listener(request)
             # logger.info("Stream: move_listener: Going to play: " \
             # + ",".join(self.recordingCollection.get_filenames()) \
             # + " Total of " \
             # + str(len(self.recordingCollection.get_filenames()))
             # + " files.")
             for track in self.audiotracks:
-                track.move_listener(listener)
+                track.move_listener(request)
         else:
             logger.debug("no lat and long. Returning...")
 
