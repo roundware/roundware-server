@@ -98,11 +98,8 @@ mkdir -p $STATIC_PATH
 # copy test audio file to media storage
 cp $SOURCE_PATH/files/rw_test_audio1.wav $MEDIA_PATH
 
-# Setup apache
-a2enmod rewrite
-a2enmod wsgi
-a2enmod headers
-a2dissite 000-default
+# Copy default production settings file
+cp $SOURCE_PATH/files/var-www-roundware-settings.py $WWW_PATH/settings/roundware_production.py
 
 # Setup roundware log and logrotate
 touch /var/log/roundware
@@ -111,6 +108,11 @@ chown $USERNAME:$USERNAME /var/log/roundware
 # Run the production upgrade/deployment script
 $SOURCE_PATH/deploy.sh
 
+# Setup Apache Server
+a2enmod rewrite
+a2enmod wsgi
+a2enmod headers
+a2dissite 000-default
 # Setup roundware in Apache
 rm -f /etc/apache2/sites-available/roundware.conf
 sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-apache2-sites-available-roundware > /etc/apache2/sites-available/roundware.conf
@@ -118,7 +120,8 @@ a2ensite roundware
 
 # Setup logrotate
 sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-logrotate-d-roundware > /etc/logrotate.d/roundware
-# install correct shout2send gstreamer plugin
+
+# Install correct shout2send gstreamer plugin
 mv /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so.old
 cp $CODE_PATH/files/64-bit/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so
 

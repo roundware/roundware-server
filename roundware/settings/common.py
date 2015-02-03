@@ -51,7 +51,8 @@ RECORDING_RADIUS = 1
 DEMO_STREAM_CPU_LIMIT = 50.0
 
 ALLOWED_AUDIO_MIME_TYPES = ['audio/x-wav', 'audio/wav',
-                            'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf', 'audio/mp3', ]
+                            'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',
+                            'audio/mp3', 'video/quicktime']
 ALLOWED_IMAGE_MIME_TYPES = [
     'image/jpeg', 'image/gif', 'image/png', 'image/pjpeg', ]
 ALLOWED_TEXT_MIME_TYPES = ['text/plain', 'text/html', 'application/xml', ]
@@ -64,8 +65,8 @@ DEFAULT_SESSION_ID = "-10"
 MANAGERS = ADMINS
 # change this to the proper id for AnonymousUser in database for Guardian
 ANONYMOUS_USER_ID = -1
-# settings for notifications module
-# this is the email account from which notifications will be sent
+
+# The email account from which notifications will be sent
 EMAIL_HOST = 'smtp.example.com'
 EMAIL_HOST_USER = 'email@example.com'
 EMAIL_HOST_PASSWORD = 'password'
@@ -268,12 +269,12 @@ LOGGING = {
         },
         # The roundware system logger.
         'roundware': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'handlers': ['file', 'mail_admins'],
         },
         # The roundwared stream manager logger.
         'roundwared': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'handlers': ['file', 'mail_admins'],
         },
     },
