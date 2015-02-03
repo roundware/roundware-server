@@ -49,11 +49,10 @@ if [ ! "$FOUND_VAGRANT" = true ]; then
     useradd $USERNAME -s /bin/bash -m -d $HOME_PATH
   fi
 
-  # If source and dev code paths are different, copy source to code.
+  # If source and dev code paths are different, create a symbolic link to code.
   if [ $SOURCE_PATH != $DEV_CODE_PATH ]; then
     rm -rf $DEV_CODE_PATH
-    mkdir -p $DEV_CODE_PATH
-    cp -R $SOURCE_PATH/. $DEV_CODE_PATH
+    ln -sfn $CODE_PATH $DEV_CODE_PATH
   fi
 fi
 
