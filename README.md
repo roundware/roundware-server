@@ -1,6 +1,6 @@
 # ROUNDWARE SERVER
 
-[![Build Status](https://travis-ci.org/hburgund/roundware-server.svg?branch=develop)](https://travis-ci.org/hburgund/roundware-server)
+[![Build Status](https://travis-ci.org/roundware/roundware-server.svg?branch=develop)](https://travis-ci.org/roundware/roundware-server)
 
 ## Overview
 
@@ -8,11 +8,11 @@ Roundware is a client-server system. The server runs using Apache HTTP Server an
 
 For more information about Roundware functionalities and projects that use the platform, please check out: [roundware.org](http://roundware.org "Roundware")
 
-## Basic Installation
+## Installation
 
 Roundware includes an *install.sh* to handle installation of the software and its dependencies. The majority of the process is automated. Further configuration is required for a production system, application specific details are below.
 
-    user@server:~ $ git clone https://github.com/hburgund/roundware-server.git
+    user@server:~ $ git clone https://github.com/roundware/roundware-server.git
     user@server:~ $ cd roundware-server
     user@server:~/roundware-server $ sudo ./install.sh
 
@@ -20,11 +20,20 @@ The installation process creates a *roundware* user as project owner. su to that
 
     sudo su - roundware
 
+## Production Settings
+
+The production Roundware/Django settings file used by WSGI Apache2 is stored
+outside of the source code directory in the file
+`/var/www/roundware/settings/roundware_production.py`. All
+settings in `/var/www/roundware/source/roundware/settings/common.py` can be
+overridden there. Do not modify any file within the `/var/www/roundware/source`
+directory unless you intend to maintain your own fork of Roundware Server.
+
 ## Vagrant
 
 A VagrantFile is included for local development and testing with [Vagrant](http://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/). Usage:
 
-    user@local-machine:~ $ git clone https://github.com/hburgund/roundware-server.git
+    user@local-machine:~ $ git clone https://github.com/roundware/roundware-server.git
     user@local-machine:~ $ cd roundware-server
     user@local-machine:~/roundware-server $ vagrant up
     user@local-machine:~/roundware-server $ vagrant ssh
@@ -48,6 +57,8 @@ Notes:
 
     user@server:~/roundware-server $ git pull
     user@server:~/roundware-server $ sudo ./deploy.sh
+
+# Additional Details
 
 ## Icecast
 
@@ -152,10 +163,6 @@ environment variables) to add:
 
 Note: You can use a local_settings.py (not in version control) inside
 of the `roundware/settings/` directory.
-
-## Config
-
-All Roundware specific settings are stored in `roundware/settings/common.py`
 
 ## Testing
 
