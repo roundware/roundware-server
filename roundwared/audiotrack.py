@@ -42,14 +42,20 @@ class AudioTrack:
         self.state = STATE_WAITING
         self.src_wav_file = None
         self.current_recording = None
+        self.timeout_exists = False
 
     def wait_and_play(self):
         def callback():
             self.add_file()
-            return False
+            # Forget the timeout once it's complete.
+            self.timeout_exists = False
+
+        # Generate a somewhat random amount of dead air.
         deadair = random.randint(
             self.settings.mindeadair,
             self.settings.maxdeadair) / gst.MSECOND
+        # Remember we are making a timeout
+        self.timeout_exists = True
         gobject.timeout_add(deadair, callback)
 
     def stereo_pan(self):
@@ -67,9 +73,8 @@ class AudioTrack:
                 self.src_wav_file.pan_to(self.current_pan_pos)
 
     def move_listener(self, posn):
-        if self.rc.has_nearby_unplayed():
-            if self.state == STATE_WAITING:
-                self.add_file()
+        if self.rc.has_nearby_unplayed() and not self.timeout_exists:
+            self.add_file()
 # FIXME: This code is responsible for swapping the playing file if there is
 #   a closer one to play and we've walked out of range of another.
 #   Problem is it sounds bad without the ability to fade it out.
