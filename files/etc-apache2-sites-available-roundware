@@ -37,6 +37,7 @@
   WSGIApplicationGroup %{GLOBAL}
   WSGIProcessGroup roundware
   WSGIScriptAlias / /var/www/roundware/source/files/roundware.wsgi
+  WSGIPassAuthorization On
 
   # allow CORS for listen map, session map etc
   Header set Access-Control-Allow-Origin "*"
