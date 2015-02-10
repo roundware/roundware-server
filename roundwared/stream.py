@@ -12,7 +12,7 @@ import time
 import urllib
 from django.conf import settings
 from roundware.rw import models
-from roundware.api1.commands import log_event
+from roundware.lib.api import log_event
 from roundwared.audiotrack import AudioTrack
 from roundwared import icecast2
 from roundwared import gpsmixer
