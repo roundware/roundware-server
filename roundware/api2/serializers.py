@@ -15,24 +15,30 @@ logger = logging.getLogger(__name__)
 
 class AssetSerializer(serializers.ModelSerializer):
     audiolength_in_seconds = serializers.FloatField()
+
     class Meta:
         model = Asset
+
 
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
 
+
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
+
 
 class ListenEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = ListeningHistoryItem
 
+
 class SessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
+
 
 class StreamSerializer(serializers.Serializer):
     session_id = serializers.IntegerField()
