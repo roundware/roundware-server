@@ -75,17 +75,6 @@ class AudioTrack:
     def move_listener(self, posn):
         if not self.timeout_exists:
             self.add_file()
-# FIXME: This code is responsible for swapping the playing file if there is
-#   a closer one to play and we've walked out of range of another.
-#   Problem is it sounds bad without the ability to fade it out.
-#   Uncomment this when fading works.
-#           elif self.state == STATE_PLAYING:
-#               if not self.rc.is_nearby(
-#                       listener,
-#                       self.currently_playing_recording):
-# FIXME: This should fade out.
-#                   self.clean_up()
-#                   self.add_file()
 
     ######################################################################
     # PRIVATE
