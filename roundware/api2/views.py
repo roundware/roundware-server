@@ -19,13 +19,14 @@ logger = logging.getLogger(__name__)
 
 # Note: Keep this stuff in alphabetical order!
 
+
 class AssetViewSet(viewsets.ModelViewSet):
     """
     API V2: api/2/assets/:asset_id
 
     <Permissions>
     Anonymous: None.
-    Authenticated: GET/POST. PUT/PATCH/DELETE for objects owned by user. 
+    Authenticated: GET/POST. PUT/PATCH/DELETE for objects owned by user.
     Admin: GET/POST/PUT/PATCH/DELETE.
     """
 
@@ -34,13 +35,14 @@ class AssetViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.AssetSerializer
     permission_classes = (IsAuthenticated, DjangoObjectPermissions)
 
+
 class EventViewSet(viewsets.ModelViewSet):
     """
     API V2: api/2/events/:event_id
 
     <Permissions>
     Anonymous: None.
-    Authenticated: GET/POST 
+    Authenticated: GET/POST
     Admin: GET/POST
     """
 
@@ -48,6 +50,7 @@ class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = serializers.EventSerializer
     permission_classes = (IsAuthenticated,)
+
 
 class ListenEventViewSet(viewsets.ModelViewSet):
     """
@@ -65,6 +68,7 @@ class ListenEventViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ListenEventSerializer
     permission_classes = (IsAuthenticated,)
 
+
 class ProjectViewSet(viewsets.ModelViewSet):
     """
     API V2: api/2/projects/:project_id
@@ -78,6 +82,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = serializers.ProjectSerializer
     permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
+
 
 class StreamViewSet(viewsets.ViewSet):
     """
@@ -102,10 +107,7 @@ class StreamViewSet(viewsets.ViewSet):
             raise ParseError(serializer.errors)
 
         # TODO: Return data about the stream, only if it exists.
-
-
         return Response(serializer.data)
-
 
     def create(self, request):
         serializer = serializers.StreamSerializer()
@@ -124,6 +126,7 @@ class SessionViewSet(viewsets.ModelViewSet):
     queryset = Session.objects.all()
     serializer_class = serializers.SessionSerializer
     permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
+
 
 class TagViewSet(viewsets.ModelViewSet):
     """
