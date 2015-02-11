@@ -29,7 +29,8 @@ class RecordingCollection:
 
     def __init__(self, stream, request, radius, ordering='random'):
         logger.debug("RecordingCollection init - request: " + str(request))
-        self.start_time = time()
+        # Start time is not valid until self.start() is called.
+        self.start_time = 0
         self.stream = stream
         self.request = request
         self.radius = radius
@@ -51,6 +52,12 @@ class RecordingCollection:
 
         self.lock = threading.Lock()
         self.update_request(self.request, update_proximity=False)
+
+    def start(self):
+        """
+        Init the timer with the actual audiotrack start time.
+        """
+        self.start_time = time()
 
     def update_request(self, request, update_proximity=True, lock=True):
         """
