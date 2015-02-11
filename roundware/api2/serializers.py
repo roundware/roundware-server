@@ -8,6 +8,7 @@ from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
 from roundware.rw.models import Session
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
+from roundware.lib.api import get_config_tags
 import logging
 
 logger = logging.getLogger(__name__)
@@ -26,8 +27,13 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    tags = serializers.SerializerMethodField()
+
     class Meta:
         model = Project
+
+    def get_tags(self, project):
+        return get_config_tags(p=project, s=None)
 
 
 class ListenEventSerializer(serializers.ModelSerializer):
