@@ -23,7 +23,7 @@ from roundware.lib import dbus_send
 from roundware.lib.exception import RoundException
 from roundwared import icecast2
 from roundwared import gpsmixer
-from roundware.lib.api import get_config_tags, t
+from roundware.lib.api import get_project_tags, t
 
 logger = logging.getLogger(__name__)
 
@@ -256,7 +256,7 @@ def get_tags_for_project(request):
         p = models.Project.objects.get(id=form.get('project_id'))
     if 'session_id' in form:
         s = models.Session.objects.get(id=form.get('session_id'))
-    return get_config_tags(p, s)
+    return get_project_tags(p, s)
 
 
 # get_available_assets

@@ -19,8 +19,7 @@ def t(msg, field, language):
     return msg
 
 
-# @profile(stats=True)
-def get_config_tags(p=None, s=None):
+def get_project_tags(p=None, s=None):
     if s is None and p is None:
         raise RoundException("Must pass either a project or a session")
     language = models.Language.objects.filter(language_code='en')[0]
