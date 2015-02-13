@@ -77,7 +77,7 @@ class Project(models.Model):
     legal_agreement_loc = models.ManyToManyField(
         LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
     repeat_mode = models.CharField(default=STOP, max_length=9, blank=False,
-                               choices=REPEAT_MODES)
+                                   choices=REPEAT_MODES)
 
     files_url = models.CharField(max_length=512, blank=True)
     files_version = models.CharField(max_length=16, blank=True)
@@ -455,11 +455,11 @@ class Asset(models.Model):
     def get_likes(self):
         return self.vote_set.filter(type__iexact="like").count()
 
-    #get_flags.admin_order_field = "vote"
+    # get_flags.admin_order_field = "vote"
     get_flags.short_description = "Flags"
     get_flags.name = "Flags"
 
-    #get_likes.admin_order_field = "vote"
+    # get_likes.admin_order_field = "vote"
     get_likes.short_description = "Likes"
     get_likes.name = "Likes"
 
