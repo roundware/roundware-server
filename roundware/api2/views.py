@@ -165,6 +165,7 @@ class UserViewSet(viewsets.ViewSet):
             # try to find user profile:
             try:
                 profile = UserProfile.objects.get(device_id=self.request.data["device_id"][:254])
+                user = profile.user
                 # try to find existing token
                 try:
                     token = Token.objects.get(user=profile.user)
@@ -177,4 +178,4 @@ class UserViewSet(viewsets.ViewSet):
                 user = serializer.save()
                 # obtain token for this new user
                 token = Token.objects.create(user=user)
-        return Response({"username": profile.user.username, "token": token.key})
+        return Response({"username": user.username, "token": token.key})
