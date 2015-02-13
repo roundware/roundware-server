@@ -14,7 +14,8 @@ from django.conf import settings
 from datetime import datetime
 from cache_utils.decorators import cached
 from roundwared.gpsmixer import distance_in_meters
-
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 import logging
 logger = logging.getLogger(__name__)
 
@@ -557,6 +558,19 @@ class Vote(models.Model):
 
     def __unicode__(self):
         return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User)
+    device_id = models.CharField(max_length=255, null=True)
+    client_type = models.CharField(max_length=255, null=True)
+
+
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.get_or_create(user=instance)
+
+post_save.connect(create_user_profile, sender=User)
 
 
 def get_field_names_from_model(model):

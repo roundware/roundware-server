@@ -4,13 +4,15 @@
 # The Django REST Framework Views for the V2 API.
 from __future__ import unicode_literals
 from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
-                                 Session, Tag)
+                                 Session, Tag, UserProfile)
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
+from rest_framework.authtoken.models import Token
 from rest_framework import viewsets
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
+from django.contrib.auth.models import User
 import logging
 
 logger = logging.getLogger(__name__)
@@ -142,3 +144,37 @@ class TagViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TagSerializer
     permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
+
+class UserViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/users/:user_id
+
+    <Permissions>
+    Anonymous: POST
+    Authenticated: GET, PATCH
+    Admin: POST, GET, PATCH, DELETE.
+    """
+    queryset = User.objects.all()
+
+    def create(self, request):
+        """
+        POST api/2/user/ - Creates new user based on either device_id or username/pass. Returns token
+        """
+        serializer = serializers.UserSerializer(data=request.data)
+        if serializer.is_valid():
+            # try to find user profile:
+            try:
+                profile = UserProfile.objects.get(device_id=self.request.data["device_id"][:254])
+                # try to find existing token
+                try:
+                    token = Token.objects.get(user=profile.user)
+                # create a token for this profile
+                except Token.DoesNotExist:
+                    token = Token.objects.create(user=profile.user)
+            # no matching device_id in profiles, create new user
+            except UserProfile.DoesNotExist:
+                # save the serializer to create new user account
+                user = serializer.save()
+                # obtain token for this new user
+                token = Token.objects.create(user=user)
+        return Response({"username": profile.user.username, "token": token.key})
