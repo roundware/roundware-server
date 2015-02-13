@@ -3,12 +3,11 @@
 
 # The Django REST Framework object serializers for the V2 API.
 from __future__ import unicode_literals
-from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
-                                 Tag)
-from roundware.rw.models import Session
+from roundware.rw.models import Asset, Event, ListeningHistoryItem, Project, Tag, Session
+from roundware.lib.api import get_project_tags
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
-from roundware.lib.api import get_config_tags
+from django.contrib.auth.models import User
 import logging
 
 logger = logging.getLogger(__name__)
@@ -87,3 +86,30 @@ class StreamSerializer(serializers.Serializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
+
+
+class UserSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=255, required=False)
+    device_id = serializers.CharField(max_length=255, required=False)
+    client_type = serializers.CharField(max_length=255, required=False)
+
+    def validate(self, attrs):
+        """
+        Validates the data used to instantiate the serializer
+        """
+        if "device_id" in attrs and "client_type" in attrs:
+            return attrs
+        else:
+            raise ValidationError("Invalid user request")
+
+    def create(self, validated_data):
+        """
+        Creates a new user object for the serializer's .save() method
+        """
+        username = validated_data["device_id"][:29]
+        password = User.objects.make_random_password()
+        user = User.objects.create_user(username=username, password=password)
+        user.userprofile.device_id = validated_data["device_id"][:254]
+        user.userprofile.client_type = validated_data["client_type"][:254]
+        user.userprofile.save()
+        return user
