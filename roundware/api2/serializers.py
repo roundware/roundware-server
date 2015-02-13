@@ -33,7 +33,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
 
     def get_tags(self, project):
-        return get_config_tags(p=project, s=None)
+        return get_project_tags(p=project, s=None)
 
 
 class ListenEventSerializer(serializers.ModelSerializer):
