@@ -3,16 +3,19 @@
 
 # The Django REST Framework Views for the V2 API.
 from __future__ import unicode_literals
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
                                  Session, Tag, UserProfile)
+from roundware.api2 import serializers
+from roundware.api2.permissions import AuthenticatedReadAdminWrite
+from roundware.lib.api import get_project_tags
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 from rest_framework.authtoken.models import Token
-from rest_framework import viewsets
-from roundware.api2 import serializers
-from roundware.api2.permissions import AuthenticatedReadAdminWrite
-from django.contrib.auth.models import User
+from rest_framework.decorators import detail_route, list_route
 import logging
 
 logger = logging.getLogger(__name__)
@@ -69,21 +72,6 @@ class ListenEventViewSet(viewsets.ModelViewSet):
     queryset = ListeningHistoryItem.objects.all()
     serializer_class = serializers.ListenEventSerializer
     permission_classes = (IsAuthenticated,)
-
-
-class ProjectViewSet(viewsets.ModelViewSet):
-    """
-    API V2: api/2/projects/:project_id
-
-    <Permissions>
-    Anonymous: None.
-    Authenticated: GET.
-    Admin: GET/POST/PUT/PATCH/DELETE.
-    """
-    # TODO: Return messages in response
-    queryset = Project.objects.all()
-    serializer_class = serializers.ProjectSerializer
-    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
 
 class StreamViewSet(viewsets.ViewSet):
@@ -151,8 +139,8 @@ class UserViewSet(viewsets.ViewSet):
 
     <Permissions>
     Anonymous: POST
-    Authenticated: GET, PATCH
-    Admin: POST, GET, PATCH, DELETE.
+    Authenticated: None
+    Admin: None
     """
     queryset = User.objects.all()
 
@@ -179,3 +167,28 @@ class UserViewSet(viewsets.ViewSet):
                 # obtain token for this new user
                 token = Token.objects.create(user=user)
         return Response({"username": user.username, "token": token.key})
+
+
+class ProjectViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/projects/:project_id
+            api/2/projects/:project_id/tags
+
+    <Permissions>
+    Anonymous: None
+    Authenticated: GET
+    Admin: None
+    """
+    queryset = Project.objects.all()
+    permission_classes = (IsAuthenticated, )
+
+    def retrieve(self, request, pk=None):
+        project = get_object_or_404(Project, pk=pk)
+        serializer = serializers.ProjectSerializer(project)
+        return Response(serializer.data)
+
+    @detail_route(methods=['get'])
+    def tags(self, request, pk=None):
+        project = get_object_or_404(Project, pk=pk)
+        tags = get_project_tags(p=project)
+        return Response(tags)

@@ -26,13 +26,9 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
-    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
-
-    def get_tags(self, project):
-        return get_project_tags(p=project, s=None)
 
 
 class ListenEventSerializer(serializers.ModelSerializer):
