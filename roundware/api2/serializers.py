@@ -100,9 +100,9 @@ class SessionSerializer(serializers.ModelSerializer):
 #         return attrs
 
 
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
+# class TagSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Tag
 
 
 class UserSerializer(serializers.Serializer):
