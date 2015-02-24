@@ -20,7 +20,7 @@ from roundware.lib import discover_audiolength
 from roundware.lib import dbus_send
 from roundware.lib.exception import RoundException
 from roundwared import gpsmixer
-from roundware.lib.api import get_project_tags, t, log_event, is_listener_in_range_of_stream, stream_exists
+from roundware.lib.api import get_project_tags, t, log_event, is_listener_in_range_of_stream, form_to_request
 
 logger = logging.getLogger(__name__)
 
@@ -630,46 +630,6 @@ def get_parameter_from_request(request, name, required=False):
     return ret
 
 
-def modify_stream(request):
-    success = False
-    msg = ""
-    # TODO: Why is this request data changed so much? Why isn't msg used?
-    form = request.GET
-    request = form_to_request(form)
-    arg_hack = json.dumps(request)
-    log_event("modify_stream", int(form['session_id']), form)
-    logger.debug(request)
-
-    if 'session_id' in form:
-        session = models.Session.objects.select_related(
-            'project').get(id=form['session_id'])
-        project = session.project
-        if 'language' in form:
-            try:
-                logger.debug("modify_stream: language: " + form['language'])
-                l = models.Language.objects.filter(
-                    language_code=form['language'])[0]
-                session.language = l
-                session.save()
-            except:
-                raise RoundException("language not supported")
-
-        audio_format = project.audio_format.upper()
-        if stream_exists(int(form['session_id']), audio_format):
-            dbus_send.emit_stream_signal(
-                int(form['session_id']), "modify_stream", arg_hack)
-            success = True
-        else:
-            msg = "no stream available for session: " + form['session_id']
-    else:
-        msg = "a session_id is required for this operation"
-
-    if success:
-        return {"success": success}
-    else:
-        return {"success": success}
-
-
 def move_listener(request):
     form = request.GET
     request = form_to_request(form)
@@ -725,29 +685,3 @@ def get_events(request):
         return events_info
     else:
         return {"error": "no session_id"}
-
-
-
-
-
-def form_to_request(form):
-    request = {}
-    for p in ['project_id', 'session_id', 'asset_id']:
-        if p in form and form[p]:
-            request[p] = map(int, form[p].split("\t"))
-        else:
-            request[p] = []
-    for p in ['tags']:
-        if p in form and form[p]:
-            # make sure we don't have blank values from trailing commas
-            p_list = [v for v in form[p].split(",") if v != ""]
-            request[p] = map(int, p_list)
-        else:
-            request[p] = []
-
-    for p in ['latitude', 'longitude']:
-        if p in form and form[p]:
-            request[p] = float(form[p])
-        else:
-            request[p] = False
-    return request

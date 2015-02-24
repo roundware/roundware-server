@@ -1,14 +1,16 @@
 from __future__ import unicode_literals
 from roundware.rw import models
+from roundware.lib import dbus_send
 from roundware.lib.exception import RoundException
 from roundwared import gpsmixer
 from roundwared import icecast2
 from django.conf import settings
 import datetime
-import time
+import json
 import os
-import sys
 import subprocess
+import sys
+import time
 import logging
 
 logger = logging.getLogger(__name__)
@@ -236,3 +238,71 @@ def wait_for_stream(sessionid, audio_format):
         retries_left -= 1
         if retries_left < 0:
             raise RoundException("Stream timeout on creation")
+
+
+def modify_stream(request, context=None):
+    success = False
+    msg = ""
+    # api v2
+    if context is not None and "pk" in context:
+        form = request.data
+        form["session_id"] = context["pk"]
+    # api v1
+    else:
+        form = request.GET
+    request = form_to_request(form)
+    arg_hack = json.dumps(request)
+    log_event("modify_stream", int(form['session_id']), form)
+    logger.debug(request)
+
+    if 'session_id' in form:
+        session = models.Session.objects.select_related(
+            'project').get(id=form['session_id'])
+        project = session.project
+        if 'language' in form:
+            try:
+                logger.debug("modify_stream: language: " + form['language'])
+                l = models.Language.objects.filter(
+                    language_code=form['language'])[0]
+                session.language = l
+                session.save()
+            except:
+                raise RoundException("language not supported")
+
+        audio_format = project.audio_format.upper()
+        if stream_exists(int(form['session_id']), audio_format):
+            dbus_send.emit_stream_signal(
+                int(form['session_id']), "modify_stream", arg_hack)
+            success = True
+        else:
+            msg = "no stream available for session: " + form['session_id']
+    else:
+        msg = "a session_id is required for this operation"
+
+    if success:
+        return {"success": success}
+    else:
+        return {"success": msg}
+
+
+def form_to_request(form):
+    request = {}
+    for p in ['project_id', 'session_id', 'asset_id']:
+        if p in form and form[p]:
+            request[p] = map(int, form[p].split("\t"))
+        else:
+            request[p] = []
+    for p in ['tags']:
+        if p in form and form[p]:
+            # make sure we don't have blank values from trailing commas
+            p_list = [v for v in form[p].split(",") if v != ""]
+            request[p] = map(int, p_list)
+        else:
+            request[p] = []
+
+    for p in ['latitude', 'longitude']:
+        if p in form and form[p]:
+            request[p] = float(form[p])
+        else:
+            request[p] = False
+    return request

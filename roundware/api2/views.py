@@ -9,7 +9,7 @@ from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
                                  Session, Tag, UserProfile)
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
-from roundware.lib.api import get_project_tags
+from roundware.lib.api import get_project_tags, modify_stream
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
@@ -160,6 +160,12 @@ class StreamViewSet(viewsets.ViewSet):
             raise ParseError(serializer.errors)
         return Response(serializer.save())
 
+    def partial_update(self, request, pk=None):
+        if "tags" in request.data:
+            success = modify_stream(request, context={"pk": pk})
+        elif "longitude" in request.data and "latitude" in request.data:
+            success = modify_stream(request, context={"pk": pk})
+        return Response(success)
 
 # class TagViewSet(viewsets.ModelViewSet):
 #     """

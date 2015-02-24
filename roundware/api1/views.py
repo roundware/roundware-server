@@ -65,7 +65,7 @@ def operation_to_function(operation):
         "add_asset_to_envelope": commands.add_asset_to_envelope,
         "get_config": commands.get_config,
         "get_tags": commands.get_tags_for_project,
-        "modify_stream": commands.modify_stream,
+        "modify_stream": api.modify_stream,
         "move_listener": commands.move_listener,
         "get_current_streaming_asset": commands.get_current_streaming_asset,
         "get_asset_info": commands.get_asset_info,
