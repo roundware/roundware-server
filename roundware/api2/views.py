@@ -128,34 +128,37 @@ class SessionViewSet(viewsets.ViewSet):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# class StreamViewSet(viewsets.ViewSet):
-#     """
-#     The primary communication channel for handling the Roundware audio stream.
-#     Only one stream per user id/token so the end point is not plural.
-#     API V2: api/2/stream/
 
-#     <Permissions>
-#     Anonymous: None.
-#     Authenticated: GET/POST/PUT/PATCH for the user specific stream.
-#     Admin: GET/POST/PUT/PATCH for the user specific stream.
-#     """
-#     permission_classes = (IsAuthenticated,)
+class StreamViewSet(viewsets.ViewSet):
+    """
+    The primary communication channel for handling the Roundware audio stream.
+    Only one stream per user id/token so the end point is not plural.
+    API V2: api/2/stream/
 
-#     def list(self, request):
-#         """
-#         GET api/2/stream/ - Gets information about an existing stream
-#         """
-#         # Validate the input
-#         serializer = serializers.StreamSerializer(data=request.GET)
-#         if not serializer.is_valid():
-#             raise ParseError(serializer.errors)
+    <Permissions>
+    Anonymous: None.
+    Authenticated: GET/POST/PUT/PATCH for the user specific stream.
+    Admin: GET/POST/PUT/PATCH for the user specific stream.
+    """
+    permission_classes = (IsAuthenticated,)
 
-#         # TODO: Return data about the stream, only if it exists.
-#         return Response(serializer.data)
+    def list(self, request):
+        """
+        GET api/2/stream/ - Gets information about an existing stream
+        """
+        # Validate the input
+        serializer = serializers.StreamSerializer(data=request.data)
+        if not serializer.is_valid():
+            raise ParseError(serializer.errors)
 
-#     def create(self, request):
-#         serializer = serializers.StreamSerializer()
-#         return Response(serializer.data)
+        # TODO: Return data about the stream, only if it exists.
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = serializers.StreamSerializer(data=request.data, context={"request": request})
+        if not serializer.is_valid():
+            raise ParseError(serializer.errors)
+        return Response(serializer.save())
 
 
 # class TagViewSet(viewsets.ModelViewSet):

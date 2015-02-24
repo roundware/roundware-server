@@ -17,7 +17,7 @@ router = DefaultRouter()
 # router.register(r'listenevents', views.ListenEventViewSet)
 router.register(r'projects', views.ProjectViewSet)
 router.register(r'sessions', views.SessionViewSet)
-# router.register(r'stream', views.StreamViewSet, base_name="Stream")
+router.register(r'stream', views.StreamViewSet, base_name="Stream")
 # router.register(r'tags', views.TagViewSet)
 router.register(r'users', views.UserViewSet)
 

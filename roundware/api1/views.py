@@ -22,6 +22,7 @@ from roundware.api1.serializers import (AssetSerializer,
                                            SessionSerializer,
                                            ListeningHistoryItemAssetSerializer)
 from roundware.api1 import commands
+from roundware.lib import api
 from roundware.lib.exception import RoundException
 import logging
 logger = logging.getLogger(__name__)
@@ -56,7 +57,7 @@ def operation_to_function(operation):
     if not operation:
         raise RoundException("Operation is required")
     operations = {
-        "request_stream": commands.request_stream,
+        "request_stream": api.request_stream,
         "heartbeat": commands.heartbeat,
         "current_version": commands.current_version,
         "log_event": commands.op_log_event,

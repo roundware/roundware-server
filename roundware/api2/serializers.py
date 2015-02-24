@@ -4,7 +4,7 @@
 # The Django REST Framework object serializers for the V2 API.
 from __future__ import unicode_literals
 from roundware.rw.models import Asset, Event, Language, ListeningHistoryItem, Project, Tag, Session
-from roundware.lib.api import get_project_tags
+from roundware.lib.api import request_stream
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from django.contrib.auth.models import User
@@ -62,42 +62,45 @@ class SessionSerializer(serializers.ModelSerializer):
         return session
 
 
-# class StreamSerializer(serializers.Serializer):
-#     session_id = serializers.IntegerField()
-#     project_id = serializers.IntegerField(required=False)
-#     tags = serializers.CharField(max_length=255, required=False)
+class StreamSerializer(serializers.Serializer):
+    session_id = serializers.IntegerField()
+    project_id = serializers.IntegerField(required=False)
+    tags = serializers.CharField(max_length=255, required=False)
 
-#     lat = serializers.FloatField(required=False)
-#     long = serializers.FloatField(required=False)
-#     url = serializers.URLField(required=False)
+    lat = serializers.FloatField(required=False)
+    long = serializers.FloatField(required=False)
+    url = serializers.URLField(required=False)
 
-#     def validate_session_id(self, attrs, source):
-#         """
-#         Check the required session_id field.
-#         """
-#         session_id = attrs[source]
-#         if not Session.objects.filter(pk=session_id).exists():
-#             raise ValidationError("session_id=%s does not exist." % session_id)
+    def validate_session_id(self, value):
+        """
+        Check the required session_id field.
+        """
+        if not Session.objects.filter(pk=value).exists():
+            raise ValidationError("session_id=%s does not exist." % value)
 
-#         return attrs
+        return value
 
-#     def validate(self, attrs):
-#         """
-#         Validate additional Stream data.
-#         """
+    def validate(self, attrs):
+        """
+        Validate additional Stream data.
+        """
 
-#         session = Session.objects.get(pk=attrs['session_id'])
-#         project = session.project
+        session = Session.objects.get(pk=attrs['session_id'])
+        project = session.project
 
-#         if 'project_id' in attrs and attrs['project_id'] != project.id:
-#             raise ValidationError("project_id=%s does not match session.project=%s." %
-#                                   (attrs['project_id'], project.id))
-#         # Set project_id to make sure it exists.
-#         attrs['project_id'] = project.id
+        if 'project_id' in attrs and attrs['project_id'] != project.id:
+            raise ValidationError("project_id=%s does not match session.project=%s." %
+                                  (attrs['project_id'], project.id))
+        # Set project_id to make sure it exists.
+        attrs['project_id'] = project.id
 
-#         # TODO: Validate tags against available project tags
-#         # if 'tags' in attrs:
-#         return attrs
+        # TODO: Validate tags against available project tags
+        # if 'tags' in attrs:
+        return attrs
+
+    def create(self, vdata):
+        stream = request_stream(self.context['request'])
+        return stream
 
 
 # class TagSerializer(serializers.ModelSerializer):

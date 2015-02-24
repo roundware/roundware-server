@@ -3,9 +3,7 @@
 
 from __future__ import unicode_literals
 import time
-import subprocess
 import os
-import sys
 import logging
 import json
 import uuid
@@ -21,9 +19,8 @@ from roundware.lib import convertaudio
 from roundware.lib import discover_audiolength
 from roundware.lib import dbus_send
 from roundware.lib.exception import RoundException
-from roundwared import icecast2
 from roundwared import gpsmixer
-from roundware.lib.api import get_project_tags, t
+from roundware.lib.api import get_project_tags, t, log_event, is_listener_in_range_of_stream, stream_exists
 
 logger = logging.getLogger(__name__)
 
@@ -375,7 +372,7 @@ def get_available_assets(request):
         # filter by extra params. These are chained with an AND
         assets = assets.filter(**extras)
 
-        if latitude and longitude: # need both
+        if latitude and longitude:  # need both
             # return only assets within specified or default radius
             # by project
             latitude = float(latitude)
@@ -409,7 +406,7 @@ def get_available_assets(request):
         if asset.mediatype in asset_media_types:
             assets_info['number_of_assets'][asset.mediatype] += 1
         if not qry_retlng:
-            retlng = asset.language # can be None
+            retlng = asset.language  # can be None
         else:
             retlng = qry_retlng
         assets_list.append(
@@ -447,48 +444,12 @@ def op_log_event(request):
     return {"success": True}
 
 
-# Used by server.py many times and stream.py once!
-def log_event(event_type, session_id, form=None):
-    """
-    event_type <string>
-    session_id <integer>
-    [client_time] <string using RFC822 format>
-    [latitude] <float>
-    [longitude] <float>
-    [tags]
-    [data]
-    """
-    s = models.Session.objects.get(id=session_id)
-    if not s:
-        raise RoundException("Failed to access session: %s " % session_id)
-    client_time = None
-    latitude = None
-    longitude = None
-    tags = None
-    data = None
-    if form:
-        client_time = form.get("client_time", None)
-        latitude = form.get("latitude", None)
-        longitude = form.get("longitude", None)
-        tags = form.get("tags", None)
-        data = form.get("data", None)
-
-    e = models.Event(session=s,
-              event_type=event_type,
-              server_time=datetime.datetime.now(),
-              client_time=client_time,
-              latitude=latitude,
-              longitude=longitude,
-              tags=tags,
-              data=data)
-    e.save()
-
 # create_envelope
 # args: (operation, session_id, [tags])
 # example: http://localhost/roundware/?operation=create_envelope&session_id=1
 # returns envelope_id, sharing_messsage
 # example:
-#{"envelope_id": 2}
+# {"envelope_id": 2}
 
 
 # @profile(stats=True)
@@ -634,8 +595,8 @@ def add_asset_to_envelope(request):
                              project=session.project)
         asset.file.name = dest_filename
         asset.save()
-        for t in tagset:
-            asset.tags.add(t)
+        for tag in tagset:
+            asset.tags.add(tag)
 
     # get the audiolength of the file only if mediatype is audio and
     # update the Asset
@@ -667,71 +628,6 @@ def get_parameter_from_request(request, name, required=False):
                 raise RoundException(
                     name + " is required for this operation")
     return ret
-
-
-# @profile(stats=True)
-def request_stream(request):
-    session_id = request.GET.get('session_id', None)
-    if not session_id:
-        raise RoundException("Must supply session_id.")
-
-    log_event("request_stream", int(session_id), request.GET)
-
-    session = models.Session.objects.select_related(
-        'project').get(id=session_id)
-    project = session.project
-
-    # Get the value 'example.com' from the host 'example.com:8888'
-    http_host = request.get_host().split(':')[0]
-
-    if session.demo_stream_enabled:
-        msg = t("demo_stream_message", project.demo_stream_message_loc,
-                session.language)
-
-        if project.demo_stream_url:
-            url = project.demo_stream_url
-        else:
-            url = "http://%s:%s/demo_stream.mp3" % (http_host,
-                                                    settings.ICECAST_PORT)
-        return {
-            'stream_url': url,
-            'demo_stream_message': msg
-        }
-
-    elif is_listener_in_range_of_stream(request.GET, project):
-        # TODO: audio_format.upper() should be handled when the project is saved.
-        audio_format = project.audio_format.upper()
-        # Make the audio stream if it doesn't exist.
-        if not stream_exists(session.id, audio_format):
-            command = [settings.PROJECT_ROOT + '/roundwared/rwstreamd.py',
-                       '--session_id', str(session.id), '--project_id', str(project.id)]
-            for p in ['latitude', 'longitude', 'audio_format']:
-                if p in request.GET and request.GET[p]:
-                    command.extend(['--' + p, request.GET[p].replace("\t", ",")])
-            if 'audio_stream_bitrate' in request.GET:
-                command.extend(
-                    ['--audio_stream_bitrate', str(request.GET['audio_stream_bitrate'])])
-
-            apache_safe_daemon_subprocess(command)
-            wait_for_stream(session.id, audio_format)
-
-        return {
-            "stream_url": "http://%s:%s%s" % (http_host, settings.ICECAST_PORT,
-                                              icecast2.mount_point(session.id, audio_format))
-        }
-    else:
-        msg = t("This application is designed to be used in specific geographic"
-                " locations. Apparently your phone thinks you are not at one of"
-                " those locations, so you will hear a sample audio stream"
-                " instead of the real deal. If you think your phone is"
-                " incorrect, please restart Scapes and it will probably work."
-                " Thanks for checking it out!",
-                project.out_of_range_message_loc, session.language)
-
-        return {
-            'stream_url': project.out_of_range_url,
-            'user_message': msg
-        }
 
 
 def modify_stream(request):
@@ -831,61 +727,7 @@ def get_events(request):
         return {"error": "no session_id"}
 
 
-def apache_safe_daemon_subprocess(command):
-    logger.debug(str(command))
-    env = os.environ.copy()
-    env['PYTHONPATH'] = ":".join(sys.path)
 
-    # TODO: A method to get the stdout/stderr data which doesn't deadlock
-    proc = subprocess.Popen(
-        command,
-        close_fds=True,
-        # stdout=subprocess.PIPE,
-        # stderr=subprocess.PIPE,
-        env=env,
-    )
-    # (stdout, stderr) = proc.communicate()
-    # logger.debug("subprocess_stdout: " + stdout)
-    # logger.debug("subprocess_stdout: " + stderr)
-
-
-def wait_for_stream(sessionid, audio_format):
-    """
-    Loops until the give stream is present and ready to be listened to.
-    """
-    # Number of retries
-    retries_left = 15
-
-    logger.debug("Checking for existence of stream %s%s on %s:%s", sessionid,
-                 audio_format, settings.ICECAST_HOST, settings.ICECAST_PORT)
-    while not stream_exists(sessionid, audio_format):
-        time.sleep(1)
-        retries_left -= 1
-        if retries_left < 0:
-            raise RoundException("Stream timeout on creation")
-
-
-def stream_exists(sessionid, audio_format):
-    admin = icecast2.Admin()
-    return admin.stream_exists(icecast2.mount_point(sessionid, audio_format))
-
-
-def is_listener_in_range_of_stream(form, proj):
-    # If latitude and longitude is not specified assume True.
-    if not ('latitude' in form and 'longitude' in form) or not (form['latitude'] and form['longitude']):
-        return True
-    # Get all active speakers
-    speakers = models.Speaker.objects.filter(project=proj, activeyn=True)
-
-    for speaker in speakers:
-        distance = gpsmixer.distance_in_meters(
-            float(form['latitude']),
-            float(form['longitude']),
-            speaker.latitude,
-            speaker.longitude)
-        if distance < 3 * speaker.maxdistance:
-            return True
-    return False
 
 
 def form_to_request(form):
