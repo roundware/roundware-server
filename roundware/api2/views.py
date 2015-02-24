@@ -161,6 +161,8 @@ class StreamViewSet(viewsets.ViewSet):
         return Response(serializer.save())
 
     def partial_update(self, request, pk=None):
+        if pk is None:
+            ParseError({"error": "Stream ID not provided"})
         if "tags" in request.data:
             success = modify_stream(request, context={"pk": pk})
         elif "longitude" in request.data and "latitude" in request.data:
