@@ -15,16 +15,17 @@ from roundware.rw.models import (ListeningHistoryItem, Asset, Project,
                                  Audiotrack, Session, Vote, Envelope,
                                  Speaker, LocalizedString, MasterUI, UIMapping)
 from tests.roundwared.common import (RoundwaredTestCase, FakeRequest,
-                     mock_distance_in_meters_near,
-                     mock_distance_in_meters_far)
+                                     mock_distance_in_meters_near,
+                                     mock_distance_in_meters_far)
 from roundware.lib.exception import RoundException
 from roundware.api1.commands import (check_for_single_audiotrack, get_asset_info,
-                               get_current_streaming_asset,
-                               get_available_assets, get_config_tags,
-                               vote_asset, request_stream, _get_current_streaming_asset)
+                                     get_current_streaming_asset,
+                                     get_available_assets,
+                                     vote_asset, _get_current_streaming_asset)
 from roundware.api1 import commands
+from roundware.lib import api
+from roundware.lib.api import request_stream, get_project_tags
 from roundwared import gpsmixer
-
 
 
 def mock_apache_safe_daemon_subprocess(command):
@@ -42,12 +43,12 @@ def mock_stream_exists(sessionid, audio_format):
 @patch.object(settings, 'ICECAST_PORT', 8000)
 @patch.object(settings, 'ICECAST_HOST', 'rw.com')
 @patch.object(settings, 'MEDIA_URL', '/audio/')
-@patch.object(commands, 'apache_safe_daemon_subprocess',
+@patch.object(api, 'apache_safe_daemon_subprocess',
               mock_apache_safe_daemon_subprocess)
-@patch.object(commands, 'stream_exists', mock_stream_exists)
+@patch.object(api, 'stream_exists', mock_stream_exists)
 class TestServer(RoundwaredTestCase):
 
-    """ test commands.py methods
+    """ test api.py methods
     """
 
     def setUp(self):
@@ -696,11 +697,11 @@ class TestServer(RoundwaredTestCase):
         pass
 
 
-class TestGetConfigTagJSON(RoundwaredTestCase):
-    """ test various permutations of server.get_config_tag
+class TestGetProjectTagJSON(RoundwaredTestCase):
+    """ test various permutations of api.get_config_tag
     """
     def setUp(self):
-        super(type(self), TestGetConfigTagJSON).setUp(self)
+        super(type(self), TestGetProjectTagJSON).setUp(self)
 
         # make a masterui, a project, a ui_mode, tag category, selectionmethod
         self.english_hdr = mommy.make(LocalizedString,
@@ -757,7 +758,7 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
 
     def test_get_uimapping_info_for_project(self):
         """ Test proper UIMapping data returned based on project passed """
-        config = get_config_tags(self.project_one, self.english_sess)
+        config = get_project_tags(self.project_one, self.english_sess)
         expected = self._proj_one_config()
         self.assertEquals(expected, config)
 
@@ -765,10 +766,10 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
         """ Confirm only info for MasterUIs for passed project or session
             project are returned in config tag dictionary
         """
-        config = get_config_tags(self.project_three)
+        config = get_project_tags(self.project_three)
         self.assertEquals({}, config)
 
-        config = get_config_tags(self.project_two)
+        config = get_project_tags(self.project_two)
         # should not have any uimapping info for project _one_
         self.assertNotIn(self.masterui.name,
                          [dic['name'] for dic in
@@ -786,7 +787,7 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
         """
         self.master_ui_two.active = False
         self.master_ui_two.save()
-        config = get_config_tags(self.project_two)
+        config = get_project_tags(self.project_two)
         self.assertEquals({}, config)
         self.master_ui_two.active = True
         self.master_ui_two.save()
@@ -795,7 +796,7 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
         """ Don't pass a project, just use the project for the session.
             Do we still get the right MasterUI?
         """
-        config = get_config_tags(None, self.english_sess)
+        config = get_project_tags(None, self.english_sess)
         expected = self._proj_one_config()
         self.assertEquals(expected, config)
 
@@ -803,7 +804,7 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
         """ Test that we get correct localized header text for session, or if 
             none passed, header text in English.
         """
-        config = get_config_tags(None, self.spanish_sess)
+        config = get_project_tags(None, self.spanish_sess)
         self.assertEquals('Cabeza',
                           config['listen'][0]['header_text'])
 
@@ -811,7 +812,7 @@ class TestGetConfigTagJSON(RoundwaredTestCase):
         """ Test that we get correct localized text for tag values
             based on session language, or if none passed, in English.
         """
-        config = get_config_tags(None, self.spanish_sess)
+        config = get_project_tags(None, self.spanish_sess)
         self.assertEquals('Uno',
                           config['listen'][0]['options'][0]['value'])
 
@@ -834,4 +835,3 @@ class TestListeningHistoryDB(RoundwaredTestCase):
     def test_get_current_streaming_asset(self):
         self.assertEquals(self.history2, _get_current_streaming_asset(
                           self.default_session.id))
-
