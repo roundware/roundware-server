@@ -100,6 +100,7 @@ class StreamSerializer(serializers.Serializer):
 
     def create(self, vdata):
         stream = request_stream(self.context['request'])
+        stream['stream_id'] = vdata['session_id']
         return stream
 
 
