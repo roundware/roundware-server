@@ -136,9 +136,9 @@ class StreamViewSet(viewsets.ViewSet):
     API V2: api/2/stream/
 
     <Permissions>
-    Anonymous: None.
-    Authenticated: GET/POST/PUT/PATCH for the user specific stream.
-    Admin: GET/POST/PUT/PATCH for the user specific stream.
+    Anonymous: None
+    Authenticated: POST for the user specific stream.
+    Admin: None
     """
     permission_classes = (IsAuthenticated,)
 
