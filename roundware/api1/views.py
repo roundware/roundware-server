@@ -16,11 +16,11 @@ from rest_framework.reverse import reverse
 from rest_framework import permissions
 from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
 from roundware.api1.serializers import (AssetSerializer,
-                                           AssetLocationSerializer,
-                                           ProjectSerializer,
-                                           EventSerializer,
-                                           SessionSerializer,
-                                           ListeningHistoryItemAssetSerializer)
+                                        AssetLocationSerializer,
+                                        ProjectSerializer,
+                                        EventSerializer,
+                                        SessionSerializer,
+                                        ListeningHistoryItemAssetSerializer)
 from roundware.api1 import commands
 from roundware.lib import api
 from roundware.lib.exception import RoundException
@@ -32,6 +32,7 @@ def operations(request):
     data = json.dumps(catch_errors(request), sort_keys=True,
                       indent=4, ensure_ascii=False)
     return HttpResponse(data, content_type='application/json')
+
 
 def catch_errors(request):
     try:
@@ -66,7 +67,7 @@ def operation_to_function(operation):
         "get_config": commands.get_config,
         "get_tags": commands.get_tags_for_project,
         "modify_stream": api.modify_stream,
-        "move_listener": commands.move_listener,
+        "move_listener": api.move_listener,
         "get_current_streaming_asset": commands.get_current_streaming_asset,
         "get_asset_info": commands.get_asset_info,
         "get_available_assets": commands.get_available_assets,

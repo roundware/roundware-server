@@ -9,7 +9,7 @@ from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
                                  Session, Tag, UserProfile)
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
-from roundware.lib.api import get_project_tags, modify_stream
+from roundware.lib.api import get_project_tags, modify_stream, move_listener
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
@@ -142,18 +142,6 @@ class StreamViewSet(viewsets.ViewSet):
     """
     permission_classes = (IsAuthenticated,)
 
-    def list(self, request):
-        """
-        GET api/2/stream/ - Gets information about an existing stream
-        """
-        # Validate the input
-        serializer = serializers.StreamSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise ParseError(serializer.errors)
-
-        # TODO: Return data about the stream, only if it exists.
-        return Response(serializer.data)
-
     def create(self, request):
         serializer = serializers.StreamSerializer(data=request.data, context={"request": request})
         if not serializer.is_valid():
@@ -163,11 +151,19 @@ class StreamViewSet(viewsets.ViewSet):
     def partial_update(self, request, pk=None):
         if pk is None:
             ParseError({"error": "Stream ID not provided"})
-        if "tags" in request.data:
-            success = modify_stream(request, context={"pk": pk})
-        elif "longitude" in request.data and "latitude" in request.data:
-            success = modify_stream(request, context={"pk": pk})
-        return Response(success)
+        try:
+            if "tags" in request.data:
+                success = modify_stream(request, context={"pk": pk})
+            elif "longitude" in request.data and "latitude" in request.data:
+                success = move_listener(request, context={"pk": pk})
+            if success["success"]:
+                return Response()
+            else:
+                return Response({"detail": success["error"]},
+                                status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"detail": "could not update stream: %s" % e},
+                            status.HTTP_400_BAD_REQUEST)
 
 # class TagViewSet(viewsets.ModelViewSet):
 #     """
