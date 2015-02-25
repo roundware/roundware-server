@@ -142,18 +142,6 @@ class StreamViewSet(viewsets.ViewSet):
     """
     permission_classes = (IsAuthenticated,)
 
-    def list(self, request):
-        """
-        GET api/2/stream/ - Gets information about an existing stream
-        """
-        # Validate the input
-        serializer = serializers.StreamSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise ParseError(serializer.errors)
-
-        # TODO: Return data about the stream, only if it exists.
-        return Response(serializer.data)
-
     def create(self, request):
         serializer = serializers.StreamSerializer(data=request.data, context={"request": request})
         if not serializer.is_valid():
@@ -168,9 +156,13 @@ class StreamViewSet(viewsets.ViewSet):
                 success = modify_stream(request, context={"pk": pk})
             elif "longitude" in request.data and "latitude" in request.data:
                 success = move_listener(request, context={"pk": pk})
-            return Response(success)
+            if success["success"]:
+                return Response()
+            else:
+                return Response({"detail": success["error"]},
+                                status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"success": False, "error": "could not update stream: %s" % e},
+            return Response({"detail": "could not update stream: %s" % e},
                             status.HTTP_400_BAD_REQUEST)
 
 # class TagViewSet(viewsets.ModelViewSet):
