@@ -16,11 +16,11 @@ from rest_framework.reverse import reverse
 from rest_framework import permissions
 from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
 from roundware.api1.serializers import (AssetSerializer,
-                                           AssetLocationSerializer,
-                                           ProjectSerializer,
-                                           EventSerializer,
-                                           SessionSerializer,
-                                           ListeningHistoryItemAssetSerializer)
+                                        AssetLocationSerializer,
+                                        ProjectSerializer,
+                                        EventSerializer,
+                                        SessionSerializer,
+                                        ListeningHistoryItemAssetSerializer)
 from roundware.api1 import commands
 from roundware.lib import api
 from roundware.lib.exception import RoundException
@@ -32,6 +32,7 @@ def operations(request):
     data = json.dumps(catch_errors(request), sort_keys=True,
                       indent=4, ensure_ascii=False)
     return HttpResponse(data, content_type='application/json')
+
 
 def catch_errors(request):
     try:
