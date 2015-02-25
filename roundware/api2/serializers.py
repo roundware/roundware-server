@@ -8,6 +8,7 @@ from roundware.lib.api import request_stream
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from django.contrib.auth.models import User
+import time
 import logging
 
 logger = logging.getLogger(__name__)
@@ -127,7 +128,7 @@ class UserSerializer(serializers.Serializer):
         """
         Creates a new user object for the serializer's .save() method
         """
-        username = validated_data["device_id"][:29]
+        username = str(int(time.time())) + validated_data["device_id"][-4:]
         password = User.objects.make_random_password()
         user = User.objects.create_user(username=username, password=password)
         user.userprofile.device_id = validated_data["device_id"][:254]
