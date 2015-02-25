@@ -9,7 +9,7 @@ from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
                                  Session, Tag, UserProfile)
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
-from roundware.lib.api import get_project_tags, modify_stream
+from roundware.lib.api import get_project_tags, modify_stream, move_listener
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
@@ -163,11 +163,15 @@ class StreamViewSet(viewsets.ViewSet):
     def partial_update(self, request, pk=None):
         if pk is None:
             ParseError({"error": "Stream ID not provided"})
-        if "tags" in request.data:
-            success = modify_stream(request, context={"pk": pk})
-        elif "longitude" in request.data and "latitude" in request.data:
-            success = modify_stream(request, context={"pk": pk})
-        return Response(success)
+        try:
+            if "tags" in request.data:
+                success = modify_stream(request, context={"pk": pk})
+            elif "longitude" in request.data and "latitude" in request.data:
+                success = move_listener(request, context={"pk": pk})
+            return Response(success)
+        except Exception as e:
+            return Response({"success": False, "error": "could not update stream: %s" % e},
+                            status.HTTP_400_BAD_REQUEST)
 
 # class TagViewSet(viewsets.ModelViewSet):
 #     """

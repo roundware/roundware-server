@@ -66,7 +66,7 @@ def operation_to_function(operation):
         "get_config": commands.get_config,
         "get_tags": commands.get_tags_for_project,
         "modify_stream": api.modify_stream,
-        "move_listener": commands.move_listener,
+        "move_listener": api.move_listener,
         "get_current_streaming_asset": commands.get_current_streaming_asset,
         "get_asset_info": commands.get_asset_info,
         "get_available_assets": commands.get_available_assets,

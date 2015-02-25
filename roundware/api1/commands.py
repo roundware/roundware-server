@@ -630,16 +630,6 @@ def get_parameter_from_request(request, name, required=False):
     return ret
 
 
-def move_listener(request):
-    form = request.GET
-    request = form_to_request(form)
-    arg_hack = json.dumps(request)
-    log_event("move_listener", int(form['session_id']), form)
-    dbus_send.emit_stream_signal(
-        int(form['session_id']), "move_listener", arg_hack)
-    return {"success": True}
-
-
 def heartbeat(request):
     form = request.GET
     dbus_send.emit_stream_signal(int(form['session_id']), "heartbeat", "")

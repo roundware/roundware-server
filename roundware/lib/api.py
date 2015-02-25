@@ -307,3 +307,21 @@ def form_to_request(form):
         else:
             request[p] = False
     return request
+
+
+def move_listener(request, context=None):
+    if context is not None and "pk" in context:
+        form = request.data
+        form['session_id'] = context["pk"]
+    else:
+        form = request.GET
+    try:
+        request = form_to_request(form)
+        arg_hack = json.dumps(request)
+        log_event("move_listener", int(form['session_id']), form)
+        dbus_send.emit_stream_signal(
+            int(form['session_id']), "move_listener", arg_hack)
+        return {"success": True}
+    except Exception as e:
+        return {"success": False,
+                "error": "could not move listener: %s" % e}
