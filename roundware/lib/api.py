@@ -282,7 +282,8 @@ def modify_stream(request, context=None):
     if success:
         return {"success": success}
     else:
-        return {"success": msg}
+        return {"success": False,
+                "error": msg}
 
 
 def form_to_request(form):
