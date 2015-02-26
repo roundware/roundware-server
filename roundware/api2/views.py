@@ -94,8 +94,13 @@ class ProjectViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, )
 
     def retrieve(self, request, pk=None):
-        project = get_object_or_404(Project, pk=pk)
-        serializer = serializers.ProjectSerializer(project)
+        if "session_id" in request.GET:
+            session = get_object_or_404(Session, pk=request.GET["session_id"])
+            project = get_object_or_404(Project, pk=pk)
+            serializer = serializers.ProjectSerializer(project,
+                                                       context={"session": session})
+        else:
+            raise ParseError("session_id is required")
         return Response(serializer.data)
 
     @detail_route(methods=['get'])
@@ -104,6 +109,7 @@ class ProjectViewSet(viewsets.ViewSet):
             session = get_object_or_404(Session, pk=request.data["session_id"])
             tags = get_project_tags(s=session)
         else:
+            raise ParseError("session_id is required")
             project = get_object_or_404(Project, pk=pk)
             tags = get_project_tags(p=project)
         return Response(tags)
