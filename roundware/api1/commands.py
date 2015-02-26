@@ -630,13 +630,6 @@ def get_parameter_from_request(request, name, required=False):
     return ret
 
 
-def heartbeat(request):
-    form = request.GET
-    dbus_send.emit_stream_signal(int(form['session_id']), "heartbeat", "")
-    log_event("heartbeat", int(form['session_id']), form)
-    return {"success": True}
-
-
 def current_version(request):
     """
     Returns the current API version number

@@ -325,3 +325,11 @@ def move_listener(request, context=None):
     except Exception as e:
         return {"success": False,
                 "error": "could not move listener: %s" % e}
+
+
+def heartbeat(request, session_id=None):
+    if session_id is None:
+        session_id = request.GET['session_id']
+    dbus_send.emit_stream_signal(int(session_id), "heartbeat", "")
+    log_event("heartbeat", int(session_id), request.GET)
+    return {"success": True}
