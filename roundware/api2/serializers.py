@@ -64,7 +64,8 @@ class SessionSerializer(serializers.ModelSerializer):
         try:
             Language.objects.get(language_code=value)
         except Language.DoesNotExist:
-            raise ValidationError("Language Code %s not found" % value)
+            # raise ValidationError("Language Code %s not found" % value)
+            value = "en"
         return value
 
     def create(self, validated_data):
