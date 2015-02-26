@@ -3,7 +3,7 @@
 
 # The Django REST Framework object serializers for the V2 API.
 from __future__ import unicode_literals
-from roundware.rw.models import Asset, Event, Language, ListeningHistoryItem, Project, Tag, Session
+from roundware.rw.models import Asset, Event, Language, ListeningHistoryItem, Project, Tag, Session, LocalizedString
 from roundware.lib.api import request_stream
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
@@ -30,6 +30,27 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
 
+    def to_representation(self, obj):
+        # must include only the related localizationStrings that match out session language
+        result = super(ProjectSerializer, self).to_representation(obj)
+        # session should be passed in as context
+        if 'session' in self.context:
+            # find the localizedString relation fields
+            for key in result.keys():
+                if key[-4:] == "_loc" and type(result[key]) is list:
+                    msg = None
+                    default = None
+                    # match localized string on session language
+                    for loc_item in result[key]:
+                        loc_string = LocalizedString.objects.get(pk=loc_item)
+                        if loc_string.language == self.context["session"].language:
+                            msg = loc_string.localized_string
+                        if loc_string.language.language_code == "en":
+                            default = loc_string.localized_string
+                    # set the string as a field without the _loc in the key and delete the list field
+                    result[key[:-4]] = msg or default
+                    del result[key]
+        return result
 
 # class ListenEventSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -48,7 +69,8 @@ class SessionSerializer(serializers.ModelSerializer):
         try:
             Language.objects.get(language_code=value)
         except Language.DoesNotExist:
-            raise ValidationError("Language Code %s not found" % value)
+            # raise ValidationError("Language Code %s not found" % value)
+            value = "en"
         return value
 
     def create(self, validated_data):
@@ -61,6 +83,12 @@ class SessionSerializer(serializers.ModelSerializer):
                                          client_system=validated_data["client_system"])
         session.save()
         return session
+
+    def to_representation(self, obj):
+        result = super(SessionSerializer, self).to_representation(obj)
+        # convert language field back to language code
+        result["language"] = self.validated_data["language"]
+        return result
 
 
 class StreamSerializer(serializers.Serializer):
