@@ -79,6 +79,12 @@ class SessionSerializer(serializers.ModelSerializer):
         session.save()
         return session
 
+    def to_representation(self, obj):
+        result = super(SessionSerializer, self).to_representation(obj)
+        # convert language field back to language code
+        result["language"] = self.validated_data["language"]
+        return result
+
 
 class StreamSerializer(serializers.Serializer):
     session_id = serializers.IntegerField()
