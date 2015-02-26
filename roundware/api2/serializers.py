@@ -31,18 +31,23 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
 
     def to_representation(self, obj):
+        # must include only the related localizationStrings that match out session language
         result = super(ProjectSerializer, self).to_representation(obj)
+        # session should be passed in as context
         if 'session' in self.context:
+            # find the localizedString relation fields
             for key in result.keys():
                 if key[-4:] == "_loc" and type(result[key]) is list:
                     msg = None
                     default = None
+                    # match localized string on session language
                     for loc_item in result[key]:
                         loc_string = LocalizedString.objects.get(pk=loc_item)
                         if loc_string.language == self.context["session"].language:
                             msg = loc_string.localized_string
                         if loc_string.language.language_code == "en":
                             default = loc_string.localized_string
+                    # set the string as a field without the _loc in the key and delete the list field
                     result[key[:-4]] = msg or default
                     del result[key]
         return result
