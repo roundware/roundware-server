@@ -59,7 +59,7 @@ def operation_to_function(operation):
         raise RoundException("Operation is required")
     operations = {
         "request_stream": api.request_stream,
-        "heartbeat": commands.heartbeat,
+        "heartbeat": api.heartbeat,
         "current_version": commands.current_version,
         "log_event": commands.op_log_event,
         "create_envelope": commands.create_envelope,
