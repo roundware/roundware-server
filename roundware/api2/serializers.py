@@ -51,6 +51,8 @@ class ProjectSerializer(serializers.ModelSerializer):
                     # set the string as a field without the _loc in the key and delete the list field
                     result[key[:-4]] = msg or default
                     del result[key]
+        result["project_id"] = result["id"]
+        del result["id"]
         return result
 
 # class ListenEventSerializer(serializers.ModelSerializer):
