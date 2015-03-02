@@ -9,7 +9,7 @@ from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
                                  Session, Tag, UserProfile)
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
-from roundware.lib.api import get_project_tags, modify_stream, move_listener, heartbeat
+from roundware.lib.api import get_project_tags, modify_stream, move_listener, heartbeat, skip_ahead
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
@@ -178,6 +178,14 @@ class StreamViewSet(viewsets.ViewSet):
             return Response({"detail": e},
                             status.HTTP_400_BAD_REQUEST)
 
+    @detail_route(methods=['post'])
+    def next(self, request, pk=None):
+        try:
+            skip_ahead(request, session_id=pk)
+            return Response()
+        except Exception as e:
+            return Response({"detail": e},
+                            status.HTTP_400_BAD_REQUEST)
 
 # class TagViewSet(viewsets.ModelViewSet):
 #     """
