@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
-                                 Session, Tag, UserProfile)
+                                 Session, Tag, UserProfile, Envelope)
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from roundware.lib.api import get_project_tags, modify_stream, move_listener, heartbeat, skip_ahead
@@ -139,7 +139,7 @@ class StreamViewSet(viewsets.ViewSet):
     """
     The primary communication channel for handling the Roundware audio stream.
     Only one stream per user id/token so the end point is not plural.
-    API V2: api/2/stream/
+    API V2: api/2/streams/
 
     <Permissions>
     Anonymous: None
@@ -236,3 +236,26 @@ class UserViewSet(viewsets.ViewSet):
                 # obtain token for this new user
                 token = Token.objects.create(user=user)
         return Response({"username": user.username, "token": token.key})
+
+
+class EnvelopeViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/users/:user_id
+
+    <Permissions>
+    Anonymous: POST
+    Authenticated: None
+    Admin: None
+    """
+    queryset = Envelope.objects.all()
+
+    def create(self, request):
+        """
+        POST api/2/envelopes/ - Creates a new envelope based on passed session_id
+        """
+        serializer = serializers.EnvelopeSerializer(data=request.data)
+        if serializer.is_valid():
+            envelope = serializer.save()
+            return Response({"envelope_id": envelope.pk})
+        else:
+            return Response(serializer.errors)
