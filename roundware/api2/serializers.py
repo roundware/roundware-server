@@ -51,6 +51,8 @@ class ProjectSerializer(serializers.ModelSerializer):
                     # set the string as a field without the _loc in the key and delete the list field
                     result[key[:-4]] = msg or default
                     del result[key]
+        result["project_id"] = result["id"]
+        del result["id"]
         return result
 
 # class ListenEventSerializer(serializers.ModelSerializer):
@@ -58,13 +60,11 @@ class ProjectSerializer(serializers.ModelSerializer):
 #         model = ListeningHistoryItem
 
 
-class SessionSerializer(serializers.ModelSerializer):
-    starttime = serializers.DateTimeField(required=True)
+class SessionSerializer(serializers.Serializer):
+    start_time = serializers.DateTimeField(required=True)
     language = serializers.CharField(max_length=2, default="en")
     client_system = serializers.CharField(max_length=128, required=True)
-
-    class Meta:
-        model = Session
+    project_id = serializers.IntegerField(required=True)
 
     def validate_language(self, value):
         try:
@@ -77,18 +77,19 @@ class SessionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         lang = Language.objects.get(language_code=validated_data['language'])
         session = Session.objects.create(device_id=self.context["request"].user.userprofile.device_id,
-                                         project=validated_data["project"],
-                                         starttime=validated_data["starttime"],
+                                         project_id=validated_data["project_id"],
+                                         starttime=validated_data["start_time"],
                                          language_id=lang.pk,
                                          client_type=self.context["request"].user.userprofile.client_type,
                                          client_system=validated_data["client_system"])
         session.save()
+        self.context["session_id"] = session.pk
         return session
 
     def to_representation(self, obj):
-        result = super(SessionSerializer, self).to_representation(obj)
-        # convert language field back to language code
-        result["language"] = self.validated_data["language"]
+        result = {"language": self.validated_data["language"]}
+        if "session_id" in self.context:
+            result["session_id"] = self.context["session_id"]
         return result
 
 
@@ -178,4 +179,5 @@ class EnvelopeSerializer(serializers.Serializer):
 
     def create(self, data):
         envelope = Envelope.objects.create(session=self.context["session"])
+        envelope.save()
         return envelope
