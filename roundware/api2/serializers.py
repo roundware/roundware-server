@@ -3,7 +3,8 @@
 
 # The Django REST Framework object serializers for the V2 API.
 from __future__ import unicode_literals
-from roundware.rw.models import Asset, Event, Language, ListeningHistoryItem, Project, Tag, Session, LocalizedString
+from roundware.rw.models import (Asset, Event, Envelope, Language, ListeningHistoryItem,
+                                 Project, Tag, Session, LocalizedString)
 from roundware.lib.api import request_stream
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
@@ -163,3 +164,18 @@ class UserSerializer(serializers.Serializer):
         user.userprofile.client_type = validated_data["client_type"][:254]
         user.userprofile.save()
         return user
+
+
+class EnvelopeSerializer(serializers.Serializer):
+    session_id = serializers.IntegerField(required=True)
+
+    def validate_session_id(self, value):
+        try:
+            self.context["session"] = Session.objects.get(pk=value)
+        except Session.DoesNotExist:
+            raise ValidationError("Session not found")
+        return value
+
+    def create(self, data):
+        envelope = Envelope.objects.create(session=self.context["session"])
+        return envelope

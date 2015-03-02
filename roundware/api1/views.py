@@ -62,7 +62,7 @@ def operation_to_function(operation):
         "heartbeat": api.heartbeat,
         "current_version": commands.current_version,
         "log_event": commands.op_log_event,
-        "create_envelope": commands.create_envelope,
+        "create_envelope": api.create_envelope,
         "add_asset_to_envelope": commands.add_asset_to_envelope,
         "get_config": commands.get_config,
         "get_tags": commands.get_tags_for_project,

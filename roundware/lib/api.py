@@ -357,3 +357,22 @@ def check_for_single_audiotrack(session_id):
     if tracks.count() == 1:
         ret = True
     return ret
+
+
+# create_envelope
+# args: (operation, session_id, [tags])
+# example: http://localhost/roundware/?operation=create_envelope&session_id=1
+# returns envelope_id, sharing_messsage
+# example:
+# {"envelope_id": 2}
+# @profile(stats=True)
+def create_envelope(request):
+    form = request.GET
+    if 'session_id' not in form:
+        raise RoundException("a session_id is required for this operation")
+    s = models.Session.objects.get(id=form.get('session_id'))
+
+    env = models.Envelope(session=s)
+    env.save()
+
+    return {"envelope_id": env.id}
