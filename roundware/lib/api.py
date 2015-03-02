@@ -333,3 +333,27 @@ def heartbeat(request, session_id=None):
     dbus_send.emit_stream_signal(int(session_id), "heartbeat", "")
     log_event("heartbeat", int(session_id), request.GET)
     return {"success": True}
+
+
+def skip_ahead(request, session_id=None):
+    if session_id is None:
+        session_id = request.GET.get('session_id', None)
+    if session_id is None:
+        raise RoundException("a session_id is required for this operation")
+
+    log_event("skip_ahead", int(session_id))
+    if not check_for_single_audiotrack(session_id):
+        raise RoundException("this operation is only valid for projects with 1 audiotrack")
+
+    dbus_send.emit_stream_signal(int(session_id), "skip_ahead", "")
+    return {"success": True}
+
+
+def check_for_single_audiotrack(session_id):
+    ret = False
+    session = models.Session.objects.select_related(
+        'project').get(id=session_id)
+    tracks = models.Audiotrack.objects.filter(project=session.project)
+    if tracks.count() == 1:
+        ret = True
+    return ret

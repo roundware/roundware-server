@@ -20,19 +20,10 @@ from roundware.lib import discover_audiolength
 from roundware.lib import dbus_send
 from roundware.lib.exception import RoundException
 from roundwared import gpsmixer
-from roundware.lib.api import get_project_tags, t, log_event, is_listener_in_range_of_stream, form_to_request
+from roundware.lib.api import (get_project_tags, t, log_event, is_listener_in_range_of_stream,
+                               form_to_request, check_for_single_audiotrack)
 
 logger = logging.getLogger(__name__)
-
-
-def check_for_single_audiotrack(session_id):
-    ret = False
-    session = models.Session.objects.select_related(
-        'project').get(id=session_id)
-    tracks = models.Audiotrack.objects.filter(project=session.project)
-    if tracks.count() == 1:
-        ret = True
-    return ret
 
 
 def get_current_streaming_asset(request):
@@ -97,19 +88,6 @@ def play_asset_in_stream(request):
             "an asset_id is required for this operation")
     dbus_send.emit_stream_signal(
         int(form['session_id']), "play_asset", arg_hack)
-    return {"success": True}
-
-
-def skip_ahead(request):
-    form = request.GET
-    log_event("skip_ahead", int(form['session_id']), form)
-
-    if 'session_id' not in form:
-        raise RoundException("a session_id is required for this operation")
-    if not check_for_single_audiotrack(form.get('session_id')):
-        raise RoundException(
-            "this operation is only valid for projects with 1 audiotrack")
-    dbus_send.emit_stream_signal(int(form['session_id']), "skip_ahead", "")
     return {"success": True}
 
 

@@ -9,7 +9,7 @@ from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
                                  Session, Tag, UserProfile)
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
-from roundware.lib.api import get_project_tags, modify_stream, move_listener, heartbeat
+from roundware.lib.api import get_project_tags, modify_stream, move_listener, heartbeat, skip_ahead
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
@@ -94,8 +94,8 @@ class ProjectViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, )
 
     def retrieve(self, request, pk=None):
-        if "session_id" in request.GET:
-            session = get_object_or_404(Session, pk=request.GET["session_id"])
+        if "session_id" in request.query_params:
+            session = get_object_or_404(Session, pk=request.query_params["session_id"])
             project = get_object_or_404(Project, pk=pk)
             serializer = serializers.ProjectSerializer(project,
                                                        context={"session": session})
@@ -105,8 +105,8 @@ class ProjectViewSet(viewsets.ViewSet):
 
     @detail_route(methods=['get'])
     def tags(self, request, pk=None):
-        if "session_id" in request.data:
-            session = get_object_or_404(Session, pk=request.data["session_id"])
+        if "session_id" in request.query_params:
+            session = get_object_or_404(Session, pk=request.query_params["session_id"])
             tags = get_project_tags(s=session)
         else:
             raise ParseError("session_id is required")
@@ -178,6 +178,14 @@ class StreamViewSet(viewsets.ViewSet):
             return Response({"detail": e},
                             status.HTTP_400_BAD_REQUEST)
 
+    @detail_route(methods=['post'])
+    def next(self, request, pk=None):
+        try:
+            skip_ahead(request, session_id=pk)
+            return Response()
+        except Exception as e:
+            return Response({"detail": e},
+                            status.HTTP_400_BAD_REQUEST)
 
 # class TagViewSet(viewsets.ModelViewSet):
 #     """
