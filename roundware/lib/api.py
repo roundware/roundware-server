@@ -420,6 +420,9 @@ def add_asset_to_envelope(request, envelope_id=None):
     # get mediatype from the GET request
     mediatype = get_parameter_from_request(
         request, 'mediatype') if not asset else asset.mediatype
+    # also observe properly underscored version of same field
+    if mediatype is None:
+        mediatype = get_parameter_from_request(request, 'media_type')
     # if mediatype parameter not passed, set to 'audio'
     # this ensures backwards compatibility
     if mediatype is None:
