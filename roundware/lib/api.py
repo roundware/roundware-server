@@ -388,7 +388,6 @@ def create_envelope(request):
 # {"success": true}
 # @profile(stats=True)
 def add_asset_to_envelope(request, envelope_id=None):
-    import ipdb; ipdb.set_trace()
     # get asset_id from the GET request
     asset_id = get_parameter_from_request(request, 'asset_id')
     asset = None
