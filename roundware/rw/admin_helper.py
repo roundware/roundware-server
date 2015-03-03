@@ -43,7 +43,7 @@ def add_asset_to_envelope(instance, **kwargs):
     }
     logger.debug(fake_request.GET)
 
-    content = commands.add_asset_to_envelope(fake_request)
+    content = api.add_asset_to_envelope(fake_request)
     logger.debug(content)
     if 'error_message' in content:
         logger.error("error message is post_save: %s" % content['error_message'])

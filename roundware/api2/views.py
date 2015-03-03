@@ -9,7 +9,7 @@ from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
                                  Session, Tag, UserProfile, Envelope)
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
-from roundware.lib.api import get_project_tags, modify_stream, move_listener, heartbeat, skip_ahead
+from roundware.lib.api import get_project_tags, modify_stream, move_listener, heartbeat, skip_ahead, add_asset_to_envelope
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
@@ -259,3 +259,20 @@ class EnvelopeViewSet(viewsets.ViewSet):
             return Response({"envelope_id": envelope.pk})
         else:
             return Response(serializer.errors)
+
+    def partial_update(self, request, pk=None):
+        """
+        PATCH api/2/envelopes/:id/ - Adds an asset to the envelope
+        """
+        # if "asset_id" in request.data:
+        #     try:
+        #         asset = Asset.objects.get(pk=int(request.data.get("asset_id")))
+        #     except Asset.DoesNotExist:
+        #         raise ParseError("asset not found")
+        # else:
+        #     raise ParseError("asset_id required")
+        try:
+            result = add_asset_to_envelope(request, envelope_id=pk)
+        except Exception as e:
+            return Response({"detail": e}, status.HTTP_400_BAD_REQUEST)
+        return Response({"asset_id": result["asset_id"]})
