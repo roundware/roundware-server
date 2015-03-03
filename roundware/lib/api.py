@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 from roundware.rw import models
-from roundware.lib import dbus_send
+from roundware.lib import dbus_send, discover_audiolength, convertaudio
 from roundware.lib.exception import RoundException
 from roundwared import gpsmixer
 from roundwared import icecast2
@@ -376,3 +376,169 @@ def create_envelope(request):
     env.save()
 
     return {"envelope_id": env.id}
+
+
+# add_asset_to_envelope (POST method)
+# args (operation, envelope_id, session_id, file, latitude, longitude, [tagids])
+# example: http://localhost/roundware/?operation=add_asset_to_envelope
+# OR
+# add_asset_to_envelope (GET method)
+# args (operation, envelope_id, asset_id) #asset_id must point to an Asset that exists in the database
+# returns success bool
+# {"success": true}
+# @profile(stats=True)
+def add_asset_to_envelope(request, envelope_id=None):
+    import ipdb; ipdb.set_trace()
+    # get asset_id from the GET request
+    asset_id = get_parameter_from_request(request, 'asset_id')
+    asset = None
+    # grab the Asset from the database, if an asset_id has been passed in
+    if asset_id:
+        try:
+            asset = models.Asset.objects.get(pk=asset_id)
+        except models.Asset.DoesNotExist:
+            raise RoundException(
+                "Invalid Asset ID Provided. No Asset exists with ID %s" % asset_id)
+
+    if envelope_id is None:
+        envelope_id = get_parameter_from_request(request, 'envelope_id', True)
+    logger.debug("Found envelope_id: %s", envelope_id)
+
+    try:
+        envelope = models.Envelope.objects.select_related(
+            'session').get(id=envelope_id)
+    except models.Envelope.DoesNotExist:
+        raise RoundException(
+            "Invalid Envelope ID Provided. No Envelope exists with ID %s" % envelope_id)
+
+    session = envelope.session
+    log_event("start_upload", session.id, request.GET)
+
+    fileitem = asset.file if asset else request.FILES.get('file')
+    if not fileitem.name:
+        raise RoundException("No file in request")
+
+    # get mediatype from the GET request
+    mediatype = get_parameter_from_request(
+        request, 'mediatype') if not asset else asset.mediatype
+    # if mediatype parameter not passed, set to 'audio'
+    # this ensures backwards compatibility
+    if mediatype is None:
+        mediatype = "audio"
+
+    # copy the file to a unique name (current time and date)
+    logger.debug("Session %s - Processing:%s", session.id, fileitem.name)
+    (filename_prefix, filename_extension) = os.path.splitext(fileitem.name)
+
+    dest_file = time.strftime("%Y%m%d-%H%M%S-") + str(session.id)
+    dest_filename = dest_file + filename_extension
+    dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
+    count = 0
+    # If the file exists add underscore and a number until it doesn't.`
+    while (os.path.isfile(dest_filepath)):
+        dest_filename = "%s_%d%s" % (dest_file, count, filename_extension)
+        dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
+        count += 1
+
+    fileout = open(dest_filepath, 'wb')
+    fileout.write(fileitem.file.read())
+    fileout.close()
+
+    # Delete the uploaded original after the copy has been made.
+    if asset:
+        asset.file.delete()
+        asset.file.name = dest_filename
+        asset.filename = dest_filename
+        asset.save()
+    # Make sure everything is in wav form only if media type is audio.
+    if mediatype == "audio":
+        newfilename = convertaudio.convert_uploaded_file(dest_filename)
+    else:
+        newfilename = dest_filename
+    if not newfilename:
+        raise RoundException("File not converted successfully: " + newfilename)
+
+    # if the request comes from the django admin interface
+    # update the Asset with the right information
+    if asset:
+        asset.session = session
+        asset.filename = newfilename
+    # create the new asset if request comes in from a source other
+    # than the django admin interface
+    else:
+        # get location data from request
+        latitude = get_parameter_from_request(request, 'latitude')
+        longitude = get_parameter_from_request(request, 'longitude')
+        # if no location data in request, default to project latitude
+        # and longitude
+        if not latitude:
+            latitude = session.project.latitude
+        if not longitude:
+            longitude = session.project.longitude
+        tagset = []
+        tags = get_parameter_from_request(request, 'tags')
+        if tags is not None:
+            ids = tags.rstrip(',').split(',')
+            tagset = models.Tag.objects.filter(id__in=ids)
+
+        # get optional submitted parameter from request (Y, N or blank
+        # string are only acceptable values)
+        submitted = get_parameter_from_request(request, 'submitted')
+        # set submitted variable to proper boolean value if it is
+        # passed as parameter
+        if submitted == "N":
+            submitted = False
+        elif submitted == "Y":
+            submitted = True
+        # if blank string or not included as parameter, check if in range of project and if so
+        # set asset.submitted based on project.auto_submit boolean
+        # value
+        elif submitted is None or len(submitted) == 0:
+            submitted = False
+            if is_listener_in_range_of_stream(request.GET, session.project):
+                submitted = session.project.auto_submit
+
+        asset = models.Asset(latitude=latitude,
+                             longitude=longitude,
+                             filename=newfilename,
+                             session=session,
+                             submitted=submitted,
+                             mediatype=mediatype,
+                             volume=1.0,
+                             language=session.language,
+                             project=session.project)
+        asset.file.name = dest_filename
+        asset.save()
+        for tag in tagset:
+            asset.tags.add(tag)
+
+    # get the audiolength of the file only if mediatype is audio and
+    # update the Asset
+    if mediatype == "audio":
+        discover_audiolength.discover_and_set_audiolength(
+            asset, newfilename)
+        asset.save()
+
+    envelope.assets.add(asset)
+    envelope.save()
+    logger.info("Session %s - Asset %s created for file: %s",
+                session.id, asset.id, dest_filename)
+
+    # Refresh recordings for ALL existing streams.
+    dbus_send.emit_stream_signal(0, "refresh_recordings", "")
+    return {"success": True,
+            "asset_id": asset.id}
+
+
+def get_parameter_from_request(request, name, required=False):
+    ret = None
+    try:
+        ret = request.POST[name]
+    except (KeyError, AttributeError):
+        try:
+            ret = request.GET[name]
+        except (KeyError, AttributeError):
+            if required:
+                raise RoundException(
+                    name + " is required for this operation")
+    return ret
