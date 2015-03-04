@@ -9,7 +9,9 @@ from roundware.lib.api import request_stream
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from django.contrib.auth.models import User
+from datetime import datetime
 import time
+import re
 import logging
 
 logger = logging.getLogger(__name__)
@@ -61,7 +63,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class SessionSerializer(serializers.Serializer):
-    start_time = serializers.DateTimeField(required=True)
+    timezone = serializers.CharField(default="0000")
     language = serializers.CharField(max_length=2, default="en")
     client_system = serializers.CharField(max_length=128, required=True)
     project_id = serializers.IntegerField(required=True)
@@ -74,11 +76,17 @@ class SessionSerializer(serializers.Serializer):
             value = "en"
         return value
 
+    def validate_timezone(self, value):
+        if re.match("^[+-]?\d{4}$", value) is None:
+            raise ValidationError("Timezone must be in RFC822 GMT format (e.g. '-0800')")
+        return value
+
     def create(self, validated_data):
         lang = Language.objects.get(language_code=validated_data['language'])
         session = Session.objects.create(device_id=self.context["request"].user.userprofile.device_id,
                                          project_id=validated_data["project_id"],
-                                         starttime=validated_data["start_time"],
+                                         starttime=datetime.utcnow(),
+                                         timezone=validated_data["timezone"],
                                          language_id=lang.pk,
                                          client_type=self.context["request"].user.userprofile.client_type,
                                          client_system=validated_data["client_system"])
@@ -108,7 +116,6 @@ class StreamSerializer(serializers.Serializer):
         """
         if not Session.objects.filter(pk=value).exists():
             raise ValidationError("session_id=%s does not exist." % value)
-
         return value
 
     def validate(self, attrs):
