@@ -16,12 +16,12 @@ from tests.roundwared.common import (RoundwaredTestCase, FakeRequest,
                                      mock_distance_in_meters_far)
 from roundware.lib.exception import RoundException
 from roundware.api1.commands import (check_for_single_audiotrack, get_asset_info,
-                                     get_current_streaming_asset,
                                      get_available_assets,
-                                     vote_asset, _get_current_streaming_asset)
+                                     vote_asset)
 from roundware.api1 import commands
 from roundware.lib import api
-from roundware.lib.api import request_stream, get_project_tags
+from roundware.lib.api import (request_stream, get_project_tags, get_current_streaming_asset,
+                               _get_current_streaming_asset)
 from roundwared import gpsmixer
 
 

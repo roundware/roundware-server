@@ -9,7 +9,8 @@ from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
                                  Session, Tag, UserProfile, Envelope)
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
-from roundware.lib.api import get_project_tags, modify_stream, move_listener, heartbeat, skip_ahead, add_asset_to_envelope
+from roundware.lib.api import (get_project_tags, modify_stream, move_listener, heartbeat,
+                               skip_ahead, add_asset_to_envelope, get_current_streaming_asset)
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
@@ -160,6 +161,8 @@ class StreamViewSet(viewsets.ViewSet):
                 success = modify_stream(request, context={"pk": pk})
             elif "longitude" in request.data and "latitude" in request.data:
                 success = move_listener(request, context={"pk": pk})
+            else:
+                return ParseError("must supply something to update")
             if success["success"]:
                 return Response()
             else:
@@ -175,7 +178,7 @@ class StreamViewSet(viewsets.ViewSet):
             heartbeat(request, session_id=pk)
             return Response()
         except Exception as e:
-            return Response({"detail": e},
+            return Response({"detail": str(e)},
                             status.HTTP_400_BAD_REQUEST)
 
     @detail_route(methods=['post'])
@@ -184,7 +187,16 @@ class StreamViewSet(viewsets.ViewSet):
             skip_ahead(request, session_id=pk)
             return Response()
         except Exception as e:
-            return Response({"detail": e},
+            return Response({"detail": str(e)},
+                            status.HTTP_400_BAD_REQUEST)
+
+    @detail_route(methods=['get'])
+    def current(self, request, pk=None):
+        try:
+            result = get_current_streaming_asset(request, session_id=pk)
+            return Response(result)
+        except Exception as e:
+            return Response({"detail": str(e)},
                             status.HTTP_400_BAD_REQUEST)
 
 # class TagViewSet(viewsets.ModelViewSet):
