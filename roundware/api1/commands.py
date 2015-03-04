@@ -2,8 +2,6 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 from __future__ import unicode_literals
-import time
-import os
 import logging
 import json
 import uuid
@@ -15,42 +13,13 @@ except ImportError:
     pass
 from django.conf import settings
 from roundware.rw import models
-from roundware.lib import convertaudio
-from roundware.lib import discover_audiolength
 from roundware.lib import dbus_send
 from roundware.lib.exception import RoundException
 from roundwared import gpsmixer
-from roundware.lib.api import (get_project_tags, t, log_event, is_listener_in_range_of_stream,
-                               form_to_request, check_for_single_audiotrack, get_parameter_from_request)
+from roundware.lib.api import (get_project_tags, t, log_event, form_to_request,
+                               check_for_single_audiotrack, get_parameter_from_request)
 
 logger = logging.getLogger(__name__)
-
-
-def get_current_streaming_asset(request):
-    form = request.GET
-    if 'session_id' not in form:
-        raise RoundException("a session_id is required for this operation")
-    if check_for_single_audiotrack(form.get('session_id')) is not True:
-        raise RoundException(
-            "this operation is only valid for projects with 1 audiotrack")
-    else:
-        l = _get_current_streaming_asset(form.get('session_id'))
-    if l:
-        return {"asset_id": l.asset.id,
-                "start_time": l.starttime.isoformat(),
-                "duration_in_stream": l.duration / 1000000,
-                "current_server_time": datetime.datetime.now().isoformat()}
-    else:
-        return {"user_error_message": "no asset found"}
-
-
-def _get_current_streaming_asset(session_id):
-    try:
-        l = models.ListeningHistoryItem.objects.filter(
-            session=session_id).order_by('-starttime')[0]
-        return l
-    except IndexError:
-        return None
 
 
 def get_asset_info(request):

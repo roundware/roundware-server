@@ -245,7 +245,7 @@ def modify_stream(request, context=None):
     msg = ""
     # api v2
     if context is not None and "pk" in context:
-        form = request.data
+        form = request.data.copy()
         form["session_id"] = context["pk"]
     # api v1
     else:
@@ -311,7 +311,7 @@ def form_to_request(form):
 
 def move_listener(request, context=None):
     if context is not None and "pk" in context:
-        form = request.data
+        form = request.data.copy()
         form['session_id'] = context["pk"]
     else:
         form = request.GET
@@ -544,3 +544,30 @@ def get_parameter_from_request(request, name, required=False):
                 raise RoundException(
                     name + " is required for this operation")
     return ret
+
+
+def get_current_streaming_asset(request, session_id=None):
+    if session_id is None:
+        session_id = request.GET.get('session_id', None)
+    if session_id is None:
+        raise RoundException("a session_id is required for this operation")
+    if check_for_single_audiotrack(session_id) is not True:
+        raise RoundException("this operation is only valid for projects with 1 audiotrack")
+    else:
+        l = _get_current_streaming_asset(session_id)
+    if l:
+        return {"asset_id": l.asset.id,
+                "start_time": l.starttime.isoformat(),
+                "duration_in_stream": l.duration / 1000000,
+                "current_server_time": datetime.datetime.now().isoformat()}
+    else:
+        raise RoundException("no asset found")
+
+
+def _get_current_streaming_asset(session_id):
+    try:
+        l = models.ListeningHistoryItem.objects.filter(
+            session=session_id).order_by('-starttime')[0]
+        return l
+    except IndexError:
+        return None
