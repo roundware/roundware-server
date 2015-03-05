@@ -63,7 +63,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class SessionSerializer(serializers.Serializer):
-    timezone = serializers.CharField(required=True)
+    timezone = serializers.CharField(default="0000")
     language = serializers.CharField(max_length=2, default="en")
     client_system = serializers.CharField(max_length=128, required=True)
     project_id = serializers.IntegerField(required=True)
@@ -77,7 +77,7 @@ class SessionSerializer(serializers.Serializer):
         return value
 
     def validate_timezone(self, value):
-        if re.match("^[+-]\d{4}$", value) is None:
+        if re.match("^[+-]?\d{4}$", value) is None:
             raise ValidationError("Timezone must be in RFC822 GMT format (e.g. '-0800')")
         return value
 
