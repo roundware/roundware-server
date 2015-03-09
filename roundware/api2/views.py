@@ -104,7 +104,7 @@ class EnvelopeViewSet(viewsets.ViewSet):
             try:
                 result = add_asset_to_envelope(request, envelope_id=pk)
             except Exception as e:
-                return Response({"detail": e}, status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": str(e)}, status.HTTP_400_BAD_REQUEST)
             return Response({"asset_id": result["asset_id"]})
         else:
             raise ParseError("asset_id required")
