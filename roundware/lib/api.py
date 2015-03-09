@@ -481,7 +481,10 @@ def add_asset_to_envelope(request, envelope_id=None):
         tags = get_parameter_from_request(request, 'tags')
         if tags is not None:
             ids = tags.rstrip(',').split(',')
-            tagset = models.Tag.objects.filter(id__in=ids)
+            try:
+                tagset = models.Tag.objects.filter(id__in=ids)
+            except:
+                raise RoundException("Could not decode tag list")
 
         # get optional submitted parameter from request (Y, N or blank
         # string are only acceptable values)
@@ -540,9 +543,11 @@ def get_parameter_from_request(request, name, required=False):
         try:
             ret = request.GET[name]
         except (KeyError, AttributeError):
-            if required:
-                raise RoundException(
-                    name + " is required for this operation")
+            try:
+                ret = request.data[name]
+            except (KeyError, AttributeError):
+                if required:
+                    raise RoundException(name + " is required for this operation")
     return ret
 
 
