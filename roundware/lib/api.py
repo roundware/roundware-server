@@ -540,9 +540,11 @@ def get_parameter_from_request(request, name, required=False):
         try:
             ret = request.GET[name]
         except (KeyError, AttributeError):
-            if required:
-                raise RoundException(
-                    name + " is required for this operation")
+            try:
+                ret = request.data[name]
+            except (KeyError, AttributeError):
+                if required:
+                    raise RoundException(name + " is required for this operation")
     return ret
 
 
