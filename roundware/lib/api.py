@@ -293,13 +293,13 @@ def form_to_request(form):
             request[p] = map(int, form[p].split("\t"))
         else:
             request[p] = []
-    for p in ['tags']:
+    for p in ['tags', 'tag_ids']:
         if p in form and form[p]:
             # make sure we don't have blank values from trailing commas
             p_list = [v for v in form[p].split(",") if v != ""]
-            request[p] = map(int, p_list)
+            request['tags'] = map(int, p_list)
         else:
-            request[p] = []
+            request['tags'] = []
 
     for p in ['latitude', 'longitude']:
         if p in form and form[p]:
@@ -479,6 +479,8 @@ def add_asset_to_envelope(request, envelope_id=None):
             longitude = session.project.longitude
         tagset = []
         tags = get_parameter_from_request(request, 'tags')
+        if tags is None:
+            tags = get_parameter_from_request(request, 'tag_ids')
         if tags is not None:
             ids = tags.rstrip(',').split(',')
             try:
