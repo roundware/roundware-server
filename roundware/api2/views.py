@@ -231,12 +231,12 @@ class StreamViewSet(viewsets.ViewSet):
 
     def partial_update(self, request, pk=None):
         try:
-            if "tags" in request.data:
+            if "tag_ids" in request.data:
                 success = modify_stream(request, context={"pk": pk})
             elif "longitude" in request.data and "latitude" in request.data:
                 success = move_listener(request, context={"pk": pk})
             else:
-                return ParseError("must supply something to update")
+                raise ParseError("must supply something to update")
             if success["success"]:
                 return Response()
             else:
