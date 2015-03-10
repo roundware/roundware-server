@@ -479,6 +479,8 @@ def add_asset_to_envelope(request, envelope_id=None):
             longitude = session.project.longitude
         tagset = []
         tags = get_parameter_from_request(request, 'tags')
+        if tags is None:
+            tags = get_parameter_from_request(request, 'tag_ids')
         if tags is not None:
             ids = tags.rstrip(',').split(',')
             try:
