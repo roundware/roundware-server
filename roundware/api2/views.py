@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
-                                 Session, Tag, UserProfile, Envelope)
+                                 Session, Tag, UserProfile, Envelope, Language)
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from roundware.lib.api import (get_project_tags, modify_stream, move_listener, heartbeat,
@@ -136,7 +136,7 @@ class ProjectViewSet(viewsets.ViewSet):
             serializer = serializers.ProjectSerializer(project,
                                                        context={"session": session})
         else:
-            raise ParseError("session_id is required")
+            raise ParseError("session_id parameter is required")
         return Response(serializer.data)
 
     @detail_route(methods=['get'])
@@ -149,6 +149,45 @@ class ProjectViewSet(viewsets.ViewSet):
             project = get_object_or_404(Project, pk=pk)
             tags = get_project_tags(p=project)
         return Response(tags)
+
+    @detail_route(methods=['get'])
+    def assets(self, request, pk=None):
+        # ensure the project exists
+        try:
+            project = Project.objects.get(pk=pk)
+        except Project.DoesNotExist:
+            raise ParseError("Project not found")
+
+        # gather assets for response
+        assets = Asset.objects.filter(project=project)  # .filter(session=session)
+
+        # optionally filter assets by tags
+        if "tag_ids" in request.query_params:
+            try:
+                tag_ids = request.query_params["tag_ids"].split(",")
+                assets = assets.filter(tags__in=tag_ids)
+            except:
+                raise ParseError("Could not parse tags")
+
+        # optionally filter assets by mediatype
+        if "media_type" in request.query_params:
+            assets = assets.filter(mediatype=request.query_params["media_type"])
+
+        # optionally filter assets by language
+        if "language" in request.query_params:
+            try:
+                lang = Language.objects.get(language_code=request.query_params["language"])
+                assets = assets.filter(language=lang)
+            except Language.DoesNotExist:
+                raise ParseError("Language not found")
+
+        # optionally filter assets by envelope
+        if "envelope_id" in request.query_params:
+            assets = assets.filter(envelope=request.query_params["envelope_id"])
+
+        # serialize and return
+        serializer = serializers.AssetSerializer(assets, many=True)
+        return Response(serializer.data)
 
 
 class SessionViewSet(viewsets.ViewSet):
@@ -283,5 +322,3 @@ class UserViewSet(viewsets.ViewSet):
                 # obtain token for this new user
                 token = Token.objects.create(user=user)
         return Response({"username": user.username, "token": token.key})
-
-
