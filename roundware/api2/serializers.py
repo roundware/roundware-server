@@ -17,11 +17,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# class AssetSerializer(serializers.ModelSerializer):
-#     audiolength_in_seconds = serializers.FloatField()
+class AssetSerializer(serializers.ModelSerializer):
+    audiolength_in_seconds = serializers.FloatField()
 
-#     class Meta:
-#         model = Asset
+    class Meta:
+        model = Asset
 
 
 # class EventSerializer(serializers.ModelSerializer):
