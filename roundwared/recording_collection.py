@@ -226,7 +226,7 @@ class RecordingCollection:
         Returns whether an asset/recording is currently banned.
         """
 
-        return (recording.id in self.banned_timeout and
+        return (recording.id in self.banned_timeout.keys() or
             recording in self.banned_proximity)
 
     def _update_playlist_timed(self):
