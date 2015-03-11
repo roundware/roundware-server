@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class AssetSerializer(serializers.ModelSerializer):
-    audiolength_in_seconds = serializers.FloatField()
+    audiolength_in_seconds = serializers.FloatField(required=False)
 
     class Meta:
         model = Asset
