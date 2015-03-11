@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from rest_framework.exceptions import ParseError
 from roundware.rw import models
 from roundware.lib import dbus_send, discover_audiolength, convertaudio
 from roundware.lib.exception import RoundException
@@ -578,3 +579,79 @@ def _get_current_streaming_asset(session_id):
         return l
     except IndexError:
         return None
+
+
+###################################
+# WARNING
+###################################
+
+# APIv2 ONLY BELOW THIS POINT
+# the functions below have not been tested, and likely do not work
+# with the request style of APIv1
+
+###################################
+# WARNING
+###################################
+
+def assets_by_query_params(request, project_id=None):
+    """
+    Filters asset objects by query parameters including:
+    project_id, tag_ids, media_type, language, envelope_id
+    """
+    # gather assets for response
+    assets = models.Asset.objects.all()
+
+    # optionally filter by project based on project_id
+    if "project_id" in request.query_params:
+        project_id = request.query_params["project_id"]
+    if project_id is not None:
+        # ensure the project exists
+        try:
+            project = models.Project.objects.get(pk=project_id)
+        except models.Project.DoesNotExist:
+            raise ParseError("Project not found")
+        assets = assets.filter(project=project)
+
+    # optionally filter assets by session
+    if "session_id" in request.query_params:
+        assets = assets.filter(session_id=request.query_params["session_id"])
+
+    # optionally filter assets by tags
+    if "tag_ids" in request.query_params:
+        try:
+            tag_ids = request.query_params["tag_ids"].split(",")
+            assets = assets.filter(tags__in=tag_ids)
+        except:
+            raise ParseError("Could not parse tags")
+
+    # optionally filter assets by mediatype
+    if "media_type" in request.query_params:
+        assets = assets.filter(mediatype=request.query_params["media_type"])
+
+    # optionally filter assets by language
+    if "language" in request.query_params:
+        try:
+            lang = models.Language.objects.get(language_code=request.query_params["language"])
+            assets = assets.filter(language=lang)
+        except models.Language.DoesNotExist:
+            raise ParseError("Language not found")
+
+    # optionally filter assets by envelope
+    if "envelope_id" in request.query_params:
+        assets = assets.filter(envelope=request.query_params["envelope_id"])
+
+    # optionally filter assets by longitude
+    if "longtitude" in request.query_params:
+        try:
+            assets = assets.filter(longitude=float(request.query_params["longitude"]))
+        except ValueError:
+            raise ParseError("Longitude invalid")
+
+    # optionally filter assets by latitude
+    if "latitude" in request.query_params:
+        try:
+            assets = assets.filter(latitude=float(request.query_params["latitude"]))
+        except ValueError:
+            raise ParseError("Latitude invalid")
+
+    return assets

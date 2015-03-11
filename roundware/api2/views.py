@@ -10,13 +10,14 @@ from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from roundware.lib.api import (get_project_tags, modify_stream, move_listener, heartbeat,
-                               skip_ahead, add_asset_to_envelope, get_current_streaming_asset)
+                               skip_ahead, add_asset_to_envelope, get_current_streaming_asset,
+                               assets_by_query_params)
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import detail_route
 import logging
 
 logger = logging.getLogger(__name__)
@@ -26,20 +27,51 @@ logger = logging.getLogger(__name__)
 # Note: Keep this stuff in alphabetical order!
 
 
-# class AssetViewSet(viewsets.ModelViewSet):
-#     """
-#     API V2: api/2/assets/:asset_id
+class AssetViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/assets/:asset_id
 
-#     <Permissions>
-#     Anonymous: None.
-#     Authenticated: GET/POST. PUT/PATCH/DELETE for objects owned by user.
-#     Admin: GET/POST/PUT/PATCH/DELETE.
-#     """
+    <Permissions>
+    Anonymous: None
+    Authenticated: GET/POST.
+    Admin: None
+    """
 
-#     # TODO: Implement DjangoObjectPermissions
-#     queryset = Asset.objects.all()
-#     serializer_class = serializers.AssetSerializer
-#     permission_classes = (IsAuthenticated, DjangoObjectPermissions)
+    # TODO: Implement DjangoObjectPermissions
+    queryset = Asset.objects.all()
+    permission_classes = (IsAuthenticated, DjangoObjectPermissions)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/assets/:id/
+        """
+        try:
+            asset = Asset.objects.get(pk=pk)
+        except Asset.DoesNotExist:
+            raise ParseError("Asset not found")
+        serializer = serializers.AssetSerializer(asset)
+        return Response(serializer.data)
+
+    # The below should operate more like ProjectViewSet.partial_update
+    # using commonality from add_asset_to_envelope
+    # def create(self, request):
+    #     """
+    #     POST api/2/assets/ - Create a new asset
+    #     """
+    #     serializer = serializers.AssetSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response({"asset_id": serializer.data["id"]})
+    #     else:
+    #         return Response({"detail": serializer.errors}, status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request):
+        """
+        GET api/2/assets/ - retrieve list of assets filtered by parameters
+        """
+        assets = assets_by_query_params(request)
+        serializer = serializers.AssetSerializer(assets, many=True)
+        return Response(serializer.data)
 
 
 # class EventViewSet(viewsets.ModelViewSet):
@@ -152,39 +184,7 @@ class ProjectViewSet(viewsets.ViewSet):
 
     @detail_route(methods=['get'])
     def assets(self, request, pk=None):
-        # ensure the project exists
-        try:
-            project = Project.objects.get(pk=pk)
-        except Project.DoesNotExist:
-            raise ParseError("Project not found")
-
-        # gather assets for response
-        assets = Asset.objects.filter(project=project)  # .filter(session=session)
-
-        # optionally filter assets by tags
-        if "tag_ids" in request.query_params:
-            try:
-                tag_ids = request.query_params["tag_ids"].split(",")
-                assets = assets.filter(tags__in=tag_ids)
-            except:
-                raise ParseError("Could not parse tags")
-
-        # optionally filter assets by mediatype
-        if "media_type" in request.query_params:
-            assets = assets.filter(mediatype=request.query_params["media_type"])
-
-        # optionally filter assets by language
-        if "language" in request.query_params:
-            try:
-                lang = Language.objects.get(language_code=request.query_params["language"])
-                assets = assets.filter(language=lang)
-            except Language.DoesNotExist:
-                raise ParseError("Language not found")
-
-        # optionally filter assets by envelope
-        if "envelope_id" in request.query_params:
-            assets = assets.filter(envelope=request.query_params["envelope_id"])
-
+        assets = assets_by_query_params(request, project_id=pk)
         # serialize and return
         serializer = serializers.AssetSerializer(assets, many=True)
         return Response(serializer.data)
