@@ -23,6 +23,23 @@ class AssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Asset
 
+    def to_representation(self, obj):
+        result = super(AssetSerializer, self).to_representation(obj)
+        # consistent naming for output
+        result["media_type"] = result["mediatype"]
+        del result["mediatype"]
+
+        result["audio_length_in_seconds"] = result["audiolength_in_seconds"]
+        del result["audiolength_in_seconds"]
+        del result["audiolength"]
+
+        result["tag_ids"] = result["tags"]
+        del result["tags"]
+
+        del result["initialenvelope"]
+
+        return result
+
 
 # class EventSerializer(serializers.ModelSerializer):
 #     class Meta:
