@@ -26,6 +26,9 @@ class AssetSerializer(serializers.ModelSerializer):
     def to_representation(self, obj):
         result = super(AssetSerializer, self).to_representation(obj)
         # consistent naming for output
+        result["asset_id"] = result["id"]
+        del result["id"]
+
         result["media_type"] = result["mediatype"]
         del result["mediatype"]
 
