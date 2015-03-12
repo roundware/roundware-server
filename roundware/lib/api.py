@@ -412,8 +412,22 @@ def add_asset_to_envelope(request, envelope_id=None):
             "Invalid Envelope ID Provided. No Envelope exists with ID %s" % envelope_id)
 
     session = envelope.session
-    log_event("start_upload", session.id, request.GET)
 
+    asset = save_asset_from_request(request, session, asset=asset)
+
+    envelope.assets.add(asset)
+    envelope.save()
+    logger.info("Session %s - Asset %s created for file: %s",
+                session.id, asset.id, asset.file.name)
+
+    # Refresh recordings for ALL existing streams.
+    dbus_send.emit_stream_signal(0, "refresh_recordings", "")
+    return {"success": True,
+            "asset_id": asset.id}
+
+
+def save_asset_from_request(request, session, asset=None):
+    log_event("start_upload", session.id, request.GET)
     fileitem = asset.file if asset else request.FILES.get('file')
     if not fileitem.name:
         raise RoundException("No file in request")
@@ -527,15 +541,7 @@ def add_asset_to_envelope(request, envelope_id=None):
             asset, newfilename)
         asset.save()
 
-    envelope.assets.add(asset)
-    envelope.save()
-    logger.info("Session %s - Asset %s created for file: %s",
-                session.id, asset.id, dest_filename)
-
-    # Refresh recordings for ALL existing streams.
-    dbus_send.emit_stream_signal(0, "refresh_recordings", "")
-    return {"success": True,
-            "asset_id": asset.id}
+    return asset
 
 
 def get_parameter_from_request(request, name, required=False):
