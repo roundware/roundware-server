@@ -41,6 +41,11 @@ class AssetSerializer(serializers.ModelSerializer):
 
         del result["initialenvelope"]
 
+        # load string version of language
+        if "language" in result:
+            lang = Language.objects.get(pk=result["language"])
+            result["language"] = lang.language_code
+
         return result
 
 
