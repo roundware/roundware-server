@@ -11,7 +11,7 @@ from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from roundware.lib.api import (get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, add_asset_to_envelope, get_current_streaming_asset,
-                               assets_by_query_params)
+                               assets_by_query_params, save_asset_from_request)
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
@@ -52,18 +52,31 @@ class AssetViewSet(viewsets.ViewSet):
         serializer = serializers.AssetSerializer(asset)
         return Response(serializer.data)
 
-    # The below should operate more like ProjectViewSet.partial_update
-    # using commonality from add_asset_to_envelope
-    # def create(self, request):
-    #     """
-    #     POST api/2/assets/ - Create a new asset
-    #     """
-    #     serializer = serializers.AssetSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response({"asset_id": serializer.data["id"]})
-    #     else:
-    #         return Response({"detail": serializer.errors}, status.HTTP_400_BAD_REQUEST)
+    def create(self, request):
+        """
+        POST api/2/assets/ - Create a new asset
+        """
+        if "session_id" not in request.data:
+            raise ParseError("session_id required")
+
+        try:
+            session_id = int(request.data["session_id"])
+            session = Session.objects.get(pk=session_id)
+        except Session.DoesNotExist:
+            raise ParseError("Session not found")
+
+        if "asset_id" not in request.data and "file" not in request.data:
+            raise ParseError("Must supply either asset_id or file")
+
+        asset = None
+        if "asset_id" in request.data:
+            try:
+                asset_id = int(request.data["asset_id"])
+                asset = Asset.objects.get(pk=asset_id)
+            except ValueError, Asset.DoesNotExist:
+                raise ParseError("Asset with id %s not found" % request.data["asset_id"])
+        asset = save_asset_from_request(request, session, asset)
+        return Response({"asset_id": asset.pk})
 
     def list(self, request):
         """
@@ -139,7 +152,7 @@ class EnvelopeViewSet(viewsets.ViewSet):
                 return Response({"detail": str(e)}, status.HTTP_400_BAD_REQUEST)
             return Response({"asset_id": result["asset_id"]})
         else:
-            raise ParseError("asset_id required")
+            raise ParseError("asset_id or file required")
 
 
 class ProjectViewSet(viewsets.ViewSet):
