@@ -98,6 +98,7 @@ mkdir -p $STATIC_PATH
 cp $SOURCE_PATH/files/rw_test_audio1.wav $MEDIA_PATH
 
 # Copy default production settings file
+mkdir -p $WWW_PATH/settings
 cp $SOURCE_PATH/files/var-www-roundware-settings.py $WWW_PATH/settings/roundware_production.py
 
 # Setup roundware log and logrotate
@@ -124,7 +125,7 @@ sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-logrotate-d-roundware > /etc/log
 mv /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so.old
 cp $CODE_PATH/files/64-bit/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so
 
-# Set $USERNAME to own all files
+# Set $USERNAME to own home files
 chown $USERNAME:$USERNAME -R $HOME_PATH
 
 # Setup the default admin account
