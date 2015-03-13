@@ -4,8 +4,8 @@
 # The Django REST Framework object serializers for the V2 API.
 from __future__ import unicode_literals
 from roundware.rw.models import (Asset, Event, Envelope, Language, ListeningHistoryItem,
-                                 Project, Tag, Session, LocalizedString)
-from roundware.lib.api import request_stream
+                                 Project, Tag, Session, LocalizedString, Vote)
+from roundware.lib.api import request_stream, vote_count_by_asset
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from django.contrib.auth.models import User
@@ -47,6 +47,22 @@ class AssetSerializer(serializers.ModelSerializer):
             result["language"] = lang.language_code
 
         return result
+
+
+class EnvelopeSerializer(serializers.Serializer):
+    session_id = serializers.IntegerField(required=True)
+
+    def validate_session_id(self, value):
+        try:
+            self.context["session"] = Session.objects.get(pk=value)
+        except Session.DoesNotExist:
+            raise ValidationError("Session not found")
+        return value
+
+    def create(self, data):
+        envelope = Envelope.objects.create(session=self.context["session"])
+        envelope.save()
+        return envelope
 
 
 # class EventSerializer(serializers.ModelSerializer):
@@ -199,17 +215,17 @@ class UserSerializer(serializers.Serializer):
         return user
 
 
-class EnvelopeSerializer(serializers.Serializer):
-    session_id = serializers.IntegerField(required=True)
+class VoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vote
 
-    def validate_session_id(self, value):
-        try:
-            self.context["session"] = Session.objects.get(pk=value)
-        except Session.DoesNotExist:
-            raise ValidationError("Session not found")
-        return value
-
-    def create(self, data):
-        envelope = Envelope.objects.create(session=self.context["session"])
-        envelope.save()
-        return envelope
+    def to_representation(self, obj):
+        result = super(VoteSerializer, self).to_representation(obj)
+        result["vote_id"] = result["id"]
+        del result["id"]
+        result["asset_id"] = result["asset"]
+        del result["asset"]
+        result["session_id"] = result["session"]
+        del result["session"]
+        result["asset_votes"] = vote_count_by_asset(result["asset_id"])
+        return result

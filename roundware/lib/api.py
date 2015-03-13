@@ -6,7 +6,7 @@ from roundware.lib.exception import RoundException
 from roundwared import gpsmixer
 from roundwared import icecast2
 from django.conf import settings
-from django.db.models import Count
+from django.db.models import Count, Avg
 import datetime
 import json
 import os
@@ -625,6 +625,7 @@ def vote_asset(request, asset_id=None):
         # if value included - update value and resave
         else:
             existing.update(value=form.get('value'))
+        v = existing.first()
     else:
         if 'value' not in form:
             v = models.Vote(
@@ -633,7 +634,7 @@ def vote_asset(request, asset_id=None):
             v = models.Vote(asset=asset, session=session, value=int(
                 form.get('value')), type=form.get('vote_type'))
         v.save()
-    return {"success": True}
+    return {"success": True, "vote": v}
 
 
 ###################################
@@ -716,8 +717,13 @@ def vote_count_by_asset(asset_id):
     """
     Provides a count of votes, by vote type, for a given asset
     """
-    count = models.Vote.objects.all() \
-                               .filter(asset_id=asset_id) \
-                               .values('type') \
-                               .annotate(total=Count('type')).order_by('total')
-    return count
+    counts = models.Vote.objects.all() \
+                                .filter(asset_id=asset_id) \
+                                .values('type') \
+                                .annotate(total=Count('type')).order_by('total')
+    avg = models.Vote.objects.all().filter(asset_id=asset_id, type="rate").aggregate(Avg('value'))
+    if avg["value__avg"] is not None:
+        for count in counts:
+            if count["type"] == "rate":
+                count["avg"] = avg["value__avg"]
+    return counts

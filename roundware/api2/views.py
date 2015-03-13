@@ -88,10 +88,11 @@ class AssetViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     @detail_route(methods=['post'])
-    def vote(self, request, pk=None):
-        vote_asset(request, asset_id=pk)
-        counts = vote_count_by_asset(asset_id=pk)
-        return Response(counts)
+    def votes(self, request, pk=None):
+        vote_op = vote_asset(request, asset_id=pk)
+        vote = vote_op["vote"]
+        serializer = serializers.VoteSerializer(vote)
+        return Response(serializer.data)
 
 
 # class EventViewSet(viewsets.ModelViewSet):
