@@ -555,7 +555,7 @@ class Vote(models.Model):
     session = models.ForeignKey(Session)
     asset = models.ForeignKey(Asset)
     type = models.CharField(
-        max_length=16, choices=[('like', 'like'), ('flag', 'flag')])
+        max_length=16, choices=[('like', 'like'), ('flag', 'flag'), ('rate', 'rate')])
 
     def __unicode__(self):
         return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)

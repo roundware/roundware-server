@@ -6,6 +6,7 @@ from roundware.lib.exception import RoundException
 from roundwared import gpsmixer
 from roundwared import icecast2
 from django.conf import settings
+from django.db.models import Count
 import datetime
 import json
 import os
@@ -587,6 +588,54 @@ def _get_current_streaming_asset(session_id):
         return None
 
 
+def vote_asset(request, asset_id=None):
+    if hasattr(request, 'data'):
+        form = request.data
+    else:
+        form = request.GET
+
+    if 'session_id' not in form:
+        raise RoundException("a session_id is required for this operation")
+    if 'asset_id' not in form and asset_id is None:
+        raise RoundException("an asset_id is required for this operation")
+    if 'vote_type' not in form:
+        raise RoundException("a vote_type is required for this operation")
+    if not check_for_single_audiotrack(form.get('session_id')):
+        raise RoundException(
+            "this operation is only valid for projects with 1 audiotrack")
+
+    try:
+        log_event("vote_asset", int(form.get('session_id')), form)
+        session = models.Session.objects.get(id=int(form.get('session_id')))
+    except:
+        raise RoundException("Session not found.")
+    try:
+        if asset_id is None:
+            asset_id = int(form.get('asset_id'))
+        asset = models.Asset.objects.get(id=asset_id)
+    except:
+        raise RoundException("Asset not found.")
+
+    # try to find existing vote for this session and asset
+    existing = models.Vote.objects.filter(session=session, asset=asset, type=form.get('vote_type'))
+    if len(existing) > 0:
+        # if value not included - remove old vote (toggle)
+        if "value" not in form:
+            existing.delete()
+        # if value included - update value and resave
+        else:
+            existing.update(value=form.get('value'))
+    else:
+        if 'value' not in form:
+            v = models.Vote(
+                asset=asset, session=session, type=form.get('vote_type'))
+        else:
+            v = models.Vote(asset=asset, session=session, value=int(
+                form.get('value')), type=form.get('vote_type'))
+        v.save()
+    return {"success": True}
+
+
 ###################################
 # WARNING
 ###################################
@@ -661,3 +710,14 @@ def assets_by_query_params(request, project_id=None):
             raise ParseError("Latitude invalid")
 
     return assets
+
+
+def vote_count_by_asset(asset_id):
+    """
+    Provides a count of votes, by vote type, for a given asset
+    """
+    count = models.Vote.objects.all() \
+                               .filter(asset_id=asset_id) \
+                               .values('type') \
+                               .annotate(total=Count('type')).order_by('total')
+    return count
