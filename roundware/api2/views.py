@@ -87,13 +87,16 @@ class AssetViewSet(viewsets.ViewSet):
         serializer = serializers.AssetSerializer(assets, many=True)
         return Response(serializer.data)
 
-    @detail_route(methods=['post'])
+    @detail_route(methods=['post', 'get'])
     def votes(self, request, pk=None):
-        vote_op = vote_asset(request, asset_id=pk)
-        vote = vote_op["vote"]
-        serializer = serializers.VoteSerializer(vote)
-        return Response(serializer.data)
-
+        if request.method == "POST":
+            vote_op = vote_asset(request, asset_id=pk)
+            vote = vote_op["vote"]
+            serializer = serializers.VoteSerializer(vote)
+            return Response(serializer.data)
+        else:
+            count = vote_count_by_asset(pk)
+            return Response(count)
 
 # class EventViewSet(viewsets.ModelViewSet):
 #     """
