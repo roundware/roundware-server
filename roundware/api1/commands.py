@@ -60,38 +60,6 @@ def play_asset_in_stream(request):
     return {"success": True}
 
 
-def vote_asset(request):
-    form = request.GET
-    log_event("vote_asset", int(form['session_id']), form)
-
-    if 'session_id' not in form:
-        raise RoundException("a session_id is required for this operation")
-    if 'asset_id' not in form:
-        raise RoundException("an asset_id is required for this operation")
-    if 'vote_type' not in form:
-        raise RoundException("a vote_type is required for this operation")
-    if not check_for_single_audiotrack(form.get('session_id')):
-        raise RoundException(
-            "this operation is only valid for projects with 1 audiotrack")
-
-    try:
-        session = models.Session.objects.get(id=int(form.get('session_id')))
-    except:
-        raise RoundException("Session not found.")
-    try:
-        asset = models.Asset.objects.get(id=int(form.get('asset_id')))
-    except:
-        raise RoundException("Asset not found.")
-    if 'value' not in form:
-        v = models.Vote(
-            asset=asset, session=session, type=form.get('vote_type'))
-    else:
-        v = models.Vote(asset=asset, session=session, value=int(
-            form.get('value')), type=form.get('vote_type'))
-    v.save()
-    return {"success": True}
-
-
 # @profile(stats=True)
 def get_config(request):
     form = request.GET

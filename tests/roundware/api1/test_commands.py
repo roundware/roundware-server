@@ -19,12 +19,11 @@ from tests.roundwared.common import (RoundwaredTestCase, FakeRequest,
                                      mock_distance_in_meters_far)
 from roundware.lib.exception import RoundException
 from roundware.api1.commands import (check_for_single_audiotrack, get_asset_info,
-                                     get_available_assets,
-                                     vote_asset)
+                                     get_available_assets)
 from roundware.api1 import commands
 from roundware.lib import api
 from roundware.lib.api import (request_stream, get_project_tags, get_current_streaming_asset,
-                               _get_current_streaming_asset)
+                               _get_current_streaming_asset, vote_asset)
 from roundwared import gpsmixer
 
 
@@ -133,7 +132,8 @@ class TestServer(RoundwaredTestCase):
         req = FakeRequest()
         req.GET = {'session_id': self.session.id, 'asset_id': 1,
                    'vote_type': 'like', 'value': 2}
-        self.assertEqual({"success": True}, vote_asset(req))
+        ret = vote_asset(req)
+        self.assertEqual(True, ret["success"])
         votes = Vote.objects.filter(asset__id__exact=1)
         self.assertTrue(len(votes) == 1)
 

@@ -72,7 +72,7 @@ def operation_to_function(operation):
         "get_asset_info": commands.get_asset_info,
         "get_available_assets": commands.get_available_assets,
         "play_asset_in_stream": commands.play_asset_in_stream,
-        "vote_asset": commands.vote_asset,
+        "vote_asset": api.vote_asset,
         "skip_ahead": api.skip_ahead,
         "get_events": commands.get_events,
     }

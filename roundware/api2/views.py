@@ -11,7 +11,8 @@ from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from roundware.lib.api import (get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, add_asset_to_envelope, get_current_streaming_asset,
-                               assets_by_query_params, save_asset_from_request)
+                               assets_by_query_params, save_asset_from_request, vote_asset,
+                               vote_count_by_asset)
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
@@ -86,6 +87,16 @@ class AssetViewSet(viewsets.ViewSet):
         serializer = serializers.AssetSerializer(assets, many=True)
         return Response(serializer.data)
 
+    @detail_route(methods=['post', 'get'])
+    def votes(self, request, pk=None):
+        if request.method == "POST":
+            vote_op = vote_asset(request, asset_id=pk)
+            vote = vote_op["vote"]
+            serializer = serializers.VoteSerializer(vote)
+            return Response(serializer.data)
+        else:
+            count = vote_count_by_asset(pk)
+            return Response(count)
 
 # class EventViewSet(viewsets.ModelViewSet):
 #     """
@@ -118,6 +129,7 @@ class AssetViewSet(viewsets.ViewSet):
 #     queryset = ListeningHistoryItem.objects.all()
 #     serializer_class = serializers.ListenEventSerializer
 #     permission_classes = (IsAuthenticated,)
+
 
 class EnvelopeViewSet(viewsets.ViewSet):
     """
