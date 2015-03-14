@@ -120,25 +120,15 @@ class RoundStream:
     def refresh_recordings(self):
         self.recordingCollection.update_request(self.request)
 
-        for track in self.audiotracks:
-            track.move_listener(self.listener)
-
-    def move_listener(self, listener):
-        if listener['latitude'] and listener['longitude']:
+    def move_listener(self, request):
+        if request['latitude'] and request['longitude']:
             self.heartbeat()
-            self.listener = listener
-            logger.debug("move_listener(%s,%s)", listener['latitude'],
-                         listener['longitude'])
+            self.listener = request
+            logger.debug("move_listener(%s,%s)", request['latitude'],
+                         request['longitude'])
             if self.gps_mixer:
-                self.gps_mixer.move_listener(listener)
-            self.recordingCollection.move_listener(listener)
-            # logger.info("Stream: move_listener: Going to play: " \
-            # + ",".join(self.recordingCollection.get_filenames()) \
-            # + " Total of " \
-            # + str(len(self.recordingCollection.get_filenames()))
-            # + " files.")
-            for track in self.audiotracks:
-                track.move_listener(listener)
+                self.gps_mixer.move_listener(request)
+            self.recordingCollection.move_listener(request)
         else:
             logger.debug("no lat and long. Returning...")
 
@@ -191,7 +181,8 @@ class RoundStream:
             # self.recordingCollection),
             #[c])
 
-    # Gst Pipeline Bus Signal watcher
+    # Gst Pipeline Bus Signal watcher starts audiotracks when the stream is
+    # available for ouput.
     def get_message(self, bus, message):
         # logger.debug(message.src.get_name() + str(message.type))
         if message.type == gst.MESSAGE_ERROR:
@@ -213,11 +204,10 @@ class RoundStream:
                     and not self.started:
                 logger.debug("Stream for session %d has started." % self.sessionid)
                 self.started = True
-                gobject.timeout_add(
-                    settings.PING_INTERVAL,
-                    self.ping)
+                gobject.timeout_add(settings.PING_INTERVAL, self.ping)
+                self.recordingCollection.start()
                 for track in self.audiotracks:
-                    track.wait_and_play()
+                    track.start_audio()
 
     def cleanup(self):
         log_event("cleanup_session", self.sessionid)

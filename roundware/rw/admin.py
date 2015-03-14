@@ -436,6 +436,12 @@ class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):
     ordering = ['session']
 
 
+class TimedAssetAdmin(ProjectProtectedModelAdmin):
+    list_display = ('id', 'project', 'asset', 'start', 'end')
+    ordering = ['id']
+    list_filter = ('project__name',)
+
+
 admin.site.register(Language, LanguageAdmin)
 admin.site.register(LocalizedString, LocalizedStringAdmin)
 admin.site.register(Session, SessionAdmin)
@@ -451,3 +457,4 @@ admin.site.register(Speaker, SpeakerAdmin)
 admin.site.register(Envelope, EnvelopeAdmin)
 admin.site.register(ListeningHistoryItem, ListeningHistoryItemAdmin)
 admin.site.register(Vote, VoteAdmin)
+admin.site.register(TimedAsset, TimedAssetAdmin)

@@ -17,8 +17,8 @@ def order_assets_by_like(assets):
     for asset in assets:
         count = models.Asset.get_likes(asset)
         unplayed.append((count, asset))
-    logger.debug('Ordering Assets by Like. Input: ' +
-                str([(u[0], u[1].filename) for u in unplayed]))
+    # logger.debug('Ordering Assets by Like. Input: ' +
+    #            str([(u[0], u[1].filename) for u in unplayed]))
     unplayed = sorted(unplayed, key=itemgetter(0))
     logger.debug('Ordering Assets by Like. Output: ' +
                 str([(u[0], u[1].filename) for u in unplayed]))
@@ -33,8 +33,8 @@ def order_assets_by_weight(assets):
     for asset in assets:
         weight = asset.weight
         unplayed.append((weight, asset))
-    logger.debug('Ordering Assets by Weight. Input: ' +
-                 str([(u[0], u[1].filename) for u in unplayed]))
+    # logger.debug('Ordering Assets by Weight. Input: ' +
+    #             str([(u[0], u[1].filename) for u in unplayed]))
     unplayed = sorted(unplayed, key=itemgetter(0))
     logger.debug('Ordering Assets by Weight. Output: ' +
                  str([(u[0], u[1].filename) for u in unplayed]))
@@ -42,7 +42,7 @@ def order_assets_by_weight(assets):
 
 
 def order_assets_randomly(assets):
-    logger.debug("Ordering Assets Randomly. Input: %s" % (assets,))
+    # logger.debug("Ordering Assets Randomly. Input: %s" % (assets,))
     random.shuffle(assets)
     logger.debug("Ordering Assets Randomly. Output: %s" % (assets,))
     return assets

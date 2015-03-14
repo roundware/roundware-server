@@ -39,24 +39,53 @@ class AudioTrack:
         self.rc = recording_collection
         self.current_pan_pos = 0
         self.target_pan_pos = 0
-        self.state = STATE_WAITING
+        self.state = STATE_DEAD_AIR
         self.src_wav_file = None
         self.current_recording = None
-        self.timeout_exists = False
+        # Incremented only after start_audio() is called.
+        self.track_timer = 0
 
-    def wait_and_play(self):
-        def callback():
+    def start_audio(self):
+        """
+        Called once to start the audio manager timer
+        """
+        def asset_start_timer():
+            """
+            The asset timer runs once to start new assets after a certain
+            amount of dead air.
+
+            gobject timeout callbacks are repeated until they return False.
+            """
             self.add_file()
-            # Forget the timeout once it's complete.
-            self.timeout_exists = False
+            return False
 
-        # Generate a somewhat random amount of dead air.
-        deadair = random.randint(
-            self.settings.mindeadair,
-            self.settings.maxdeadair) / gst.MSECOND
-        # Remember we are making a timeout
-        self.timeout_exists = True
-        gobject.timeout_add(deadair, callback)
+        def track_timer():
+            """
+            The audio manager.
+
+            Timeout called every second to maintain the audio asset stream.
+            """
+            logger.debug("TickTock: %s" % self.track_timer)
+            self.track_timer += 1
+
+            # Do nothing if audio is playing already.
+            if self.state == STATE_PLAYING:
+                return True
+            # No audio playing and asset_timer_callback is not scheduled, this
+            # is set by self.clean_up() when an asset ends.
+            elif self.state == STATE_DEAD_AIR:
+                self.state = STATE_WAITING
+                # Generate a random amount of dead air.
+                deadair = random.randint(
+                    self.settings.mindeadair,
+                    self.settings.maxdeadair) / gst.MSECOND
+                # Attempt to start an asset in the future.
+                gobject.timeout_add(deadair, asset_start_timer)
+            return True
+
+        # http://www.pygtk.org/pygtk2reference/gobject-functions.html#function-gobject--timeout-add
+        # Call audio_timer_callback() every second.
+        gobject.timeout_add(1000, track_timer)
 
     def stereo_pan(self):
         if self.current_pan_pos == self.target_pan_pos \
@@ -72,21 +101,6 @@ class AudioTrack:
             if self.src_wav_file:
                 self.src_wav_file.pan_to(self.current_pan_pos)
 
-    def move_listener(self, posn):
-        if self.rc.has_nearby_unplayed() and not self.timeout_exists:
-            self.add_file()
-# FIXME: This code is responsible for swapping the playing file if there is
-#   a closer one to play and we've walked out of range of another.
-#   Problem is it sounds bad without the ability to fade it out.
-#   Uncomment this when fading works.
-#           elif self.state == STATE_PLAYING:
-#               if not self.rc.is_nearby(
-#                       listener,
-#                       self.currently_playing_recording):
-# FIXME: This should fade out.
-#                   self.clean_up()
-#                   self.add_file()
-
     ######################################################################
     # PRIVATE
     ######################################################################
@@ -94,7 +108,7 @@ class AudioTrack:
     def add_file(self):
         self.current_recording = self.rc.get_recording()
         if not self.current_recording:
-            self.state = STATE_WAITING
+            self.state = STATE_DEAD_AIR
             self.set_track_metadata()
             return
 
@@ -166,15 +180,11 @@ class AudioTrack:
         if event.type == gst.EVENT_EOS:
             self.set_track_metadata({'asset': self.current_recording.id,
                         'complete': True, })
-            gobject.idle_add(self.clean_up_wait_and_play)
+            gobject.idle_add(self.clean_up)
         # New asset added, seek to it's starting timestamp.
         elif event.type == gst.EVENT_NEWSEGMENT:
             gobject.idle_add(self.src_wav_file.seek_to_start)
         return True
-
-    def clean_up_wait_and_play(self):
-        self.clean_up()
-        self.wait_and_play()
 
     def clean_up(self):
         if self.src_wav_file:
@@ -210,8 +220,8 @@ class AudioTrack:
             self.src_wav_file.fade_out(fadeoutnsecs)
             # 1st arg is in milliseconds
             # 1000000000
-            #gobject.timeout_add(fadeoutnsecs/gst.MSECOND, self.clean_up_wait_and_play)
-            self.clean_up_wait_and_play()
+            #gobject.timeout_add(fadeoutnsecs/gst.MSECOND, self.clean_up)
+            self.clean_up()
         else:
             logger.debug("skip_ahead: no src_wav_file")
 
