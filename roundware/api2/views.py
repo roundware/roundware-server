@@ -16,7 +16,7 @@ from roundware.lib.api import (get_project_tags, modify_stream, move_listener, h
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, NotFound
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route
 import logging
@@ -49,7 +49,7 @@ class AssetViewSet(viewsets.ViewSet):
         try:
             asset = Asset.objects.get(pk=pk)
         except Asset.DoesNotExist:
-            raise ParseError("Asset not found")
+            raise NotFound("Asset not found")
         serializer = serializers.AssetSerializer(asset)
         return Response(serializer.data)
 
@@ -64,7 +64,7 @@ class AssetViewSet(viewsets.ViewSet):
             session_id = int(request.data["session_id"])
             session = Session.objects.get(pk=session_id)
         except Session.DoesNotExist:
-            raise ParseError("Session not found")
+            raise NotFound("Session not found")
 
         if "asset_id" not in request.data and "file" not in request.data:
             raise ParseError("Must supply either asset_id or file")
@@ -75,7 +75,7 @@ class AssetViewSet(viewsets.ViewSet):
                 asset_id = int(request.data["asset_id"])
                 asset = Asset.objects.get(pk=asset_id)
             except ValueError, Asset.DoesNotExist:
-                raise ParseError("Asset with id %s not found" % request.data["asset_id"])
+                raise NotFound("Asset with id %s not found" % request.data["asset_id"])
         asset = save_asset_from_request(request, session, asset)
         return Response({"asset_id": asset.pk})
 
