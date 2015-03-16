@@ -184,6 +184,7 @@ def log_event(event_type, session_id, form=None):
                      tags=tags,
                      data=data)
     e.save()
+    return e
 
 
 def is_listener_in_range_of_stream(form, proj):
