@@ -7,6 +7,7 @@ from roundwared import gpsmixer
 from roundwared import icecast2
 from django.conf import settings
 from django.db.models import Count, Avg
+from django.http import Http404
 import datetime
 import json
 import os
@@ -669,7 +670,7 @@ def assets_by_query_params(request, project_id=None):
         try:
             project = models.Project.objects.get(pk=project_id)
         except models.Project.DoesNotExist:
-            raise ParseError("Project not found")
+            raise Http404("Project not found")
         assets = assets.filter(project=project)
 
     # optionally filter assets by session
@@ -694,7 +695,7 @@ def assets_by_query_params(request, project_id=None):
             lang = models.Language.objects.get(language_code=request.query_params["language"])
             assets = assets.filter(language=lang)
         except models.Language.DoesNotExist:
-            raise ParseError("Language not found")
+            raise Http404("Language not found")
 
     # optionally filter assets by envelope
     if "envelope_id" in request.query_params:
