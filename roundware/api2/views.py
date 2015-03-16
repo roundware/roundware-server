@@ -99,20 +99,53 @@ class AssetViewSet(viewsets.ViewSet):
             count = vote_count_by_asset(pk)
             return Response(count)
 
-# class EventViewSet(viewsets.ModelViewSet):
-#     """
-#     API V2: api/2/events/:event_id
 
-#     <Permissions>
-#     Anonymous: None.
-#     Authenticated: GET/POST
-#     Admin: GET/POST
-#     """
+class EventViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/events/
+            api/2/events/:event_id/
 
-#     # TODO: Implement ViewCreate permission.
-#     queryset = Event.objects.all()
-#     serializer_class = serializers.EventSerializer
-#     permission_classes = (IsAuthenticated,)
+    <Permissions>
+    Anonymous: None
+    Authenticated: GET/POST
+    Admin: None
+    """
+
+    # TODO: Implement ViewCreate permission.
+    queryset = Event.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def list(self, request):
+        """
+        GET api/2/events/ - Provides list of events filtered by parameters
+        """
+        pass
+
+    def create(self, request):
+        """
+        POST api/2/events/ - Create a new event
+        """
+        if 'session_id' not in request.data:
+            raise ParseError("a session_id is required for this operation")
+        if 'event_type' not in request.data:
+            raise ParseError("an event_type is required for this operation")
+        try:
+            e = log_event(request.data['event_type'], request.data['session_id'], request.data)
+        except Exception as e:
+            raise ParseError(str(e))
+        serializer = serializers.EventSerializer(e)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        POST api/2/events/:event_id/
+        """
+        try:
+            event = Event.objects.get(pk=pk)
+        except Event.DoesNotExist:
+            raise Http404("Event not found")
+        serializer = serializers.EventSerializer(event)
+        return Response(serializer.data)
 
 
 # class ListenEventViewSet(viewsets.ModelViewSet):

@@ -65,9 +65,19 @@ class EnvelopeSerializer(serializers.Serializer):
         return envelope
 
 
-# class EventSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Event
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+
+    def to_representation(self, obj):
+        result = super(EventSerializer, self).to_representation(obj)
+        result["event_id"] = result["id"]
+        del result["id"]
+        result["session_id"] = result["session"]
+        del result["session"]
+        result["tag_ids"] = result["tags"]
+        del result["tags"]
+        return result
 
 
 class ProjectSerializer(serializers.ModelSerializer):
