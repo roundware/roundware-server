@@ -102,7 +102,7 @@ class TestRecordingCollection(RoundwaredTestCase):
             order1 = self.asset1
             matched = 0
             for i in range(10):
-                rc._update_nearby(req)
+                rc._update_playlist_proximity(req)
                 nearby = rc.get_recording()
                 if nearby == order1:
                     matched += 1
@@ -137,7 +137,7 @@ class TestRecordingCollection(RoundwaredTestCase):
 
     def test_get_recording_until_none_repeatmode_stop(self):
         """
-        test that we get the next playlist nearby recording, until there
+        test that we get the next playlist_proximity nearby recording, until there
         are none left. project in stop repeatmode should then not
         return any recordings.
         """
@@ -156,7 +156,7 @@ class TestRecordingCollection(RoundwaredTestCase):
             self.assertIsNone(rc.get_recording())
 
     def test_get_recording_until_none_then_move(self):
-        """ test that we get the next playlist nearby recording, until there
+        """ test that we get the next playlist_proximity nearby recording, until there
         are none left. Then move away and back again. Wait for the ban time out
         and they should be available.
         """
@@ -189,7 +189,7 @@ class TestRecordingCollection(RoundwaredTestCase):
         self.assertEquals(self.asset1, rc.get_recording())
 
     def test_get_recording_until_none_repeatmode_continuous(self):
-        """ test that we get the next playlist nearby recording, until there
+        """ test that we get the next playlist_proximity nearby recording, until there
         are none left.  project in continuous repeatmode should then the
         first played recording.
         """
@@ -210,7 +210,7 @@ class TestRecordingCollection(RoundwaredTestCase):
 
     def test_add_recording(self):
         """ add a specific asset id and it should show up in
-        playlist
+        playlist_proximity
         """
         # Request #2 has no lat/long to test that code
         req = self.req2
@@ -221,10 +221,10 @@ class TestRecordingCollection(RoundwaredTestCase):
             # Update the list of nearby recordings
             rc.update_request(req)
             self.assertEquals([self.asset1, self.asset2, self.asset3],
-                              rc.playlist)
+                              rc.playlist_proximity)
             rc.add_recording(self.asset2.id)
             self.assertEquals([self.asset1, self.asset2, self.asset3,
-                               self.asset2], rc.playlist)
+                               self.asset2], rc.playlist_proximity)
 
     def test_limit_asset_by_tag(self):
         """ test that only tag1 assets are returned when request["tags"] is specified.

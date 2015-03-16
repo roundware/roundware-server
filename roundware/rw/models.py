@@ -550,15 +550,19 @@ class ListeningHistoryItem(models.Model):
         return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + " duration: " + str(self.duration)
 
 
-class Vote(models.Model):
-    value = models.IntegerField(null=True, blank=True)
-    session = models.ForeignKey(Session)
+class TimedAsset(models.Model):
+    """
+    Items to play at specific times of the stream duration.
+    """
+    project = models.ForeignKey(Project)
     asset = models.ForeignKey(Asset)
-    type = models.CharField(
-        max_length=16, choices=[('like', 'like'), ('flag', 'flag'), ('rate', 'rate')])
+    # Asset start time in seconds
+    start = models.FloatField()
+    # Asset end time in seconds
+    end = models.FloatField()
 
     def __unicode__(self):
-        return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)
+        return "%s: Asset id: %s: Start: %s: End: %s" % (self.id, self.asset.id, self.start, self.end)
 
 
 class UserProfile(models.Model):
@@ -572,6 +576,17 @@ def create_user_profile(sender, instance, created, **kwargs):
         UserProfile.objects.get_or_create(user=instance)
 
 post_save.connect(create_user_profile, sender=User)
+
+
+class Vote(models.Model):
+    value = models.IntegerField(null=True, blank=True)
+    session = models.ForeignKey(Session)
+    asset = models.ForeignKey(Asset)
+    type = models.CharField(
+        max_length=16, choices=[('like', 'like'), ('flag', 'flag'), ('rate', 'rate')])
+
+    def __unicode__(self):
+        return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)
 
 
 def get_field_names_from_model(model):
