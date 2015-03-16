@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, NotFound
 from roundware.rw import models
 from roundware.lib import dbus_send, discover_audiolength, convertaudio
 from roundware.lib.exception import RoundException
@@ -669,7 +669,7 @@ def assets_by_query_params(request, project_id=None):
         try:
             project = models.Project.objects.get(pk=project_id)
         except models.Project.DoesNotExist:
-            raise ParseError("Project not found")
+            raise NotFound("Project not found")
         assets = assets.filter(project=project)
 
     # optionally filter assets by session
@@ -694,7 +694,7 @@ def assets_by_query_params(request, project_id=None):
             lang = models.Language.objects.get(language_code=request.query_params["language"])
             assets = assets.filter(language=lang)
         except models.Language.DoesNotExist:
-            raise ParseError("Language not found")
+            raise NotFound("Language not found")
 
     # optionally filter assets by envelope
     if "envelope_id" in request.query_params:
