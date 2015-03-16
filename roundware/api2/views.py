@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from django.http import Http404
 from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
                                  Session, Tag, UserProfile, Envelope, Language)
 from roundware.api2 import serializers
@@ -12,11 +13,11 @@ from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from roundware.lib.api import (get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, add_asset_to_envelope, get_current_streaming_asset,
                                assets_by_query_params, save_asset_from_request, vote_asset,
-                               vote_count_by_asset)
+                               vote_count_by_asset, log_event)
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
-from rest_framework.exceptions import ParseError, NotFound
+from rest_framework.exceptions import ParseError
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route
 import logging
@@ -49,7 +50,7 @@ class AssetViewSet(viewsets.ViewSet):
         try:
             asset = Asset.objects.get(pk=pk)
         except Asset.DoesNotExist:
-            raise NotFound("Asset not found")
+            raise Http404("Asset not found")
         serializer = serializers.AssetSerializer(asset)
         return Response(serializer.data)
 
@@ -64,7 +65,7 @@ class AssetViewSet(viewsets.ViewSet):
             session_id = int(request.data["session_id"])
             session = Session.objects.get(pk=session_id)
         except Session.DoesNotExist:
-            raise NotFound("Session not found")
+            raise Http404("Session not found")
 
         if "asset_id" not in request.data and "file" not in request.data:
             raise ParseError("Must supply either asset_id or file")
@@ -75,7 +76,7 @@ class AssetViewSet(viewsets.ViewSet):
                 asset_id = int(request.data["asset_id"])
                 asset = Asset.objects.get(pk=asset_id)
             except ValueError, Asset.DoesNotExist:
-                raise NotFound("Asset with id %s not found" % request.data["asset_id"])
+                raise Http404("Asset with id %s not found" % request.data["asset_id"])
         asset = save_asset_from_request(request, session, asset)
         return Response({"asset_id": asset.pk})
 
