@@ -1,0 +1,129 @@
+Roundware Server v0.3, XXXX-XX-XX (development version)
+---------------------
+- Added UPGRADING.md and CHANGELOG.txt
+- Fixed recording_collection._banned asset status function.
+- Created Timed Playlist to manage audiotrack audio instead of relying on move_listener calls.
+- Allowed authorization header to pass through WSGI.
+- Moved production Django/Roundware settings out of source directory.
+- Symlinked ~/roundware-server to source code on production servers for manage.py.
+- Upgraded djangorestframework to 3.0.4.
+- Fixed LocalizedString.DoesNotExist exception when Tag doesn't have a localized value.
+- Renamed select_method to select in sample project fix install
+- Deleted RepeatMode table and converted Project.repeat_mode from foreignkey to char.
+- Deleted UIMode Table and converted MasterUI.ui_mode from foreignkey to char.
+- Replaced sample project SQL with Django Fixture.
+- Patched Django core for M2M deserial: https://code.djangoproject.com/ticket/17946
+- Deleted SelectionMethod table and migrated data to CharField choices.
+- Removed invalid notifications.action.last_sent_time default.
+- Repaired asset limiting by request tags.
+- Renamed Composition to AudioTrack
+- Removed icecast2.update_metadata and added RoundStream.set_metadata:
+  - URLencoded metadata
+  - Audiotrack ID
+  - Playlist length
+  - Asset complete status
+- Fixed admin site header with new django 1.7 method.
+- Added Admin section to docs with screenshots.
+- Adding tests for ban timeout.
+- Implemented recording collection asset ban timeout list replacing nearby_played and far
+  recordings.
+- Removed asset re-sort from stream.refresh_recordings().
+- Converted nearby_played_recordings to a regular stack.
+- Refactored recording_collection to increase readability.
+- Deleted unused roundware/rw/filterspec.py.
+- Enabled Discoverage test runner.
+- Moved all tests into project root /tests directory.
+- Guaranteed unique file name for asset uploads.
+- Created scripts/test-stream.py to automate manual (AKA using your ears) stream testing.
+- Created scripts/add-test-audio.py to add 8 Creative Commons licensed udio assets using APIv1 
+  add_asset_to_envelope to project 1 for testing.
+- Moved all scripts to /scripts.
+- Changed wavparse to decodebin2.
+- Changed event callback to only start audio asset tracks once.
+- Added Travis CI YML for automated tests.
+- Updated roundware.wsgi with Django 1.7 syntax.
+- Replaced South Migrations with Django 1.7 Migrations.
+- Upgraded to Django 1.7 and all other requirements to current versions.
+- Changed ffmpeg call to avconv.
+- Upgraded to Ubuntu 14.04 LTS including VagrantFile and packages.
+
+Roundware Server v0.2.9, 2014-09-28
+-----------------------
+- Upgraded South to 1.0 and fixed rest_framework.authtoken migrations.
+- Added ARCHITECTURE.md.
+- Moved code related to APIv1 into roundware/api1.
+- Split rounddbus.py into rwdbus_receive.py and roundware/lib/rwdbus_send.py.
+- Removed roundware/daemon.py.
+- Reduced code interdependence by moving server.py-only funtions out of roundwared/db.py and into
+  roundware/lib/server.py.
+- Moved server.py and direct dependencies to roundware/rw/lib.
+- Created t() for translation.
+- Simplified get_available_assets() and request_stream().
+- APIv2 - Implemented basic Asset, Event, ListeningHistoryItem, Project, Session, Tag end points.
+- Enabled CORS support in Apache by default for voice map, and listen map.
+- Refactored init_request() and update_request() in recording_collection into one function.
+- Refactored add_asset_to_envelope() to stop duplicate filenames and reduce code nesting.
+- Removed gstreamer0.10-gnomevfs and multiverse repo/package from install.sh
+- Renamed RoundFileSrc->SrcWavFile & GnomeVFSMP3Src->SrcMP3Stream.
+- Added startup notification capability.
+- Added event logging for move_listener events.
+- Simplified licensing and copyright.
+- Consolidated common.py media paths.
+- Created basic code update deployment procedure: deploy.sh
+- Added check-assets and check-rwmedia manage.py commands.
+- Replaced EXTERNAL_HOST_NAME_WITHOUT_PORT with request.get_host().
+- Added redirect from old API location to new /api/1/ in Apache conf.
+- Replaced TastyPie with RDF at /api/1/rest.
+- Converted icecast2.py to use Requests library instead of pycurl and urllib2.
+- Reduced get_default_tags_for_project complexity.
+- Added settings.TESTING boolean to allow minor code path changes for tests.
+- Updated rw_base.sql file: Default session_id is 1 and tag relationships are fixed.
+- Fixed asset_sorters tests and GetConfigTagJSON test tag attributes
+- Removed admin.site.register_view.
+- Refactored roundwared.db.get_recordings to reduce complexity
+- Rewrote get_recordings() to check input before use.
+- Replaced mock_wait_for_stream with mock_stream_exists to fix URLError: Network is unreachable.
+- Imported unicode_literals.
+- Dereferenced symbolic link for PYTHONPATH.
+- Added roundware log to logrotate.
+- Tested for stream existence before creation.
+- Moved config to roundware/settings/common.py and remove /etc/roundware/rw.
+- Automatic and manual PEP8 fixes, excluding E501: Line length to fix #101
+
+Roundware Server v0.2.0, 2014-07-04
+-----------------------
+- Modified modify_stream to only refresh the available recordings if tag parameters are present 
+  in the request. If only location (lat/lon) are provided, recordings are not refreshed, avoiding
+  retriggering.
+- Re-enabled the move_listener API call which can now be used alternatively to modify_stream for
+  situations where only the location is being updated.
+- Standardized logging, live error+ to /var/log/roundware and dev debug+ to runserver console.
+- Enabled debug toolbar for development and logging for runserver.
+- Removed ClamAV asset upload scan.
+- Replaced GST with mediainfo for audio length.
+- Set default session id and API URL for Asset uploads.
+- Added standard WAV files to allowed audio file types.
+- Implemented new_session=false for get_config operation for #41
+- Downgraded tastypie to fix: :0001_initial TypeError: type() argument 1 must be string, not 
+  unicode.
+- Added project_id to get_events operation.
+- Converted tab->space, some file line endings to UNIX format.
+- Rewrote apache_safe_daemon_subprocess() to set PYTHONPATH.
+- Renamed streamscript to rwstreamd.py
+- Removed setup.py
+- Set stream detect timeout default to 30 secs.
+- Set dev environment to use roundware.settings.dev.
+- Moved default install to /var/www/roundware.
+- Simplified install process.
+- Deleted old unused scripts.
+- Added VirtualBox Development port 8001 forward for Icecast.
+- Added syncdb and default admin user account to install.sh
+- Created a nearly idempotent install.sh installing Roundware in virtualenv.
+- Add VagrantFile for development.
+- Update rw_base.sql with newest schema.
+- Added Roundware docs, Vagrant-style.
+- Added LGPL and GPL files.
+- Added /dashboard/asset-map to quickly bulk-edit Assets.
+
+Please review the commit log for further (older) details. Start here:
+https://github.com/roundware/roundware-server/commit/97b7faf35d86915eb0cf648e9cba0541bbc3d710
