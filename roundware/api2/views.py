@@ -31,12 +31,8 @@ logger = logging.getLogger(__name__)
 
 class AssetViewSet(viewsets.ViewSet):
     """
-    API V2: api/2/assets/:asset_id
-
-    <Permissions>
-    Anonymous: None
-    Authenticated: GET/POST.
-    Admin: None
+    API V2: api/2/assets/
+            api/2/assets/:asset_id/
     """
 
     # TODO: Implement DjangoObjectPermissions
@@ -105,11 +101,6 @@ class EventViewSet(viewsets.ViewSet):
     """
     API V2: api/2/events/
             api/2/events/:event_id/
-
-    <Permissions>
-    Anonymous: None
-    Authenticated: GET/POST
-    Admin: None
     """
 
     # TODO: Implement ViewCreate permission.
@@ -168,12 +159,8 @@ class EventViewSet(viewsets.ViewSet):
 
 class EnvelopeViewSet(viewsets.ViewSet):
     """
-    API V2: api/2/users/:user_id
-
-    <Permissions>
-    Anonymous: POST
-    Authenticated: None
-    Admin: None
+    API V2: api/2/envelopes/
+            api/2/envelopes/:envelope_id/
     """
     queryset = Envelope.objects.all()
 
@@ -205,19 +192,8 @@ class EnvelopeViewSet(viewsets.ViewSet):
 
 class ProjectViewSet(viewsets.ViewSet):
     """
-    API V2:
-
-    api/2/projects/:project_id
-    <Permissions>
-    Anonymous: None
-    Authenticated: GET
-    Admin: None
-
-    api/2/projects/:project_id/tags
-    <Permissions>
-    Anonymous: None
-    Authenticated: GET
-    Admin: None
+    API V2: api/2/projects/:project_id
+            api/2/projects/:project_id/tags
     """
     queryset = Project.objects.all()
     permission_classes = (IsAuthenticated, )
@@ -253,12 +229,7 @@ class ProjectViewSet(viewsets.ViewSet):
 
 class SessionViewSet(viewsets.ViewSet):
     """
-    API V2: api/2/sessions/:session_id
-
-    <Permissions>
-    Anonymous: None
-    Authenticated: GET/POST/PUT/PATCH for objects owned by user.
-    Admin: None
+    API V2: api/2/sessions/
     """
     queryset = Session.objects.all()
     permission_classes = (IsAuthenticated, )
@@ -276,11 +247,7 @@ class StreamViewSet(viewsets.ViewSet):
     The primary communication channel for handling the Roundware audio stream.
     Only one stream per user id/token so the end point is not plural.
     API V2: api/2/streams/
-
-    <Permissions>
-    Anonymous: None
-    Authenticated: POST for the user specific stream.
-    Admin: None
+            api/2/streams/:id/
     """
     permission_classes = (IsAuthenticated,)
 
@@ -351,12 +318,7 @@ class StreamViewSet(viewsets.ViewSet):
 
 class UserViewSet(viewsets.ViewSet):
     """
-    API V2: api/2/users/:user_id
-
-    <Permissions>
-    Anonymous: POST
-    Authenticated: None
-    Admin: None
+    API V2: api/2/users/
     """
     queryset = User.objects.all()
 
