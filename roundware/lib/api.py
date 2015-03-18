@@ -428,7 +428,7 @@ def add_asset_to_envelope(request, envelope_id=None):
     # Refresh recordings for ALL existing streams.
     dbus_send.emit_stream_signal(0, "refresh_recordings", "")
     return {"success": True,
-            "asset_id": asset.id}
+            "asset": asset}
 
 
 def save_asset_from_request(request, session, asset=None):
