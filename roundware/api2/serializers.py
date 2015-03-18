@@ -146,7 +146,8 @@ class SessionSerializer(serializers.Serializer):
         return session
 
     def to_representation(self, obj):
-        result = {"language": self.validated_data["language"]}
+        result = super(SessionSerializer, self).to_representation(obj)
+        result.update({"language": self.validated_data["language"]})
         if "session_id" in self.context:
             result["session_id"] = self.context["session_id"]
         return result
