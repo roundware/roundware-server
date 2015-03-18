@@ -78,7 +78,8 @@ class AssetViewSet(viewsets.ViewSet):
             except ValueError, Asset.DoesNotExist:
                 raise Http404("Asset with id %s not found" % request.data["asset_id"])
         asset = save_asset_from_request(request, session, asset)
-        return Response({"asset_id": asset.pk})
+        serializer = serializers.AssetSerializer(asset)
+        return Response(serializer.data)
 
     def list(self, request):
         """
@@ -196,7 +197,8 @@ class EnvelopeViewSet(viewsets.ViewSet):
                 result = add_asset_to_envelope(request, envelope_id=pk)
             except Exception as e:
                 return Response({"detail": str(e)}, status.HTTP_400_BAD_REQUEST)
-            return Response({"asset_id": result["asset_id"]})
+            serializer = serializers.AssetSerializer(result["asset"])
+            return Response(serializer.data)
         else:
             raise ParseError("asset_id or file required")
 

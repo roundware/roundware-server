@@ -428,7 +428,7 @@ def add_asset_to_envelope(request, envelope_id=None):
     # Refresh recordings for ALL existing streams.
     dbus_send.emit_stream_signal(0, "refresh_recordings", "")
     return {"success": True,
-            "asset_id": asset.id}
+            "asset": asset}
 
 
 def save_asset_from_request(request, session, asset=None):
@@ -525,8 +525,10 @@ def save_asset_from_request(request, session, asset=None):
             if is_listener_in_range_of_stream(request.GET, session.project):
                 submitted = session.project.auto_submit
 
-        # save description if provided
+        # save description if provided, null is not allowed
         description = get_parameter_from_request(request, 'description')
+        if description is None:
+            description = ""
 
         asset = models.Asset(latitude=latitude,
                              longitude=longitude,

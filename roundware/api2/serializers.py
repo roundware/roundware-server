@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class AssetSerializer(serializers.ModelSerializer):
     audiolength_in_seconds = serializers.FloatField(required=False)
+    description = serializers.CharField(max_length=2048, default="")
 
     class Meta:
         model = Asset
@@ -38,6 +39,9 @@ class AssetSerializer(serializers.ModelSerializer):
 
         result["tag_ids"] = result["tags"]
         del result["tags"]
+
+        result["session_id"] = result["session"]
+        del result["session"]
 
         del result["initialenvelope"]
 
@@ -146,7 +150,8 @@ class SessionSerializer(serializers.Serializer):
         return session
 
     def to_representation(self, obj):
-        result = {"language": self.validated_data["language"]}
+        result = super(SessionSerializer, self).to_representation(obj)
+        result.update({"language": self.validated_data["language"]})
         if "session_id" in self.context:
             result["session_id"] = self.context["session_id"]
         return result
