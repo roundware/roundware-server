@@ -78,7 +78,8 @@ class AssetViewSet(viewsets.ViewSet):
             except ValueError, Asset.DoesNotExist:
                 raise Http404("Asset with id %s not found" % request.data["asset_id"])
         asset = save_asset_from_request(request, session, asset)
-        return Response({"asset_id": asset.pk})
+        serializer = serializers.AssetSerializer(asset)
+        return Response(serializer.data)
 
     def list(self, request):
         """
