@@ -173,8 +173,6 @@ def log_event(event_type, session_id, form=None):
         latitude = form.get("latitude", None)
         longitude = form.get("longitude", None)
         tags = form.get("tags", None)
-        if tags is None:
-            tags = form.get("tag_ids", None)
         data = form.get("data", None)
 
     e = models.Event(session=s,
