@@ -44,9 +44,8 @@ class AssetSerializer(serializers.ModelSerializer):
         del result["session"]
 
         del result["initialenvelope"]
-
         # load string version of language
-        if "language" in result:
+        if "language" in result and result["language"] is not None:
             lang = Language.objects.get(pk=result["language"])
             result["language"] = lang.language_code
 
