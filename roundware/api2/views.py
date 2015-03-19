@@ -10,6 +10,7 @@ from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
                                  Session, Tag, UserProfile, Envelope, Language)
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
+from roundware.api2.filters import EventFilter
 from roundware.lib.api import (get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, add_asset_to_envelope, get_current_streaming_asset,
                                assets_by_query_params, save_asset_from_request, vote_asset,
@@ -111,7 +112,9 @@ class EventViewSet(viewsets.ViewSet):
         """
         GET api/2/events/ - Provides list of events filtered by parameters
         """
-        pass
+        events = EventFilter(request.query_params)
+        serializer = serializers.EventSerializer(events, many=True)
+        return Response(serializer.data)
 
     def create(self, request):
         """
