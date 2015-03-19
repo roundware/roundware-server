@@ -10,10 +10,10 @@ from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
                                  Session, Tag, UserProfile, Envelope, Language)
 from roundware.api2 import serializers
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
-from roundware.api2.filters import EventFilter
+from roundware.api2.filters import EventFilter, AssetFilter
 from roundware.lib.api import (get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, add_asset_to_envelope, get_current_streaming_asset,
-                               assets_by_query_params, save_asset_from_request, vote_asset,
+                               save_asset_from_request, vote_asset,
                                vote_count_by_asset, log_event)
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
@@ -82,7 +82,7 @@ class AssetViewSet(viewsets.ViewSet):
         """
         GET api/2/assets/ - retrieve list of assets filtered by parameters
         """
-        assets = assets_by_query_params(request)
+        assets = AssetFilter(request.query_params)
         serializer = serializers.AssetSerializer(assets, many=True)
         return Response(serializer.data)
 
