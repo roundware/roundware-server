@@ -78,6 +78,8 @@ class EventSerializer(serializers.ModelSerializer):
         del result["id"]
         result["session_id"] = result["session"]
         del result["session"]
+        result["tag_ids"] = result["tags"]
+        del result["tags"]
         return result
 
 
@@ -109,9 +111,25 @@ class ProjectSerializer(serializers.ModelSerializer):
         del result["id"]
         return result
 
-# class ListenEventSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = ListeningHistoryItem
+
+class ListenEventSerializer(serializers.ModelSerializer):
+    duration_in_seconds = serializers.FloatField(required=False)
+
+    class Meta:
+        model = ListeningHistoryItem
+
+    def to_representation(self, obj):
+        result = super(ListenEventSerializer, self).to_representation(obj)
+        result["listenevent_id"] = result["id"]
+        del result["id"]
+        result["start_time"] = result["starttime"]
+        del result["starttime"]
+        result["session_id"] = result["session"]
+        del result["session"]
+        result["asset_id"] = result["asset"]
+        del result["asset"]
+        del result["duration"]
+        return result
 
 
 class SessionSerializer(serializers.Serializer):

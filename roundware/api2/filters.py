@@ -1,4 +1,4 @@
-from roundware.rw.models import Event, Asset
+from roundware.rw.models import Event, Asset, ListeningHistoryItem
 from distutils.util import strtobool
 import django_filters
 
@@ -18,16 +18,13 @@ class WordListFilter(django_filters.Filter):
     def filter(self, qs, value):
         if value not in (None, ''):
             words = [str(v) for v in value.split(',')]
-            if self.lookup_type == "in":
-                qs = qs.filter(**{'%s__%s' % (self.name, self.lookup_type): words})
-            else:
-                for word in words:
-                    qs = qs.filter(**{'%s__%s' % (self.name, self.lookup_type): word})
+            for word in words:
+                qs = qs.filter(**{'%s__%s' % (self.name, self.lookup_type): word})
             return qs
         return qs
 
 
-class EventFilter(django_filters.FilterSet):
+class EventFilterSet(django_filters.FilterSet):
     event_type = django_filters.CharFilter(lookup_type='icontains')
     server_time = django_filters.DateTimeFilter(lookup_type='startswith')
     server_time__lt = django_filters.DateTimeFilter(name='server_time', lookup_type='lt')
@@ -35,7 +32,7 @@ class EventFilter(django_filters.FilterSet):
     session_id = django_filters.NumberFilter()
     latitude = django_filters.CharFilter(lookup_type='startswith')
     longitude = django_filters.CharFilter(lookup_type='startswith')
-    tags = WordListFilter(lookup_type='in')
+    tag_ids = WordListFilter(name='tags', lookup_type='contains')
 
     class Meta:
         model = Event
@@ -47,7 +44,7 @@ class EventFilter(django_filters.FilterSet):
                   'tags']
 
 
-class AssetFilter(django_filters.FilterSet):
+class AssetFilterSet(django_filters.FilterSet):
     session_id = django_filters.NumberFilter()
     project_id = django_filters.NumberFilter()
     tag_ids = IntegerListFilter(name='tags', lookup_type='in')
@@ -69,3 +66,19 @@ class AssetFilter(django_filters.FilterSet):
                   'longitude',
                   'latitude',
                   'submitted']
+
+
+class ListeningHistoryItemFilterSet(django_filters.FilterSet):
+    duration__lte = django_filters.NumberFilter('duration', lookup_type='lte')
+    duration__gte = django_filters.NumberFilter('duration', lookup_type='gte')
+
+    start_time__gte = django_filters.DateTimeFilter(name='starttime', lookup_type='gte')
+    start_time__lte = django_filters.DateTimeFilter(name='starttime', lookup_type='lte')
+    start_time__range = django_filters.DateRangeFilter(name='starttime')
+
+    class Meta:
+        model = ListeningHistoryItem
+        fields = ['starttime',
+                  'session',
+                  'asset',
+                  ]
