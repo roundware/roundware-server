@@ -224,7 +224,9 @@ class ProjectViewSet(viewsets.ViewSet):
 
     @detail_route(methods=['get'])
     def assets(self, request, pk=None):
-        assets = assets_by_query_params(request, project_id=pk)
+        params = request.query_params.copy()
+        params["project_id"] = pk
+        assets = AssetFilter(params)
         # serialize and return
         serializer = serializers.AssetSerializer(assets, many=True)
         return Response(serializer.data)
