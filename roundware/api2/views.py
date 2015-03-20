@@ -7,10 +7,9 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
-                                 Session, Tag, UserProfile, Envelope, Language)
+                                 Session, UserProfile, Envelope)
 from roundware.api2 import serializers
-from roundware.api2.permissions import AuthenticatedReadAdminWrite
-from roundware.api2.filters import EventFilter, AssetFilter
+from roundware.api2.filters import EventFilterSet, AssetFilterSet, ListeningHistoryItemFilterSet
 from roundware.lib.api import (get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, add_asset_to_envelope, get_current_streaming_asset,
                                save_asset_from_request, vote_asset,
@@ -82,7 +81,7 @@ class AssetViewSet(viewsets.ViewSet):
         """
         GET api/2/assets/ - retrieve list of assets filtered by parameters
         """
-        assets = AssetFilter(request.query_params)
+        assets = AssetFilterSet(request.query_params)
         serializer = serializers.AssetSerializer(assets, many=True)
         return Response(serializer.data)
 
@@ -112,7 +111,7 @@ class EventViewSet(viewsets.ViewSet):
         """
         GET api/2/events/ - Provides list of events filtered by parameters
         """
-        events = EventFilter(request.query_params)
+        events = EventFilterSet(request.query_params)
         serializer = serializers.EventSerializer(events, many=True)
         return Response(serializer.data)
 
@@ -143,21 +142,28 @@ class EventViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-# class ListenEventViewSet(viewsets.ModelViewSet):
-#     """
-#     API V2: api/2/listenevents/:listenevent_id
+class ListenEventViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/listenevents/
+            api/2/listenevents/:id/
+    """
 
-#     <Permissions>
-#     Anonymous: None.
-#     Authenticated: GET/POST.
-#     Admin: GET/POST.
-#     """
+    # TODO: Rename ListeningHistoryItem model to ListenEvent.
+    queryset = ListeningHistoryItem.objects.all()
+    permission_classes = (IsAuthenticated,)
 
-#     # TODO: Implement ViewCreate permission.
-#     # TODO: Rename ListeningHistoryItem model to ListenEvent.
-#     queryset = ListeningHistoryItem.objects.all()
-#     serializer_class = serializers.ListenEventSerializer
-#     permission_classes = (IsAuthenticated,)
+    def list(self, request):
+        events = ListeningHistoryItemFilterSet(request.query_params)
+        serializer = serializers.ListenEventSerializer(events, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        try:
+            event = ListeningHistoryItem.objects.get(pk=pk)
+        except ListeningHistoryItem.DoesNotExist:
+            raise Http404("ListenEvent not found")
+        serializer = serializers.ListenEventSerializer(event)
+        return Response(serializer.data)
 
 
 class EnvelopeViewSet(viewsets.ViewSet):
@@ -226,7 +232,7 @@ class ProjectViewSet(viewsets.ViewSet):
     def assets(self, request, pk=None):
         params = request.query_params.copy()
         params["project_id"] = pk
-        assets = AssetFilter(params)
+        assets = AssetFilterSet(params)
         # serialize and return
         serializer = serializers.AssetSerializer(assets, many=True)
         return Response(serializer.data)
