@@ -78,6 +78,8 @@ class EventSerializer(serializers.ModelSerializer):
         del result["id"]
         result["session_id"] = result["session"]
         del result["session"]
+        result["tag_ids"] = result["tags"]
+        del result["tags"]
         return result
 
 

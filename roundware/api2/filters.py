@@ -18,11 +18,8 @@ class WordListFilter(django_filters.Filter):
     def filter(self, qs, value):
         if value not in (None, ''):
             words = [str(v) for v in value.split(',')]
-            if self.lookup_type == "in":
-                qs = qs.filter(**{'%s__%s' % (self.name, self.lookup_type): words})
-            else:
-                for word in words:
-                    qs = qs.filter(**{'%s__%s' % (self.name, self.lookup_type): word})
+            for word in words:
+                qs = qs.filter(**{'%s__%s' % (self.name, self.lookup_type): word})
             return qs
         return qs
 
@@ -35,7 +32,7 @@ class EventFilterSet(django_filters.FilterSet):
     session_id = django_filters.NumberFilter()
     latitude = django_filters.CharFilter(lookup_type='startswith')
     longitude = django_filters.CharFilter(lookup_type='startswith')
-    tags = WordListFilter(lookup_type='in')
+    tag_ids = WordListFilter(name='tags', lookup_type='contains')
 
     class Meta:
         model = Event
