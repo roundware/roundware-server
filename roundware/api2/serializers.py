@@ -118,6 +118,8 @@ class ListenEventSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(ListenEventSerializer, self).to_representation(obj)
+        result["listenevent_id"] = result["id"]
+        del result["id"]
         result["start_time"] = result["starttime"]
         del result["starttime"]
         result["session_id"] = result["session"]
