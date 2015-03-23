@@ -91,22 +91,14 @@ class ProjectSerializer(serializers.ModelSerializer):
         # must include only the related localizationStrings that match out session language
         result = super(ProjectSerializer, self).to_representation(obj)
         # session should be passed in as context
+        session = None
         if 'session' in self.context:
-            # find the localizedString relation fields
-            for key in result.keys():
-                if key[-4:] == "_loc" and type(result[key]) is list:
-                    msg = None
-                    default = None
-                    # match localized string on session language
-                    for loc_item in result[key]:
-                        loc_string = LocalizedString.objects.get(pk=loc_item)
-                        if loc_string.language == self.context["session"].language:
-                            msg = loc_string.localized_string
-                        if loc_string.language.language_code == "en":
-                            default = loc_string.localized_string
-                    # set the string as a field without the _loc in the key and delete the list field
-                    result[key[:-4]] = msg or default
-                    del result[key]
+            session = self.context["session"]
+        # find the localizedString relation fields
+        for key in result.keys():
+            if key[-4:] == "_loc" and type(result[key]) is list:
+                result[key[:-4]] = _select_localized_string(result[key], session)
+                del result[key]
         result["project_id"] = result["id"]
         del result["id"]
         return result
@@ -213,9 +205,22 @@ class StreamSerializer(serializers.Serializer):
         return stream
 
 
-# class TagSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Tag
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+
+    def to_representation(self, obj):
+        result = super(TagSerializer, self).to_representation(obj)
+        # find correct localized strings
+        session = None
+        if "session" in self.context:
+            session = self.context["session"]
+        for field in ["loc_msg", "loc_description"]:
+            result[field] = _select_localized_string(result[field], session=session)
+        # field renaming
+        result["tag_id"] = result["id"]
+        del result["id"]
+        return result
 
 
 class UserSerializer(serializers.Serializer):
@@ -259,3 +264,19 @@ class VoteSerializer(serializers.ModelSerializer):
         del result["session"]
         result["asset_votes"] = vote_count_by_asset(result["asset_id"])
         return result
+
+
+def _select_localized_string(loc_str_ids, session=None):
+    if session is not None:
+        # find matching language
+        try:
+            lang = Language.objects.get(language_code=session.language)
+        except Language.DoesNotExist:
+            lang = Language.objects.get(language_code="en")
+    else:
+        lang = Language.objects.get(language_code="en")
+    for loc_str_id in loc_str_ids:
+        loc_str = LocalizedString.objects.get(pk=loc_str_id)
+        if loc_str.language == lang:
+            return loc_str.localized_string
+    return None
