@@ -85,6 +85,8 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
 
 
 class TagFilterSet(django_filters.FilterSet):
+    description = django_filters.CharFilter(lookup_type='icontains')
+    data = django_filters.CharFilter(lookup_type='icontains')
 
     class Meta:
         model = Tag

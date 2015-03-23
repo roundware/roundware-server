@@ -343,7 +343,13 @@ class TagViewSet(viewsets.ViewSet):
             tag = Tag.objects.get(pk=pk)
         except Tag.DoesNotExist:
             raise Http404("Tag not found")
-        serializer = serializers.TagSerializer(tag)
+        session = None
+        if "session_id" in request.query_params:
+            try:
+                session = Session.objects.get(pk=request.query_params["session_id"])
+            except:
+                raise ParseError("Session not found")
+        serializer = serializers.TagSerializer(tag, context={"session": session})
         return Response(serializer.data)
 
 
