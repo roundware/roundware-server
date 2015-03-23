@@ -1,4 +1,4 @@
-from roundware.rw.models import Event, Asset, ListeningHistoryItem
+from roundware.rw.models import Event, Asset, ListeningHistoryItem, Tag
 from distutils.util import strtobool
 import django_filters
 
@@ -82,3 +82,11 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
                   'session',
                   'asset',
                   ]
+
+
+class TagFilterSet(django_filters.FilterSet):
+    description = django_filters.CharFilter(lookup_type='icontains')
+    data = django_filters.CharFilter(lookup_type='icontains')
+
+    class Meta:
+        model = Tag

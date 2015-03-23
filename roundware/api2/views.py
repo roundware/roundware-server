@@ -6,10 +6,10 @@ from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.http import Http404
-from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project,
-                                 Session, UserProfile, Envelope)
+from roundware.rw.models import (Asset, Event, Envelope, ListeningHistoryItem, Project,
+                                 Session, Tag, UserProfile)
 from roundware.api2 import serializers
-from roundware.api2.filters import EventFilterSet, AssetFilterSet, ListeningHistoryItemFilterSet
+from roundware.api2.filters import EventFilterSet, AssetFilterSet, ListeningHistoryItemFilterSet, TagFilterSet
 from roundware.lib.api import (get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, add_asset_to_envelope, get_current_streaming_asset,
                                save_asset_from_request, vote_asset,
@@ -24,7 +24,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# TODO: http://www.django-rest-framework.org/api-guide/relations#hyperlinkedrelatedfield
 
 # Note: Keep this stuff in alphabetical order!
 
@@ -41,7 +40,7 @@ class AssetViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-        GET api/2/assets/:id/
+        GET api/2/assets/:id/ - Get asset by id
         """
         try:
             asset = Asset.objects.get(pk=pk)
@@ -115,6 +114,17 @@ class EventViewSet(viewsets.ViewSet):
         serializer = serializers.EventSerializer(events, many=True)
         return Response(serializer.data)
 
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/events/:event_id/ - Get event by id
+        """
+        try:
+            event = Event.objects.get(pk=pk)
+        except Event.DoesNotExist:
+            raise Http404("Event not found")
+        serializer = serializers.EventSerializer(event)
+        return Response(serializer.data)
+
     def create(self, request):
         """
         POST api/2/events/ - Create a new event
@@ -128,41 +138,6 @@ class EventViewSet(viewsets.ViewSet):
         except Exception as e:
             raise ParseError(str(e))
         serializer = serializers.EventSerializer(e)
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk=None):
-        """
-        POST api/2/events/:event_id/
-        """
-        try:
-            event = Event.objects.get(pk=pk)
-        except Event.DoesNotExist:
-            raise Http404("Event not found")
-        serializer = serializers.EventSerializer(event)
-        return Response(serializer.data)
-
-
-class ListenEventViewSet(viewsets.ViewSet):
-    """
-    API V2: api/2/listenevents/
-            api/2/listenevents/:id/
-    """
-
-    # TODO: Rename ListeningHistoryItem model to ListenEvent.
-    queryset = ListeningHistoryItem.objects.all()
-    permission_classes = (IsAuthenticated,)
-
-    def list(self, request):
-        events = ListeningHistoryItemFilterSet(request.query_params)
-        serializer = serializers.ListenEventSerializer(events, many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk=None):
-        try:
-            event = ListeningHistoryItem.objects.get(pk=pk)
-        except ListeningHistoryItem.DoesNotExist:
-            raise Http404("ListenEvent not found")
-        serializer = serializers.ListenEventSerializer(event)
         return Response(serializer.data)
 
 
@@ -197,6 +172,36 @@ class EnvelopeViewSet(viewsets.ViewSet):
             return Response(serializer.data)
         else:
             raise ParseError("asset_id or file required")
+
+
+class ListenEventViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/listenevents/
+            api/2/listenevents/:id/
+    """
+
+    # TODO: Rename ListeningHistoryItem model to ListenEvent.
+    queryset = ListeningHistoryItem.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def list(self, request):
+        """
+        GET api/2/listenevents/ - Get listenevents by filtering parameters
+        """
+        events = ListeningHistoryItemFilterSet(request.query_params)
+        serializer = serializers.ListenEventSerializer(events, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/listenevents/:event_id/ - Get listenevent by id
+        """
+        try:
+            event = ListeningHistoryItem.objects.get(pk=pk)
+        except ListeningHistoryItem.DoesNotExist:
+            raise Http404("ListenEvent not found")
+        serializer = serializers.ListenEventSerializer(event)
+        return Response(serializer.data)
 
 
 class ProjectViewSet(viewsets.ViewSet):
@@ -312,19 +317,40 @@ class StreamViewSet(viewsets.ViewSet):
             return Response({"detail": str(e)},
                             status.HTTP_400_BAD_REQUEST)
 
-# class TagViewSet(viewsets.ModelViewSet):
-#     """
-#     API V2: api/2/tags/:tag_id
 
-#     <Permissions>
-#     Anonymous: None.
-#     Authenticated: GET.
-#     Admin: GET/POST/PUT/PATCH/DELETE.
-#     """
-#     # TODO: Return messages and relationships in response
-#     queryset = Tag.objects.all()
-#     serializer_class = serializers.TagSerializer
-#     permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
+class TagViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/tags/
+            api/2/tags/:tag_id/
+    """
+    # TODO: Return messages and relationships in response
+    queryset = Tag.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def list(self, request):
+        """
+        GET api/2/tags/ - Provides list of tag filtered by parameters
+        """
+        tags = TagFilterSet(request.query_params)
+        serializer = serializers.TagSerializer(tags, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/tags/:id/ - Get tag by id
+        """
+        try:
+            tag = Tag.objects.get(pk=pk)
+        except Tag.DoesNotExist:
+            raise Http404("Tag not found")
+        session = None
+        if "session_id" in request.query_params:
+            try:
+                session = Session.objects.get(pk=request.query_params["session_id"])
+            except:
+                raise ParseError("Session not found")
+        serializer = serializers.TagSerializer(tag, context={"session": session})
+        return Response(serializer.data)
 
 
 class UserViewSet(viewsets.ViewSet):
