@@ -96,6 +96,39 @@ class AssetViewSet(viewsets.ViewSet):
             return Response(count)
 
 
+class EnvelopeViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/envelopes/
+            api/2/envelopes/:envelope_id/
+    """
+    queryset = Envelope.objects.all()
+
+    def create(self, request):
+        """
+        POST api/2/envelopes/ - Creates a new envelope based on passed session_id
+        """
+        serializer = serializers.EnvelopeSerializer(data=request.data)
+        if serializer.is_valid():
+            envelope = serializer.save()
+            return Response({"envelope_id": envelope.pk})
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk=None):
+        """
+        PATCH api/2/envelopes/:id/ - Adds an asset to the envelope
+        """
+        if "asset_id" in request.data or "file" in request.FILES:
+            try:
+                result = add_asset_to_envelope(request, envelope_id=pk)
+            except Exception as e:
+                return Response({"detail": str(e)}, status.HTTP_400_BAD_REQUEST)
+            serializer = serializers.AssetSerializer(result["asset"])
+            return Response(serializer.data)
+        else:
+            raise ParseError("asset_id or file required")
+
+
 class EventViewSet(viewsets.ViewSet):
     """
     API V2: api/2/events/
@@ -139,39 +172,6 @@ class EventViewSet(viewsets.ViewSet):
             raise ParseError(str(e))
         serializer = serializers.EventSerializer(e)
         return Response(serializer.data)
-
-
-class EnvelopeViewSet(viewsets.ViewSet):
-    """
-    API V2: api/2/envelopes/
-            api/2/envelopes/:envelope_id/
-    """
-    queryset = Envelope.objects.all()
-
-    def create(self, request):
-        """
-        POST api/2/envelopes/ - Creates a new envelope based on passed session_id
-        """
-        serializer = serializers.EnvelopeSerializer(data=request.data)
-        if serializer.is_valid():
-            envelope = serializer.save()
-            return Response({"envelope_id": envelope.pk})
-        else:
-            return Response(serializer.errors)
-
-    def partial_update(self, request, pk=None):
-        """
-        PATCH api/2/envelopes/:id/ - Adds an asset to the envelope
-        """
-        if "asset_id" in request.data or "file" in request.FILES:
-            try:
-                result = add_asset_to_envelope(request, envelope_id=pk)
-            except Exception as e:
-                return Response({"detail": str(e)}, status.HTTP_400_BAD_REQUEST)
-            serializer = serializers.AssetSerializer(result["asset"])
-            return Response(serializer.data)
-        else:
-            raise ParseError("asset_id or file required")
 
 
 class ListenEventViewSet(viewsets.ViewSet):
