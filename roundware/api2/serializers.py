@@ -73,6 +73,8 @@ class EnvelopeSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(EnvelopeSerializer, self).to_representation(obj)
+        result["envelope_id"] = result["id"]
+        del result["id"]
         del result["session"]
         return result
 
