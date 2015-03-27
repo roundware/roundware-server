@@ -52,8 +52,12 @@ class AssetSerializer(serializers.ModelSerializer):
         return result
 
 
-class EnvelopeSerializer(serializers.Serializer):
+class EnvelopeSerializer(serializers.ModelSerializer):
     session_id = serializers.IntegerField(required=True)
+    session = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Envelope
 
     def validate_session_id(self, value):
         try:
@@ -66,6 +70,11 @@ class EnvelopeSerializer(serializers.Serializer):
         envelope = Envelope.objects.create(session=self.context["session"])
         envelope.save()
         return envelope
+
+    def to_representation(self, obj):
+        result = super(EnvelopeSerializer, self).to_representation(obj)
+        del result["session"]
+        return result
 
 
 class EventSerializer(serializers.ModelSerializer):

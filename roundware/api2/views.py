@@ -109,8 +109,8 @@ class EnvelopeViewSet(viewsets.ViewSet):
         """
         serializer = serializers.EnvelopeSerializer(data=request.data)
         if serializer.is_valid():
-            envelope = serializer.save()
-            return Response({"envelope_id": envelope.pk})
+            serializer.save()
+            return Response(serializer.data)
         else:
             return Response(serializer.errors)
 
