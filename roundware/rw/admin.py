@@ -24,6 +24,11 @@ class EnvelopeInline(admin.StackedInline):
     verbose_name_plural = "Related Envelope"
 
 
+class TimedAssetInline(admin.TabularInline):
+    model = TimedAsset
+    extra = 1
+
+
 class AssetTagsInline(admin.TabularInline):
     model = Asset.tags.through
 
@@ -157,6 +162,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     inlines = [
         EnvelopeInline,
         VoteInline,
+        TimedAssetInline,
     ]
     #exclude = ('tags',)
     # , 'longitude', 'latitude')#, 'filename')

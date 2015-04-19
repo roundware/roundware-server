@@ -1,5 +1,6 @@
 Roundware Server v0.3, XXXX-XX-XX (development version)
 ---------------------
+- Adding Timed Asset inline on the Asset Admin view to simplify Timed Asset creation.
 - Added UPGRADING.md and CHANGELOG.txt
 - Fixed recording_collection._banned asset status function.
 - Created Timed Playlist to manage audiotrack audio instead of relying on move_listener calls.
