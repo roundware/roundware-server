@@ -46,10 +46,10 @@ class Project(models.Model):
         ('320', '320'),
     )
     STOP = 'stop'
-    CONTINOUS = 'continous'
+    CONTINUOUS = 'continuous'
     REPEAT_MODES = (
         (STOP, 'stop'),
-        (CONTINOUS, 'continous'),
+        (CONTINUOUS, 'continuous'),
     )
 
     name = models.CharField(max_length=50)
@@ -75,7 +75,7 @@ class Project(models.Model):
     reset_tag_defaults_on_startup = models.BooleanField(default=False)
     legal_agreement_loc = models.ManyToManyField(
         LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
-    repeat_mode = models.CharField(default=STOP, max_length=9, blank=False,
+    repeat_mode = models.CharField(default=STOP, max_length=10, blank=False,
                                choices=REPEAT_MODES)
 
     files_url = models.CharField(max_length=512, blank=True)
@@ -104,10 +104,6 @@ class Project(models.Model):
         master_uis = MasterUI.objects.select_related('tag_category').filter(
             project=self, ui_mode=ui_mode, active=True)
         return [mui.tag_category for mui in master_uis]
-
-    @cached(60 * 60)
-    def is_continuous(self):
-        return self.repeat_mode == Project.CONTINOUS
 
     class Meta:
         permissions = (('access_project', 'Access Project'),)

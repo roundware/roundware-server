@@ -193,7 +193,7 @@ class TestRecordingCollection(RoundwaredTestCase):
         are none left.  project in continuous repeatmode should then the
         first played recording.
         """
-        self.project1.repeat_mode = Project.CONTINOUS
+        self.project1.repeat_mode = Project.CONTINUOUS
         self.project1.save()
         req = self.req1
         stream = RoundStream(self.session1.id, 'ogg', req)

@@ -1,5 +1,6 @@
 Roundware Server v0.3, XXXX-XX-XX (development version)
 ---------------------
+- Fixed project continuous mode; previously it would never take effect.
 - Adding Timed Asset inline on the Asset Admin view to simplify Timed Asset creation.
 - Change default tag filter from "--" to empty string to fix stream tag filtering.
 - Add "Browse" UI Mode for manual browsing of content
@@ -39,7 +40,7 @@ Roundware Server v0.3, XXXX-XX-XX (development version)
 - Moved all tests into project root /tests directory.
 - Guaranteed unique file name for asset uploads.
 - Created scripts/test-stream.py to automate manual (AKA using your ears) stream testing.
-- Created scripts/add-test-audio.py to add 8 Creative Commons licensed udio assets using APIv1 
+- Created scripts/add-test-audio.py to add 8 Creative Commons licensed audio assets using APIv1
   add_asset_to_envelope to project 1 for testing.
 - Moved all scripts to /scripts.
 - Changed wavparse to decodebin2.
@@ -96,7 +97,7 @@ Roundware Server v0.2.9, 2014-09-28
 
 Roundware Server v0.2.0, 2014-07-04
 -----------------------
-- Modified modify_stream to only refresh the available recordings if tag parameters are present 
+- Modified modify_stream to only refresh the available recordings if tag parameters are present
   in the request. If only location (lat/lon) are provided, recordings are not refreshed, avoiding
   retriggering.
 - Re-enabled the move_listener API call which can now be used alternatively to modify_stream for
@@ -108,7 +109,7 @@ Roundware Server v0.2.0, 2014-07-04
 - Set default session id and API URL for Asset uploads.
 - Added standard WAV files to allowed audio file types.
 - Implemented new_session=false for get_config operation for #41
-- Downgraded tastypie to fix: :0001_initial TypeError: type() argument 1 must be string, not 
+- Downgraded tastypie to fix: :0001_initial TypeError: type() argument 1 must be string, not
   unicode.
 - Added project_id to get_events operation.
 - Converted tab->space, some file line endings to UNIX format.
