@@ -145,7 +145,7 @@ class Tag(models.Model):
 
     tag_category = models.ForeignKey(TagCategory)
     value = models.TextField()
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     loc_description = models.ManyToManyField(
         LocalizedString, null=True, blank=True, related_name='tag_desc')
     loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)

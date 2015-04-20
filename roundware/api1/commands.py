@@ -618,6 +618,10 @@ def add_asset_to_envelope(request):
             ids = tags.rstrip(',').split(',')
             tagset = models.Tag.objects.filter(id__in=ids)
 
+        # get optional description parameter from request; set to empty string if not passed
+        description = get_parameter_from_request(request, 'description')
+        if not description:
+            description = ""
         # get optional submitted parameter from request (Y, N or blank
         # string are only acceptable values)
         submitted = get_parameter_from_request(request, 'submitted')
@@ -640,6 +644,7 @@ def add_asset_to_envelope(request):
                              filename=newfilename,
                              session=session,
                              submitted=submitted,
+                             description=description,
                              mediatype=mediatype,
                              volume=1.0,
                              language=session.language,
