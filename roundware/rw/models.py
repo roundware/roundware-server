@@ -182,9 +182,11 @@ class MasterUI(models.Model):
     )
     LISTEN = 'listen'
     SPEAK = 'speak'
+    BROWSE = 'browse'
     UI_MODES = (
         (LISTEN, 'listen'),
-        (SPEAK, 'speak')
+        (SPEAK, 'speak'),
+        (BROWSE, 'browse')
     )
     name = models.CharField(max_length=50)
     header_text_loc = models.ManyToManyField(
