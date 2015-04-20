@@ -138,7 +138,7 @@ class TagCategory(models.Model):
 
 class Tag(models.Model):
     FILTERS = (
-        ("--", "No filter"),
+        ("", "No filter"),
         ("_within_10km", "Assets within 10km."),
         ("_ten_most_recent_days", "Assets created within 10 days."),
     )
@@ -153,7 +153,7 @@ class Tag(models.Model):
     relationships = models.ManyToManyField(
         'self', symmetrical=True, related_name='related_to', null=True, blank=True)
     filter = models.CharField(
-        max_length=255, default="--", null=False, blank=False, choices=FILTERS)
+        max_length=255, default="", null=False, blank=True, choices=FILTERS)
 
     def get_loc(self):
         return "<br />".join(unicode(t) for t in self.loc_msg.all())
