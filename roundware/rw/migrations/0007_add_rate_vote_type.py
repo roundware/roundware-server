@@ -12,4 +12,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name='vote',
+            name='type',
+            field=models.CharField(max_length=16, choices=[('like', 'like'), ('flag', 'flag'), ('rate', 'rate')]),
+        ),
     ]
