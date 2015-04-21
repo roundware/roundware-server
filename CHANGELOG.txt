@@ -1,6 +1,6 @@
 Roundware Server v0.3, XXXX-XX-XX (development version)
 ---------------------
-- Fix tag filtering default value
+- Change default tag filter from "--" to empty string to fix stream tag filtering.
 - Add "Browse" UI Mode for manual browsing of content
 - Add 'description' parameter to add_asset_to_envelope api/1 call
 - Added UPGRADING.md and CHANGELOG.txt
