@@ -318,7 +318,7 @@ class Asset(models.Model):
     file = ValidatedFileField(storage=FileSystemStorage(
         location=settings.MEDIA_ROOT,
         base_url=settings.MEDIA_URL,),
-        content_types=settings.ALLOWED_AUDIO_MIME_TYPES,
+        content_types=settings.ALLOWED_MIME_TYPES,
         upload_to=".", help_text="Upload file")
     volume = models.FloatField(null=True, blank=True, default=1.0)
 
