@@ -1,5 +1,7 @@
 Roundware Server v0.3, XXXX-XX-XX (development version)
 ---------------------
+- Added APIv2 endpoints
+- Consolidated shared code between old and new APIs
 - Added UPGRADING.md and CHANGELOG.txt
 - Fixed recording_collection._banned asset status function.
 - Created Timed Playlist to manage audiotrack audio instead of relying on move_listener calls.
