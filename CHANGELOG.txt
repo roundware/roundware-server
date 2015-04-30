@@ -1,5 +1,7 @@
 Roundware Server v0.3, XXXX-XX-XX (development version)
 ---------------------
+- Added APIv2 endpoints
+- Consolidated shared code between old and new APIs
 - Added project-level option for prioritization of timed-assets.
 - Fixed project continuous mode; previously it would never take effect.
 - Fixed global listen (when geolisten is disabled) and added unit tests.
