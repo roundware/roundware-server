@@ -262,7 +262,6 @@ class SessionViewSet(viewsets.ViewSet):
 class StreamViewSet(viewsets.ViewSet):
     """
     The primary communication channel for handling the Roundware audio stream.
-    Only one stream per user id/token so the end point is not plural.
     API V2: api/2/streams/
             api/2/streams/:id/
     """
