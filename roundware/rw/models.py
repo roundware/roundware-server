@@ -138,14 +138,14 @@ class TagCategory(models.Model):
 
 class Tag(models.Model):
     FILTERS = (
-        ("--", "No filter"),
+        ("", "No filter"),
         ("_within_10km", "Assets within 10km."),
         ("_ten_most_recent_days", "Assets created within 10 days."),
     )
 
     tag_category = models.ForeignKey(TagCategory)
     value = models.TextField()
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     loc_description = models.ManyToManyField(
         LocalizedString, null=True, blank=True, related_name='tag_desc')
     loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)
@@ -153,7 +153,7 @@ class Tag(models.Model):
     relationships = models.ManyToManyField(
         'self', symmetrical=True, related_name='related_to', null=True, blank=True)
     filter = models.CharField(
-        max_length=255, default="--", null=False, blank=False, choices=FILTERS)
+        max_length=255, default="", null=False, blank=True, choices=FILTERS)
 
     def get_loc(self):
         return "<br />".join(unicode(t) for t in self.loc_msg.all())
@@ -182,9 +182,11 @@ class MasterUI(models.Model):
     )
     LISTEN = 'listen'
     SPEAK = 'speak'
+    BROWSE = 'browse'
     UI_MODES = (
         (LISTEN, 'listen'),
-        (SPEAK, 'speak')
+        (SPEAK, 'speak'),
+        (BROWSE, 'browse')
     )
     name = models.CharField(max_length=50)
     header_text_loc = models.ManyToManyField(

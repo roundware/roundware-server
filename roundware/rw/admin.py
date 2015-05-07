@@ -237,7 +237,7 @@ class AssetInline(admin.StackedInline):
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('id', 'tag_category', 'description', 'get_loc')
+    list_display = ('id', 'tag_category', 'value', 'get_loc')
     search_fields = ('description',)
     list_filter = ('tag_category',)
     ordering = ['id']
