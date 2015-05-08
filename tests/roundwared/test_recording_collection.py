@@ -24,9 +24,11 @@ class TestRecordingCollection(RoundwaredTestCase):
 
         self.project1 = mommy.make(Project, name='Project One',
                                    recording_radius=10,
-                                   repeat_mode=Project.STOP)
-        self.project2 = mommy.make(Project, name='Project One',
-                                   recording_radius=20)
+                                   repeat_mode=Project.STOP,
+                                   geo_listen_enabled=True)
+        self.project2 = mommy.make(Project, name='Project Two',
+                                   recording_radius=20,
+                                   geo_listen_enabled=True)
         self.session1 = mommy.make(Session, project=self.project1,
                                    language=self.english)
         self.session2 = mommy.make(Session, project=self.project2,
@@ -249,3 +251,25 @@ class TestRecordingCollection(RoundwaredTestCase):
             self.assertEquals(self.asset3, rc.get_recording())
             # Only Asset3 returned because others are banned.
             self.assertEquals(None, rc.get_recording())
+
+    def test_get_recording_geo_listen(self):
+        """ Disable geo-listen and confirm all recordings are available.
+            Enable geo-listen and confirm no recordings are available.
+        """
+        self.project1.geo_listen_enabled = False
+        self.project1.save()
+        req = self.req2
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+
+        self.assertEquals(self.asset3, rc.get_recording())
+        self.assertEquals(self.asset2, rc.get_recording())
+        self.assertEquals(self.asset1, rc.get_recording())
+
+        self.project1.geo_listen_enabled = True
+        self.project1.save()
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+
+        self.assertEquals(None, rc.get_recording())
+

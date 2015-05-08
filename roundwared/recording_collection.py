@@ -52,6 +52,11 @@ class RecordingCollection:
 
         self.lock = threading.Lock()
         self.update_request(self.request, update_proximity=False)
+        # If geolisten is not enabled update the "proximity" playlist
+        # @todo: Re-architect this.
+        if not self.project.geo_listen_enabled:
+            self._update_playlist_proximity(self.request)
+
 
     def start(self):
         """
@@ -99,8 +104,10 @@ class RecordingCollection:
             logger.debug("Found %s", recording.filename)
             # Add the recording to the ban list.
             self.banned_timeout[recording.id] = time()
-            # Add the recording to the nearby played list.
-            self.banned_proximity.append(recording)
+            if self.project.geo_listen_enabled:
+                # Add the recording to the nearby played list.
+                self.banned_proximity.append(recording)
+
             if not settings.TESTING:
                 filepath = os.path.join(settings.MEDIA_ROOT, recording.filename)
                 # Check if the file exists on the server, not the stream crashes.
@@ -176,9 +183,10 @@ class RecordingCollection:
         # Remove all expired asset bans from the ban list.
         self.banned_timeout = {id:lastplay for id, lastplay in self.banned_timeout.iteritems()
                        if (lastplay + settings.BANNED_TIMEOUT_LIMIT) > current_time}
-        # Remove no longer nearby items from the nearby played list.
-        self.banned_proximity = [r for r in self.banned_proximity
-                              if self._is_nearby(request, r)]
+        if self.project.geo_listen_enabled:
+            # Remove no longer nearby items from the nearby played list.
+            self.banned_proximity = [r for r in self.banned_proximity
+                                  if self._is_nearby(request, r)]
         # If debug, print some nice details.
         if settings.DEBUG:
             time_remaining = {}
@@ -188,8 +196,9 @@ class RecordingCollection:
 
             logger.debug("Timeout banned assets and seconds remaining: %s" %
                          time_remaining)
-            logger.debug("Proximity banned assets: %s" %
-                         self.banned_proximity)
+            if self.project.geo_listen_enabled:
+                logger.debug("Proximity banned assets: %s" %
+                             self.banned_proximity)
 
         self.playlist_proximity = []
         for r in self.all:
@@ -211,6 +220,9 @@ class RecordingCollection:
         """
         True if the request and recording are close enough to be heard.
         """
+        if not self.project.geo_listen_enabled:
+            return True
+
         if 'latitude' in request and 'longitude' in request:
             distance = gpsmixer.distance_in_meters(
                 request['latitude'], request['longitude'],
