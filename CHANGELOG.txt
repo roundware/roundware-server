@@ -1,5 +1,6 @@
 Roundware Server v0.3, XXXX-XX-XX (development version)
 ---------------------
+- Fixed global listen (when geolisten is disabled) and added unit tests. 
 - Adding Timed Asset inline on the Asset Admin view to simplify Timed Asset creation.
 - Change default tag filter from "--" to empty string to fix stream tag filtering.
 - Add "Browse" UI Mode for manual browsing of content
