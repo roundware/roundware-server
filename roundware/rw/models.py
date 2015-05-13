@@ -73,6 +73,7 @@ class Project(models.Model):
     speak_enabled = models.BooleanField(default=False)
     geo_speak_enabled = models.BooleanField(default=False)
     reset_tag_defaults_on_startup = models.BooleanField(default=False)
+    timed_asset_priority = models.BooleanField(default=True)
     legal_agreement_loc = models.ManyToManyField(
         LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
     repeat_mode = models.CharField(default=STOP, max_length=10, blank=False,
