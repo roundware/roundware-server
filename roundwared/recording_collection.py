@@ -131,9 +131,8 @@ class RecordingCollection:
         # If there are no playlist_proximity assets available, but there are
         # played assets available.
         if len(self.playlist_proximity) == 0 and self.has_played():
-            p = Project.objects.get(id=int(self.request['project_id']))
             # Check if continuous is enabled for the project.
-            if p.is_continuous():
+            if (self.project.repeat_mode == Project.CONTINUOUS):
                 logger.debug("Playback mode: continuous")
                 # Clear the ban list
                 self.banned_timeout = {}
