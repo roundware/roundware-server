@@ -123,10 +123,11 @@ class RecordingCollection:
         Returns an item from the timed playlist if any exist, return a
         an item from the proximity playlist if any exist, otherwise return None
         """
-        self._update_playlist_timed()
-
-        if len(self.playlist_timed) > 0:
-            return self.playlist_timed.pop()
+        # prioritize timed-assets before proximity assets
+        if self.project.timed_asset_priority:
+            self._update_playlist_timed()
+            if len(self.playlist_timed) > 0:
+                return self.playlist_timed.pop()
 
         # If there are no playlist_proximity assets available, but there are
         # played assets available.
@@ -144,6 +145,12 @@ class RecordingCollection:
         # If there are now any recordings available, get one.
         if len(self.playlist_proximity) > 0:
             return self.playlist_proximity.pop()
+
+        # prioritize timed-assets after proximity assets
+        if not self.project.timed_asset_priority:
+            self._update_playlist_timed()
+            if len(self.playlist_timed) > 0:
+                return self.playlist_timed.pop()
 
         return None
 
