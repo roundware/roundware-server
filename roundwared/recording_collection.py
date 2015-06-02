@@ -256,8 +256,9 @@ class RecordingCollection:
                                                            start__lte=elapsed_time,
                                                            end__gte=elapsed_time)
 
-        # Make a list of all assets that aren't banned.
+        # Make a list of all assets that aren't banned
+        # and are in self.all, ensuring that tag filters are applied
         self.playlist_timed = [item.asset for item in playlist
-                               if not self._banned(item.asset)]
+                               if not self._banned(item.asset) and item.asset in self.all]
 
         logger.debug("Found timed assets: %s" % self.playlist_timed)
