@@ -81,6 +81,11 @@ class TestRecordingCollection(RoundwaredTestCase):
                                  tags=[self.tag2],
                                  audiolength=2000, weight=200,
                                  latitude=0.1, longitude=0.1)
+        self.asset6 = mommy.make(Asset, project=self.project3,
+                                 language=self.english,
+                                 tags=[self.tag1],
+                                 audiolength=2000, weight=300,
+                                 latitude=0.1, longitude=0.1)
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)
@@ -98,6 +103,8 @@ class TestRecordingCollection(RoundwaredTestCase):
                                      tag=self.tag2, default=True, active=True)
         self.timedasset1 = mommy.make(TimedAsset, project=self.project3,
                                      asset=self.asset4, start=0, end=15)
+        self.timedasset2 = mommy.make(TimedAsset, project=self.project3,
+                                     asset=self.asset6, start=0, end=30)
 
     def test_instantiate_recording_collection(self):
         req = self.req1
@@ -330,4 +337,21 @@ class TestRecordingCollection(RoundwaredTestCase):
         rc.update_request(self.req3)
         self.assertEquals(self.asset5, rc.get_recording())
         self.assertEquals(self.asset4, rc.get_recording())
+
+    def test_timed_assets_filtered_by_tags(self):
+        """ Setup stream with no location assets and two timed assets.
+            Make sure only timed asset with proper tag is returned.
+        """
+        stream = RoundStream(self.session3.id, 'ogg', self.req3)
+        rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
+        # Force/Fake start the RC timer; needed for timed asset selection
+        rc.start()
+        # Return assets with tag1.
+        self.req3['tags'] = str(self.tag1.id)
+        # move to location with no assets
+        self.req3['latitude'] = 0
+        # Update the list of nearby recordings
+        rc.update_request(self.req3)
+        self.assertEquals(self.asset6, rc.get_recording())
+        self.assertEquals(None, rc.get_recording())
 
