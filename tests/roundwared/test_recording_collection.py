@@ -86,6 +86,11 @@ class TestRecordingCollection(RoundwaredTestCase):
                                  tags=[self.tag1],
                                  audiolength=2000, weight=300,
                                  latitude=0.1, longitude=0.1)
+        self.asset7 = mommy.make(Asset, project=self.project3,
+                                 language=self.english,
+                                 tags=[self.tag2],
+                                 audiolength=2000, weight=100,
+                                 latitude=2.0, longitude=2.0)
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)
@@ -102,9 +107,11 @@ class TestRecordingCollection(RoundwaredTestCase):
         self.uimapping3 = mommy.make(UIMapping, master_ui=self.masterui3,
                                      tag=self.tag2, default=True, active=True)
         self.timedasset1 = mommy.make(TimedAsset, project=self.project3,
-                                     asset=self.asset4, start=0, end=15)
+                                      asset=self.asset4, start=0, end=15)
         self.timedasset2 = mommy.make(TimedAsset, project=self.project3,
-                                     asset=self.asset6, start=0, end=30)
+                                      asset=self.asset6, start=0, end=30)
+        self.timedasset3 = mommy.make(TimedAsset, project=self.project3,
+                                      asset=self.asset7, start=0, end=30)
 
     def test_instantiate_recording_collection(self):
         req = self.req1
@@ -312,13 +319,13 @@ class TestRecordingCollection(RoundwaredTestCase):
         """ Test that _get_recording returns a proximity asset instead of a
             timed asset when project.timed_asset_priority=True.
         """
-
         stream = RoundStream(self.session3.id, 'ogg', self.req3)
         rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
         # Force/Fake start the RC timer; needed for timed asset selection
         rc.start()
         # Update the list of nearby recordings
         rc.update_request(self.req3)
+        self.assertEquals(self.asset7, rc.get_recording())
         self.assertEquals(self.asset4, rc.get_recording())
         self.assertEquals(self.asset5, rc.get_recording())
 
@@ -336,6 +343,7 @@ class TestRecordingCollection(RoundwaredTestCase):
         # Update the list of nearby recordings
         rc.update_request(self.req3)
         self.assertEquals(self.asset5, rc.get_recording())
+        self.assertEquals(self.asset7, rc.get_recording())
         self.assertEquals(self.asset4, rc.get_recording())
 
     def test_timed_assets_filtered_by_tags(self):
@@ -355,3 +363,19 @@ class TestRecordingCollection(RoundwaredTestCase):
         self.assertEquals(self.asset6, rc.get_recording())
         self.assertEquals(None, rc.get_recording())
 
+    def test_timed_asset_ordering_by_weight(self):
+        """ Test that timed assets are ordered per the project.ordering
+            parameter (in this case 'by_weight').
+        """
+        stream = RoundStream(self.session3.id, 'ogg', self.req3)
+        rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
+        # Force/Fake start the RC timer; needed for timed asset selection
+        rc.start()
+        # move to location with no geo-assets
+        self.req3['latitude'] = 10
+        # Update the list of nearby recordings
+        rc.update_request(self.req3)
+        # verify that asset with largest 'weight' value is returned first
+        self.assertEquals(self.asset7, rc.get_recording())
+        self.assertEquals(self.asset4, rc.get_recording())
+        self.assertEquals(None, rc.get_recording())

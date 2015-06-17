@@ -184,6 +184,19 @@ class RecordingCollection:
         """
         return (len(self.banned_proximity) > 0 and len(self.banned_timeout) > 0)
 
+    def order_assets(self, assets):
+        """
+        Order assets by ordering method set in project config
+        """
+        logger.debug("Ordering assets by: %s" % self.ordering)
+        if self.ordering == 'random':
+            return order_assets_randomly(assets)
+        elif self.ordering == 'by_like':
+            return order_assets_by_like(assets)
+        elif self.ordering == 'by_weight':
+            return order_assets_by_weight(assets)
+        return []
+
     def _update_playlist_proximity(self, request):
         current_time = time()
         # Remove all expired asset bans from the ban list.
@@ -213,13 +226,8 @@ class RecordingCollection:
             if not self._banned(r) and self._is_nearby(request, r):
                 self.playlist_proximity.append(r)
 
-        logger.debug('Ordering is: ' + self.ordering)
-        if self.ordering == 'random':
-            self.playlist_proximity = order_assets_randomly(self.playlist_proximity)
-        elif self.ordering == 'by_like':
-            self.playlist_proximity = order_assets_by_like(self.playlist_proximity)
-        elif self.ordering == 'by_weight':
-            self.playlist_proximity = order_assets_by_weight(self.playlist_proximity)
+        # apply project ordering
+        self.playlist_proximity = self.order_assets(self.playlist_proximity)
 
 
     def _is_nearby(self, request, recording):
@@ -260,5 +268,8 @@ class RecordingCollection:
         # and are in self.all, ensuring that tag filters are applied
         self.playlist_timed = [item.asset for item in playlist
                                if not self._banned(item.asset) and item.asset in self.all]
+
+        # apply project ordering
+        self.playlist_timed = self.order_assets(self.playlist_timed)
 
         logger.debug("Found timed assets: %s" % self.playlist_timed)
