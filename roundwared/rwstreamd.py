@@ -1,3 +1,6 @@
+# Roundware Server is released under the GNU Affero General Public License v3.
+# See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
+
 #!/usr/bin/env python
 
 from __future__ import unicode_literals
