@@ -1,4 +1,4 @@
-# Roundware Server is released under the GNU Lesser General Public License.
+# Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 
@@ -47,10 +47,10 @@ class Project(models.Model):
         ('320', '320'),
     )
     STOP = 'stop'
-    CONTINOUS = 'continous'
+    CONTINUOUS = 'continuous'
     REPEAT_MODES = (
         (STOP, 'stop'),
-        (CONTINOUS, 'continous'),
+        (CONTINUOUS, 'continuous'),
     )
 
     name = models.CharField(max_length=50)
@@ -74,11 +74,11 @@ class Project(models.Model):
     speak_enabled = models.BooleanField(default=False)
     geo_speak_enabled = models.BooleanField(default=False)
     reset_tag_defaults_on_startup = models.BooleanField(default=False)
+    timed_asset_priority = models.BooleanField(default=True)
     legal_agreement_loc = models.ManyToManyField(
         LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
-    repeat_mode = models.CharField(default=STOP, max_length=9, blank=False,
-                                   choices=REPEAT_MODES)
-
+    repeat_mode = models.CharField(default=STOP, max_length=10, blank=False,
+                               choices=REPEAT_MODES)
     files_url = models.CharField(max_length=512, blank=True)
     files_version = models.CharField(max_length=16, blank=True)
     audio_stream_bitrate = models.CharField(
@@ -105,10 +105,6 @@ class Project(models.Model):
         master_uis = MasterUI.objects.select_related('tag_category').filter(
             project=self, ui_mode=ui_mode, active=True)
         return [mui.tag_category for mui in master_uis]
-
-    @cached(60 * 60)
-    def is_continuous(self):
-        return self.repeat_mode == Project.CONTINOUS
 
     class Meta:
         permissions = (('access_project', 'Access Project'),)
@@ -140,14 +136,14 @@ class TagCategory(models.Model):
 
 class Tag(models.Model):
     FILTERS = (
-        ("--", "No filter"),
+        ("", "No filter"),
         ("_within_10km", "Assets within 10km."),
         ("_ten_most_recent_days", "Assets created within 10 days."),
     )
 
     tag_category = models.ForeignKey(TagCategory)
     value = models.TextField()
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     loc_description = models.ManyToManyField(
         LocalizedString, null=True, blank=True, related_name='tag_desc')
     loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)
@@ -155,7 +151,7 @@ class Tag(models.Model):
     relationships = models.ManyToManyField(
         'self', symmetrical=True, related_name='related_to', null=True, blank=True)
     filter = models.CharField(
-        max_length=255, default="--", null=False, blank=False, choices=FILTERS)
+        max_length=255, default="", null=False, blank=True, choices=FILTERS)
 
     def get_loc(self):
         return "<br />".join(unicode(t) for t in self.loc_msg.all())
@@ -184,9 +180,11 @@ class MasterUI(models.Model):
     )
     LISTEN = 'listen'
     SPEAK = 'speak'
+    BROWSE = 'browse'
     UI_MODES = (
         (LISTEN, 'listen'),
-        (SPEAK, 'speak')
+        (SPEAK, 'speak'),
+        (BROWSE, 'browse')
     )
     name = models.CharField(max_length=50)
     header_text_loc = models.ManyToManyField(
