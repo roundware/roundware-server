@@ -1,5 +1,6 @@
 Roundware Server v0.3, XXXX-XX-XX (development version)
 ---------------------
+- Upgraded Django Rest Framework to 3.2.2
 - Added APIv2 endpoints
 - Consolidated shared code between old and new APIs
 - Added project-level option for prioritization of timed-assets.
