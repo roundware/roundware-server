@@ -4,7 +4,7 @@ from rest_framework.test import APITestCase
 
 
 class API2Tests(APITestCase):
-    fixtures = ['default_auth', 'sample_project']
+    fixtures = ['default_auth', 'test_project']
 
     def test_api2_in_order(self):
         self.users_post()
