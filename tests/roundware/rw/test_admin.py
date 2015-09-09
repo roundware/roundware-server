@@ -191,7 +191,7 @@ class TestProtectedAdmin(RWTestCase):
             excluded_object.save()
             permitted_object.save()
 
-            qs = model_admin_class(model_class, self.site).queryset(self.request)
+            qs = model_admin_class(model_class, self.site).get_queryset(self.request)
             project_names = get_project_names(qs)
             # print "model: " + model_name + "  project_names: ", project_names
             self.assertIn("permitted", project_names)

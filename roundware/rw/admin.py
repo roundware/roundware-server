@@ -54,8 +54,8 @@ def project_restricted_queryset_through(model_class, field_name):
     original_queryset.filter(asset__in=Asset.objects.filter(project__in=accessible_projects)
     """
 
-    def queryset(self, request):
-        qset = super(admin.ModelAdmin, self).queryset(request)
+    def get_queryset(self, request):
+        qset = super(admin.ModelAdmin, self).get_queryset(request)
 
         if request.user.is_superuser:
             return qset
@@ -65,7 +65,7 @@ def project_restricted_queryset_through(model_class, field_name):
         authorized_objects = model_class.objects.filter(
             project__in=accessible_projects)
         return qset.filter(**{field_name + "__in": authorized_objects})
-    return queryset
+    return get_queryset
 
 
 class ProjectProtectedThroughAssetModelAdmin(admin.ModelAdmin):
@@ -82,8 +82,8 @@ class ProjectProtectedThroughUIModelAdmin(admin.ModelAdmin):
 
 class ProjectProtectedModelAdmin(admin.ModelAdmin):
 
-    def queryset(self, request):
-        qset = super(admin.ModelAdmin, self).queryset(request)
+    def get_queryset(self, request):
+        qset = super(admin.ModelAdmin, self).get_queryset(request)
 
         if request.user.is_superuser:
             return qset
