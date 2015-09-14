@@ -427,13 +427,13 @@ def add_asset_to_envelope(request, envelope_id=None):
     # Refresh recordings for ALL existing streams.
     dbus_send.emit_stream_signal(0, "refresh_recordings", "")
     return {"success": True,
-            "asset": asset}
+            "asset_id": asset.id}
 
 
 def save_asset_from_request(request, session, asset=None):
     log_event("start_upload", session.id, request.GET)
     fileitem = asset.file if asset else request.FILES.get('file')
-    if not fileitem.name:
+    if fileitem is None or not fileitem.name:
         raise RoundException("No file in request")
 
     # get mediatype from the GET request
