@@ -1,4 +1,4 @@
-# Roundware Server is released under the GNU Lesser General Public License.
+# Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 # MODES: True Shuffle, Random cycle N times
@@ -52,6 +52,11 @@ class RecordingCollection:
 
         self.lock = threading.Lock()
         self.update_request(self.request, update_proximity=False)
+        # If geolisten is not enabled update the "proximity" playlist
+        # @todo: Re-architect this.
+        if not self.project.geo_listen_enabled:
+            self._update_playlist_proximity(self.request)
+
 
     def start(self):
         """
@@ -99,8 +104,10 @@ class RecordingCollection:
             logger.debug("Found %s", recording.filename)
             # Add the recording to the ban list.
             self.banned_timeout[recording.id] = time()
-            # Add the recording to the nearby played list.
-            self.banned_proximity.append(recording)
+            if self.project.geo_listen_enabled:
+                # Add the recording to the nearby played list.
+                self.banned_proximity.append(recording)
+
             if not settings.TESTING:
                 filepath = os.path.join(settings.MEDIA_ROOT, recording.filename)
                 # Check if the file exists on the server, not the stream crashes.
@@ -116,17 +123,17 @@ class RecordingCollection:
         Returns an item from the timed playlist if any exist, return a
         an item from the proximity playlist if any exist, otherwise return None
         """
-        self._update_playlist_timed()
-
-        if len(self.playlist_timed) > 0:
-            return self.playlist_timed.pop()
+        # prioritize timed-assets before proximity assets
+        if self.project.timed_asset_priority:
+            self._update_playlist_timed()
+            if len(self.playlist_timed) > 0:
+                return self.playlist_timed.pop()
 
         # If there are no playlist_proximity assets available, but there are
         # played assets available.
         if len(self.playlist_proximity) == 0 and self.has_played():
-            p = Project.objects.get(id=int(self.request['project_id']))
             # Check if continuous is enabled for the project.
-            if p.is_continuous():
+            if (self.project.repeat_mode == Project.CONTINUOUS):
                 logger.debug("Playback mode: continuous")
                 # Clear the ban list
                 self.banned_timeout = {}
@@ -138,6 +145,12 @@ class RecordingCollection:
         # If there are now any recordings available, get one.
         if len(self.playlist_proximity) > 0:
             return self.playlist_proximity.pop()
+
+        # prioritize timed-assets after proximity assets
+        if not self.project.timed_asset_priority:
+            self._update_playlist_timed()
+            if len(self.playlist_timed) > 0:
+                return self.playlist_timed.pop()
 
         return None
 
@@ -171,14 +184,28 @@ class RecordingCollection:
         """
         return (len(self.banned_proximity) > 0 and len(self.banned_timeout) > 0)
 
+    def order_assets(self, assets):
+        """
+        Order assets by ordering method set in project config
+        """
+        logger.debug("Ordering assets by: %s" % self.ordering)
+        if self.ordering == 'random':
+            return order_assets_randomly(assets)
+        elif self.ordering == 'by_like':
+            return order_assets_by_like(assets)
+        elif self.ordering == 'by_weight':
+            return order_assets_by_weight(assets)
+        return []
+
     def _update_playlist_proximity(self, request):
         current_time = time()
         # Remove all expired asset bans from the ban list.
         self.banned_timeout = {id:lastplay for id, lastplay in self.banned_timeout.iteritems()
                        if (lastplay + settings.BANNED_TIMEOUT_LIMIT) > current_time}
-        # Remove no longer nearby items from the nearby played list.
-        self.banned_proximity = [r for r in self.banned_proximity
-                              if self._is_nearby(request, r)]
+        if self.project.geo_listen_enabled:
+            # Remove no longer nearby items from the nearby played list.
+            self.banned_proximity = [r for r in self.banned_proximity
+                                  if self._is_nearby(request, r)]
         # If debug, print some nice details.
         if settings.DEBUG:
             time_remaining = {}
@@ -188,8 +215,9 @@ class RecordingCollection:
 
             logger.debug("Timeout banned assets and seconds remaining: %s" %
                          time_remaining)
-            logger.debug("Proximity banned assets: %s" %
-                         self.banned_proximity)
+            if self.project.geo_listen_enabled:
+                logger.debug("Proximity banned assets: %s" %
+                             self.banned_proximity)
 
         self.playlist_proximity = []
         for r in self.all:
@@ -198,19 +226,17 @@ class RecordingCollection:
             if not self._banned(r) and self._is_nearby(request, r):
                 self.playlist_proximity.append(r)
 
-        logger.debug('Ordering is: ' + self.ordering)
-        if self.ordering == 'random':
-            self.playlist_proximity = order_assets_randomly(self.playlist_proximity)
-        elif self.ordering == 'by_like':
-            self.playlist_proximity = order_assets_by_like(self.playlist_proximity)
-        elif self.ordering == 'by_weight':
-            self.playlist_proximity = order_assets_by_weight(self.playlist_proximity)
+        # apply project ordering
+        self.playlist_proximity = self.order_assets(self.playlist_proximity)
 
 
     def _is_nearby(self, request, recording):
         """
         True if the request and recording are close enough to be heard.
         """
+        if not self.project.geo_listen_enabled:
+            return True
+
         if 'latitude' in request and 'longitude' in request:
             distance = gpsmixer.distance_in_meters(
                 request['latitude'], request['longitude'],
@@ -238,8 +264,12 @@ class RecordingCollection:
                                                            start__lte=elapsed_time,
                                                            end__gte=elapsed_time)
 
-        # Make a list of all assets that aren't banned.
+        # Make a list of all assets that aren't banned
+        # and are in self.all, ensuring that tag filters are applied
         self.playlist_timed = [item.asset for item in playlist
-                               if not self._banned(item.asset)]
+                               if not self._banned(item.asset) and item.asset in self.all]
+
+        # apply project ordering
+        self.playlist_timed = self.order_assets(self.playlist_timed)
 
         logger.debug("Found timed assets: %s" % self.playlist_timed)

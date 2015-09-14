@@ -1,5 +1,6 @@
-# Roundware Server is released under the GNU Lesser General Public License.
+# Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
+
 from __future__ import unicode_literals
 import logging
 from operator import itemgetter

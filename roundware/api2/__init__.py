@@ -1,4 +1,4 @@
-# Roundware Server is released under the GNU Lesser General Public License.
+# Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 # Contains Roundware DRF REST API V2 signals.

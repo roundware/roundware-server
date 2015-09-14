@@ -1,4 +1,4 @@
-# Roundware Server is released under the GNU Lesser General Public License.
+# Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 # The Django REST Framework Views for the V2 API.
@@ -123,7 +123,8 @@ class EnvelopeViewSet(viewsets.ViewSet):
                 result = add_asset_to_envelope(request, envelope_id=pk)
             except Exception as e:
                 return Response({"detail": str(e)}, status.HTTP_400_BAD_REQUEST)
-            serializer = serializers.AssetSerializer(result["asset"])
+            asset_obj = Asset.objects.get(pk=result['asset_id'])
+            serializer = serializers.AssetSerializer(asset_obj)
             return Response(serializer.data)
         else:
             raise ParseError("asset_id or file required")

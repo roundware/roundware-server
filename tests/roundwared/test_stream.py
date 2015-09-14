@@ -1,3 +1,6 @@
+# Roundware Server is released under the GNU Affero General Public License v3.
+# See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
+
 from __future__ import unicode_literals
 from model_mommy import mommy
 
@@ -16,7 +19,7 @@ class TestRoundStream(RoundwaredTestCase):
         super(type(self), TestRoundStream).setUp(self)
 
         self.project1 = mommy.make(Project, name='Project One',
-                                   ordering=1, recording_radius=16)
+                                   ordering='random', recording_radius=16)
         self.session1 = mommy.make(Session, project=self.project1,
                                    language=self.english)
         self.req1 = {"session_id": self.session1.id,
@@ -57,7 +60,7 @@ class TestRoundStream(RoundwaredTestCase):
         req = self.req1
         req["audio_stream_bitrate"] = '128'
         stream = RoundStream(self.session1.id, 'ogg', req)
-        self.assertEquals('1', stream.ordering)
+        self.assertEquals('random', stream.ordering)
 
     def test_main_loop(self):
         """ make sure we get a gObject MainLoop """

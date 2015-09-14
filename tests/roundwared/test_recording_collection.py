@@ -1,10 +1,13 @@
+# Roundware Server is released under the GNU Affero General Public License v3.
+# See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
+
 from __future__ import unicode_literals
 from model_mommy import mommy
 from mock import patch
 
 from .common import (RoundwaredTestCase, mock_distance_in_meters_near)
 from roundware.rw.models import (Session, Asset,
-                                 Project, MasterUI, UIMapping, Tag)
+                                 Project, MasterUI, UIMapping, Tag, TimedAsset)
 from roundwared.recording_collection import RecordingCollection
 from roundwared.stream import RoundStream
 from roundwared import gpsmixer
@@ -24,12 +27,21 @@ class TestRecordingCollection(RoundwaredTestCase):
 
         self.project1 = mommy.make(Project, name='Project One',
                                    recording_radius=10,
-                                   repeat_mode=Project.STOP)
-        self.project2 = mommy.make(Project, name='Project One',
-                                   recording_radius=20)
+                                   repeat_mode=Project.STOP,
+                                   geo_listen_enabled=True)
+        self.project2 = mommy.make(Project, name='Project Two',
+                                   recording_radius=20,
+                                   geo_listen_enabled=True)
+        self.project3 = mommy.make(Project, name='Project Three',
+                                   recording_radius=10,
+                                   repeat_mode=Project.STOP,
+                                   geo_listen_enabled=True,
+                                   timed_asset_priority=True)
         self.session1 = mommy.make(Session, project=self.project1,
                                    language=self.english)
         self.session2 = mommy.make(Session, project=self.project2,
+                                   language=self.english)
+        self.session3 = mommy.make(Session, project=self.project3,
                                    language=self.english)
         # A new tag only for asset #3.
         self.tag2 = mommy.make(Tag, data="{'json':'value'}",
@@ -43,6 +55,10 @@ class TestRecordingCollection(RoundwaredTestCase):
         self.req2 = {"session_id": self.session1.id,
                      "project_id": self.project1.id,
                      "audio_stream_bitrate": '128'}
+        self.req3 = {"session_id": self.session3.id,
+                     "project_id": self.project3.id,
+                     "audio_stream_bitrate": '128',
+                     "latitude": 0.1, "longitude": 0.1}
         self.asset1 = mommy.make(Asset, project=self.project1,
                                  language=self.english,
                                  tags=[self.tag1],
@@ -58,16 +74,47 @@ class TestRecordingCollection(RoundwaredTestCase):
                                  tags=[self.tag2],
                                  audiolength=2000, weight=200,
                                  latitude=0.1, longitude=0.1)
+        self.asset4 = mommy.make(Asset, project=self.project3,
+                                 language=self.english,
+                                 tags=[self.tag2],
+                                 audiolength=2000, weight=50,
+                                 latitude=2, longitude=2)
+        self.asset5 = mommy.make(Asset, project=self.project3,
+                                 language=self.english,
+                                 tags=[self.tag2],
+                                 audiolength=2000, weight=200,
+                                 latitude=0.1, longitude=0.1)
+        self.asset6 = mommy.make(Asset, project=self.project3,
+                                 language=self.english,
+                                 tags=[self.tag1],
+                                 audiolength=2000, weight=300,
+                                 latitude=0.1, longitude=0.1)
+        self.asset7 = mommy.make(Asset, project=self.project3,
+                                 language=self.english,
+                                 tags=[self.tag2],
+                                 audiolength=2000, weight=100,
+                                 latitude=2.0, longitude=2.0)
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)
         self.masterui2 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)
+        self.masterui3 = mommy.make(MasterUI, project=self.project3,
+                                    ui_mode=MasterUI.LISTEN,
+                                    tag_category=self.tagcat1)
         self.uimapping1 = mommy.make(UIMapping, master_ui=self.masterui1,
                                      tag=self.tag1, default=True, active=True)
         self.uimapping2 = mommy.make(UIMapping, master_ui=self.masterui1,
                                      tag=self.tag2, default=True, active=True)
+        self.uimapping3 = mommy.make(UIMapping, master_ui=self.masterui3,
+                                     tag=self.tag2, default=True, active=True)
+        self.timedasset1 = mommy.make(TimedAsset, project=self.project3,
+                                      asset=self.asset4, start=0, end=15)
+        self.timedasset2 = mommy.make(TimedAsset, project=self.project3,
+                                      asset=self.asset6, start=0, end=30)
+        self.timedasset3 = mommy.make(TimedAsset, project=self.project3,
+                                      asset=self.asset7, start=0, end=30)
 
     def test_instantiate_recording_collection(self):
         req = self.req1
@@ -193,7 +240,7 @@ class TestRecordingCollection(RoundwaredTestCase):
         are none left.  project in continuous repeatmode should then the
         first played recording.
         """
-        self.project1.repeat_mode = Project.CONTINOUS
+        self.project1.repeat_mode = Project.CONTINUOUS
         self.project1.save()
         req = self.req1
         stream = RoundStream(self.session1.id, 'ogg', req)
@@ -249,3 +296,89 @@ class TestRecordingCollection(RoundwaredTestCase):
             self.assertEquals(self.asset3, rc.get_recording())
             # Only Asset3 returned because others are banned.
             self.assertEquals(None, rc.get_recording())
+
+    def test_get_recording_geo_listen(self):
+        """ Disable geo-listen and confirm all recordings are available.
+            Enable geo-listen and confirm no recordings are available.
+        """
+        self.project1.geo_listen_enabled = False
+        self.project1.save()
+        req = self.req2
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+
+        self.assertEquals(self.asset3, rc.get_recording())
+        self.assertEquals(self.asset2, rc.get_recording())
+        self.assertEquals(self.asset1, rc.get_recording())
+
+        self.project1.geo_listen_enabled = True
+        self.project1.save()
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+
+        self.assertEquals(None, rc.get_recording())
+
+    def test_timed_asset_priority_true(self):
+        """ Test that _get_recording returns a proximity asset instead of a
+            timed asset when project.timed_asset_priority=True.
+        """
+        stream = RoundStream(self.session3.id, 'ogg', self.req3)
+        rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
+        # Force/Fake start the RC timer; needed for timed asset selection
+        rc.start()
+        # Update the list of nearby recordings
+        rc.update_request(self.req3)
+        self.assertEquals(self.asset7, rc.get_recording())
+        self.assertEquals(self.asset4, rc.get_recording())
+        self.assertEquals(self.asset5, rc.get_recording())
+
+    def test_timed_asset_priority_false(self):
+        """ Test that _get_recording returns a proximity asset instead of a
+            timed asset when project.timed_asset_priority=False.
+        """
+        self.project3.timed_asset_priority = False
+        self.project3.save()
+        stream = RoundStream(self.session3.id, 'ogg', self.req3)
+
+        rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
+        # Force/Fake start the RC timer; needed for timed asset selection
+        rc.start()
+        # Update the list of nearby recordings
+        rc.update_request(self.req3)
+        self.assertEquals(self.asset5, rc.get_recording())
+        self.assertEquals(self.asset7, rc.get_recording())
+        self.assertEquals(self.asset4, rc.get_recording())
+
+    def test_timed_assets_filtered_by_tags(self):
+        """ Setup stream with no location assets and two timed assets.
+            Make sure only timed asset with proper tag is returned.
+        """
+        stream = RoundStream(self.session3.id, 'ogg', self.req3)
+        rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
+        # Force/Fake start the RC timer; needed for timed asset selection
+        rc.start()
+        # Return assets with tag1.
+        self.req3['tags'] = str(self.tag1.id)
+        # move to location with no assets
+        self.req3['latitude'] = 0
+        # Update the list of nearby recordings
+        rc.update_request(self.req3)
+        self.assertEquals(self.asset6, rc.get_recording())
+        self.assertEquals(None, rc.get_recording())
+
+    def test_timed_asset_ordering_by_weight(self):
+        """ Test that timed assets are ordered per the project.ordering
+            parameter (in this case 'by_weight').
+        """
+        stream = RoundStream(self.session3.id, 'ogg', self.req3)
+        rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
+        # Force/Fake start the RC timer; needed for timed asset selection
+        rc.start()
+        # move to location with no geo-assets
+        self.req3['latitude'] = 10
+        # Update the list of nearby recordings
+        rc.update_request(self.req3)
+        # verify that asset with largest 'weight' value is returned first
+        self.assertEquals(self.asset7, rc.get_recording())
+        self.assertEquals(self.asset4, rc.get_recording())
+        self.assertEquals(None, rc.get_recording())

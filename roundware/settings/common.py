@@ -53,11 +53,11 @@ DEMO_STREAM_CPU_LIMIT = 50.0
 ALLOWED_AUDIO_MIME_TYPES = ['audio/x-wav', 'audio/wav',
                             'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',
                             'audio/mp3', 'video/quicktime']
-ALLOWED_IMAGE_MIME_TYPES = [
-    'image/jpeg', 'image/gif', 'image/png', 'image/pjpeg', ]
-ALLOWED_TEXT_MIME_TYPES = ['text/plain', 'text/html', 'application/xml', ]
-ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + \
-    ALLOWED_IMAGE_MIME_TYPES + ALLOWED_TEXT_MIME_TYPES
+ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/pjpeg']
+ALLOWED_TEXT_MIME_TYPES = ['text/plain', 'text/html', 'application/xml']
+ALLOWED_VIDEO_MIME_TYPES = ['video/quicktime']
+ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES \
+    + ALLOWED_TEXT_MIME_TYPES + ALLOWED_VIDEO_MIME_TYPES
 
 # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table

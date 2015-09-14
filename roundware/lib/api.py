@@ -299,14 +299,12 @@ def form_to_request(form):
             request[p] = map(int, form[p].split("\t"))
         else:
             request[p] = []
+    request['tags'] = []
     for p in ['tags', 'tag_ids']:
         if p in form and form[p]:
             # make sure we don't have blank values from trailing commas
             p_list = [v for v in form[p].split(",") if v != ""]
             request['tags'] = map(int, p_list)
-        else:
-            request['tags'] = []
-
     for p in ['latitude', 'longitude']:
         if p in form and form[p]:
             request[p] = float(form[p])
@@ -428,13 +426,13 @@ def add_asset_to_envelope(request, envelope_id=None):
     # Refresh recordings for ALL existing streams.
     dbus_send.emit_stream_signal(0, "refresh_recordings", "")
     return {"success": True,
-            "asset": asset}
+            "asset_id": asset.id}
 
 
 def save_asset_from_request(request, session, asset=None):
     log_event("start_upload", session.id, request.GET)
     fileitem = asset.file if asset else request.FILES.get('file')
-    if not fileitem.name:
+    if fileitem is None or not fileitem.name:
         raise RoundException("No file in request")
 
     # get mediatype from the GET request
