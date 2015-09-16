@@ -900,7 +900,7 @@ def is_listener_in_range_of_stream(form, proj):
             float(form['longitude']),
             speaker.latitude,
             speaker.longitude)
-        if distance < 3 * speaker.maxdistance:
+        if distance < 2 * speaker.maxdistance:
             return True
     return False
 
