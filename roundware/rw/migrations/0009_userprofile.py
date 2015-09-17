@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('rw', '0004_repeat_mode_to_choice'),
+        ('rw', '0008_project_timed_asset_priority'),
     ]
 
     operations = [
