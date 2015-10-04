@@ -310,6 +310,9 @@ class Asset(models.Model):
         'text': settings.ALLOWED_TEXT_MIME_TYPES,
     }
 
+    class Meta:
+        ordering = ['id']
+
     session = models.ForeignKey(
         Session, null=True, blank=True)
     latitude = models.FloatField(null=True, blank=False)

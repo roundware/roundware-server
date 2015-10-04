@@ -33,3 +33,6 @@ python-dateutil==2.2
 requests==2.4.1
 # Used in admin, including Batch Tag Add
 django-formset-js==0.4.0
+# database adapter for PostgreSQL
+psycopg2
+

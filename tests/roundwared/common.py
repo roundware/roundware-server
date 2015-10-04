@@ -50,8 +50,8 @@ class RoundwaredTestCase(TestCase):
         setattr(settings, 'MOMMY_CUSTOM_FIELDS_GEN', generator_dict)
 
         self.default_session = mommy.make(Session, id=DEFAULT_SESSION_ID)
-        self.english = mommy.make(Language, language_code='en')
-        self.spanish = mommy.make(Language, language_code='es')
+        self.english = mommy.make(Language, language_code='en', id=1)
+        self.spanish = mommy.make(Language, language_code='es', id=2)
         self.english_msg = mommy.make(LocalizedString, localized_string="One",
                                       language=self.english)
         self.spanish_msg = mommy.make(LocalizedString, localized_string="Uno",

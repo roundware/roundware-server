@@ -9,9 +9,6 @@
 set -e
 set -v
 
-# Default MySQL root user password (Change this on a production system!)
-MYSQL_ROOT="password"
-
 # Store the script start path
 SOURCE_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -67,16 +64,14 @@ ln -sfn $WWW_PATH /home/$USERNAME/www
 
 apt-get update
 
-# Set MySQL root password
-echo "mysql-server mysql-server/root_password password $MYSQL_ROOT" | debconf-set-selections
-echo "mysql-server mysql-server/root_password_again password $MYSQL_ROOT" | debconf-set-selections
-
 # Install required packages non-interactive
 DEBIAN_FRONTEND=noninteractive apt-get install -y \
-apache2 libapache2-mod-wsgi mysql-server libav-tools mediainfo pacpl icecast2 \
-python-dev python-pip python-mysqldb python-dbus python-gst0.10 \
+apache2 libapache2-mod-wsgi libav-tools mediainfo pacpl icecast2 \
+python-dev python-pip  python-dbus python-gst0.10 \
 gstreamer0.10-plugins-good gstreamer0.10-plugins-bad \
-gstreamer0.10-plugins-ugly gstreamer0.10-tools
+gstreamer0.10-plugins-ugly gstreamer0.10-tools \
+binutils libproj-dev gdal-bin \
+postgresql-server-dev-9.3 postgresql-9.3-postgis-2.1
 
 # Install/upgrade virtualenv
 pip install -U virtualenv
@@ -90,8 +85,11 @@ source $VENV_PATH/bin/activate
 export PYTHONPATH=$CODE_PATH
 
 # Setup MySQL database
-echo "create database IF NOT EXISTS roundware;" | mysql -uroot -p$MYSQL_ROOT
-echo "grant all privileges on roundware.* to 'round'@'localhost' identified by 'round';" | mysql -uroot -p$MYSQL_ROOT
+su - postgres -c 'psql -c "create role round superuser login;"'
+su - postgres -c 'psql -c "create database roundware"'
+su - postgres -c 'psql -c "grant all on database roundware to round"'
+su - postgres -c "psql -c \"alter user round password 'round'\""
+su - postgres -c "psql roundware -c 'create extension postgis'"
 
 # File/directory configurations
 mkdir -p $MEDIA_PATH

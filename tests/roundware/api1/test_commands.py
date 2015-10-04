@@ -66,14 +66,16 @@ class TestServer(RoundwaredTestCase):
                                      2013, 11, 21, 21, 3, 6, 616402),
                                  latitude='0.1', longitude='0.1',
                                  language=self.english,
-                                 tags=(self.tag1,))
+                                 tags=(self.tag1,), )
         self.asset2 = mommy.make(Asset, project=self.project1, id=2,
                                  language=self.spanish,
                                  tags=(self.tag1,))
+
         self.envelope1 = mommy.make(Envelope, session=self.session,
-                                    assets=[self.asset1, ])
+                                    assets=[self.asset1, ], id=1)
         self.envelope2 = mommy.make(Envelope, session=self.session,
-                                    assets=[self.asset2, ])
+                                    assets=[self.asset2, ], id=2)
+
         self.history1 = mommy.make(ListeningHistoryItem, asset=self.asset1,
                                    session=self.session,
                                    starttime=datetime.datetime(
@@ -361,7 +363,8 @@ class TestServer(RoundwaredTestCase):
                             self.ASSET_2_TAGS_ES.items())
                        ]
         }
-        self.assertEquals(expected, get_available_assets(req))
+        result = get_available_assets(req)
+        self.assertEquals(expected, result)
 
     @patch.object(gpsmixer, 'distance_in_meters',
                   mock_distance_in_meters_far)
@@ -484,7 +487,8 @@ class TestServer(RoundwaredTestCase):
                             self.ASSET_2_TAGS_ES.items())
                        ]
         }
-        self.assertEquals(expected, get_available_assets(req))
+        result = get_available_assets(req)
+        self.assertEquals(expected, result)
 
     def test_get_available_assets_pass_extra_kwarg(self):
         """ extra kwargs should provide extra filter 
@@ -683,9 +687,10 @@ class TestServer(RoundwaredTestCase):
 
     @patch.object(gpsmixer, 'distance_in_meters', mock_distance_in_meters_far)
     def test_request_stream_just_one_speaker_in_range_needed(self):
+        circumference_of_earth = 40075017
         speaker2 = mommy.make(Speaker, project=self.project1,
                               latitude=0.1, longitude=0.1,
-                              maxdistance=2000000000000, activeyn=True)
+                              maxdistance=circumference_of_earth, activeyn=True)
         speaker2.save()
         req = FakeRequest()
         req.GET = {'session_id': '1'}
