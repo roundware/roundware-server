@@ -4,7 +4,7 @@ python:
 before_install:
   - sudo apt-get update
 install:
-  - sudo apt-get install python-dev build-essential python-mysqldb python-dbus python-gst0.10
+  - sudo apt-get install python-dev build-essential python-dbus python-gst0.10
   - pip install -r requirements/dev.txt
 before_script:
 # Setup Roundware log file.

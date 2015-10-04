@@ -86,14 +86,14 @@ DATABASES = {
     'default': {
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or
         # 'oracle'.
-        'ENGINE': 'django.db.backends.mysql',
-
         # Or path to database file if using sqlite3.
+
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'roundware',
         'USER': 'round',
         'PASSWORD': 'round',
-        'HOST': '',
-        'PORT': '',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -201,6 +201,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
     'django.contrib.admin.apps.SimpleAdminConfig',
