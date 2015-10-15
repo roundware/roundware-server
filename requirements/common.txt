@@ -1,8 +1,8 @@
 Django==1.7
 # Creates REST APIs
-djangorestframework==3.0.4
+djangorestframework==3.2.2
 # Used for DRF filtering
-django-filter==0.8
+django-filter==0.9
 # Used in roundware/rw/chart_functions.py
 django-chartit==0.1
 # Used in roundware/rw/admin.py, roundware/rw/forms.py, roundware/rw/views, and more.

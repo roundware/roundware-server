@@ -14,7 +14,8 @@ from django.conf import settings
 from datetime import datetime
 from cache_utils.decorators import cached
 from roundwared.gpsmixer import distance_in_meters
-
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 import logging
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,6 @@ class Project(models.Model):
         LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
     repeat_mode = models.CharField(default=STOP, max_length=10, blank=False,
                                choices=REPEAT_MODES)
-
     files_url = models.CharField(max_length=512, blank=True)
     files_version = models.CharField(max_length=16, blank=True)
     audio_stream_bitrate = models.CharField(
@@ -120,6 +120,7 @@ class Session(models.Model):
     client_type = models.CharField(max_length=128, null=True, blank=True)
     client_system = models.CharField(max_length=128, null=True, blank=True)
     demo_stream_enabled = models.BooleanField(default=False)
+    timezone = models.CharField(max_length=5, default="0000")
 
     def __unicode__(self):
         return str(self.id)
@@ -316,7 +317,7 @@ class Asset(models.Model):
     file = ValidatedFileField(storage=FileSystemStorage(
         location=settings.MEDIA_ROOT,
         base_url=settings.MEDIA_URL,),
-        content_types=settings.ALLOWED_AUDIO_MIME_TYPES,
+        content_types=settings.ALLOWED_MIME_TYPES,
         upload_to=".", help_text="Upload file")
     volume = models.FloatField(null=True, blank=True, default=1.0)
 
@@ -453,11 +454,11 @@ class Asset(models.Model):
     def get_likes(self):
         return self.vote_set.filter(type__iexact="like").count()
 
-    #get_flags.admin_order_field = "vote"
+    # get_flags.admin_order_field = "vote"
     get_flags.short_description = "Flags"
     get_flags.name = "Flags"
 
-    #get_likes.admin_order_field = "vote"
+    # get_likes.admin_order_field = "vote"
     get_likes.short_description = "Likes"
     get_likes.name = "Likes"
 
@@ -547,17 +548,6 @@ class ListeningHistoryItem(models.Model):
         return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + " duration: " + str(self.duration)
 
 
-class Vote(models.Model):
-    value = models.IntegerField(null=True, blank=True)
-    session = models.ForeignKey(Session)
-    asset = models.ForeignKey(Asset)
-    type = models.CharField(
-        max_length=16, choices=[('like', 'like'), ('flag', 'flag')])
-
-    def __unicode__(self):
-        return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)
-
-
 class TimedAsset(models.Model):
     """
     Items to play at specific times of the stream duration.
@@ -571,6 +561,30 @@ class TimedAsset(models.Model):
 
     def __unicode__(self):
         return "%s: Asset id: %s: Start: %s: End: %s" % (self.id, self.asset.id, self.start, self.end)
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User)
+    device_id = models.CharField(max_length=255, null=True)
+    client_type = models.CharField(max_length=255, null=True)
+
+
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.get_or_create(user=instance)
+
+post_save.connect(create_user_profile, sender=User)
+
+
+class Vote(models.Model):
+    value = models.IntegerField(null=True, blank=True)
+    session = models.ForeignKey(Session)
+    asset = models.ForeignKey(Asset)
+    type = models.CharField(
+        max_length=16, choices=[('like', 'like'), ('flag', 'flag'), ('rate', 'rate')])
+
+    def __unicode__(self):
+        return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Value: " + str(self.value)
 
 
 def get_field_names_from_model(model):

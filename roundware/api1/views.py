@@ -16,12 +16,13 @@ from rest_framework.reverse import reverse
 from rest_framework import permissions
 from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
 from roundware.api1.serializers import (AssetSerializer,
-                                           AssetLocationSerializer,
-                                           ProjectSerializer,
-                                           EventSerializer,
-                                           SessionSerializer,
-                                           ListeningHistoryItemAssetSerializer)
+                                        AssetLocationSerializer,
+                                        ProjectSerializer,
+                                        EventSerializer,
+                                        SessionSerializer,
+                                        ListeningHistoryItemAssetSerializer)
 from roundware.api1 import commands
+from roundware.lib import api
 from roundware.lib.exception import RoundException
 import logging
 logger = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ def operations(request):
     data = json.dumps(catch_errors(request), sort_keys=True,
                       indent=4, ensure_ascii=False)
     return HttpResponse(data, content_type='application/json')
+
 
 def catch_errors(request):
     try:
@@ -56,22 +58,22 @@ def operation_to_function(operation):
     if not operation:
         raise RoundException("Operation is required")
     operations = {
-        "request_stream": commands.request_stream,
-        "heartbeat": commands.heartbeat,
+        "request_stream": api.request_stream,
+        "heartbeat": api.heartbeat,
         "current_version": commands.current_version,
         "log_event": commands.op_log_event,
-        "create_envelope": commands.create_envelope,
-        "add_asset_to_envelope": commands.add_asset_to_envelope,
+        "create_envelope": api.create_envelope,
+        "add_asset_to_envelope": api.add_asset_to_envelope,
         "get_config": commands.get_config,
         "get_tags": commands.get_tags_for_project,
-        "modify_stream": commands.modify_stream,
-        "move_listener": commands.move_listener,
-        "get_current_streaming_asset": commands.get_current_streaming_asset,
+        "modify_stream": api.modify_stream,
+        "move_listener": api.move_listener,
+        "get_current_streaming_asset": api.get_current_streaming_asset,
         "get_asset_info": commands.get_asset_info,
         "get_available_assets": commands.get_available_assets,
         "play_asset_in_stream": commands.play_asset_in_stream,
-        "vote_asset": commands.vote_asset,
-        "skip_ahead": commands.skip_ahead,
+        "vote_asset": api.vote_asset,
+        "skip_ahead": api.skip_ahead,
         "get_events": commands.get_events,
     }
     key = string.lower(operation)
