@@ -65,7 +65,7 @@ class AudioTrack:
 
             Timeout called every second to maintain the audio asset stream.
             """
-            logger.debug("TickTock: %s" % self.track_timer)
+            # logger.debug("TickTock: %s" % self.track_timer)
             self.track_timer += 1
 
             # Do nothing if audio is playing already.

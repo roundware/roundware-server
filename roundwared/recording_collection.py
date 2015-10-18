@@ -257,7 +257,7 @@ class RecordingCollection:
 
     def _update_playlist_timed(self):
         elapsed_time = time() - self.start_time
-        logger.debug("Elapsed Time: %s" % elapsed_time)
+        # logger.debug("Elapsed Time: %s" % elapsed_time)
 
         # Get assets: End time > Elapsed time and Start Time < Elapsed time
         playlist = TimedAsset.objects.filter(project=self.project,
@@ -272,4 +272,4 @@ class RecordingCollection:
         # apply project ordering
         self.playlist_timed = self.order_assets(self.playlist_timed)
 
-        logger.debug("Found timed assets: %s" % self.playlist_timed)
+        # logger.debug("Found timed assets: %s" % self.playlist_timed)

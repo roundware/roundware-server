@@ -269,6 +269,7 @@
     "speak_questions_dynamic": false,
     "files_url": "http://halseyburgund.com/dev/rw-base/webview/rw.zip",
     "recording_radius": 20,
+    "timed_asset_priority": true,
     "demo_stream_enabled": false,
     "max_recording_length": 30,
     "listen_enabled": true,
@@ -307,6 +308,7 @@
     "stoptime": null,
     "client_type": null,
     "starttime": "2014-01-25T13:44:49",
+    "timezone": "0000",
     "demo_stream_enabled": false,
     "device_id": "session-for-admin-uploads"
   },
@@ -321,6 +323,7 @@
     "stoptime": "2012-08-27T00:15:52",
     "client_type": null,
     "starttime": "2012-08-27T00:11:48",
+    "timezone": "0000",
     "demo_stream_enabled": false,
     "device_id": "test-session"
   },
@@ -598,7 +601,6 @@
   "fields": {
     "index": 1,
     "name": "What genders do you want to listen to?",
-    "select": "min_one",
     "project": 1,
     "ui_mode": "listen",
     "active": true,
@@ -606,6 +608,7 @@
       55,
       56
     ],
+    "select": "min_one",
     "tag_category": 3
   },
   "model": "rw.masterui",
@@ -615,13 +618,13 @@
   "fields": {
     "index": 3,
     "name": "What do you want to listen to?",
-    "select": "min_one",
     "project": 1,
     "ui_mode": "listen",
     "active": true,
     "header_text_loc": [
       63
     ],
+    "select": "min_one",
     "tag_category": 2
   },
   "model": "rw.masterui",
@@ -631,13 +634,13 @@
   "fields": {
     "index": 1,
     "name": "What gender are you?",
-    "select": "single",
     "project": 1,
     "ui_mode": "speak",
     "active": true,
     "header_text_loc": [
       64
     ],
+    "select": "single",
     "tag_category": 3
   },
   "model": "rw.masterui",
@@ -647,13 +650,13 @@
   "fields": {
     "index": 3,
     "name": "What do you want to talk about?",
-    "select": "single",
     "project": 1,
     "ui_mode": "speak",
     "active": true,
     "header_text_loc": [
       62
     ],
+    "select": "single",
     "tag_category": 2
   },
   "model": "rw.masterui",
@@ -663,13 +666,13 @@
   "fields": {
     "index": 2,
     "name": "Who do you want to hear?",
-    "select": "min_one",
     "project": 1,
     "ui_mode": "listen",
     "active": true,
     "header_text_loc": [
       60
     ],
+    "select": "min_one",
     "tag_category": 4
   },
   "model": "rw.masterui",
@@ -679,13 +682,13 @@
   "fields": {
     "index": 2,
     "name": "Who are you?",
-    "select": "single",
     "project": 1,
     "ui_mode": "speak",
     "active": true,
     "header_text_loc": [
       61
     ],
+    "select": "single",
     "tag_category": 4
   },
   "model": "rw.masterui",
@@ -905,6 +908,7 @@
     "session": 1,
     "submitted": true,
     "file": "",
+    "initialenvelope": null,
     "latitude": 1.0,
     "loc_description": [],
     "audiolength": 30000000000,
@@ -950,5 +954,23 @@
   },
   "model": "rw.listeninghistoryitem",
   "pk": 1
+},
+{
+  "fields": {
+    "client_type": null,
+    "user": -1,
+    "device_id": null
+  },
+  "model": "rw.userprofile",
+  "pk": 1
+},
+{
+  "fields": {
+    "client_type": null,
+    "user": 1,
+    "device_id": null
+  },
+  "model": "rw.userprofile",
+  "pk": 2
 }
 ]
