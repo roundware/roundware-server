@@ -2,7 +2,11 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 from __future__ import unicode_literals
+
 import gobject
+
+from roundware.rw.models import calculate_volume
+
 gobject.threads_init()
 import pygst
 pygst.require("0.10")
@@ -105,31 +109,6 @@ class GPSMixer (gst.Bin):
                     logger.debug("Removed speaker: %s" % self.speakers[i].id)
                     # self.sources[i] = None
                     # self.set_state(gst.STATE_PLAYING)
-
-
-# FIXME: Attenuation is linear.
-def calculate_volume(speaker, listener):
-    distance = distance_in_meters(
-        listener['latitude'],
-        listener['longitude'],
-        speaker.latitude,
-        speaker.longitude)
-    vol = 0
-    if (distance <= speaker.mindistance):
-        vol = speaker.maxvolume
-    elif (distance >= speaker.maxdistance):
-        vol = speaker.minvolume
-    else:
-        vol_frac = math.pow(
-            2,
-            lg(distance / speaker.mindistance))
-        vol = speaker.maxvolume / vol_frac
-    # logger.debug(
-        #"Speaker: id=" + str(speaker.id) + \
-        #" uri=" + speaker.uri + \
-        #" distance=" + str(distance) + \
-        #" volume=" + str(vol))
-    return vol
 
 
 def lg(x):

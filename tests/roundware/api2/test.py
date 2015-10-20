@@ -65,8 +65,8 @@ class TestServer(APITestCase):
                                loc_msg=[self.english_msg, self.spanish_msg],
                                tag_category=self.tagcat1,
                                value='tag1', id=1)
-        self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2')
-        self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3')
+        self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2', id=2)
+        self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3', id=3)
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)

@@ -3,20 +3,24 @@
 
 
 from __future__ import unicode_literals
+from django.contrib.gis.geos import Point
 from django.core.cache import cache
+
 cache # pyflakes, make sure it is imported, for patching in tests
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.exceptions import NON_FIELD_ERRORS
-from django.db import models, transaction
+from django.db import transaction
+from django.contrib.gis.db import models
 from validatedfile.fields import ValidatedFileField
 from django.conf import settings
 from datetime import datetime
 from cache_utils.decorators import cached
-from roundwared.gpsmixer import distance_in_meters
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 import logging
+from geopy.distance import vincenty
+
 logger = logging.getLogger(__name__)
 
 
@@ -485,8 +489,9 @@ class Asset(models.Model):
     get_votes.name = "Votes"
 
     def distance(self, listener):
-        return distance_in_meters(self.latitude, self.longitude,
-                                  listener['latitude'], listener['longitude'])
+        listener_location = (listener['latitude'], listener['longitude'])
+        speaker_location = (self.latitude, self.longitude)
+        return vincenty(listener_location, speaker_location)
 
     @transaction.atomic
     def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
@@ -507,6 +512,12 @@ class Envelope(models.Model):
 
 
 class Speaker(models.Model):
+    def __init__(self, *args, **kwargs):
+        super(Speaker, self).__init__(*args, **kwargs)
+        self._shape_cache = self.shape
+        if self.shape and not self.boundary:
+            self.build_boundary()
+
     project = models.ForeignKey(Project)
     activeyn = models.BooleanField(default=False)
     code = models.CharField(max_length=10)
@@ -519,8 +530,23 @@ class Speaker(models.Model):
     uri = models.URLField()
     backupuri = models.URLField()
 
+    shape = models.GeometryField(geography=True, null=True)
+    boundary = models.GeometryField(geography=True, null=True, editable=False)
+    attenuation_distance = models.IntegerField()
+
+    objects = models.GeoManager()
+
     def __unicode__(self):
-        return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude) + " : " + self.uri
+        return str(self.id) + ": " + " : " + self.uri
+
+    def save(self, *args, **kwargs):
+        # if we have modified the shape, update the border field
+        if self.shape != self._shape_cache:
+            self.build_boundary()
+        super(Speaker, self).save(*args, **kwargs)
+
+    def build_boundary(self):
+        self.boundary = self.shape.boundary
 
     def location_map(self):
         html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
@@ -528,9 +554,9 @@ class Speaker(models.Model):
         then move pin to exact location of asset.</div>
         <div class="GMap" id="map" style="width:800px; height: 600px; margin-top: 10px;"></div>"""
         return html
+
     location_map.short_name = "location"
     location_map.allow_tags = True
-
 
 class ListeningHistoryItem(models.Model):
     session = models.ForeignKey(Session)
@@ -593,3 +619,19 @@ post_save.connect(create_user_profile, sender=User)
 def get_field_names_from_model(model):
     """Pass in a model class. Return list of strings of field names"""
     return [f.name for f in model._meta.fields]
+
+
+def calculate_volume(speaker, listener):
+    listener_location = Point(listener['latitude'], listener['longitude'], srid=speaker.shape.srid)
+    speaker_qset = Speaker.objects.filter(id=speaker.id)
+    distance = speaker_qset.distance(listener_location, field_name='boundary').get().distance.m
+
+    if distance < speaker.attenuation_distance:
+        # if the listener is within the attenuation buffer
+        # scale the attenuation value to between the speaker's min and max volumes
+        attenuation_percent = (speaker.attenuation_distance - distance) / speaker.attenuation_distance
+        vol = (speaker.maxvolume - speaker.minvolume) * attenuation_percent + speaker.minvolume
+    else:
+        vol = speaker.maxvolume
+
+    return vol

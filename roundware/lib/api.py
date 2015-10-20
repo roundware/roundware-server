@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
+from django.contrib.gis.geos import Point
 from rest_framework.exceptions import ParseError
 from roundware.rw import models
 from roundware.lib import dbus_send, discover_audiolength, convertaudio
 from roundware.lib.exception import RoundException
-from roundwared import gpsmixer
 from roundwared import icecast2
 from django.conf import settings
 from django.db.models import Count, Avg
@@ -191,20 +191,19 @@ def log_event(event_type, session_id, form=None):
 
 def is_listener_in_range_of_stream(form, proj):
     # If latitude and longitude is not specified assume True.
-    if not ('latitude' in form and 'longitude' in form) or not (form['latitude'] and form['longitude']):
+    if not form.get('latitude', None) or not form.get('longitude', None):
         return True
-    # Get all active speakers
-    speakers = models.Speaker.objects.filter(project=proj, activeyn=True)
 
-    for speaker in speakers:
-        distance = gpsmixer.distance_in_meters(
-            float(form['latitude']),
-            float(form['longitude']),
-            speaker.latitude,
-            speaker.longitude)
-        if distance < 3 * speaker.maxdistance:
-            return True
-    return False
+    listener = Point(float(form['latitude']), float(form['longitude']))
+
+    # See if there are any active speakers in the listener's location
+    in_range = models.Speaker.objects.filter(
+        project=proj,
+        activeyn=True,
+        shape__intersects=listener
+    ).exists()
+
+    return in_range
 
 
 def stream_exists(sessionid, audio_format):
