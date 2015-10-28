@@ -19,6 +19,4 @@ basic_user = Recipe(
     email='user@example.com',
 )
 
-default_session = Recipe(
-    Session,
-    id=DEFAULT_SESSION_ID)
+default_session = Recipe(Session)

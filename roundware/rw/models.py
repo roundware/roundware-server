@@ -116,11 +116,13 @@ class Project(models.Model):
 
 
 class Session(models.Model):
+
     device_id = models.CharField(max_length=36, null=True, blank=True)
+
     starttime = models.DateTimeField()
     stoptime = models.DateTimeField(null=True, blank=True)
+
     project = models.ForeignKey(Project)
-    ordering = ['id']
     language = models.ForeignKey(Language, null=True)
     client_type = models.CharField(max_length=128, null=True, blank=True)
     client_system = models.CharField(max_length=128, null=True, blank=True)
@@ -521,10 +523,10 @@ class Speaker(models.Model):
     project = models.ForeignKey(Project)
     activeyn = models.BooleanField(default=False)
     code = models.CharField(max_length=10)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    maxdistance = models.IntegerField()
-    mindistance = models.IntegerField()
+    latitude = models.FloatField(null=True)
+    longitude = models.FloatField(null=True)
+    maxdistance = models.IntegerField(null=True)
+    mindistance = models.IntegerField(null=True)
     maxvolume = models.FloatField()
     minvolume = models.FloatField()
     uri = models.URLField()

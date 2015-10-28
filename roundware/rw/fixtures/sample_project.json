@@ -312,8 +312,7 @@
     "demo_stream_enabled": false,
     "device_id": "session-for-admin-uploads"
   },
-  "model": "rw.session",
-  "pk": -10
+  "model": "rw.session"
 },
 {
   "fields": {
@@ -327,8 +326,7 @@
     "demo_stream_enabled": false,
     "device_id": "test-session"
   },
-  "model": "rw.session",
-  "pk": 1
+  "model": "rw.session"
 },
 {
   "fields": {

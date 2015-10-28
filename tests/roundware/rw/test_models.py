@@ -86,7 +86,7 @@ class TestAsset(RWTestCase):
     def setUp(self):
         super(type(self), TestAsset).setUp(self)
 
-        self.session1 = mommy.make('rw.Session', id=DEFAULT_SESSION_ID)
+        self.session1 = mommy.make('rw.Session')
         self.session2 = mommy.make('rw.Session')
         self.project = mommy.make('rw.Project')
         self.asset1 = mommy.make('rw.Asset')

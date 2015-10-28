@@ -42,7 +42,7 @@ class TestServer(APITestCase):
         setattr(settings, 'MOMMY_CUSTOM_FIELDS_GEN', generator_dict)
 
         # setup basics
-        self.default_session = mommy.make(Session, id=DEFAULT_SESSION_ID)
+        self.default_session = mommy.make(Session)
         self.english = mommy.make(Language, language_code='en')
         self.spanish = mommy.make(Language, language_code='es')
         self.english_msg = mommy.make(LocalizedString, localized_string="One",
@@ -56,7 +56,7 @@ class TestServer(APITestCase):
                                                             self.spanish_msg],
                                    out_of_range_url='http://rw.com:8000/outofrange.mp3')
         self.session = mommy.make(Session, project=self.project1,
-                                  language=self.english, id=1)
+                                  language=self.english)
         # setup tags
         self.tagcat1 = mommy.make(TagCategory, name='tagcatname')
         self.tagcat2 = mommy.make(TagCategory)

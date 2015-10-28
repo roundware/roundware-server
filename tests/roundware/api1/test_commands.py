@@ -2,6 +2,7 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 from __future__ import unicode_literals
+from collections import Counter
 import datetime
 from urllib import urlencode
 import json
@@ -26,6 +27,16 @@ from roundware.lib.api import (request_stream, get_project_tags, get_current_str
                                _get_current_streaming_asset, vote_asset)
 from roundwared import gpsmixer
 
+TEST_LOCATIONS = {
+    "point_far_away_from_speaker": dict(latitude='-0.1', longitude='0.1'),
+    # this is about 960m from the edge of the test polygon "crazy_shape"
+    "point_less_than_1km_from_speaker": dict(latitude='-0.3703', longitude='-1.0441'),
+    "point_in_speaker": dict(latitude='0.1', longitude='-0.1')
+}
+
+TEST_POLYGONS = {
+    "crazy_shape": "POLYGON((-1.25042096457759 0.204363106772745,-1.01702303720376 0.504754883670546,-0.599932296619044 0.625776031197718,-0.152586269152534 0.448566493747217,0.0354287278986072 0.00122046628070716,-0.109364430749973 -0.30349349445735,-0.340601266203676 -0.487186307668236,-0.811719304791594 -0.487186307668236,-1.0969834382485 -0.331587689419015,-1.25042096457759 0.204363106772745),(-0.880874246235692 0.122241613807879,-0.796591661350698 0.35563954118171,-0.362212185404957 0.325384254299917,-0.239029945957657 -0.0506457398023664,-0.314668163162139 -0.327265505578759,-0.504844252133409 -0.374809527821576,-0.811719304791594 -0.275399299495685,-0.697181433024807 0.197879831012361,-0.52645517133469 0.200040922932489,-0.444333678369823 -0.0571290155627506,-0.468105689491232 -0.245144012613892,-0.796591661350698 -0.111156313565952,-0.889518613916205 -0.0247126367608296,-0.958673555360303 -0.0917064862847996,-0.958673555360303 -0.0917064862847996,-0.958673555360303 -0.0917064862847996,-0.880874246235692 0.122241613807879))"
+}
 
 def mock_apache_safe_daemon_subprocess(command):
     """ patch this since in tests we cannot allocate memory to subprocess
@@ -87,9 +98,11 @@ class TestServer(RoundwaredTestCase):
                                        2013, 11, 21, 17, 29, 44, 610672),
                                    duration=6000000)
         self.track1 = mommy.make(Audiotrack, project=self.project1, id=1)
-        self.speaker1 = mommy.make(Speaker, project=self.project1,
-                                   latitude=0.1, longitude=0.1,
-                                   maxdistance=2, activeyn=True)
+        self.speaker1 = mommy.make(Speaker,
+                                   project=self.project1,
+                                   activeyn=True,
+                                   shape=TEST_POLYGONS["crazy_shape"],
+                                   attenuation_distance=100)
 
     def test_check_for_single_audiotrack(self):
         self.assertEquals(True, check_for_single_audiotrack(self.session.id))
@@ -140,7 +153,8 @@ class TestServer(RoundwaredTestCase):
         self.assertTrue(len(votes) == 1)
 
     def test_get_config(self):
-        pass
+        result = self.client.get("/api/1/", dict(operation="get_config", project_id=1))
+        self.assertLess(result.status_code, 400)
 
     def test_get_tags_for_project(self):
         pass
@@ -624,14 +638,28 @@ class TestServer(RoundwaredTestCase):
 
     @patch.object(gpsmixer, 'distance_in_meters',
                   mock_distance_in_meters_near)
+
     def test_request_stream_listener_in_range(self):
         """ Make sure we get good stream data if listener is in range.
         Doesn't test actual stream being served.
         """
         req = FakeRequest()
-        req.GET = {'session_id': '1', 'latitude': '0.1', 'longitude': '0.1'}
+        req.GET.update({'session_id': '1'})
+        req.GET.update(TEST_LOCATIONS['point_in_speaker'])
         expected = {'stream_url': 'http://rw.com:8000/stream1.ogg'}
-        self.assertEquals(expected, request_stream(req))
+        result = request_stream(req)
+        self.assertEquals(expected, result)
+
+        req.GET.update(TEST_LOCATIONS['point_less_than_1km_from_speaker'])
+        result = request_stream(req)
+        self.assertEquals(expected, result)
+
+        req.GET.update(TEST_LOCATIONS['point_far_away_from_speaker'])
+        expected = self.project1.out_of_range_url
+        result = request_stream(req)['stream_url']
+        self.assertEquals(expected, result)
+
+
 
     @patch.object(gpsmixer, 'distance_in_meters',
                   mock_distance_in_meters_near)

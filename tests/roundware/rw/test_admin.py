@@ -33,7 +33,7 @@ class TestAssetAdmin(RWTestCase, WebTest):
         self.user.set_password('foo')
         self.user.save()
         self.username = self.user.username
-        self.session1 = mommy.make('rw.Session', id=DEFAULT_SESSION_ID)
+        self.session1 = mommy.make('rw.Session')
         self.tagcat1 = mommy.make(TagCategory, name='tagcat1')
         self.tagcat2 = mommy.make(TagCategory, name='tagcat2')
         self.tagcat3 = mommy.make(TagCategory, name='tagcat3')

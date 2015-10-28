@@ -97,7 +97,7 @@ def get_config(request):
 
     session_id = 0
     if create_new_session:
-        s = models.Session(
+        s = models.Session.objects.create(
             device_id=device_id, starttime=datetime.datetime.now(), project=project, language=l)
         if 'client_type' in form:
             s.client_type = form.get('client_type')

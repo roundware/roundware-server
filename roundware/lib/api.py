@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
 from rest_framework.exceptions import ParseError
 from roundware.rw import models
 from roundware.lib import dbus_send, discover_audiolength, convertaudio
@@ -194,13 +195,13 @@ def is_listener_in_range_of_stream(form, proj):
     if not form.get('latitude', None) or not form.get('longitude', None):
         return True
 
-    listener = Point(float(form['latitude']), float(form['longitude']))
+    listener = Point(float(form['longitude']), float(form['latitude']))
 
-    # See if there are any active speakers in the listener's location
+    # See if there are any active speakers within 1km of the listener's location
     in_range = models.Speaker.objects.filter(
         project=proj,
         activeyn=True,
-        shape__intersects=listener
+        shape__dwithin=(listener, D(m=1000))
     ).exists()
 
     return in_range
