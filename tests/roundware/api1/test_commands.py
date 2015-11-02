@@ -154,6 +154,7 @@ class TestServer(RoundwaredTestCase):
 
     def test_get_config(self):
         result = self.client.get("/api/1/", dict(operation="get_config", project_id=self.project1.id))
+
         self.assertLess(result.status_code, 400)
 
     def test_get_tags_for_project(self):

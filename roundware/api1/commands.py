@@ -148,7 +148,7 @@ def get_config(request):
         }
         },
         {"server": {"version": "2.0"}},
-        {"speakers": serializers.serialize('json', speakers)},
+        {"speakers": speakers},
         {"audiotracks": [dict(d) for d in audiotracks]}
     ]
 

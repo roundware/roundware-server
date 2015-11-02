@@ -25,13 +25,29 @@ from roundware.api1 import commands
 from roundware.lib import api
 from roundware.lib.exception import RoundException
 import logging
+from djgeojson.serializers import Serializer as GeoJSONSerializer
 logger = logging.getLogger(__name__)
 
 
 def operations(request):
-    data = json.dumps(catch_errors(request), sort_keys=True,
+    returned_data = catch_errors(request)
+    speakers = None
+    # serialize the geometry within the speaker
+    for i, d in enumerate(returned_data):
+        if 'speakers' in d:
+            speakers = d.pop('speakers')
+            returned_data.pop(i)
+
+    data = json.dumps(returned_data, sort_keys=True,
                       indent=4, ensure_ascii=False)
-    return HttpResponse(data, content_type='application/json')
+    if speakers:
+        speakers = GeoJSONSerializer().serialize(speakers, geometry_field='shape', indent=4)
+        # this is ugly. sorry.
+        hacky_data_assembly = data[:-1] + ', {"speakers":' + speakers + '}]'
+    else:
+        hacky_data_assembly = data
+
+    return HttpResponse(hacky_data_assembly, content_type='application/json')
 
 
 def catch_errors(request):
@@ -199,7 +215,6 @@ class ListeningHistoryItemFilter(django_filters.FilterSet):
                   'session',
                   'asset',
                   ]
-
 
 class ListeningHistoryItemList(generics.ListAPIView):
     queryset = ListeningHistoryItem.objects.all()

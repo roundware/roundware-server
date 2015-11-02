@@ -37,3 +37,6 @@ django-formset-js==0.4.0
 psycopg2
 # geographic distance calculator utilities
 geopy
+# serializer for geodjango objects to geojson.
+# todo: remove this when we upgrade to Django>=1.8
+django-geojson
