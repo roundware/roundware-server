@@ -6,6 +6,7 @@ import logging
 import json
 import uuid
 import datetime
+from django.core import serializers
 import psutil
 try:
     from profiling import profile
@@ -67,8 +68,7 @@ def get_config(request):
     if 'project_id' not in form:
         raise RoundException("a project_id is required for this operation")
     project = models.Project.objects.get(id=form.get('project_id'))
-    speakers = models.Speaker.objects.filter(
-        project=form.get('project_id')).values()
+    speakers = models.Speaker.objects.filter(project=project)
     audiotracks = models.Audiotrack.objects.filter(
         project=form.get('project_id')).values()
 
@@ -148,7 +148,7 @@ def get_config(request):
         }
         },
         {"server": {"version": "2.0"}},
-        {"speakers": [dict(d) for d in speakers]},
+        {"speakers": serializers.serialize('json', speakers)},
         {"audiotracks": [dict(d) for d in audiotracks]}
     ]
 
