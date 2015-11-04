@@ -19,7 +19,9 @@ from tests.roundwared.common import (RoundwaredTestCase, FakeRequest,
                                      mock_distance_in_meters_far)
 from roundware.lib.exception import RoundException
 from roundware.api1.commands import (check_for_single_audiotrack, get_asset_info,
-                                     get_available_assets)
+                                     get_available_assets,get_parameter_from_request,
+op_log_event,play_asset_in_stream,get_config,get_tags_for_project,get_events,current_version)
+
 from roundware.api1 import commands
 from roundware.lib import api
 from roundware.lib.api import (request_stream, get_project_tags, get_current_streaming_asset,
@@ -122,9 +124,16 @@ class TestServer(RoundwaredTestCase):
                     "duraton_in_ms": 5}
         self.assertEquals(expected, get_asset_info(req))
 
+#Jake
     def test_play_asset_in_stream(self):
-        pass
+        req = FakeRequest()
+        req.GET = {'event_type':'play_asset_in_stream','session_id':'1','asset_id': '1'}
+        expected = {
+            "success": True
+        }
+        self.assertEquals(expected,play_asset_in_stream(req))
 
+#Jake- function remover
     def test_skip_ahead(self):
         pass
 
@@ -136,12 +145,39 @@ class TestServer(RoundwaredTestCase):
         self.assertEqual(True, ret["success"])
         votes = Vote.objects.filter(asset__id__exact=1)
         self.assertTrue(len(votes) == 1)
-
+#Jake
     def test_get_config(self):
-        pass
-
+        req = FakeRequest()
+        self.session = mommy.make(Session, project=self.project1,
+                                  language=self.spanish, id=2)
+        # need to test object speaker
+        req.GET = {'project_id':'1','latitude': '0.3', 'longitude': '0.3'}
+        getObject=get_config(req)
+        # in get_config, create_new_session != fales mean alway new Session
+        expectedSessionId = {
+            'session':{'session_id': self.session.id+1}
+        }
+        self.assertEquals(expectedSessionId, getObject[2])
+        # get the porject id when run get_config
+        project_id ={
+            getObject[3]['project']['project_id']
+                      }
+        self.assertEquals({1}, project_id)
+        self.assertEqual({'version':'2.0'},getObject[4]['server'])
+#Jake
     def test_get_tags_for_project(self):
-        pass
+        """ test is or not a value tags of project, it should pass when have either of project id or session id"""
+        reqP = FakeRequest()
+        reqP.GET = {'project_id':'1'}
+        reqS = FakeRequest()
+        reqS.GET = {'session_id':'1'}
+        reqNone = FakeRequest()
+        reqNone.GET={}
+        self.assertEqual({},get_tags_for_project(reqP))
+        self.assertEqual({},get_tags_for_project(reqS))
+        self.assertRaises(Exception, lambda: get_tags_for_project(reqNone))
+
+
 
     # get_available_assets
     # Return JSON serializable dictionary with the number of matching assets
@@ -695,6 +731,23 @@ class TestServer(RoundwaredTestCase):
     @patch.object(gpsmixer, 'distance_in_meters', mock_distance_in_meters_far)
     def test_project_out_of_range_message_localized(self):
         pass
+#Jake
+    def test_get_events(self):
+        """0 events object create """
+        req = FakeRequest()
+        req.GET = {'session_id':'1'}
+        self.assertEqual(12,get_events(req)['project_id'])
+        self.assertEqual(0,get_events(req)['number_of_events'])
+        self.assertEqual([],get_events(req)['events'])
+        reqNone = FakeRequest()
+        reqNone.GET = {}
+        self.assertEqual({"error": "no session_id"},get_events(reqNone))
+#Jake
+    def test_current_version(self):
+        req = FakeRequest()
+        req.GET = {'session_id':'1'}
+        self.assertEqual({"version": "2.0"},current_version(req))
+
 
 
 class TestGetProjectTagJSON(RoundwaredTestCase):
@@ -815,6 +868,37 @@ class TestGetProjectTagJSON(RoundwaredTestCase):
         config = get_project_tags(None, self.spanish_sess)
         self.assertEquals('Uno',
                           config['listen'][0]['options'][0]['value'])
+#Jake
+    def test_get_parameter_from_request(self):
+        #test get value from difference name
+        req = FakeRequest()
+        req.GET = {'session_id':'1', 'latitude': '0.1', 'longitude': '0.1','event_type':'supper','project_id': '1'}
+
+        self.assertEquals('1',get_parameter_from_request(req,'session_id',False))
+        self.assertEquals('0.1',get_parameter_from_request(req,'latitude',False))
+        self.assertEquals('0.1',get_parameter_from_request(req,'longitude',False))
+        self.assertEquals('supper',get_parameter_from_request(req,'event_type',False))
+        self.assertEquals('1',get_parameter_from_request(req,'project_id',False))
+#Jake
+    def test_op_log_event(self):
+        """ ignore other filters and return single asset info
+        """
+        req = FakeRequest()
+        req.GET = {'event_type':'supper','session_id':'1'}
+        expected = {
+            "success": True
+        }
+        reqNoneT = FakeRequest()
+        reqNoneT.GET = {'session_id':'1'}
+
+        reqNoneS = FakeRequest()
+        reqNoneS.GET = {'event_type':'supper'}
+
+        self.assertEquals(expected,op_log_event(req))
+        self.assertRaises(Exception, lambda: op_log_event(reqNoneT))
+        self.assertRaises(Exception, lambda: op_log_event(reqNoneS))
+
+
 
 
 class TestListeningHistoryDB(RoundwaredTestCase):
