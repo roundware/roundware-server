@@ -16,6 +16,9 @@ from cache_utils.decorators import cached
 from roundwared.gpsmixer import distance_in_meters
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
+# Karl
+from django.template.loader import render_to_string
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -390,39 +393,55 @@ class Asset(models.Model):
 
     def audio_player(self):
         if self.mediatype == 'audio':
-            return """<div data-filename="%s" class="media-display audio-file"></div>""" % self.filename
+            #return """<div data-filename="%s" class="media-display audio-file"></div>""" % self.filename
+            template_name = 'model_audio_player.html'
+            output = ""
+            sequence = ("", str(render_to_string(template_name)), "")
+            return output.join(sequence) % self.filename
     audio_player.short_name = "audio"
     audio_player.allow_tags = True
 
     def image_display(self):
         image_src = "%s%s" % (settings.MEDIA_URL, self.filename)
-        return """<div data-filename="%s" class="media-display image-file"><a href="%s" target="imagepop"
-               ><img src="%s" alt="%s" title="%s"/></a></div>""" % (
-            self.filename, image_src, image_src,
-            self.description, "click for full image")
+        #return """<div data-filename="%s" class="media-display image-file"><a href="%s" target="imagepop"
+        #     ><img src="%s" alt="%s" title="%s"/></a></div>""" % (
+        #    self.filename, image_src, image_src,
+        #    self.description, "click for full image")
+        template_name = 'model_image_display.html'
+        output = ""
+        sequence = ("", str(render_to_string(template_name)), "")
+        return output.join(sequence)  % (self.filename, image_src, image_src,
+                                         self.description, "click for full image")
     image_display.short_name = "image"
     image_display.allow_tags = True
 
     def text_display(self):
+        output = ""
         try:
+            template_name_pass = 'model_text_display_pass.html'
+            sequence = ("", str(render_to_string(template_name_pass)), "")
             fileread = self.file.read()
             self.file.close()
             chars = len(fileread)
             excerpt = fileread[:1000]
             more_str = chars > 1000 and """ <br/>... (excerpted from %s)""" % self.media_link_url(
             ) or ""
-            return """<div data-filename="%s" class="media-display text-file"
-                   >%s %s</div>""" % (self.filename, excerpt, more_str)
+
+            return output.join(sequence) % (self.filename, excerpt, more_str)
         except Exception as e:
-            return """<div class="media-display" data-filename="%s">""" + '%s (%s)' % (self.filename, e.message, type(e)) + """</div>"""
+            template_name_fail = 'model_text_display_fail.html'
+            template_name_div = 'model_text_display_div.html'
+            sequence1 = ("", str(render_to_string(template_name_fail), "", '%s (%s)'))
+            sequence2 = (str(render_to_string(template_name_div)))
+            #return """<div class="media-display" data-filename="%s">""" + '%s (%s)' % (self.filename, e.message, type(e)) + """</div>"""
+            return output.join(sequence) % (self.filename, e.message, type(e)) + sequence2
     text_display.short_name = "text"
     text_display.allow_tags = True
 
     def location_map(self):
-        html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
-        <div id="map_instructions">To change or select location, type an address above and select from the available options;
-        then move pin to exact location of asset.</div>
-        <div class="GMap" id="map" style="width:800px; height: 600px; margin-top: 10px;"></div>"""  # height 600
+
+        template_name = 'model_location_map.html'
+        html = str(render_to_string(template_name))
         return html
     location_map.short_name = "location"
     location_map.allow_tags = True
@@ -520,10 +539,9 @@ class Speaker(models.Model):
         return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude) + " : " + self.uri
 
     def location_map(self):
-        html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
-        <div id="map_instructions">To change or select location, type an address above and select from the available options;
-        then move pin to exact location of asset.</div>
-        <div class="GMap" id="map" style="width:800px; height: 600px; margin-top: 10px;"></div>"""
+
+        template_name = 'model_location_map.html'
+        html = str(render_to_string(template_name))
         return html
     location_map.short_name = "location"
     location_map.allow_tags = True
