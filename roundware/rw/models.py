@@ -624,9 +624,10 @@ def get_field_names_from_model(model):
 
 
 def calculate_volume(speaker, listener):
-    listener_location = Point(listener['latitude'], listener['longitude'], srid=speaker.shape.srid)
+    listener_location = Point(listener['longitude'], listener['latitude'], srid=speaker.shape.srid)
     speaker_qset = Speaker.objects.filter(id=speaker.id)
     distance = speaker_qset.distance(listener_location, field_name='boundary').get().distance.m
+    logger.debug("distance = %s", distance)
 
     if distance < speaker.attenuation_distance:
         # if the listener is within the attenuation buffer
@@ -634,6 +635,6 @@ def calculate_volume(speaker, listener):
         attenuation_percent = (speaker.attenuation_distance - distance) / speaker.attenuation_distance
         vol = (speaker.maxvolume - speaker.minvolume) * attenuation_percent + speaker.minvolume
     else:
-        vol = speaker.maxvolume
+        vol = speaker.minvolume
 
     return vol
