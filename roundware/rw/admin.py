@@ -421,7 +421,7 @@ class SpeakerAdmin(ProjectProtectedModelAdmin):
         (None, {
          'fields': ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri')}),
         ('Geographical Data', {'fields': (
-            'location_map', 'longitude', 'latitude', 'maxdistance', 'mindistance')})
+            'location_map', 'longitude', 'latitude', 'maxdistance', 'mindistance', 'shape', 'attenuation_distance')})
     )
 
     class Media:
