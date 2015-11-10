@@ -4,8 +4,9 @@
 from __future__ import unicode_literals
 
 import gobject
-
-from roundware.rw.models import calculate_volume
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
+from roundware.rw.models import calculate_volume, Speaker
 
 gobject.threads_init()
 import pygst
@@ -23,8 +24,8 @@ class GPSMixer (gst.Bin):
 
     def __init__(self, listener, speakers):
         gst.Bin.__init__(self)
-        self.sources = []
-        self.speakers = []
+        self.sources = {}
+        self.speakers = {}
         self.adder = gst.element_factory_make("adder")
         self.add(self.adder)
         pad = self.adder.get_pad("src")
@@ -64,51 +65,52 @@ class GPSMixer (gst.Bin):
                 srcpad = src.get_pad('src')
                 addersinkpad = self.adder.get_request_pad('sink%d')
                 srcpad.link(addersinkpad)
-                self.sources.append(src)
+                self.sources[speaker.id] = src
             else:
                 logger.debug("appending")
-                self.sources.append(None)
-            self.speakers.append(speaker)
+                self.sources[speaker.id] = None
+            self.speakers[speaker.id] = speaker
         self.move_listener(listener)
 
-    def move_listener(self, new_listener):
-        self.listener = new_listener
-        for i in range(len(self.speakers)):
-            vol = calculate_volume(self.speakers[i], self.listener)
-            logger.debug("Source # %s has a volume of %s" % (i, vol))
-            if vol > 0:
-                if self.sources[i] == None:
-                    logger.debug("Allocating new source")
-                    tempsrc = src_mp3_stream.SrcMP3Stream(
-                        self.speakers[i].uri, vol)
-                    self.sources[i] = tempsrc
-                    logger.debug("Adding speaker: %s " % self.speakers[i].id)
-                    self.add(self.sources[i])
-                    # self.set_state(gst.STATE_PLAYING)
+    @property
+    def current_speakers(self):
+        logger.info("filtering speakers")
+        listener = Point(float(self.listener['longitude']), float(self.listener['latitude']))
+        speakers = Speaker.objects.filter(id__in=self.speakers.keys(), shape__dwithin=(listener, D(m=0)))
+        logger.info(speakers)
+        return list(speakers)
 
-                    srcpad = self.sources[i].get_pad('src')
+    def move_listener(self, new_listener):
+
+        self.listener = new_listener
+
+        for speaker in self.current_speakers:
+            vol = calculate_volume(speaker, self.listener)
+            self.speakers[speaker.id] = speaker
+            logger.debug("Source # %s has a volume of %s" % (speaker.id, vol))
+            source = self.sources.get(speaker.id, None)
+
+            if vol > 0:
+                if not source:
+                    logger.debug("Allocating new source")
+                    tempsrc = src_mp3_stream.SrcMP3Stream(speaker.uri, vol)
+                    source = tempsrc
+                    self.add(source)
+                    srcpad = source.get_pad('src')
                     addersinkpad = self.adder.get_request_pad('sink%d')
                     srcpad.link(addersinkpad)
-                    self.sources[i].set_state(gst.STATE_PLAYING)
-                    # self.set_state(gst.STATE_PLAYING)
                 else:
                     logger.debug("already added, setting vol: " + str(vol))
-                    self.sources[i].set_volume(vol)
+                    source.set_volume(vol)
 
-            else:
-                if self.sources[i] != None:
-                    self.sources[i].set_volume(vol)
-                    src_to_remove = self.sources[i].get_pad('src')
-                    # src_to_remove.set_blocked(True)
-                    # we crash whenever we set state to NULL, either here or after unlinking
-                    # self.sources[i].set_state(gst.STATE_NULL)
-                    sinkpad = self.adder.get_request_pad("sink%d")
-                    src_to_remove.unlink(sinkpad)
-                    self.adder.release_request_pad(sinkpad)
-                    # self.remove(self.sources[i])
-                    logger.debug("Removed speaker: %s" % self.speakers[i].id)
-                    # self.sources[i] = None
-                    # self.set_state(gst.STATE_PLAYING)
+            elif source:
+                source.set_volume(vol)
+                src_to_remove = source.get_pad('src')
+                sinkpad = self.adder.get_request_pad("sink%d")
+                self.adder.release_request_pad(sinkpad)
+                self.remove(src_to_remove)
+                logger.debug("Removed speaker: %s" % speaker.id)
+
 
 
 def lg(x):

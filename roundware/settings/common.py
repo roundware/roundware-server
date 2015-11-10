@@ -176,6 +176,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
@@ -215,6 +216,7 @@ INSTALLED_APPS = (
     'sortedm2m',
     'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',
     'roundware.lib',
     'roundware.rw',
     'roundware.notifications',
@@ -240,6 +242,11 @@ REST_FRAMEWORK = {
         'user': '1000/day'
     }
 }
+
+CORS_ORIGIN_WHITELIST = (
+    'localhost:8080',
+)
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

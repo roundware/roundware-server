@@ -628,13 +628,15 @@ def calculate_volume(speaker, listener):
     speaker_qset = Speaker.objects.filter(id=speaker.id)
     distance = speaker_qset.distance(listener_location, field_name='boundary').get().distance.m
     logger.debug("distance = %s", distance)
-
     if distance < speaker.attenuation_distance:
         # if the listener is within the attenuation buffer
         # scale the attenuation value to between the speaker's min and max volumes
         attenuation_percent = (speaker.attenuation_distance - distance) / speaker.attenuation_distance
-        vol = (speaker.maxvolume - speaker.minvolume) * attenuation_percent + speaker.minvolume
+        vol = (speaker.maxvolume - speaker.minvolume) * (1 - attenuation_percent) + speaker.minvolume
+        logger.debug("attenuating speaker: {}%".format(attenuation_percent * 100))
     else:
-        vol = speaker.minvolume
 
+        vol = speaker.maxvolume
+
+    logger.debug("new volume: {} (min: {}, max: {})".format(vol, speaker.minvolume, speaker.maxvolume))
     return vol

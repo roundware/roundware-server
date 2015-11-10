@@ -408,11 +408,10 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
 
 class SpeakerAdmin(ProjectProtectedModelAdmin):
     readonly_fields = ('location_map',)
-    list_display = ('id', 'activeyn', 'code', 'project', 'latitude',
-                    'longitude', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume', 'uri')
+    list_display = ('id', 'activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'shape', 'uri')
     list_filter = ('project', 'activeyn')
     list_editable = (
-        'activeyn', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume',)
+        'activeyn', 'maxvolume', 'minvolume', 'shape')
     ordering = ['id']
     save_as = True
     save_on_top = True
@@ -421,7 +420,7 @@ class SpeakerAdmin(ProjectProtectedModelAdmin):
         (None, {
          'fields': ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri')}),
         ('Geographical Data', {'fields': (
-            'location_map', 'longitude', 'latitude', 'maxdistance', 'mindistance', 'shape', 'attenuation_distance')})
+            'location_map', 'attenuation_distance')})
     )
 
     class Media:

@@ -149,7 +149,7 @@ class RoundStream:
     def add_speakers(self):
         speakers = models.Speaker.objects.filter(
             project=self.project).filter(activeyn=True)
-        # FIXME: We might need to unconditionally add blankaudio.
+        # FIXME: We might need to unconditionally add blank-audio.
         # what happens if the only speaker is out of range? I think
         # it'll be fine but test this.
         if speakers.count() > 0:

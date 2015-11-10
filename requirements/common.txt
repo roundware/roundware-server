@@ -40,3 +40,7 @@ geopy
 # serializer for geodjango objects to geojson.
 # todo: remove this when we upgrade to Django>=1.8
 django-geojson
+# cors support to remove php layer
+django-cors-headers
+# fiona is a useful tool for processing geographic files (ETL)
+fiona
