@@ -315,6 +315,7 @@ def form_to_request(form):
 
 
 def move_listener(request, context=None):
+    logger.debug("moving listener")
     if context is not None and "pk" in context:
         form = request.data.copy()
         form['session_id'] = context["pk"]

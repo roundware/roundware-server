@@ -517,8 +517,12 @@ class Speaker(models.Model):
     def __init__(self, *args, **kwargs):
         super(Speaker, self).__init__(*args, **kwargs)
         self._shape_cache = self.shape
-        if self.shape and not self.boundary:
-            self.build_boundary()
+        self._attenuation_distance_cache = self.attenuation_distance
+        if self.shape:
+            if not self.boundary:
+                self.build_boundary()
+            if not self.attenuation_border:
+                self.build_attenuation_buffer_line()
 
     project = models.ForeignKey(Project)
     activeyn = models.BooleanField(default=False)
@@ -534,7 +538,9 @@ class Speaker(models.Model):
 
     shape = models.GeometryField(geography=True, null=True)
     boundary = models.GeometryField(geography=True, null=True, editable=False)
+
     attenuation_distance = models.IntegerField()
+    attenuation_border = models.GeometryField(geography=True, null=True, editable=False)
 
     objects = models.GeoManager()
 
@@ -542,13 +548,25 @@ class Speaker(models.Model):
         return str(self.id) + ": " + " : " + self.uri
 
     def save(self, *args, **kwargs):
+        shape_changed = self.shape != self._shape_cache
+        attenuation_distance_changed = self.attenuation_distance != self._attenuation_distance_cache
         # if we have modified the shape, update the border field
-        if self.shape != self._shape_cache:
+        if shape_changed:
             self.build_boundary()
+
         super(Speaker, self).save(*args, **kwargs)
+
+        # after saving to the db, run the attenuation border builder
+        if shape_changed or attenuation_distance_changed:
+            self.build_attenuation_buffer_line()
 
     def build_boundary(self):
         self.boundary = self.shape.boundary
+
+    def build_attenuation_buffer_line(self):
+        raw_sql = """UPDATE {table} SET attenuation_buffer = ST_Buffer(shape:geometry, -{distance})):geography where id = {speaker_id};
+        """.format(table=self._meta.db_table, distance=self.attenuation_distance, speaker_id=self.id)
+        self.objects.raw(raw_sql)
 
     def location_map(self):
         html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
@@ -635,7 +653,6 @@ def calculate_volume(speaker, listener):
         vol = (speaker.maxvolume - speaker.minvolume) * (1 - attenuation_percent) + speaker.minvolume
         logger.debug("attenuating speaker: {}%".format(attenuation_percent * 100))
     else:
-
         vol = speaker.maxvolume
 
     logger.debug("new volume: {} (min: {}, max: {})".format(vol, speaker.minvolume, speaker.maxvolume))
