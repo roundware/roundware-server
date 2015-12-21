@@ -17,7 +17,7 @@ from django.conf import settings
 from datetime import datetime
 from cache_utils.decorators import cached
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 import logging
 from geopy.distance import vincenty
 
@@ -536,7 +536,7 @@ class Speaker(models.Model):
     uri = models.URLField()
     backupuri = models.URLField()
 
-    shape = models.GeometryField(geography=True, null=True)
+    shape = models.MultiPolygonField(geography=True, null=True)
     boundary = models.GeometryField(geography=True, null=True, editable=False)
 
     attenuation_distance = models.IntegerField()
@@ -564,9 +564,11 @@ class Speaker(models.Model):
         self.boundary = self.shape.boundary
 
     def build_attenuation_buffer_line(self):
-        raw_sql = """UPDATE {table} SET attenuation_buffer = ST_Buffer(shape:geometry, -{distance})):geography where id = {speaker_id};
-        """.format(table=self._meta.db_table, distance=self.attenuation_distance, speaker_id=self.id)
-        self.objects.raw(raw_sql)
+        from django.db import connection
+        cursor = connection.cursor()
+        raw_sql = """UPDATE {table} SET attenuation_border = ST_Buffer(shape, -attenuation_distance) where id = {speaker_id};
+        """.format(table=self._meta.db_table, speaker_id=self.id)
+        cursor.execute(raw_sql)
 
     def location_map(self):
         html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">

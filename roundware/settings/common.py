@@ -216,6 +216,7 @@ INSTALLED_APPS = (
     'sortedm2m',
     'rest_framework',
     'rest_framework.authtoken',
+    'leaflet',
     'corsheaders',
     'roundware.lib',
     'roundware.rw',
