@@ -24,6 +24,7 @@ class TestRoundStream(RoundwaredTestCase):
                                    language=self.english)
         self.req1 = {"session_id": self.session1.id,
                      "project_id": self.project1.id}
+
         self.asset1 = mommy.make(Asset, project=self.project1,
                                  language=self.english,
                                  tags=[self.tag1],
@@ -56,6 +57,7 @@ class TestRoundStream(RoundwaredTestCase):
         req["longitude"] = 1
         stream.modify_stream(req)
 
+
     def test_new_stream_ordering_from_project(self):
         req = self.req1
         req["audio_stream_bitrate"] = '128'
@@ -75,3 +77,39 @@ class TestRoundStream(RoundwaredTestCase):
         stream = RoundStream(self.session1.id, 'ogg', req)
         admin = stream.icecast_admin
         self.assertEquals(admin.__class__.__name__, 'Admin')
+
+    #Jake
+    def test_play_asset(self):
+        req =self.req1
+        req['audio_stream_bitrate'] ='128'
+        req['asset_id'] ='1'
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        stream.play_asset(req)
+
+    #Jake
+    def test_skip_ahead(self):
+        req =self.req1
+        req['audio_stream_bitrate'] ='128'
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        stream.skip_ahead()
+    #Jake
+    def test_heartbeat(self):
+        req =self.req1
+        req['audio_stream_bitrate'] ='128'
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        stream.heartbeat()
+    #Jake
+    def test_move_listener(self):
+        req =self.req1
+        req['audio_stream_bitrate'] ='128'
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        req["latitude"] = 1
+        req["longitude"] = 1
+        stream.move_listener(req)
+
+    #Jake
+    def test_refresh_recordings(self):
+        req =self.req1
+        req['audio_stream_bitrate'] ='128'
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        stream.refresh_recordings()

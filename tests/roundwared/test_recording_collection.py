@@ -382,3 +382,11 @@ class TestRecordingCollection(RoundwaredTestCase):
         self.assertEquals(self.asset7, rc.get_recording())
         self.assertEquals(self.asset4, rc.get_recording())
         self.assertEquals(None, rc.get_recording())
+#Jake
+    def test_start(self):
+        req = self.req1
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        with patch.object(gpsmixer, 'distance_in_meters',
+                          mock_distance_in_meters_near):
+            rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+            rc.start()

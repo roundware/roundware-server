@@ -8,7 +8,7 @@ from .common import RoundwaredTestCase
 from roundware.rw.models import (MasterUI, Session, Tag, Asset, TagCategory,
                                  UIMapping, Project, ListeningHistoryItem)
 from roundwared.db import (filter_recs_for_tags,
-                           get_recordings, get_default_tags_for_project)
+                           get_recordings, get_default_tags_for_project,add_asset_to_session_history)
 
 
 class TestGetRecordings(RoundwaredTestCase):
@@ -116,6 +116,10 @@ class TestGetRecordings(RoundwaredTestCase):
         tag_string = str(self.tag1.id) + "," + str(self.tag2.id)
         recordings = get_recordings(self.session1.id, tag_string)
         self.assertEqual([self.asset3], recordings)
+     #Jake
+    def test_add_asset_to_session_history(self):
+        historys = add_asset_to_session_history(self.asset1.id,self.session1.id,20)
+        self.assertEquals(True,historys)
 
 class TestFilterRecsForTags(RoundwaredTestCase):
 
