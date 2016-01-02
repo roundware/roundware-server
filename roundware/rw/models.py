@@ -88,14 +88,18 @@ class Project(models.Model):
     files_version = models.CharField(max_length=16, blank=True)
     audio_stream_bitrate = models.CharField(
         max_length=3, choices=BITRATES, default='128')
+
     ordering_choices = [('by_like', 'by_like'),
                         ('by_weight', 'by_weight'),
                         ('random', 'random')]
+
     ordering = models.CharField(max_length=16, choices=ordering_choices, default='random')
     demo_stream_enabled = models.BooleanField(default=False)
     demo_stream_url = models.CharField(max_length=512, blank=True)
     demo_stream_message_loc = models.ManyToManyField(
         LocalizedString, related_name='demo_stream_msg_string', null=True, blank=True)
+
+    out_of_range_distance = models.FloatField(default=1000)
 
     def __unicode__(self):
         return self.name

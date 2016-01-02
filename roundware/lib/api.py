@@ -201,7 +201,7 @@ def is_listener_in_range_of_stream(form, proj):
     in_range = models.Speaker.objects.filter(
         project=proj,
         activeyn=True,
-        shape__dwithin=(listener, D(m=1000))
+            shape__dwithin=(listener, D(m=proj.out_of_range_distance))
     ).exists()
 
     return in_range
