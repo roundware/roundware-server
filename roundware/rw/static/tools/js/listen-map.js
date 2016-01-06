@@ -436,9 +436,9 @@ Roundware.ListenMap = function (opts) {
                     else if (feature.getProperty('name') == "inner") {
                         return {
                             fillColor: '#555555',
-                            fillOpacity: .1,
-                            strokeWeight: 0,
-                            strokeOpacity: .5
+                            fillOpacity: 0,
+                            strokeWeight: 1,
+                            strokeOpacity: .2
                         };
                     }
                 });
