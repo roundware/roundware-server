@@ -20,7 +20,7 @@ admin.autodiscover()
 
 urlpatterns = patterns(
     '',
-    url(r'^dashboard/asset-map$', 'rw.views.asset_map'),
+    url(r'^tools/asset-map$', 'rw.views.asset_map'),
     url(r'^tools/listen-map$', 'rw.views.listen_map'),
     url(r'^dashboard/$', 'rw.views.chart_views'),
 
