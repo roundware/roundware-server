@@ -523,11 +523,12 @@ class Speaker(models.Model):
         super(Speaker, self).__init__(*args, **kwargs)
         self._shape_cache = self.shape
         self._attenuation_distance_cache = self.attenuation_distance
-        if self.shape:
-            if not self.boundary:
-                self.build_boundary()
-                # if not self.attenuation_border:
-                #     self.build_attenuation_buffer_line()
+        if self.shape and not self.boundary:
+            self.build_boundary()
+            # only run this once the object exists in the db, since we depend on
+            # the db to do this calculation
+            if self.id and not self.attenuation_border:
+                self.build_attenuation_buffer_line()
 
     project = models.ForeignKey(Project)
     activeyn = models.BooleanField(default=False)
