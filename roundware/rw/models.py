@@ -572,7 +572,7 @@ class Speaker(models.Model):
     def build_attenuation_buffer_line(self):
         from django.db import connection
         cursor = connection.cursor()
-        raw_sql = """UPDATE {table} SET attenuation_border = ST_Buffer(shape, -attenuation_distance) where id = {speaker_id};
+        raw_sql = """UPDATE {table} SET attenuation_border = ST_Boundary(ST_Buffer(shape, -attenuation_distance)::geometry)::geography where id = {speaker_id};
         """.format(table=self._meta.db_table, speaker_id=self.id)
         cursor.execute(raw_sql)
 
