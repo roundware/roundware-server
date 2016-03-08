@@ -53,8 +53,6 @@ class GPSMixer (gst.Bin):
         srcpad = blanksrc.get_pad('src')
         srcpad.link(addersinkpad)
 
-        self.move_listener(listener)
-
 
     def inspect_speaker(self, speaker):
 

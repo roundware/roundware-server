@@ -164,7 +164,6 @@ class RoundStream:
                 {'latitude': self.request['latitude'],
                  'longitude': self.request['longitude']},
                 self.project)
-        time.sleep(1)
 
         self.add_source_to_adder(self.gps_mixer)
 

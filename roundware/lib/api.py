@@ -132,6 +132,8 @@ def request_stream(request):
             apache_safe_daemon_subprocess(command)
             wait_for_stream(session.id, audio_format)
 
+        move_listener(request)
+
         return {
             "stream_url": "http://%s:%s%s" % (http_host, settings.ICECAST_PORT,
                                               icecast2.mount_point(session.id, audio_format))
