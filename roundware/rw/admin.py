@@ -416,14 +416,14 @@ class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
     save_on_top = True
     map_width = "400px"
 
-    # fieldsets = (
-    #     (None, {
-    #         'fields': ('shape', 'activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri', 'attenuation_distance')
-    #     }),
-    #     ('Geographical Data', {
-    #         'fields': ('shape',),
-    #     })
-    # )
+    fieldsets = (
+        (None, {
+            'fields': ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri', )
+        }),
+        ('Geographical Data', {
+            'fields': ('shape', 'attenuation_distance'),
+        })
+    )
 
     class Media:
         css = {

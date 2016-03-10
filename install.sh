@@ -84,7 +84,7 @@ source $VENV_PATH/bin/activate
 # Set python path to use production code
 export PYTHONPATH=$CODE_PATH
 
-# Setup MySQL database
+# Setup Postgresql database
 su - postgres -c 'psql -c "create role round superuser login;"'
 su - postgres -c 'psql -c "create database roundware"'
 su - postgres -c 'psql -c "grant all on database roundware to round"'
