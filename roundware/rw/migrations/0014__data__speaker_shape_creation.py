@@ -19,7 +19,7 @@ def save_speakers(apps, schema_editor):
     """
     Speaker = apps.get_model("rw", "Speaker")
     for speaker in Speaker.objects.all():
-        # tell the speaker its shape has changed
+        # recalculate the shape boundary
         speaker.boundary = speaker.shape.boundary
         speaker.save()
 
@@ -31,7 +31,9 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(calculate_attenuation_distance),
         migrations.RunSQL(
+                # calculate the shape
                 "UPDATE rw_speaker SET shape = ST_Multi(ST_Buffer(ST_MakePoint(longitude, latitude)::geography, maxdistance)::geometry)::geography;"
+                # calculate the border
                 "UPDATE rw_speaker SET attenuation_border = ST_Boundary(ST_Buffer(shape, -attenuation_distance)::geometry)::geography;"
         ),
         migrations.RunPython(save_speakers)

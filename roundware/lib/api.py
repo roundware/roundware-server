@@ -93,8 +93,7 @@ def request_stream(request):
 
     log_event("request_stream", int(session_id), request.GET)
 
-    session = models.Session.objects.select_related(
-        'project').get(id=session_id)
+    session = models.Session.objects.select_related('project').get(id=session_id)
     project = session.project
 
     # Get the value 'example.com' from the host 'example.com:8888'
@@ -197,7 +196,7 @@ def is_listener_in_range_of_stream(form, proj):
 
     listener = Point(float(form['longitude']), float(form['latitude']))
 
-    # See if there are any active speakers within 1km of the listener's location
+    # See if there are any active speakers within range of the listener's location
     in_range = models.Speaker.objects.filter(
         project=proj,
         activeyn=True,

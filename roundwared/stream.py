@@ -35,6 +35,9 @@ class RoundStream:
         session = models.Session.objects.select_related(
             'project').get(id=sessionid)
         self.project = session.project
+        if self.project.geo_listen_enabled and (
+                        self.request.get('latitude') is False or self.request.get('longitude') is False):
+            raise Exception("Lat and Lon not provided for geo_listen project, {}".format(self.project.name))
 
         self.radius = self.project.recording_radius
         self.ordering = self.project.ordering
@@ -61,8 +64,7 @@ class RoundStream:
 
         self.pipeline = gst.Pipeline()
         self.adder = gst.element_factory_make("adder")
-        self.sink = RoundStreamSink(
-            self.sessionid, self.audio_format, self.bitrate)
+        self.sink = RoundStreamSink(self.sessionid, self.audio_format, self.bitrate)
         self.set_metadata({'stream_started': True})
         self.pipeline.add(self.adder, self.sink)
         self.adder.link(self.sink)
@@ -147,8 +149,12 @@ class RoundStream:
         srcpad.link(addersinkpad)
 
     def add_speakers(self):
+
         speakers = models.Speaker.objects.filter(
-            project=self.project).filter(activeyn=True)
+                project=self.project,
+                activeyn=True
+        )
+
         # FIXME: We might need to unconditionally add blank-audio.
         # what happens if the only speaker is out of range? I think
         # it'll be fine but test this.
