@@ -281,7 +281,7 @@ class ProjectAdmin(GuardedModelAdmin):
         ('Configuration', {
             'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',
                        'demo_stream_enabled', 'reset_tag_defaults_on_startup', 'timed_asset_priority',
-                       'max_recording_length', 'recording_radius', 'audio_stream_bitrate', 'sharing_url',
+                       'max_recording_length', 'recording_radius', 'out_of_range_distance', 'audio_stream_bitrate', 'sharing_url',
                        'out_of_range_url', 'demo_stream_url', 'files_url', 'files_version', 'repeat_mode', 'ordering')
         }),
         ('Localized Strings', {
