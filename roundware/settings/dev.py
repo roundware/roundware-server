@@ -39,6 +39,12 @@ LOGGING['handlers'] = {
         'class': 'logging.StreamHandler',
         'formatter': 'simple'
     },
+    'file': {
+        'level': 'DEBUG',
+        'class': 'logging.FileHandler',
+        'filename': '/var/log/roundware',
+        'formatter': 'verbose',
+    },
 }
 
 LOGGING['loggers'] = {
@@ -61,13 +67,13 @@ LOGGING['loggers'] = {
     'roundware': {
         'level': 'DEBUG',
         'handlers': ['console'],
-        'propagate': True,
+        'propagate': False,
     },
     # The roundwared stream manager logger.
     'roundwared': {
         'level': 'DEBUG',
         'handlers': ['console'],
-        'propagate': True,
+        'propagate': False,
     },
     # The Roundware API2 logger.
     # 'roundware.api2': {

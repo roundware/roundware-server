@@ -5,6 +5,7 @@ from rest_framework.exceptions import ParseError
 from roundware.rw import models
 from roundware.lib import dbus_send, discover_audiolength, convertaudio
 from roundware.lib.exception import RoundException
+from roundwared import gpsmixer
 from roundwared import icecast2
 from django.conf import settings
 from django.db.models import Count, Avg
@@ -116,6 +117,7 @@ def request_stream(request):
     elif is_listener_in_range_of_stream(request.GET, project):
         # TODO: audio_format.upper() should be handled when the project is saved.
         audio_format = project.audio_format.upper()
+
         # Make the audio stream if it doesn't exist.
         if not stream_exists(session.id, audio_format):
             command = [settings.PROJECT_ROOT + '/roundwared/rwstreamd.py',
@@ -200,7 +202,7 @@ def is_listener_in_range_of_stream(form, proj):
     in_range = models.Speaker.objects.filter(
         project=proj,
         activeyn=True,
-            shape__dwithin=(listener, D(m=proj.out_of_range_distance))
+        shape__dwithin=(listener, D(m=proj.out_of_range_distance))
     ).exists()
 
     return in_range

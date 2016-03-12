@@ -2,10 +2,11 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 from __future__ import unicode_literals
-
 import gobject
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
+from django.db.models import Q
+
 from roundware.rw.models import calculate_volume, Speaker
 
 gobject.threads_init()
@@ -22,12 +23,24 @@ logger = logging.getLogger(__name__)
 
 class GPSMixer (gst.Bin):
 
-    def __init__(self, listener, speakers):
-
-        logger.debug("initializing GPSMixer")
+    def __init__(self, listener, project):
         gst.Bin.__init__(self)
+
+        self.project = project
+
         self.sources = {}
         self.speakers = {}
+        self.known_speakers = {}
+        # find always on speakers
+        always_on = Speaker.objects.filter(activeyn=True, project=self.project, minvolume__gt=0)
+        if always_on.exists():
+            logger.debug("Found speakers that are always on: {}".format(always_on))
+            for speaker in always_on:
+                self.speakers[speaker.id] = speaker
+                self.inspect_speaker(speaker)
+
+        logger.debug("initializing GPSMixer")
+
         self.adder = gst.element_factory_make("adder")
         self.add(self.adder)
         pad = self.adder.get_pad("src")
@@ -39,113 +52,129 @@ class GPSMixer (gst.Bin):
         self.add(blanksrc)
         srcpad = blanksrc.get_pad('src')
         srcpad.link(addersinkpad)
-        logger.info("iterating through " + str(len(speakers)) + " speakers.")
-        for speaker in speakers:
-            vol = calculate_volume(speaker, listener)
-            uri = None
+
+        self.move_listener(listener)
+
+
+    def inspect_speaker(self, speaker):
+
+        if not self.known_speakers.get(speaker.id, False):
             if check_stream(speaker.uri):
                 uri = speaker.uri
                 logger.debug("taking normal uri: " + uri)
             elif check_stream(speaker.backupuri):
                 uri = speaker.backupuri
-                logger.warning("Stream " + speaker.uri
-                               + " is not a valid audio/mpeg stream."
-                               + " using backup.")
+                logger.warning("Stream " + speaker.uri + " is not a valid audio/mpeg stream. using backup.")
             else:
-                logger.warning("Stream " + speaker.uri
-                               + " and backup "
-                               #+ speaker['backupuri']
-                               + " are not valid audio/mpeg streams."
-                               + " Not adding anything.")
-                continue
+                logger.warning("Stream " + speaker.uri + " and backup are not valid audio/mpeg streams.")
+                uri = None
 
-            logger.debug("vol is " + str(vol) + " for uri " + uri)
-            if vol > 0:
-                logger.debug("adding to bin")
-                src = src_mp3_stream.SrcMP3Stream(uri, vol)
-                self.add(src)
-                srcpad = src.get_pad('src')
-                addersinkpad = self.adder.get_request_pad('sink%d')
-                srcpad.link(addersinkpad)
-                self.sources[speaker.id] = src
-            else:
-                logger.debug("appending")
-                self.sources[speaker.id] = None
-            self.speakers[speaker.id] = speaker
+            self.known_speakers[speaker.id] = {'speaker': speaker, 'uri': uri}
 
-        self.projects = set([speaker.project for _, speaker in self.speakers.items()])
-        self.move_listener(listener)
+        return self.known_speakers.get(speaker.id)
+
 
     def remove_speaker_from_stream(self, speaker):
-        source = self.sources.get(speaker.id, None)
 
-        if not source:
-            return
         logger.debug("fading audio to 0 before removing")
-        source.set_volume(0)
-        src_to_remove = source.get_pad('src')
-        sinkpad = self.adder.get_request_pad("sink%d")
-        src_to_remove.unlink(sinkpad)
-        self.adder.release_request_pad(sinkpad)
-        self.remove(src_to_remove)
+        self.sources[speaker.id].set_volume(0)
 
-        del self.sources[speaker.id]
-        del self.speakers[speaker.id]
+        src_to_remove = self.sources[speaker.id].get_pad('src')
+        logger.debug("\t...removing {}".format(src_to_remove))
+        logger.debug("\t...finding sinkpad")
+        sinkpad = self.adder.get_request_pad("sink%d")
+
+        logger.debug("\t...unlinking sinkpad")
+        src_to_remove.unlink(sinkpad)
+
+        logger.debug("\t...releasing sinkpad")
+        self.adder.release_request_pad(sinkpad)
+
+        logger.debug("\t...done!")
+
 
     def add_speaker_to_stream(self, speaker, volume):
-        logger.debug("Allocating new source")
-        tempsrc = src_mp3_stream.SrcMP3Stream(speaker.uri, volume)
-        source = tempsrc
-        self.add(source)
-        srcpad = source.get_pad('src')
-        addersinkpad = self.adder.get_request_pad('sink%d')
-        srcpad.link(addersinkpad)
+        source = self.sources.get(speaker.id, None)
+        if not source:
+            validated_speaker = self.inspect_speaker(speaker)
+            uri = validated_speaker['uri']
+            if uri:
+                tempsrc = src_mp3_stream.SrcMP3Stream(uri, volume)
+                logger.debug("Allocated new source: {src} {uri}".format(src=tempsrc, uri=uri))
+                logger.debug("Adding speaker: {s} ".format(s=speaker.id))
+                self.sources[speaker.id] = tempsrc
+
+                self.add(self.sources[speaker.id])
+                logger.debug("\t...finding srcpad")
+                srcpad = self.sources[speaker.id].get_pad('src')
+                logger.debug("\t...finding addersinkpad")
+                addersinkpad = self.adder.get_request_pad('sink%d')
+                logger.debug("\t...linking addersinkpad")
+                srcpad.link(addersinkpad)
+                logger.debug("\t...setting speaker state to PLAYING")
+                self.sources[speaker.id].set_state(gst.STATE_PLAYING)
+                logger.debug("\t...done!")
+            else:
+                logger.debug("No valid uri for speaker")
 
     def set_speaker_volume(self, speaker, volume):
         source = self.sources.get(speaker.id, None)
 
         if not source:
+            logger.debug("new speaker, adding to stream at {}".format(volume))
             self.add_speaker_to_stream(speaker, volume)
         else:
             logger.debug("already added, setting vol: " + str(volume))
-            source.set_volume(volume)
+        self.sources[speaker.id].set_volume(volume)
 
-    @property
-    def current_speakers(self):
+    def get_current_speakers(self):
         logger.info("filtering speakers")
         listener = Point(float(self.listener['longitude']), float(self.listener['latitude']))
-        speakers = Speaker.objects.filter(shape__dwithin=(listener, D(m=0)), activeyn=True)
-        if self.projects:
-            speakers = speakers.filter(project__in=self.projects)
-        logger.info(speakers)
+
+        # get active speakers for this project, and select from those all speakers our listener is inside
+        speakers = Speaker.objects.filter(activeyn=True, project=self.project).filter(
+            Q(shape__dwithin=(listener, D(m=0))) | Q(minvolume__gt=0)
+        )
+
+        # make sure all the current speakers are registered in the self.speakers dict
+        for s in speakers:
+            self.speakers[s.id] = s
+            self.inspect_speaker(s)
+
         return list(speakers)
 
     def move_listener(self, new_listener):
 
         self.listener = new_listener
 
-        current_speakers = self.current_speakers
+        # lookup speakers that should play in the db
+        # and make sure they're in the self.speakers dict
+        # we use this set to id speakers that should be off
+        current_speakers = self.get_current_speakers()
 
-        for speaker in current_speakers:
-            self.speakers[speaker.id] = speaker
+        speakers_count = len(self.speakers.keys())
+        logger.debug("Processing {} speakers".format(speakers_count))
 
-        for _, speaker in self.speakers.items():
+        for i, (_, speaker) in enumerate(self.speakers.items()):
+            logger.debug("Processing speaker {} of {}".format(i + 1, speakers_count))
 
             if speaker in current_speakers:
+                logger.debug("Speaker {} is within range. Calculating volume...".format(speaker.id))
                 vol = calculate_volume(speaker, self.listener)
             else:
+                logger.debug("Speaker {} is out of range. Setting minvolume...".format(speaker.id))
                 # set speakers that are not in range to minvolume
                 vol = speaker.minvolume
 
-            logger.debug("Source # %s has a volume of %s" % (speaker.id, vol))
-
             if vol == 0:
-                logger.debug("Speaker is off, removing from stream")
+                logger.debug("Speaker {} is off, removing from stream".format(speaker.id))
                 self.remove_speaker_from_stream(speaker)
-                logger.debug("Removed speaker: %s" % speaker.id)
+                logger.debug("Removed speaker: {}".format(speaker.id))
             else:
+                logger.debug("Source # {} has a volume of {}".format(speaker.id, vol))
                 self.set_speaker_volume(speaker, vol)
 
+        logger.debug("move listener complete")
 
 def lg(x):
     return math.log(x) / math.log(2)

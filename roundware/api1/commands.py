@@ -6,7 +6,6 @@ import logging
 import json
 import uuid
 import datetime
-from django.core import serializers
 import psutil
 try:
     from profiling import profile
@@ -96,7 +95,7 @@ def get_config(request):
 
     session_id = 0
     if create_new_session:
-        s = models.Session.objects.create(
+        s = models.Session(
             device_id=device_id, starttime=datetime.datetime.now(), project=project, language=l)
         if 'client_type' in form:
             s.client_type = form.get('client_type')

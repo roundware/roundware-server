@@ -650,18 +650,23 @@ def get_field_names_from_model(model):
 
 
 def calculate_volume(speaker, listener):
-    listener_location = Point(listener['longitude'], listener['latitude'], srid=speaker.shape.srid)
-    speaker_qset = Speaker.objects.filter(id=speaker.id)
-    distance = speaker_qset.distance(listener_location, field_name='boundary').get().distance.m
-    logger.debug("distance = %s", distance)
-    if distance < speaker.attenuation_distance:
-        # if the listener is within the attenuation buffer
-        # scale the attenuation value to between the speaker's min and max volumes
-        attenuation_percent = (speaker.attenuation_distance - distance) / speaker.attenuation_distance
-        vol = (speaker.maxvolume - speaker.minvolume) * (1 - attenuation_percent) + speaker.minvolume
-        logger.debug("attenuating speaker: {}%".format(attenuation_percent * 100))
-    else:
-        vol = speaker.maxvolume
+    logger.debug("calculating volume of {} for {}".format(speaker, listener))
+    try:
+        listener_location = Point(listener['longitude'], listener['latitude'], srid=speaker.shape.srid)
+        speaker_qset = Speaker.objects.filter(id=speaker.id)
+        distance = speaker_qset.distance(listener_location, field_name='boundary').get().distance.m
+        logger.debug("distance = %s", distance)
+        if distance < speaker.attenuation_distance:
+            # if the listener is within the attenuation buffer
+            # scale the attenuation value to between the speaker's min and max volumes
+            attenuation_percent = (speaker.attenuation_distance - distance) / speaker.attenuation_distance
+            vol = (speaker.maxvolume - speaker.minvolume) * (1 - attenuation_percent) + speaker.minvolume
+            logger.debug("attenuating speaker: {}%".format(attenuation_percent * 100))
+        else:
+            vol = speaker.maxvolume
 
-    logger.debug("new volume: {} (min: {}, max: {})".format(vol, speaker.minvolume, speaker.maxvolume))
-    return vol
+        logger.debug("new volume: {} (min: {}, max: {})".format(vol, speaker.minvolume, speaker.maxvolume))
+        return vol
+    except Exception, e:
+        logger.error(e)
+        return 0

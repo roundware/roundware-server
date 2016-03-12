@@ -15,7 +15,7 @@ django-cache-utils==0.7.2
 django-validated-file==2.0.1
 # Loaded in roundware/settings/common.py
 django-admin-bootstrapped==2.0.4
-# Used in roundware/rw/views.pymand
+# Used in roundware/rw/views.py
 django-braces==1.4.0
 # Loaded in roundware/urls.py
 django-adminplus==0.2.1
