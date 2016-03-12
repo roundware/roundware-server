@@ -10,6 +10,7 @@ import traceback
 import django_filters
 from django.http import HttpResponse
 from rest_framework import generics
+from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -20,17 +21,17 @@ from roundware.api1.serializers import (AssetSerializer,
                                         ProjectSerializer,
                                         EventSerializer,
                                         SessionSerializer,
-                                        ListeningHistoryItemAssetSerializer)
+                                        ListeningHistoryItemAssetSerializer, SpeakerSerializer)
 from roundware.api1 import commands
 from roundware.lib import api
 from roundware.lib.exception import RoundException
 import logging
-from djgeojson.serializers import Serializer as GeoJSONSerializer
 logger = logging.getLogger(__name__)
 
 
 def operations(request):
     returned_data = catch_errors(request)
+
     speakers = None
     # serialize the geometry within the speaker
     for i, d in enumerate(returned_data):
@@ -38,16 +39,14 @@ def operations(request):
             speakers = d.pop('speakers')
             returned_data.pop(i)
 
-    data = json.dumps(returned_data, sort_keys=True,
-                      indent=4, ensure_ascii=False)
-    if speakers:
-        speakers = GeoJSONSerializer().serialize(speakers, geometry_field='shape', indent=4)
-        # this is ugly. sorry.
-        hacky_data_assembly = data[:-1] + ', {"speakers":' + speakers + '}]'
-    else:
-        hacky_data_assembly = data
+    data = json.dumps(returned_data, sort_keys=True, ensure_ascii=False)
 
-    return HttpResponse(hacky_data_assembly, content_type='application/json')
+    if speakers:
+        speaker_json = "{\"speakers\":[" + ", ".join(
+                [JSONRenderer().render(SpeakerSerializer(s).data) for s in speakers]) + "]}"
+        data = data[:-1] + ", " + speaker_json + data[-1:]
+
+    return HttpResponse(data, content_type='application/json')
 
 
 def catch_errors(request):

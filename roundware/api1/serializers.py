@@ -2,7 +2,7 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 from __future__ import unicode_literals
-from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem
+from roundware.rw.models import Asset, Project, Event, Session, ListeningHistoryItem, Speaker
 from rest_framework import serializers
 
 
@@ -34,6 +34,11 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
 
+
+class SpeakerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Speaker
+        many = True
 
 class SessionSerializer(serializers.ModelSerializer):
     class Meta:

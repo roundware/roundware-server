@@ -3,8 +3,8 @@
     "fields": {
       "attenuation_distance": 1000,
       "code": "1",
-      "backupuri": "http://scapesaudio.dyndns.org:8000/scapes1.mp3",
-      "uri": "http://scapesaudio.dyndns.org:8000/scapes1.mp3",
+      "backupuri": "http://localhost:8888/static/96742__robinhood76__01650-underwater-bubbles.mp3",
+      "uri": "http://localhost:8888/static/96742__robinhood76__01650-underwater-bubbles.mp3",
       "longitude": 1.0,
       "activeyn": true,
       "project": 1,

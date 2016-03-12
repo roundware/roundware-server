@@ -61,13 +61,13 @@ LOGGING['loggers'] = {
     'roundware': {
         'level': 'DEBUG',
         'handlers': ['console'],
-        'propagate': False,
+        'propagate': True,
     },
     # The roundwared stream manager logger.
     'roundwared': {
         'level': 'DEBUG',
         'handlers': ['console'],
-        'propagate': False,
+        'propagate': True,
     },
     # The Roundware API2 logger.
     # 'roundware.api2': {

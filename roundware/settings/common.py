@@ -152,6 +152,7 @@ ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
+    os.path.join(STATIC_ROOT, '..', 'source', 'files', 'test-audio'),
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -215,6 +216,7 @@ INSTALLED_APPS = (
     'djangoformsetjs',
     'sortedm2m',
     'rest_framework',
+    'rest_framework_gis',
     'rest_framework.authtoken',
     'leaflet',
     'corsheaders',

@@ -514,6 +514,7 @@ class Envelope(models.Model):
 
 
 class Speaker(models.Model):
+
     def __init__(self, *args, **kwargs):
         super(Speaker, self).__init__(*args, **kwargs)
         self._shape_cache = self.shape
@@ -521,8 +522,8 @@ class Speaker(models.Model):
         if self.shape:
             if not self.boundary:
                 self.build_boundary()
-            if not self.attenuation_border:
-                self.build_attenuation_buffer_line()
+                # if not self.attenuation_border:
+                #     self.build_attenuation_buffer_line()
 
     project = models.ForeignKey(Project)
     activeyn = models.BooleanField(default=False)
@@ -548,7 +549,7 @@ class Speaker(models.Model):
         return str(self.id) + ": " + " : " + self.uri
 
     def save(self, *args, **kwargs):
-        shape_changed = self.shape != self._shape_cache
+        shape_changed = (self.shape != self._shape_cache)
         attenuation_distance_changed = self.attenuation_distance != self._attenuation_distance_cache
         # if we have modified the shape, update the border field
         if shape_changed:
