@@ -3,20 +3,24 @@
 
 
 from __future__ import unicode_literals
+from django.contrib.gis.geos import Point
 from django.core.cache import cache
+
 cache # pyflakes, make sure it is imported, for patching in tests
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.exceptions import NON_FIELD_ERRORS
-from django.db import models, transaction
+from django.db import transaction
+from django.contrib.gis.db import models
 from validatedfile.fields import ValidatedFileField
 from django.conf import settings
 from datetime import datetime
 from cache_utils.decorators import cached
-from roundwared.gpsmixer import distance_in_meters
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 import logging
+from geopy.distance import vincenty
+
 logger = logging.getLogger(__name__)
 
 
@@ -84,14 +88,18 @@ class Project(models.Model):
     files_version = models.CharField(max_length=16, blank=True)
     audio_stream_bitrate = models.CharField(
         max_length=3, choices=BITRATES, default='128')
+
     ordering_choices = [('by_like', 'by_like'),
                         ('by_weight', 'by_weight'),
                         ('random', 'random')]
+
     ordering = models.CharField(max_length=16, choices=ordering_choices, default='random')
     demo_stream_enabled = models.BooleanField(default=False)
     demo_stream_url = models.CharField(max_length=512, blank=True)
     demo_stream_message_loc = models.ManyToManyField(
         LocalizedString, related_name='demo_stream_msg_string', null=True, blank=True)
+
+    out_of_range_distance = models.FloatField(default=1000)
 
     def __unicode__(self):
         return self.name
@@ -112,11 +120,13 @@ class Project(models.Model):
 
 
 class Session(models.Model):
+
     device_id = models.CharField(max_length=36, null=True, blank=True)
+
     starttime = models.DateTimeField()
     stoptime = models.DateTimeField(null=True, blank=True)
+
     project = models.ForeignKey(Project)
-    ordering = ['id']
     language = models.ForeignKey(Language, null=True)
     client_type = models.CharField(max_length=128, null=True, blank=True)
     client_system = models.CharField(max_length=128, null=True, blank=True)
@@ -310,6 +320,9 @@ class Asset(models.Model):
         'text': settings.ALLOWED_TEXT_MIME_TYPES,
     }
 
+    class Meta:
+        ordering = ['id']
+
     session = models.ForeignKey(
         Session, null=True, blank=True)
     latitude = models.FloatField(null=True, blank=False)
@@ -482,8 +495,9 @@ class Asset(models.Model):
     get_votes.name = "Votes"
 
     def distance(self, listener):
-        return distance_in_meters(self.latitude, self.longitude,
-                                  listener['latitude'], listener['longitude'])
+        listener_location = (listener['latitude'], listener['longitude'])
+        speaker_location = (self.latitude, self.longitude)
+        return vincenty(listener_location, speaker_location)
 
     @transaction.atomic
     def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
@@ -504,20 +518,63 @@ class Envelope(models.Model):
 
 
 class Speaker(models.Model):
+
+    def __init__(self, *args, **kwargs):
+        super(Speaker, self).__init__(*args, **kwargs)
+        self._shape_cache = self.shape
+        self._attenuation_distance_cache = self.attenuation_distance
+        if self.shape and not self.boundary:
+            self.build_boundary()
+            # only run this once the object exists in the db, since we depend on
+            # the db to do this calculation
+            if self.id and not self.attenuation_border:
+                self.build_attenuation_buffer_line()
+
     project = models.ForeignKey(Project)
     activeyn = models.BooleanField(default=False)
     code = models.CharField(max_length=10)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    maxdistance = models.IntegerField()
-    mindistance = models.IntegerField()
+    latitude = models.FloatField(null=True)
+    longitude = models.FloatField(null=True)
+    maxdistance = models.IntegerField(null=True)
+    mindistance = models.IntegerField(null=True)
     maxvolume = models.FloatField()
     minvolume = models.FloatField()
     uri = models.URLField()
     backupuri = models.URLField()
 
+    shape = models.MultiPolygonField(geography=True, null=True)
+    boundary = models.GeometryField(geography=True, null=True, editable=False)
+
+    attenuation_distance = models.IntegerField()
+    attenuation_border = models.GeometryField(geography=True, null=True, editable=False)
+
+    objects = models.GeoManager()
+
     def __unicode__(self):
-        return str(self.id) + ": " + str(self.latitude) + "/" + str(self.longitude) + " : " + self.uri
+        return str(self.id) + ": " + " : " + self.uri
+
+    def save(self, *args, **kwargs):
+        shape_changed = (self.shape != self._shape_cache)
+        attenuation_distance_changed = self.attenuation_distance != self._attenuation_distance_cache
+        # if we have modified the shape, update the border field
+        if shape_changed:
+            self.build_boundary()
+
+        super(Speaker, self).save(*args, **kwargs)
+
+        # after saving to the db, run the attenuation border builder
+        if shape_changed or attenuation_distance_changed:
+            self.build_attenuation_buffer_line()
+
+    def build_boundary(self):
+        self.boundary = self.shape.boundary
+
+    def build_attenuation_buffer_line(self):
+        from django.db import connection
+        cursor = connection.cursor()
+        raw_sql = """UPDATE {table} SET attenuation_border = ST_Boundary(ST_Buffer(shape, -attenuation_distance)::geometry)::geography where id = {speaker_id};
+        """.format(table=self._meta.db_table, speaker_id=self.id)
+        cursor.execute(raw_sql)
 
     def location_map(self):
         html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
@@ -525,9 +582,9 @@ class Speaker(models.Model):
         then move pin to exact location of asset.</div>
         <div class="GMap" id="map" style="width:800px; height: 600px; margin-top: 10px;"></div>"""
         return html
+
     location_map.short_name = "location"
     location_map.allow_tags = True
-
 
 class ListeningHistoryItem(models.Model):
     session = models.ForeignKey(Session)
@@ -590,3 +647,26 @@ post_save.connect(create_user_profile, sender=User)
 def get_field_names_from_model(model):
     """Pass in a model class. Return list of strings of field names"""
     return [f.name for f in model._meta.fields]
+
+
+def calculate_volume(speaker, listener):
+    logger.debug("calculating volume of {} for {}".format(speaker, listener))
+    try:
+        listener_location = Point(listener['longitude'], listener['latitude'], srid=speaker.shape.srid)
+        speaker_qset = Speaker.objects.filter(id=speaker.id)
+        distance = speaker_qset.distance(listener_location, field_name='boundary').get().distance.m
+        logger.debug("distance = %s", distance)
+        if distance < speaker.attenuation_distance:
+            # if the listener is within the attenuation buffer
+            # scale the attenuation value to between the speaker's min and max volumes
+            attenuation_percent = (speaker.attenuation_distance - distance) / speaker.attenuation_distance
+            vol = (speaker.maxvolume - speaker.minvolume) * (1 - attenuation_percent) + speaker.minvolume
+            logger.debug("attenuating speaker: {}%".format(attenuation_percent * 100))
+        else:
+            vol = speaker.maxvolume
+
+        logger.debug("new volume: {} (min: {}, max: {})".format(vol, speaker.minvolume, speaker.maxvolume))
+        return vol
+    except Exception, e:
+        logger.error(e)
+        return 0

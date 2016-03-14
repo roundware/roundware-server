@@ -39,6 +39,12 @@ LOGGING['handlers'] = {
         'class': 'logging.StreamHandler',
         'formatter': 'simple'
     },
+    'file': {
+        'level': 'DEBUG',
+        'class': 'logging.FileHandler',
+        'filename': '/var/log/roundware',
+        'formatter': 'verbose',
+    },
 }
 
 LOGGING['loggers'] = {

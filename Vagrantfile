@@ -16,7 +16,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "forwarded_port", guest: 8000, host: 8000
   # Configure manage.py runserver port 8888 to forward to host 8888
   config.vm.network "forwarded_port", guest: 8888, host: 8888
-
+  config.vm.network "forwarded_port", guest: 5432, host: 15432
+    config.vm.provider "virtualbox" do |v|
+      v.customize ["modifyvm", :id, "--memory", "2048"]
+    end
   config.vm.provision "shell",
     inline: "cd /vagrant; ./install.sh"
 
@@ -27,3 +30,4 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   end
 end
+

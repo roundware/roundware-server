@@ -86,14 +86,14 @@ DATABASES = {
     'default': {
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or
         # 'oracle'.
-        'ENGINE': 'django.db.backends.mysql',
-
         # Or path to database file if using sqlite3.
+
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'roundware',
         'USER': 'round',
         'PASSWORD': 'round',
-        'HOST': '',
-        'PORT': '',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -152,6 +152,7 @@ ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
+    os.path.join(STATIC_ROOT, '..', 'source', 'files', 'test-audio'),
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -176,6 +177,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
@@ -201,6 +203,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
     'django.contrib.admin.apps.SimpleAdminConfig',
@@ -213,7 +216,10 @@ INSTALLED_APPS = (
     'djangoformsetjs',
     'sortedm2m',
     'rest_framework',
+    'rest_framework_gis',
     'rest_framework.authtoken',
+    'leaflet',
+    'corsheaders',
     'roundware.lib',
     'roundware.rw',
     'roundware.notifications',
@@ -239,6 +245,11 @@ REST_FRAMEWORK = {
         'user': '1000/day'
     }
 }
+
+CORS_ORIGIN_WHITELIST = (
+    'localhost:8080',
+)
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

@@ -15,6 +15,7 @@ from roundware.settings import DEFAULT_SESSION_ID
 from guardian.shortcuts import assign
 from model_mommy import mommy
 
+from tests.roundware.api1.test_commands import TEST_POLYGONS
 from .common import FakeRequest, RWTestCase
 
 
@@ -33,7 +34,7 @@ class TestAssetAdmin(RWTestCase, WebTest):
         self.user.set_password('foo')
         self.user.save()
         self.username = self.user.username
-        self.session1 = mommy.make('rw.Session', id=DEFAULT_SESSION_ID)
+        self.session1 = mommy.make('rw.Session')
         self.tagcat1 = mommy.make(TagCategory, name='tagcat1')
         self.tagcat2 = mommy.make(TagCategory, name='tagcat2')
         self.tagcat3 = mommy.make(TagCategory, name='tagcat3')
@@ -217,7 +218,8 @@ class TestProtectedAdmin(RWTestCase):
                             ['minpanduration', 1], ['maxpanduration', 2]]],
             ['Speaker', [['latitude', 1], ['longitude', 2],
                          ['mindistance', 1], ['maxdistance', 2],
-                         ['minvolume', 1], ['maxvolume', 2]]],
+                         ['minvolume', 1], ['maxvolume', 2],
+                         ['attenuation_distance', 100], ['shape', TEST_POLYGONS['crazy_shape']]]],
             ['Asset']
         ]
 

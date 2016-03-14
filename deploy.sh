@@ -49,7 +49,7 @@ export PYTHONPATH=$CODE_PATH
 pip install -U pip
 
 # Install RoundWare requirements
-pip install -r $CODE_PATH/requirements.txt
+pip install -r $CODE_PATH/requirements.txt --upgrade
 
 # Apply patch to fix M2M field deserializing for Tag relationships, force command to return true.
 # Details: https://code.djangoproject.com/ticket/17946

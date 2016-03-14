@@ -67,10 +67,8 @@ def get_config(request):
     if 'project_id' not in form:
         raise RoundException("a project_id is required for this operation")
     project = models.Project.objects.get(id=form.get('project_id'))
-    speakers = models.Speaker.objects.filter(
-        project=form.get('project_id')).values()
-    audiotracks = models.Audiotrack.objects.filter(
-        project=form.get('project_id')).values()
+    speakers = project.speaker_set.all()
+    audiotracks = project.audiotrack_set.values()
 
     if 'device_id' not in form or ('device_id' in form and form['device_id'] == ""):
         device_id = str(uuid.uuid4())
@@ -148,7 +146,7 @@ def get_config(request):
         }
         },
         {"server": {"version": "2.0"}},
-        {"speakers": [dict(d) for d in speakers]},
+        {"speakers": speakers},
         {"audiotracks": [dict(d) for d in audiotracks]}
     ]
 

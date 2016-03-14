@@ -1,4 +1,4 @@
-Django==1.7
+Django<1.8
 # Creates REST APIs
 djangorestframework==3.2.2
 # Used for DRF filtering
@@ -30,6 +30,18 @@ django-sortedm2m==0.8.1
 # Required for RDF Date parsing
 python-dateutil==2.2
 # Used in roundwared/icecast2.py
-requests==2.4.1
+requests<2.5
 # Used in admin, including Batch Tag Add
 django-formset-js==0.4.0
+# database adapter for PostgreSQL
+psycopg2
+# geographic distance calculator utilities
+geopy
+# cors support to remove php layer
+django-cors-headers
+# fiona is a useful tool for processing geographic files (ETL)
+fiona
+# geographic extensions for djangorestframework-gis
+djangorestframework-gis
+# leaflet map utilities for django admin
+django-leaflet

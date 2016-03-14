@@ -10,6 +10,7 @@ import traceback
 import django_filters
 from django.http import HttpResponse
 from rest_framework import generics
+from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -20,7 +21,7 @@ from roundware.api1.serializers import (AssetSerializer,
                                         ProjectSerializer,
                                         EventSerializer,
                                         SessionSerializer,
-                                        ListeningHistoryItemAssetSerializer)
+                                        ListeningHistoryItemAssetSerializer, SpeakerSerializer)
 from roundware.api1 import commands
 from roundware.lib import api
 from roundware.lib.exception import RoundException
@@ -29,8 +30,22 @@ logger = logging.getLogger(__name__)
 
 
 def operations(request):
-    data = json.dumps(catch_errors(request), sort_keys=True,
-                      indent=4, ensure_ascii=False)
+    returned_data = catch_errors(request)
+
+    speakers = None
+    # serialize the geometry within the speaker
+    for i, d in enumerate(returned_data):
+        if 'speakers' in d:
+            speakers = d.pop('speakers')
+            returned_data.pop(i)
+
+    data = json.dumps(returned_data, sort_keys=True, ensure_ascii=False)
+
+    if speakers:
+        speaker_json = "{\"speakers\":[" + ", ".join(
+                [JSONRenderer().render(SpeakerSerializer(s).data) for s in speakers]) + "]}"
+        data = data[:-1] + ", " + speaker_json + data[-1:]
+
     return HttpResponse(data, content_type='application/json')
 
 
@@ -199,7 +214,6 @@ class ListeningHistoryItemFilter(django_filters.FilterSet):
                   'session',
                   'asset',
                   ]
-
 
 class ListeningHistoryItemList(generics.ListAPIView):
     queryset = ListeningHistoryItem.objects.all()

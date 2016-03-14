@@ -10,6 +10,7 @@ from django.contrib import admin
 from roundware.rw.admin_helper import add_asset_to_envelope, create_envelope
 from roundware.rw.filters import AudiolengthListFilter, TagCategoryListFilter
 
+from leaflet.admin import LeafletGeoAdmin
 
 class VoteInline(admin.TabularInline):
     model = Vote
@@ -280,7 +281,7 @@ class ProjectAdmin(GuardedModelAdmin):
         ('Configuration', {
             'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',
                        'demo_stream_enabled', 'reset_tag_defaults_on_startup', 'timed_asset_priority',
-                       'max_recording_length', 'recording_radius', 'audio_stream_bitrate', 'sharing_url',
+                       'max_recording_length', 'recording_radius', 'out_of_range_distance', 'audio_stream_bitrate', 'sharing_url',
                        'out_of_range_url', 'demo_stream_url', 'files_url', 'files_version', 'repeat_mode', 'ordering')
         }),
         ('Localized Strings', {
@@ -406,35 +407,32 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
         }
 
 
-class SpeakerAdmin(ProjectProtectedModelAdmin):
-    readonly_fields = ('location_map',)
-    list_display = ('id', 'activeyn', 'code', 'project', 'latitude',
-                    'longitude', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume', 'uri')
+class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
+    list_display = ('id', 'activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'shape', 'uri')
     list_filter = ('project', 'activeyn')
-    list_editable = (
-        'activeyn', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume',)
+    list_editable = ('activeyn', 'maxvolume', 'minvolume', 'shape')
     ordering = ['id']
     save_as = True
     save_on_top = True
+    map_width = "400px"
 
     fieldsets = (
         (None, {
-         'fields': ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri')}),
-        ('Geographical Data', {'fields': (
-            'location_map', 'longitude', 'latitude', 'maxdistance', 'mindistance')})
+            'fields': ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri', )
+        }),
+        ('Geographical Data', {
+            'fields': ('shape', 'attenuation_distance'),
+        })
     )
 
     class Media:
         css = {
             "all": (
                 "http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
+                "rw/css/speaker_admin.css"
             )
         }
-        js = (
-            'http://maps.google.com/maps/api/js?sensor=false',
-            'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js',
-            'rw/js/location_map.js',
-        )
+        js = ()
 
 
 class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):

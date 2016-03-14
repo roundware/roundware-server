@@ -2,9 +2,14 @@ language: python
 python:
   - "2.7"
 before_install:
-  - sudo apt-get update
+  - sudo apt-get -y update
 install:
-  - sudo apt-get install python-dev build-essential python-mysqldb python-dbus python-gst0.10
+  - DEBIAN_FRONTEND=noninteractive sudo apt-get -y install python-dev build-essential python-dbus python-gst0.10 postgresql-server-dev-9.3 postgresql-9.3-postgis-2.1
+  - sudo su - postgres -c 'psql -c "create role round superuser login;"'
+  - sudo su - postgres -c 'psql -c "create database roundware"'
+  - sudo su - postgres -c 'psql -c "grant all on database roundware to round"'
+  - sudo su - postgres -c "psql -c \"alter user round password 'round'\""
+  - sudo su - postgres -c "psql roundware -c 'create extension postgis'"
   - pip install -r requirements/dev.txt
 before_script:
 # Setup Roundware log file.

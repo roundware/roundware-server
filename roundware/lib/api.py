@@ -1,4 +1,6 @@
 from __future__ import unicode_literals
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
 from rest_framework.exceptions import ParseError
 from roundware.rw import models
 from roundware.lib import dbus_send, discover_audiolength, convertaudio
@@ -92,8 +94,7 @@ def request_stream(request):
 
     log_event("request_stream", int(session_id), request.GET)
 
-    session = models.Session.objects.select_related(
-        'project').get(id=session_id)
+    session = models.Session.objects.select_related('project').get(id=session_id)
     project = session.project
 
     # Get the value 'example.com' from the host 'example.com:8888'
@@ -116,6 +117,7 @@ def request_stream(request):
     elif is_listener_in_range_of_stream(request.GET, project):
         # TODO: audio_format.upper() should be handled when the project is saved.
         audio_format = project.audio_format.upper()
+
         # Make the audio stream if it doesn't exist.
         if not stream_exists(session.id, audio_format):
             command = [settings.PROJECT_ROOT + '/roundwared/rwstreamd.py',
@@ -129,6 +131,8 @@ def request_stream(request):
 
             apache_safe_daemon_subprocess(command)
             wait_for_stream(session.id, audio_format)
+
+        move_listener(request)
 
         return {
             "stream_url": "http://%s:%s%s" % (http_host, settings.ICECAST_PORT,
@@ -191,20 +195,19 @@ def log_event(event_type, session_id, form=None):
 
 def is_listener_in_range_of_stream(form, proj):
     # If latitude and longitude is not specified assume True.
-    if not ('latitude' in form and 'longitude' in form) or not (form['latitude'] and form['longitude']):
+    if not form.get('latitude', None) or not form.get('longitude', None):
         return True
-    # Get all active speakers
-    speakers = models.Speaker.objects.filter(project=proj, activeyn=True)
 
-    for speaker in speakers:
-        distance = gpsmixer.distance_in_meters(
-            float(form['latitude']),
-            float(form['longitude']),
-            speaker.latitude,
-            speaker.longitude)
-        if distance < 3 * speaker.maxdistance:
-            return True
-    return False
+    listener = Point(float(form['longitude']), float(form['latitude']))
+
+    # See if there are any active speakers within range of the listener's location
+    in_range = models.Speaker.objects.filter(
+        project=proj,
+        activeyn=True,
+        shape__dwithin=(listener, D(m=proj.out_of_range_distance))
+    ).exists()
+
+    return in_range
 
 
 def stream_exists(sessionid, audio_format):
@@ -315,6 +318,7 @@ def form_to_request(form):
 
 
 def move_listener(request, context=None):
+    logger.debug("moving listener")
     if context is not None and "pk" in context:
         form = request.data.copy()
         form['session_id'] = context["pk"]
