@@ -1,150 +1,50 @@
-#***********************************************************************************#
+# Roundware Server is released under the GNU Affero General Public License v3.
+# See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-# ROUNDWARE
-# a contributory, location-aware media platform
-
-# Copyright (C) 2008-2014 Halsey Solutions, LLC
-# with contributions from:
-# Mike MacHenry, Ben McAllister, Jule Slootbeek and Halsey Burgund (halseyburgund.com)
-# http://roundware.org | contact@roundware.org
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
-
-#***********************************************************************************#
-
-
-from chartit.chartdata import PivotDataPool
-from chartit.charts import PivotChart
-from django.db.models.aggregates import Count, Sum
-from django.http import HttpResponse
-import time
-import string
-import os
+from __future__ import unicode_literals
 import logging
-import json
-import traceback
 
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.shortcuts import render_to_response
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
 from django.forms.models import save_instance
 from django.views.generic.base import TemplateView
 from django.utils.safestring import mark_safe
+from django.shortcuts import render_to_response
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 
-from guardian.core import ObjectPermissionChecker
 from guardian.mixins import PermissionRequiredMixin
 from braces.views import (LoginRequiredMixin, FormValidMessageMixin,
                           AjaxResponseMixin)
-from extra_views import InlineFormSet, CreateWithInlinesView, UpdateWithInlinesView
+from extra_views import InlineFormSet
 from extra_views.multi import MultiFormView, FormProvider
 
-from roundware.rw.chart_functions import assets_created_per_day
-from roundware.rw.chart_functions import sessions_created_per_day
-from roundware.rw.chart_functions import assets_by_question
-from roundware.rw.chart_functions import assets_by_section
+from roundware.rw.chart_functions import (assets_created_per_day,
+                                          sessions_created_per_day,
+                                          assets_by_question,
+                                          assets_by_section)
 from roundware.rw.models import Tag, MasterUI, UIMapping, Project
 from roundware.rw.forms import (TagCreateForm, BatchTagFormset,
-                                # MasterUIForSetupTagUICreateForm,
                                 MasterUIForSetupTagUIEditForm,
                                 MasterUIForSetupTagUISelectForm)
 from roundware.rw.widgets import SetupTagUISortedCheckboxSelectMultiple
-from roundwared import settings
-from roundwared import roundexception
-from roundwared import server
-
-
-
-def main(request):
-    return HttpResponse(json.dumps(catch_errors(request), sort_keys=True, indent=4, ensure_ascii=False), mimetype='application/json')
-
-
-def catch_errors(request):
-    try:
-        config_file = "rw"
-        if request.GET.has_key('config'):
-            config_file = request.GET['config']
-        settings.initialize_config(os.path.join('/etc/roundware/', config_file))
-
-        logging.basicConfig(
-            filename=settings.config["log_file"],
-            filemode="a",
-            level=logging.DEBUG,
-            format='%(asctime)s %(filename)s:%(lineno)d %(levelname)s %(message)s',
-            )
-
-        if request.GET.has_key('operation'):
-            function = operation_to_function(request.GET['operation'])
-        elif request.POST.has_key('operation'):
-            function = operation_to_function(request.POST['operation'])
-        return function(request)
-    except roundexception.RoundException as e:
-        logging.error(str(e) + traceback.format_exc())
-        return {"error_message": str(e)}
-    except:
-        logging.error(
-            "An uncaught exception was raised. See traceback for details." + \
-            traceback.format_exc())
-        return {
-            "error_message": "An uncaught exception was raised. See traceback for details.",
-            "traceback": traceback.format_exc(),
-        }
-
-
-def operation_to_function(operation):
-    if not operation:
-        raise roundexception.RoundException("Operation is required")
-    operations = {
-        "request_stream": server.request_stream,
-        "heartbeat": server.heartbeat,
-        "current_version": server.current_version,
-        "log_event": server.log_event,
-        "create_envelope": server.create_envelope,
-        "add_asset_to_envelope": server.add_asset_to_envelope,
-        "get_config": server.get_config,
-        "get_tags": server.get_tags_for_project,
-        "modify_stream": server.modify_stream,
-        "get_current_streaming_asset": server.get_current_streaming_asset,
-        "get_asset_info": server.get_asset_info,
-        "get_available_assets": server.get_available_assets,
-        "play_asset_in_stream": server.play_asset_in_stream,
-        "vote_asset": server.vote_asset,
-        "skip_ahead": server.skip_ahead,
-        "get_events": server.get_events,
-    }
-    key = string.lower(operation)
-    if operations.has_key(key):
-        return operations[key]
-    else:
-        raise roundexception.RoundException("Invalid operation, " + operation)
-
-
-from django.shortcuts import render_to_response
-from django.contrib.auth.decorators import login_required
+logger = logging.getLogger(__name__)
 
 
 @login_required
 def chart_views(request):
 
     asset_created_per_day_chart = assets_created_per_day()
-#    return render_to_response("chart_template.html", {'assetchart': asset_created_per_day_chart})
+# return render_to_response("chart_template.html", {'assetchart':
+# asset_created_per_day_chart})
 
     session_created_per_day_chart = sessions_created_per_day()
     assets_by_question_chart = assets_by_question()
     assets_by_section_chart = assets_by_section()
-#    return render_to_response("chart_template.html", {'sessionchart': session_created_per_day_chart, 'assetchart': asset_created_per_day_chart})
+# return render_to_response("chart_template.html", {'sessionchart':
+# session_created_per_day_chart, 'assetchart':
+# asset_created_per_day_chart})
     return render_to_response("chart_template.html", {'charts': [session_created_per_day_chart, asset_created_per_day_chart, assets_by_question_chart, assets_by_section_chart]})
 
 
@@ -153,17 +53,17 @@ class MultiCreateTagsView(LoginRequiredMixin, FormValidMessageMixin, MultiFormVi
     template_name = 'rw/tags_add_to_category_form.html'
     form_valid_message = 'Tags created!'
     forms = {'category': MultiFormView.modelform(Tag, TagCreateForm,
-                         **{'fields': ('tag_category',),
-                            'exclude': ('value','description','data',
-                                        'loc_msg')}
-                         ),
+                                                 **{'fields': ('tag_category',),
+                                                    'exclude': ('value', 'description', 'data',
+                                                                'loc_msg')}
+                                                 ),
              'tag_formset': MultiFormView.modelformset(Tag,
-                            **{'extra': 2, 'form': TagCreateForm,
-                               'exclude': ['tag_category'],
-                               'fields': ['value', 'description', 'data', 'loc_msg'],
-                               'formset': BatchTagFormset}
-                            )
-            }
+                                                       **{'extra': 2, 'form': TagCreateForm,
+                                                          'exclude': ['tag_category'],
+                                                          'fields': ['value', 'description', 'data', 'loc_msg'],
+                                                           'formset': BatchTagFormset}
+                                                       )
+             }
 
     def get_category_instance(self):
         return Tag()
@@ -174,8 +74,8 @@ class MultiCreateTagsView(LoginRequiredMixin, FormValidMessageMixin, MultiFormVi
     def valid_all(self, valid_forms):
         """ handle case all forms valid
         """
-        category= valid_forms['category']
-        formset= valid_forms['tag_formset']
+        category = valid_forms['category']
+        formset = valid_forms['tag_formset']
         for form in formset.forms:
             tag = form.save(commit=False)  # doesn't save m2m yet
             tag.tag_category = category.cleaned_data['tag_category']
@@ -194,6 +94,7 @@ class UIMappingsInline(InlineFormSet):
 
 
 class SetupTagUIMixin(LoginRequiredMixin, PermissionRequiredMixin):
+
     """ make sure User can modify this MasterUI based on Project,
         and is logged in.
     """
@@ -215,12 +116,12 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
     template_name = 'setup_tag_ui_form.html'
     forms = {
         'master_ui_select': FormProvider(
-        MasterUIForSetupTagUISelectForm,
-        context_suffix='form',
-        init_args={'user': 'get_%s_user'}),
+            MasterUIForSetupTagUISelectForm,
+            context_suffix='form',
+            init_args={'user': 'get_%s_user'}),
 
         'master_ui_edit': MultiFormView.modelform(MasterUI,
-                          MasterUIForSetupTagUIEditForm),
+                                                  MasterUIForSetupTagUIEditForm),
 
     }
 
@@ -255,7 +156,7 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         # if modelchoicefield not empty
         if request.POST.get("master_ui_select-masterui"):
             id_to_update = request.POST["master_ui_select-masterui"]
-            mui=MasterUI.objects.get(pk=id_to_update)
+            mui = MasterUI.objects.get(pk=id_to_update)
             edit_form = MasterUIForSetupTagUIEditForm(instance=mui)
             response_dic['mui_update_id'] = mui.id
 
@@ -271,7 +172,7 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
     def update_ui_mappings(self, uimaps, formtags, defaults, indexes, mui):
         uimaptags = []
 
-        default_tags = [df.startswith('t') and Tag.objects.filter(pk=df.replace('t',''))[0] or
+        default_tags = [df.startswith('t') and Tag.objects.filter(pk=df.replace('t', ''))[0] or
                         UIMapping.objects.filter(pk=df)[0].tag for df in defaults]
         for uimap in uimaps:
             uimaptags.append(uimap.tag)
@@ -305,7 +206,7 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         defaults = form.data['master_ui_edit-ui_mappings_tag_order'].split(',')
         if form.cleaned_data['ui_mappings_tags_indexes']:
             indexes = form.cleaned_data['ui_mappings_tags_indexes'].split(',')
-            indexes = [el.startswith('t') and el.replace('t','') or
+            indexes = [el.startswith('t') and el.replace('t', '') or
                        UIMapping.objects.select_related('tag').filter(
                        pk=el)[0].tag.pk for el in indexes]
         else:
@@ -313,7 +214,7 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
         if mui_id:
             mui = MasterUI.objects.filter(pk=mui_id)[0]
             uimaps = UIMapping.objects.select_related(
-                     'tag').filter(master_ui=mui)
+                'tag').filter(master_ui=mui)
             # instance isn't constructed yet with data from form so we can't
             # use form.save() but have to do the following with construct=True
             save_instance(form, mui, form._meta.fields, 'form changed', True,
@@ -331,10 +232,12 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
 
 
 class UpdateTagUIOrder(TemplateView):
+
     """ display the widget for the master_ui_edit_tag_order field as updated
         based on the value of the master_ui_edit_tags field on
         MasterUIMappingsOrganizationView edit form.
     """
+
     def __init__(self, **kwargs):
         self.widget = SetupTagUISortedCheckboxSelectMultiple()
 
@@ -355,7 +258,7 @@ class UpdateTagUIOrder(TemplateView):
 
         if mui:
             self.queryset = UIMapping.objects.select_related('tag'
-            ).filter(master_ui__pk=mui, tag__in=tag_vals).order_by('index')
+                                                             ).filter(master_ui__pk=mui, tag__in=tag_vals).order_by('index')
             filtered = self.queryset.filter(default=True)
         else:
             self.queryset = UIMapping.objects.none()
@@ -369,9 +272,10 @@ class UpdateTagUIOrder(TemplateView):
 
         html = self.widget.render('master_ui_edit-ui_mappings_tag_order',
                                   value=[uimap.pk for uimap in filtered],
-                                  attrs={u'id': u'id_master_ui_edit-ui_mappings_tag_order'},
+                                  attrs={
+                                      'id': 'id_master_ui_edit-ui_mappings_tag_order'},
                                   choices=self.choice_iterator(),
-                                  new_maps = tags_unseen,)
+                                  new_maps=tags_unseen,)
         return HttpResponse(mark_safe(html))
 
 

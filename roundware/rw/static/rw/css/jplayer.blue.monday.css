@@ -35,7 +35,7 @@ div.jp-video {
 	position:relative;
 }
 div.jp-audio {
-	width:100px;
+	width:100px !important;
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
     -khtml-border-radius: 10px;
@@ -68,7 +68,7 @@ div.jp-interface ul.jp-controls {
 }
 
 div.jp-audio ul.jp-controls {
-	width: 80px;
+	width: 100px;
 	padding:5px 10px 0 10px;
 }
 

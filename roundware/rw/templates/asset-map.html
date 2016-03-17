@@ -71,7 +71,7 @@
 </html>
 <script type="text/javascript">
     $(document).ready(function() {
-        var url = "/roundware/api/v1/assetlocation/";
+        var url = "/api/1/rest/assetlocation/";
 
         function initialize(){
             var mapOptions = {
@@ -97,7 +97,7 @@
                         },
                         dataType: "json",
                         success: function(data) {
-                            points = data.objects;
+                            points = data.results;
                         }
                     }
                 );
@@ -123,7 +123,7 @@
 
 
     function savePosition(marker, newLocation){
-        var url = "/roundware/api/v1/assetlocation/" + marker.asset_id + "/";
+        var url = "/api/1/rest/assetlocation/" + marker.asset_id + "/";
         newLocation.lat().toFixed(6);
         newLocation.lng().toFixed(6);
         var csrftoken = getCookie('csrftoken');
@@ -225,12 +225,12 @@
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
     }
 
-    	/**
-	 * return an HTML string to be used as a marker's info window
-	 */
-	function create_info_window(id, description, fn, fnwav)
-	{
-		var marker_div = '<div class="markerDiv">' +
+        /**
+     * return an HTML string to be used as a marker's info window
+     */
+    function create_info_window(id, description, fn, fnwav)
+    {
+        var marker_div = '<div class="markerDiv">' +
                 'Asset ID: '+ id +
                 '<br />' +
                     '<audio controls="controls">' +
@@ -246,9 +246,9 @@
                     '</audio>' +
                 '<div>'+ description +'</div>';
 
-		return new google.maps.InfoWindow({
-			content: marker_div
-		});
-	}
+        return new google.maps.InfoWindow({
+            content: marker_div
+        });
+    }
 
 </script>

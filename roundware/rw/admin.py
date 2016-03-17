@@ -1,39 +1,16 @@
-#***********************************************************************************#
+# Roundware Server is released under the GNU Affero General Public License v3.
+# See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-# ROUNDWARE
-# a contributory, location-aware media platform
-
-# Copyright (C) 2008-2014 Halsey Solutions, LLC
-# with contributions from:
-# Mike MacHenry, Ben McAllister, Jule Slootbeek and Halsey Burgund (halseyburgund.com)
-# http://roundware.org | contact@roundware.org
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
-
-#***********************************************************************************#
-
-
+from __future__ import unicode_literals
 from guardian.admin import GuardedModelAdmin
 from guardian.shortcuts import get_objects_for_user
 from models import *
 from django.contrib import admin
-from django.conf import settings
 
-from roundware.rw.signals import add_asset_to_envelope, create_envelope
+from roundware.rw.admin_helper import add_asset_to_envelope, create_envelope
 from roundware.rw.filters import AudiolengthListFilter, TagCategoryListFilter
-from roundware.rw.views import MultiCreateTagsView
 
+from leaflet.admin import LeafletGeoAdmin
 
 class VoteInline(admin.TabularInline):
     model = Vote
@@ -48,9 +25,13 @@ class EnvelopeInline(admin.StackedInline):
     verbose_name_plural = "Related Envelope"
 
 
+class TimedAssetInline(admin.TabularInline):
+    model = TimedAsset
+    extra = 1
+
+
 class AssetTagsInline(admin.TabularInline):
     model = Asset.tags.through
-
 
 
 class SmarterModelAdmin(admin.ModelAdmin):
@@ -73,16 +54,19 @@ def project_restricted_queryset_through(model_class, field_name):
     project_restricted_queryset_through(Asset, 'asset') provide the filter
     original_queryset.filter(asset__in=Asset.objects.filter(project__in=accessible_projects)
     """
-    def queryset(self, request):
-        qset = super(admin.ModelAdmin, self).queryset(request)
+
+    def get_queryset(self, request):
+        qset = super(admin.ModelAdmin, self).get_queryset(request)
 
         if request.user.is_superuser:
             return qset
 
-        accessible_projects = get_objects_for_user(request.user, 'rw.access_project')
-        authorized_objects = model_class.objects.filter(project__in=accessible_projects)
+        accessible_projects = get_objects_for_user(
+            request.user, 'rw.access_project')
+        authorized_objects = model_class.objects.filter(
+            project__in=accessible_projects)
         return qset.filter(**{field_name + "__in": authorized_objects})
-    return queryset
+    return get_queryset
 
 
 class ProjectProtectedThroughAssetModelAdmin(admin.ModelAdmin):
@@ -98,13 +82,36 @@ class ProjectProtectedThroughUIModelAdmin(admin.ModelAdmin):
 
 
 class ProjectProtectedModelAdmin(admin.ModelAdmin):
-    def queryset(self, request):
-        qset = super(admin.ModelAdmin, self).queryset(request)
+
+    def get_queryset(self, request):
+        qset = super(admin.ModelAdmin, self).get_queryset(request)
 
         if request.user.is_superuser:
             return qset
 
         return qset.filter(project__in=get_objects_for_user(request.user, 'rw.access_project'))
+
+
+def copy_asset(modeladmin, request, queryset):
+    for obj in queryset:
+        tags = obj.tags.all()
+        obj.pk = None
+        obj.save()
+        for i in tags:
+            obj.tags.add(i)
+copy_asset.short_description = "Copy selected assets"
+
+def copy_asset_with_votes(modeladmin, request, queryset):
+    for obj in queryset:
+        tags = obj.tags.all()
+        votes = obj.vote_set.all()
+        obj.pk = None
+        obj.save()
+        for i in tags:
+            obj.tags.add(i)
+        for i in votes:
+            obj.vote_set.add(i)
+copy_asset_with_votes.short_description = "Copy selected assets while retaining votes"
 
 class AssetAdmin(ProjectProtectedModelAdmin):
     valid_lookups = ('tags__tag_category__name', 'tags__description')
@@ -117,19 +124,19 @@ class AssetAdmin(ProjectProtectedModelAdmin):
 
     def add_view(self, request, form_url='', extra_context=None):
         extra_context = extra_context or {}
-        extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
+        extra_context['MEDIA_URL'] = settings.MEDIA_URL
         extra_context['extends_url'] = "admin/change_form.html"
         return super(AssetAdmin, self).add_view(request, form_url, extra_context=extra_context)
 
     def change_view(self, request, object_id, extra_context=None):
         extra_context = extra_context or {}
-        extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
+        extra_context['MEDIA_URL'] = settings.MEDIA_URL
         extra_context['extends_url'] = "admin/change_form.html"
         return super(AssetAdmin, self).change_view(request, object_id, extra_context=extra_context)
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
-        extra_context['AUDIO_FILE_URI'] = getattr(settings, "AUDIO_FILE_URI")
+        extra_context['MEDIA_URL'] = settings.MEDIA_URL
         extra_context['extends_url'] = "admin/change_list.html"
         return super(AssetAdmin, self).changelist_view(request, extra_context=extra_context)
 
@@ -139,35 +146,14 @@ class AssetAdmin(ProjectProtectedModelAdmin):
         return super(AssetAdmin, self).lookup_allowed(lookup, *args, **kwargs)
 
     def save_model(self, request, obj, form, change):
-        #only call create_envelope if the model is being added.
+        # only call create_envelope if the model is being added.
         if not change:
             create_envelope(instance=obj)
         obj.save()
 
-        #only call add_asset_to_envelope when the model is being added.
+        # only call add_asset_to_envelope when the model is being added.
         if not change:
             add_asset_to_envelope(instance=obj)
-
-    def copy_asset(modeladmin, request, queryset):
-        for obj in queryset:
-            tags = obj.tags.all()
-            obj.pk = None
-            obj.save()
-            for i in tags:
-                obj.tags.add(i)
-    copy_asset.short_description = "Copy selected assets"
-
-    def copy_asset_with_votes(modeladmin, request, queryset):
-        for obj in queryset:
-            tags = obj.tags.all()
-            votes = obj.vote_set.all()
-            obj.pk = None
-            obj.save()
-            for i in tags:
-                obj.tags.add(i)
-            for i in votes:
-                obj.vote_set.add(i)
-    copy_asset_with_votes.short_description = "Copy selected assets while retaining votes"
 
     actions = [copy_asset, copy_asset_with_votes]
     actions_on_bottom = True
@@ -177,19 +163,49 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     inlines = [
         EnvelopeInline,
         VoteInline,
+        TimedAssetInline,
     ]
     #exclude = ('tags',)
-    readonly_fields = ('location_map', 'audio_player', 'media_display', 'audiolength', 'session', 'created')#, 'longitude', 'latitude')#, 'filename')
+    # , 'longitude', 'latitude')#, 'filename')
+    readonly_fields = ('location_map', 'audio_player',
+                       'media_display', 'audiolength', 'session', 'created')
     list_display = ('id', 'session', 'submitted', 'project', 'media_link_url', 'mediatype', 'audio_player', 'created',
                     'norm_audiolength', 'get_likes', 'get_flags', 'get_tags', 'weight', 'volume', )
-    list_filter = ('project', 'submitted', 'mediatype', 'created', 'language', ('audiolength', AudiolengthListFilter), ('tags', TagCategoryListFilter))
+    list_filter = ('project', 'submitted', 'mediatype', 'created', 'language',
+                   ('audiolength', AudiolengthListFilter), ('tags', TagCategoryListFilter))
     list_editable = ('submitted', 'weight', 'volume')
     save_on_top = True
-    filter_horizontal = ('tags','loc_description')
+    filter_horizontal = ('tags', 'loc_description')
     fieldsets = (
-        ('Media Data', {'fields' : ('mediatype', 'media_display', 'file', 'volume', 'audiolength', 'description', 'loc_description')}),
-        (None, {'fields' : ('project', 'language', 'session', 'created', 'weight', 'submitted', 'tags')}),
-        ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude')})
+        ('Media Data', {
+            'fields': (
+                'mediatype',
+                'media_display',
+                'file',
+                'volume',
+                'audiolength',
+                'description',
+                'loc_description'
+            )
+        }),
+        (None, {
+            'fields': (
+                'project',
+                'language',
+                'session',
+                'created',
+                'weight',
+                'submitted',
+                'tags'
+            )
+        }),
+        ('Geographical Data', {
+            'fields': (
+                'location_map',
+                'longitude',
+                'latitude'
+            )
+        })
     )
 
     class Media:
@@ -198,16 +214,16 @@ class AssetAdmin(ProjectProtectedModelAdmin):
                 "rw/css/jplayer.blue.monday.css",
                 "http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
                 "rw/css/asset_admin.css"
-                )
-            }
-        js = (
-                'rw/js/jquery.jplayer.min.js',
-                'rw/js/audio.js',
-                'http://maps.google.com/maps/api/js?sensor=false',
-                'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js',
-                'rw/js/location_map.js',
-                'rw/js/asset_admin.js',
             )
+        }
+        js = (
+            'rw/js/jquery.jplayer.min.js',
+            'rw/js/audio.js',
+            'http://maps.google.com/maps/api/js?sensor=false',
+            'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js',
+            'rw/js/location_map.js',
+            'rw/js/asset_admin.js',
+        )
 
 
 class AssetInline(admin.StackedInline):
@@ -222,7 +238,7 @@ class AssetInline(admin.StackedInline):
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('id', 'tag_category', 'description', 'get_loc')
+    list_display = ('id', 'tag_category', 'value', 'get_loc')
     search_fields = ('description',)
     list_filter = ('tag_category',)
     ordering = ['id']
@@ -251,13 +267,9 @@ class VoteAdmin(ProjectProtectedThroughAssetModelAdmin):
     ordering = ['id']
 
 
-class RepeatModeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'mode')
-    ordering = ['id']
-
-
 class ProjectAdmin(GuardedModelAdmin):
-    list_display = ('id', 'name', 'latitude', 'longitude', 'max_recording_length', 'recording_radius')
+    list_display = ('id', 'name', 'latitude', 'longitude',
+                    'max_recording_length', 'recording_radius')
     ordering = ['id']
     save_on_top = True
     filter_vertical = ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',
@@ -268,8 +280,8 @@ class ProjectAdmin(GuardedModelAdmin):
         }),
         ('Configuration', {
             'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',
-                       'demo_stream_enabled', 'reset_tag_defaults_on_startup', 'max_recording_length',
-                       'recording_radius', 'audio_stream_bitrate', 'sharing_url',
+                       'demo_stream_enabled', 'reset_tag_defaults_on_startup', 'timed_asset_priority',
+                       'max_recording_length', 'recording_radius', 'out_of_range_distance', 'audio_stream_bitrate', 'sharing_url',
                        'out_of_range_url', 'demo_stream_url', 'files_url', 'files_version', 'repeat_mode', 'ordering')
         }),
         ('Localized Strings', {
@@ -280,7 +292,7 @@ class ProjectAdmin(GuardedModelAdmin):
             'classes': ('collapse',),
             'fields': ('audio_format', 'listen_questions_dynamic', 'speak_questions_dynamic')
         }),
-        )
+    )
 
 
 class SessionAdmin(ProjectProtectedModelAdmin):
@@ -289,32 +301,24 @@ class SessionAdmin(ProjectProtectedModelAdmin):
     ordering = ['-id']
 
 
-class UIModeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'data')
-    ordering = ['id']
-
-
 class TagCategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'data')
     ordering = ['id']
 
 
-class SelectionMethodAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'data')
-    ordering = ['id']
-
-
-#MasterUIs describe screens containing choices limited to one mode (Speak, Listen),
+# MasterUIs describe screens containing choices limited to one mode (Speak, Listen),
 #  and one tag category.
 class MasterUIAdmin(ProjectProtectedModelAdmin):
-    list_display = ('id', 'project', 'name', 'get_header_text_loc', 'ui_mode', 'tag_category', 'select', 'active', 'index')
+    list_display = ('id', 'project', 'name', 'get_header_text_loc',
+                    'ui_mode', 'tag_category', 'select', 'active', 'index')
     list_filter = ('project', 'ui_mode', 'tag_category')
     ordering = ['id']
     filter_horizontal = ('header_text_loc', )
     save_as = True
 
 
-#UI Mappings describe the ordering and selectability of tags for a given MasterUI.
+# UI Mappings describe the ordering and selectability of tags for a given
+# MasterUI.
 class UIMappingAdmin(ProjectProtectedThroughUIModelAdmin):
     list_display = ('id', 'active', 'master_ui', 'index', 'tag', 'default')
     list_filter = ('master_ui',)
@@ -324,7 +328,8 @@ class UIMappingAdmin(ProjectProtectedThroughUIModelAdmin):
 
 
 class AudiotrackAdmin(ProjectProtectedModelAdmin):
-    list_display = ('id', 'project', 'norm_minduration', 'norm_maxduration', 'norm_mindeadair', 'norm_maxdeadair')
+    list_display = ('id', 'project', 'norm_minduration',
+                    'norm_maxduration', 'norm_mindeadair', 'norm_maxdeadair')
     list_filter = ('project',)
     ordering = ['id']
     save_as = True
@@ -341,10 +346,12 @@ class AudiotrackAdmin(ProjectProtectedModelAdmin):
         ('Panning', {
             'fields': ('minpanpos', 'maxpanpos', 'minpanduration', 'maxpanduration')
         }),
-        )
+    )
+
 
 class EventAdmin(ProjectProtectedThroughSessionModelAdmin):
-    list_display = ('id', 'session', 'event_type', 'latitude','longitude', 'data', 'server_time')
+    list_display = (
+        'id', 'session', 'event_type', 'latitude', 'longitude', 'data', 'server_time')
     # search_fields = ('session',)
     list_filter = ('event_type', 'server_time')
     ordering = ['-id']
@@ -353,7 +360,7 @@ class EventAdmin(ProjectProtectedThroughSessionModelAdmin):
 class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
     list_display = ('id', 'session', 'created')
     ordering = ['-id']
-    inlines = [AssetInline,]
+    inlines = [AssetInline, ]
     filter_horizontal = ('assets',)
     readonly_fields = ('session',)
 
@@ -370,6 +377,8 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
             instance.ENVELOPE_ID = formset.instance.id
             add_asset_to_envelope(instance=instance)
 
+        logger.debug("Saving envelope")
+
         if formset.model == Asset:
             instances = formset.save(commit=False)
             map(set_session, instances)
@@ -379,15 +388,14 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
         else:
             return formset.save()
 
-
     class Media:
         js = (
-                'http://maps.google.com/maps/api/js?sensor=false',
-                'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js',
-                'rw/js/location_map.js',
-                'rw/js/asset_admin.js',
-                'rw/js/envelope_admin.js',
-            )
+            'http://maps.google.com/maps/api/js?sensor=false',
+            'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js',
+            'rw/js/location_map.js',
+            'rw/js/asset_admin.js',
+            'rw/js/envelope_admin.js',
+        )
 
         css = {
             "all": (
@@ -399,33 +407,32 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
         }
 
 
-
-class SpeakerAdmin(ProjectProtectedModelAdmin):
-    readonly_fields = ('location_map',)
-    list_display = ('id', 'activeyn', 'code', 'project', 'latitude', 'longitude', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume', 'uri')
+class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
+    list_display = ('id', 'activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'shape', 'uri')
     list_filter = ('project', 'activeyn')
-    list_editable = ('activeyn', 'maxdistance', 'mindistance', 'maxvolume', 'minvolume',)
+    list_editable = ('activeyn', 'maxvolume', 'minvolume', 'shape')
     ordering = ['id']
     save_as = True
     save_on_top = True
+    map_width = "400px"
 
     fieldsets = (
-        (None, {'fields' : ('activeyn', 'code', 'project', 'maxvolume','minvolume', 'uri')}),
-        ('Geographical Data', { 'fields' : ('location_map', 'longitude', 'latitude', 'maxdistance', 'mindistance')})
+        (None, {
+            'fields': ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri', )
+        }),
+        ('Geographical Data', {
+            'fields': ('shape', 'attenuation_distance'),
+        })
     )
 
     class Media:
         css = {
             "all": (
                 "http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
+                "rw/css/speaker_admin.css"
             )
         }
-        js = (
-            'http://maps.google.com/maps/api/js?sensor=false',
-            'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js',
-            'rw/js/location_map.js',
-        )
-
+        js = ()
 
 
 class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):
@@ -433,23 +440,25 @@ class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):
     ordering = ['session']
 
 
+class TimedAssetAdmin(ProjectProtectedModelAdmin):
+    list_display = ('id', 'project', 'asset', 'start', 'end')
+    ordering = ['id']
+    list_filter = ('project__name',)
+
+
 admin.site.register(Language, LanguageAdmin)
 admin.site.register(LocalizedString, LocalizedStringAdmin)
 admin.site.register(Session, SessionAdmin)
 admin.site.register(Audiotrack, AudiotrackAdmin)
 admin.site.register(Tag, TagAdmin)
-admin.site.register(UIMode, UIModeAdmin)
 admin.site.register(TagCategory, TagCategoryAdmin)
 admin.site.register(MasterUI, MasterUIAdmin)
 admin.site.register(UIMapping, UIMappingAdmin)
-admin.site.register(SelectionMethod, SelectionMethodAdmin)
 admin.site.register(Project, ProjectAdmin)
-admin.site.register(EventType)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Asset, AssetAdmin)
 admin.site.register(Speaker, SpeakerAdmin)
 admin.site.register(Envelope, EnvelopeAdmin)
 admin.site.register(ListeningHistoryItem, ListeningHistoryItemAdmin)
 admin.site.register(Vote, VoteAdmin)
-admin.site.register(RepeatMode, RepeatModeAdmin)
-admin.site.register_view('add_tags', 'Add tags to category', view=MultiCreateTagsView)
+admin.site.register(TimedAsset, TimedAssetAdmin)

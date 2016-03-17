@@ -1,29 +1,7 @@
-#***********************************************************************************#
+# Roundware Server is released under the GNU Affero General Public License v3.
+# See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-# ROUNDWARE
-# a contributory, location-aware media platform
-
-# Copyright (C) 2008-2014 Halsey Solutions, LLC
-# with contributions from:
-# Mike MacHenry, Ben McAllister, Jule Slootbeek and Halsey Burgund (halseyburgund.com)
-# http://roundware.org | contact@roundware.org
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
-
-#***********************************************************************************#
-
-
+from __future__ import unicode_literals
 from itertools import chain
 
 from django.forms import Media, Widget, CheckboxInput
@@ -37,11 +15,7 @@ from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
 
-# import floppyforms as forms
 from sortedm2m.forms import SortedCheckboxSelectMultiple
-
-from roundware.rw.models import Tag
-
 
 STATIC_URL = getattr(settings, 'STATIC_URL', settings.MEDIA_URL)
 
@@ -50,6 +24,7 @@ STATIC_URL = getattr(settings, 'STATIC_URL', settings.MEDIA_URL)
 # http://dashdrum.com/blog/2012/12/more-relatedfieldwidgetwrapper-the-popup/
 
 class NonAdminRelatedFieldWidgetWrapper(RelatedFieldWidgetWrapper):
+
     """
         Based on RelatedFieldWidgetWrapper, this does the same thing
         outside of the admin interface
@@ -59,7 +34,6 @@ class NonAdminRelatedFieldWidgetWrapper(RelatedFieldWidgetWrapper):
     """
 
     def __init__(self, widget, add_url, permission=True):
-        self.is_hidden = widget.is_hidden
         self.needs_multipart_form = widget.needs_multipart_form
         self.attrs = widget.attrs
         self.choices = widget.choices
@@ -71,16 +45,17 @@ class NonAdminRelatedFieldWidgetWrapper(RelatedFieldWidgetWrapper):
         self.widget.choices = self.choices
         output = [self.widget.render(name, value, *args, **kwargs)]
         if self.permission:
-            output.append(u'<br/><a href="%s" class="add-another" id="add_id_%s" '
+            output.append('<br/><a href="%s" class="add-another" id="add_id_%s" '
                           'onclick="return showAddAnotherPopup(this);"> ' %
                           (self.add_url, name))
-            output.append(u'<img src="%simg/icon_addlink.gif" width="10"'
+            output.append('<img src="%simg/icon_addlink.gif" width="10"'
                           ' height="10" alt="%s"/>&nbsp;&nbsp;%s</a>' %
-            (settings.ADMIN_MEDIA_PREFIX, _('Add Another'), _('Add Another')))
-        return mark_safe(u''.join(output))
+                          (settings.ADMIN_MEDIA_PREFIX, _('Add Another'), _('Add Another')))
+        return mark_safe(''.join(output))
 
 
 class DummyWidgetWrapper(Widget):
+
     """ Return a widget.  For some reason, having to use this to get around
         using the CheckboxFieldRenderer from django.forms.widgets for our
         SetupTagUISortedCheckboxSelectMultiple
@@ -88,7 +63,6 @@ class DummyWidgetWrapper(Widget):
 
     def __init__(self, widget):
         self.widget = widget
-        self.is_hidden = widget.is_hidden
         self.needs_multipart_form = widget.needs_multipart_form
         self.attrs = widget.attrs
         self.choices = widget.choices
@@ -139,10 +113,9 @@ class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
             name, value, attrs, choices)]
         output.append('<script type="text/javascript">')
 
-        # import pdb; pdb.set_trace()
-
         output.append('function setupTagOrderSelectChange() {\n')
-        output.append('$("select[name=\'master_ui_edit-ui_mappings_tags\']").change(function(){\n')
+        output.append(
+            '$("select[name=\'master_ui_edit-ui_mappings_tags\']").change(function(){\n')
         output.append('$(\'#uimap_tag_order_field\').load(\'./update_tag_ui_order #tag_order_inner\', '
                       '{tags: $.map($(this).find(\'option\'), function(option) {return option.value;}), '
                       ' mui:$(\'#id_master_ui_select-masterui\').val() }, rewriteSortedMultiCheckbox)\n')
@@ -166,7 +139,8 @@ class SetupTagUIFilteredSelectMultiple(FilteredSelectMultiple):
 class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
 
     def render(self, name, value, attrs=None, choices=(), new_maps=()):
-        if value is None: value = []
+        if value is None:
+            value = []
         has_id = attrs and 'id' in attrs
         final_attrs = self.build_attrs(attrs, name=name)
 
@@ -187,7 +161,7 @@ class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
                 label_for = ''
 
             cb = CheckboxInput(final_attrs,
-                check_test=lambda value: value in str_values)
+                               check_test=lambda value: value in str_values)
             option_value = force_text(option_value)
             rendered_cb = cb.render(name, option_value)
             option_label = conditional_escape(force_text(option_label))
@@ -200,13 +174,13 @@ class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
 
             if has_id:
                 final_attrs = dict(final_attrs, id='%s_%s' % (attrs['id'],
-                                   i+last_uimap))
+                                                              i + last_uimap))
                 label_for = ' for="%s"' % conditional_escape(final_attrs['id'])
             else:
                 label_for = ''
             cb = CheckboxInput(final_attrs,
-                 check_test = lambda l: False)
-            option_value = 't'+str(newmap.id)
+                               check_test=lambda l: False)
+            option_value = 't' + str(newmap.id)
             rendered_cb = cb.render(name, option_value)
             option_label = newmap.__unicode__()
             option_label = conditional_escape(force_text(option_label))
@@ -219,7 +193,6 @@ class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
             {'vals': vals, })
         return mark_safe(html)
 
-
     class Media:
         js = (
             # "admin/js/core.js",
@@ -231,5 +204,3 @@ class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
         css = {'screen': (
             STATIC_URL + 'sortedm2m/widget.css',
         )}
-
-

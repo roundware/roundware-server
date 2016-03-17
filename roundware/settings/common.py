@@ -1,8 +1,17 @@
-# Django settings for roundware project.
+from __future__ import unicode_literals
 import os
+# Patch datetime field parser to support ISO 8601 Date/Time strings.
+# More details here: https://github.com/tomchristie/django-rest-framework/issues/1338
+from dateutil import parser
+from django.forms import fields
+fields.DateTimeField.strptime = lambda o, v, f: parser.parse(v)
+
 
 DEBUG = False
 TEMPLATE_DEBUG = False
+# True when unit tests are running. Used by roundwared.recording_collection
+TESTING = False
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 ADMINS = (
     ('round', 'your_email@example.com'),
@@ -12,80 +21,85 @@ ADMINS = (
 # holding the current file.
 here = lambda * x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
 
-# root of roundware Django project
+# Root of roundware Django project
 PROJECT_ROOT = here("../..")
 
-# root of roundware-server
+# Root of roundware-server
 ROUNDWARE_SERVER_ROOT = here("../..")
 
 # root() gives us file paths from the root of the system to whatever
 # folder(s) we pass it starting at the roundware-server root
 root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
+# Roundwared & rwstreamd.py settings
+ICECAST_PORT = "8000"
+ICECAST_HOST = "localhost"
+ICECAST_USERNAME = "admin"
+ICECAST_PASSWORD = "roundice"
+ICECAST_SOURCE_USERNAME = "source"
+ICECAST_SOURCE_PASSWORD = "roundice"
+# Discrete steps
+NUM_PAN_STEPS = 200
+# In milliseconds
+STEREO_PAN_INTERVAL = 10
+# In milliseconds
+PING_INTERVAL = 10000
+MASTER_VOLUME = 3.0
+HEARTBEAT_TIMEOUT = 200
+# Radius in meters - default system wide setting
+RECORDING_RADIUS = 1
+DEMO_STREAM_CPU_LIMIT = 50.0
 
-######## ROUNDWARE SPECIFIC SETTINGS ###########
-# url base for media files
-MEDIA_BASE_URI = "http://roundware.org/rwmedia/" 
-# external url where audio files can be accessed
-AUDIO_FILE_URI = MEDIA_BASE_URI # + "audio"
-# external url where video files can be accessed
-VIDEO_FILE_URI = AUDIO_FILE_URI #MEDIA_BASE_URI + "video"
-# external url where image files can be accessed
-IMAGE_FILE_URI = AUDIO_FILE_URI #MEDIA_BASE_URI + "img"
+ALLOWED_AUDIO_MIME_TYPES = ['audio/x-wav', 'audio/wav',
+                            'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',
+                            'audio/mp3', 'video/quicktime']
+ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/pjpeg']
+ALLOWED_TEXT_MIME_TYPES = ['text/plain', 'text/html', 'application/xml']
+ALLOWED_VIDEO_MIME_TYPES = ['video/quicktime']
+ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES \
+    + ALLOWED_TEXT_MIME_TYPES + ALLOWED_VIDEO_MIME_TYPES
 
-MEDIA_ROOT = ''
-MEDIA_BASE_DIR = "/var/www/rwmedia/"
-# internal path name to media file directories
-AUDIO_FILE_DIR = MEDIA_BASE_DIR #+ "audio"
-VIDEO_FILE_DIR = MEDIA_BASE_DIR #+ "video"
-IMAGE_FILE_DIR = MEDIA_BASE_DIR #+ "img"
-
-ALLOWED_AUDIO_MIME_TYPES = ['audio/x-wav', 'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',  'audio/mp3',  ]
-ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/pjpeg', ]
-ALLOWED_TEXT_MIME_TYPES = ['text/plain', 'text/html', 'application/xml', ]
-ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES + ALLOWED_TEXT_MIME_TYPES
-
- # session_id assigned to files that are uploaded through the admin
+# session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
-DEFAULT_SESSION_ID = "-1"
-API_URL = "http://roundware.com/roundware/"
+DEFAULT_SESSION_ID = "-10"
 MANAGERS = ADMINS
 # change this to the proper id for AnonymousUser in database for Guardian
-ANONYMOUS_USER_ID = 0
-# settings for notifications module
-# this is the email account from which notifications will be sent
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'email@gmail.com'
+ANONYMOUS_USER_ID = -1
+
+# The email account from which notifications will be sent
+EMAIL_HOST = 'smtp.example.com'
+EMAIL_HOST_USER = 'email@example.com'
 EMAIL_HOST_PASSWORD = 'password'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-LISTEN_UIMODE = "listen"
-SPEAK_UIMODE = "speak"
-
-CONTINUOUS_REPEAT_MODE = "continuous"
-STOP_REPEAT_MODE = "stop"
-
+STARTUP_NOTIFICATION_MESSAGE = ""
+# Number of seconds to ban an asset/recording from playing again
+BANNED_TIMEOUT_LIMIT = 1800
 ######## END ROUNDWARE SPECIFIC SETTINGS #########
 
-#change this to reflect your environment
-#JSS: this will always set PROJECT_PATH to the directory in which settings.py is contained
+# change this to reflect your environment
+# JSS: this will always set PROJECT_PATH to the directory in which
+# settings.py is contained
 PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or
+        # 'oracle'.
+        # Or path to database file if using sqlite3.
 
-        'NAME': 'roundware',                      # Or path to database file if using sqlite3.
-        'USER': 'round',                      # Not used with sqlite3.
-        'PASSWORD': 'password',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'roundware',
+        'USER': 'round',
+        'PASSWORD': 'round',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
 # copy this to local_settings.py and uncomment.
 # only requests to this domain will be allowed
-# ALLOWED_HOSTS = ['roundware.org',]
+ALLOWED_HOSTS = ['*', ]
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -112,20 +126,20 @@ USE_L10N = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/var/www/roundware/rwmedia/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = ''
+MEDIA_URL = '/rwmedia/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
-# This should be the path to the 'static' directory at the root of the 
+# This should be the path to the 'static' directory at the root of the
 # roundware-server installation.
 # Example: "/home/ubuntu/roundware-server/static/"
-STATIC_ROOT = "/home/ubuntu/roundware-server/static"
+STATIC_ROOT = "/var/www/roundware/static/"
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -138,6 +152,7 @@ ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
+    os.path.join(STATIC_ROOT, '..', 'source', 'files', 'test-audio'),
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -148,7 +163,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -158,13 +173,14 @@ SECRET_KEY = '2am)ks1i88hss27e7uri%$#v4717ms6p869)2%cc*w7oe61q6^'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    #     'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
@@ -175,7 +191,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    #os.path.join(PROJECT_PATH, 'templates')
+    # os.path.join(PROJECT_PATH, 'templates')
     PROJECT_PATH + '/../templates',
     PROJECT_PATH + '/../rw/templates/rw',
 )
@@ -187,27 +203,53 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'roundware.rw',
+    'django.contrib.gis',
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
-    # Uncomment the next line to enable the admin:
-    'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
-
-    #this will allow for google maps integration in the admin
+    'django.contrib.admin.apps.SimpleAdminConfig',
     'guardian',
     'chartit',
-    'roundware.notifications',
-    'south',
     'validatedfile',
     'adminplus',
     'crispy_forms',
     'floppyforms',
     'djangoformsetjs',
     'sortedm2m',
-    'tastypie',
+    'rest_framework',
+    'rest_framework_gis',
+    'rest_framework.authtoken',
+    'leaflet',
+    'corsheaders',
+    'roundware.lib',
+    'roundware.rw',
+    'roundware.notifications',
+    'roundware.api1',
+    'roundware.api2',
 )
+
+REST_FRAMEWORK = {
+    'PAGINATE_BY': 20,
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework.filters.DjangoFilterBackend',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/day'
+    }
+}
+
+CORS_ORIGIN_WHITELIST = (
+    'localhost:8080',
+)
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -217,16 +259,17 @@ INSTALLED_APPS = (
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'filters': {
-     'require_debug_false': {
-         '()': 'django.utils.log.RequireDebugFalse'
-     }
-    },
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/roundware',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
@@ -235,13 +278,25 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        # The roundware system logger.
+        'roundware': {
+            'level': 'DEBUG',
+            'handlers': ['file', 'mail_admins'],
+        },
+        # The roundwared stream manager logger.
+        'roundwared': {
+            'level': 'DEBUG',
+            'handlers': ['file', 'mail_admins'],
+        },
     },
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'format': "[%(asctime)s] %(levelname)s <%(name)s.%(funcName)s:%(lineno)s> %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': "%(asctime)s %(levelname)s <%(name)s.%(funcName)s:%(lineno)s> %(message)s",
+            'datefmt': "%H:%M:%S"
         },
     },
 }

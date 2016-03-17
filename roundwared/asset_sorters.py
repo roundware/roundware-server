@@ -1,66 +1,51 @@
-#***********************************************************************************#
+# Roundware Server is released under the GNU Affero General Public License v3.
+# See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-# ROUNDWARE
-# a contributory, location-aware media platform
-
-# Copyright (C) 2008-2014 Halsey Solutions, LLC
-# with contributions from:
-# Mike MacHenry, Ben McAllister, Jule Slootbeek and Halsey Burgund (halseyburgund.com)
-# http://roundware.org | contact@roundware.org
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
-
-#***********************************************************************************#
-
-
+from __future__ import unicode_literals
 import logging
 from operator import itemgetter
 import random
 from roundware.rw import models
 from datetime import date, timedelta
+logger = logging.getLogger(__name__)
 
 
 def order_assets_by_like(assets):
+    """
+    List is reverse order because assets are popped off the stack.
+    """
     unplayed = []
     for asset in assets:
         count = models.Asset.get_likes(asset)
         unplayed.append((count, asset))
-    logging.info('Ordering Assets by Like. Input: ' +
-                 str([(u[0], u[1].filename) for u in unplayed]))
-    unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
-    logging.info('Ordering Assets by Like. Output: ' +
-                 str([(u[0], u[1].filename) for u in unplayed]))
+    # logger.debug('Ordering Assets by Like. Input: ' +
+    #            str([(u[0], u[1].filename) for u in unplayed]))
+    unplayed = sorted(unplayed, key=itemgetter(0))
+    logger.debug('Ordering Assets by Like. Output: ' +
+                str([(u[0], u[1].filename) for u in unplayed]))
     return [x[1] for x in unplayed]
 
 
 def order_assets_by_weight(assets):
+    """
+    List is reverse order because assets are popped off the stack.
+    """
     unplayed = []
     for asset in assets:
         weight = asset.weight
         unplayed.append((weight, asset))
-    logging.debug('Ordering Assets by Weight. Input: ' +
-                  str([(u[0], u[1].filename) for u in unplayed]))
-    unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
-    logging.debug('Ordering Assets by Weight. Output: ' +
-                  str([(u[0], u[1].filename) for u in unplayed]))
+    # logger.debug('Ordering Assets by Weight. Input: ' +
+    #             str([(u[0], u[1].filename) for u in unplayed]))
+    unplayed = sorted(unplayed, key=itemgetter(0))
+    logger.debug('Ordering Assets by Weight. Output: ' +
+                 str([(u[0], u[1].filename) for u in unplayed]))
     return [x[1] for x in unplayed]
 
 
 def order_assets_randomly(assets):
-    logging.debug("Ordering Assets Randomly. Input: %s" % (assets,))
+    # logger.debug("Ordering Assets Randomly. Input: %s" % (assets,))
     random.shuffle(assets)
-    logging.debug("Ordering Assets Randomly. Output: %s" % (assets,))
+    logger.debug("Ordering Assets Randomly. Output: %s" % (assets,))
     return assets
 
 
@@ -71,7 +56,8 @@ def _within_10km(*args, **kwargs):
     else:
         raise TypeError("Function requires assets=[] and request=")
 
-    returning_assets = ([asset for asset in assets if asset.distance(listener) <= 10000])
+    returning_assets = (
+        [asset for asset in assets if asset.distance(listener) <= 10000])
     return returning_assets
 
 
@@ -81,6 +67,7 @@ def _ten_most_recent_days(*args, **kwargs):
     else:
         raise TypeError("Function requires assets=[]")
 
-    returning_assets = ([asset for asset in assets if date(asset.created.year, asset.created.month, asset.created.day) >= (date.today() - timedelta(10))])
-    logging.debug("returning filtered assets: %s" % (returning_assets,))
+    returning_assets = ([asset for asset in assets if date(
+        asset.created.year, asset.created.month, asset.created.day) >= (date.today() - timedelta(10))])
+    logger.debug("returning filtered assets: %s" % (returning_assets,))
     return returning_assets

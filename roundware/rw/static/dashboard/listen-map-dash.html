@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Listening Map</title>
+
+<!-- included styles -->
+<style type="text/css">
+    body {
+    	margin: 0;
+    	font-family: "Helvetica Neue", Helvetica, Arial sans-serif;
+    }
+    #main {
+		width: 100%;
+		background: transparent;
+		padding: 0;
+	}
+	#main input[type='checkbox'] {
+		display: none;
+	}
+	div#content {
+		background: rgba(255, 255, 255, 0.9);
+		float: none;
+		width: auto;
+		clear: both;
+	}
+	div#content ul.filtering-options {
+		float: left;
+		margin: 0;
+		padding: 0;
+		width: 50%;
+	}
+	div#content ul.filtering-options li {
+		padding: 15px 0 15px 0;
+		width: 90%;
+		height: 6px;
+		margin: 20px 0 0 0;
+		font-size: 18px;
+		float: left;
+	}
+	div#content ul li {
+		list-style: none;
+		font-size: 16px;
+	}
+	div#content ul li.question {
+		color: #666666;
+		font-weight: bold;
+		font-size: 22px;
+		margin-bottom: 0px;
+	}
+	.full-float-block {
+		width: 100%;
+		margin: 0 auto;
+		position: relative;
+	}
+    .full-float-block h2 {
+		color: #66666;
+	}
+/*	.full-float-block #update-stream {
+	  	background: url(../images/UpdateStreamButton.jpg) no-repeat;
+		text-indent: -9999px;
+		display: block;
+		overflow: hidden;
+		width: 257px;
+		height: 45px;
+		float: left;
+		clear: both;
+		margin: 10px 30px 0px 0px;
+	}*/
+	#jquery_jplayer_1 {
+		float: left;
+		clear: both;
+		width: 878px;
+		margin: 0 auto;
+		position: relative;
+	}
+	div.jp-interface div.jp-controls a {
+		display:block;
+		overflow:hidden;
+		text-decoration: none;
+	}
+	.jp-controls, .jp-gui {
+		width: 100%;
+	}
+	.btn-jplayer {
+		background-color: hsl(201, 100%, 30%) !important;
+		background-repeat: repeat-x;
+		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#00a5ff", endColorstr="#006399");
+		background-image: -khtml-gradient(linear, left top, left bottom, from(#00a5ff), to(#006399));
+		background-image: -moz-linear-gradient(top, #00a5ff, #006399);
+		background-image: -ms-linear-gradient(top, #00a5ff, #006399);
+		background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #00a5ff), color-stop(100%, #006399));
+		background-image: -webkit-linear-gradient(top, #00a5ff, #006399);
+		background-image: -o-linear-gradient(top, #00a5ff, #006399);
+		background-image: linear-gradient(#00a5ff, #006399);
+		border-color: #006399 #006399 hsl(201, 100%, 25%);
+		color: #fff !important;
+		text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.33);
+		-webkit-font-smoothing: antialiased;
+		-webkit-border-radius: 5px;
+		-moz-border-radius: 5px;
+		border-radius: 5px;
+	}
+	a.jp-play:hover, a.jp-pause:hover {
+		opacity: 0.8;
+	}
+	#spinner-1, #spinner-2{
+		float: left;
+		margin: 20px 30px 0px 10px;
+		position: relative;
+	}
+	.jp-play {
+	  	/*background: url(../images/play.png) no-repeat;*/
+		/*text-indent: -9999px;*/
+		display: block;
+		overflow: hidden;
+		width: 200px;
+		height: 60px;
+		float: left;
+		clear: both;
+		margin: 0px 0px 5px 0px;
+		text-align: center;
+		line-height: 60px;
+		font-size: 24px;
+	}
+	.jp-pause {
+	  	/*background: url(../images/play.png) no-repeat;*/
+		/*text-indent: -9999px;*/
+		display: block;
+		overflow: hidden;
+		width: 200px;
+		height: 60px;
+		float: left;
+		clear: both;
+		margin: 0px 0px 5px 0px;
+		text-align: center;
+		line-height: 60px;
+		font-size: 24px;
+	}
+	div#tag-block ul {
+		margin: 0px;
+		padding-left: 0;
+	}
+	#voicemap-block {
+		/*width: 960px;*/
+		/*min-width: 960px;*/
+		margin: 0;
+		padding: 0;
+		width: 100%;
+	    height: 600px;
+	    position: relative;
+	    margin-left: 0px;
+	}
+	#voicemap-nav {
+		width: 100%;
+		/*position: absolute;*/
+		margin-left: 0px;
+	}
+	#voicemap-loading {
+		position: absolute;
+		width: 100%;
+		height: 600px;
+		display: none;
+		z-index: 10;
+		background: rgba(0, 0, 0, .5);
+	}
+	#voicemap-loading h1 {
+		color:#ffffff;
+		text-align:center;
+	}
+	div#main ul.filtering-options li label {
+		padding: 13px 8px 13px 8px;
+		background: #666666;
+		color: #ffffff;
+		float: left;
+		width: 100%;
+		margin-top: -5px;
+		font-size: 16px;
+		-moz-user-select: none;
+	    -khtml-user-select: none;
+	    -webkit-user-select: none;
+	    -o-user-select: none;
+	}
+	.spinner {
+		margin: 15px auto 0px auto;
+		visibility: hidden;
+	}
+
+	.spinner span {
+		margin-left: 5px;
+	}
+</style>
+
+</head>
+
+
+<body>
+
+	<div id="main" role="main">
+		<div id="content">
+			<div class="full-float-block">
+				<div id="listen-controls" style="display:none">
+					<div id="jquery_jplayer_1" class="jp-jplayer"></div>
+					<div id="jp_container_1" class="jp-audio">
+						<div class="jp-type-single">
+							<div class="jp-gui jp-interface">
+								<div class="jp-controls">
+									<div class="jp-play btn-jplayer">Listen</div>
+									<div class="jp-pause btn-jplayer">Pause</div>
+								</div>
+								<div id="spinner-1" class="spinner"><img src="img/ajax-loader.gif"/><span><em>Updating the stream...</em><span></div>
+							</div>
+							<div class="jp-no-solution">
+								<span>Update Required</span>
+									To play the media you will need to either update your browser to a recent version or update your <a href="http://get.adobe.com/flashplayer/" target="_blank">Flash plugin</a>.
+							</div>
+						</div>
+					</div>
+				</div>
+
+                <div id="voicemap-loading">
+					<h1>Loading data... please be patient. </h1>
+				</div>
+				<div id="voicemap-block"></div>
+
+				<div id="voicemap-nav" style="display: none">
+					<!-- <ul><li><label><input type="radio" name="tag_boolean" value="and" id="tag_boolean_and"/> and</label></li>
+					<li><label><input type="radio" name="tag_boolean" value="or" id="tag_boolean_or" checked/> or</label></li></ul> -->
+				</div>
+				<!-- <h2 id="project-config-toggle">Project Config</h2>
+				<div id="project-config" style="display: none"></div> -->
+				<div class="clear"></div>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script src="http://maps.google.com/maps/api/js?sensor=true" type="text/javascript"></script>
+<script type='text/javascript' src='js/jquery-1.10.2.js'></script>
+<script type="text/javascript" src="js/jquery.jplayer.min.js"></script>
+<script type="text/javascript" src="js/listen-map.js"></script>
+
+<script type="text/javascript">
+
+// deYoung
+var centerLat = 37.771129;
+var centerLon = -122.468739;
+
+
+// US coordinates
+//var centerLat = 39;
+//var centerLon = -100;
+
+$(function() {
+
+	var myOptions = {
+		scrollwheel: false,
+		zoom: 19,
+		center: new google.maps.LatLng(centerLat, centerLon),
+		mapTypeId: google.maps.MapTypeId.ROADMAP //HYBRID, TERRAIN, SATELLITE
+	};
+
+	var demoMap = new google.maps.Map(document.getElementById("voicemap-block"), myOptions);
+
+	var rw = new RW();
+	rw.main('proxy.php', 14, demoMap);
+
+});
+</script>
+
+</html>

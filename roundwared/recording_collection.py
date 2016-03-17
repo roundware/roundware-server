@@ -1,222 +1,275 @@
-#***********************************************************************************#
+# Roundware Server is released under the GNU Affero General Public License v3.
+# See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-# ROUNDWARE
-# a contributory, location-aware media platform
+# MODES: True Shuffle, Random cycle N times
 
-# Copyright (C) 2008-2014 Halsey Solutions, LLC
-# with contributions from:
-# Mike MacHenry, Ben McAllister, Jule Slootbeek and Halsey Burgund (halseyburgund.com)
-# http://roundware.org | contact@roundware.org
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
-
-#***********************************************************************************#
-
-
-#MODES: True Shuffle, Random cycle N times
-
+from __future__ import unicode_literals
 import logging
 import threading
-import asset_sorters
+import os.path
+from time import time
 try:
     from profiling import profile
-except ImportError:
+except ImportError: # pragma: no cover
     pass
-from roundware.rw.models import Tag
+
+from django.conf import settings
 from roundwared import gpsmixer
-from roundware.rw import models
+from roundware.rw.models import Asset, Project, TimedAsset
 from roundwared import db
-from operator import itemgetter
 from roundwared.asset_sorters import order_assets_randomly, order_assets_by_like, order_assets_by_weight
+
+logger = logging.getLogger(__name__)
 
 
 class RecordingCollection:
     ######################################################################
     # Public
     ######################################################################
+
     def __init__(self, stream, request, radius, ordering='random'):
-        self.radius = radius
+        logger.debug("RecordingCollection init - request: " + str(request))
+        # Start time is not valid until self.start() is called.
+        self.start_time = 0
         self.stream = stream
         self.request = request
-        logging.debug("RecordingCollection init - request: " + str(request))
-        # these are lists of model.Recording objects ie [rec1,rec2,etc]
-        self.all_recordings = []
-        self.far_recordings = []
-        self.nearby_played_recordings = []
-        self.nearby_unplayed_recordings = []
+        self.radius = radius
         self.ordering = ordering
-        self.lock = threading.Lock()
-        self.update_request(self.request)
+        self.project = Project.objects.get(id=int(self.request['project_id']))
 
-    # Updates the request stored in the collection.
-    # @profile(stats=True)
-    def update_request(self, request):
-        logging.debug("update_request")
-        self.lock.acquire()
-        self.all_recordings = db.get_recordings(request)
-        self.far_recordings = self.all_recordings
-        self.nearby_played_recordings = []
-        self.nearby_unplayed_recordings = []
-        self.update_nearby_recordings(request)
-        logging.debug("update_request: all_recordings count: " + str(len(self.all_recordings))
-                      + ", far_recordings count: " + str(len(self.far_recordings))
-                      + ", nearby_played_recordings count: " + str(len(self.nearby_played_recordings))
-                      + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
-        self.lock.release()
+        # these are lists of model.Recording objects ie [rec1,rec2,etc]
+        self.all = []
+        # The main list of assets to play, in reverse order because it is a stack.
+        self.playlist_proximity = []
+        # A list of nearby played assets. We don't want to repeat nearby assets
+        # even if they are removed from the ban list(dict.)
+        self.banned_proximity = []
+        # A dict of temporarily banned_timeout assets, key is asset.id and value is
+        # timestamp of last play time. Reset only when stream is restarted.
+        self.banned_timeout = {}
+        # A stack of assets from the project's TimedAssets
+        self.playlist_timed = []
+
+        self.lock = threading.Lock()
+        self.update_request(self.request, update_proximity=False)
+        # If geolisten is not enabled update the "proximity" playlist
+        # @todo: Re-architect this.
+        if not self.project.geo_listen_enabled:
+            self._update_playlist_proximity(self.request)
+
+
+    def start(self):
+        """
+        Init the timer with the actual audiotrack start time.
+        """
+        self.start_time = time()
+
+    def update_request(self, request, update_proximity=True, lock=True):
+        """
+        Updates/Initializes the request stored in the collection by filling
+        all with assets filtered by tags. Optionally leaves
+        playlist_proximity empty so no assets are triggered until
+        modify_stream or move_listener are called.
+        Lock is disabled when called by get_recording().
+        """
+        if lock:
+            self.lock.acquire()
+
+        # Store the request details
+        self.request = request
+        tags = request.get("tags", None)
+        self.all = db.get_recordings(request["session_id"], tags)
+        # Updating nearby_recording will start stream audio asset play back.
+        if update_proximity:
+            self._update_playlist_proximity(request)
+        logger.debug("Asset Counts - all: %s, playlist_proximity: %s, banned_proximity: %s, banned_timeout: %s." %
+                     (len(self.all),
+                      self.count(),
+                      len(self.banned_proximity),
+                      len(self.banned_timeout),
+                      ))
+        if lock:
+            self.lock.release()
 
     # Gets a new recording to play.
     # @profile(stats=True)
     def get_recording(self):
-        logging.debug("Recording Collection: Getting a recording from the bucket.")
+        """
+        Gets a recording, bans it from repeating quickly and returns it.
+        """
         self.lock.acquire()
-        recording = None
-        logging.debug("Recording Collection: we have " + str(len(self.nearby_unplayed_recordings)) + " unplayed recs.")
-        if len(self.nearby_unplayed_recordings) > 0:
-#           index = random.randint(0, len(self.nearby_unplayed_recordings) - 1)
-            index = 0
-            recording = self.nearby_unplayed_recordings.pop(index)
-            logging.debug("RecordingCollection: get_recording: Got " + str(recording.filename))
-            self.nearby_played_recordings.append(recording)
-        elif len(self.nearby_played_recordings) > 0:
-            logging.debug("!!!!!!!!!!!!!!!!!get_recording 1")
-            logging.debug("!!!!!!!!!!!!!!!!!get_recording request:  " + str(self.request))
-            p = models.Project.objects.get(id=int(self.request['project_id']))
-            logging.debug("!!!!!!!!!!!!!!!!!get_recording 2 - repeatmode:" + p.repeat_mode.mode)
-            #do this only if project setting calls for it
-            if p.is_continuous():
-                logging.debug("!!!!!!!!!!!!!!!!!get_recording continuous mode")
-                self.all_recordings = db.get_recordings(self.request)
-                self.far_recordings = self.all_recordings
-                self.nearby_played_recordings = []
-                self.nearby_unplayed_recordings = []
-                self.update_nearby_recordings(self.request)
-                logging.debug("GET_RECORDING UPDATE: all_recordings count: " + str(len(self.all_recordings))
-                          + ", far_recordings count: " + str(len(self.far_recordings))
-                          + ", nearby_played_recordings count: " + str(len(self.nearby_played_recordings))
-                          + ", nearby_unplayed_recordings count: " + str(len(self.nearby_unplayed_recordings)))
-                index = 0
-                recording = self.nearby_unplayed_recordings.pop(index)
-                logging.debug("POST UPDATE RecordingCollection: get_recording: Got " + str(recording.filename))
-                self.nearby_played_recordings.append(recording)
-            else:
-                logging.debug("!!!!!!!!!!!!!!!!!get_recording stop mode")
+        recording = self._get_recording()
+
+        if recording:
+            logger.debug("Found %s", recording.filename)
+            # Add the recording to the ban list.
+            self.banned_timeout[recording.id] = time()
+            if self.project.geo_listen_enabled:
+                # Add the recording to the nearby played list.
+                self.banned_proximity.append(recording)
+
+            if not settings.TESTING:
+                filepath = os.path.join(settings.MEDIA_ROOT, recording.filename)
+                # Check if the file exists on the server, not the stream crashes.
+                if not os.path.isfile(filepath):
+                    logger.error("File not found: %s", filepath)
+                    recording = None
 
         self.lock.release()
         return recording
 
+    def _get_recording(self):
+        """
+        Returns an item from the timed playlist if any exist, return a
+        an item from the proximity playlist if any exist, otherwise return None
+        """
+        # prioritize timed-assets before proximity assets
+        if self.project.timed_asset_priority:
+            self._update_playlist_timed()
+            if len(self.playlist_timed) > 0:
+                return self.playlist_timed.pop()
+
+        # If there are no playlist_proximity assets available, but there are
+        # played assets available.
+        if len(self.playlist_proximity) == 0 and self.has_played():
+            # Check if continuous is enabled for the project.
+            if (self.project.repeat_mode == Project.CONTINUOUS):
+                logger.debug("Playback mode: continuous")
+                # Clear the ban list
+                self.banned_timeout = {}
+                # Clear the nearby played list
+                self.banned_proximity = []
+                # Update the list of playlist_proximity.
+                self._update_playlist_proximity(self.request)
+
+        # If there are now any recordings available, get one.
+        if len(self.playlist_proximity) > 0:
+            return self.playlist_proximity.pop()
+
+        # prioritize timed-assets after proximity assets
+        if not self.project.timed_asset_priority:
+            self._update_playlist_timed()
+            if len(self.playlist_timed) > 0:
+                return self.playlist_timed.pop()
+
+        return None
+
     def add_recording(self, asset_id):
         self.lock.acquire()
-        logging.debug("add_recording enter - asset id: " + str(asset_id))
-        a = models.Asset.objects.get(id=str(asset_id))
-        self.nearby_unplayed_recordings.insert(0, a)
-        logging.debug("add_recording exit")
+        logger.debug("asset id: %s " % asset_id)
+        a = Asset.objects.get(id=str(asset_id))
+        self.playlist_proximity.append(a)
         self.lock.release()
 
-    #Updates the collection of recordings according to a new listener position.
-    def move_listener(self, listener):
-        #logging.debug("move_listener")
+    # Updates the collection of recordings according to a new listener
+    # position.
+    def move_listener(self, request):
         self.lock.acquire()
-        self.update_nearby_recordings(listener)
+        self._update_playlist_proximity(request)
         self.lock.release()
 
-    # A list of string so of the filenames of the recordings. Useful
+    # A list of strings of the filenames of the recordings. Useful
     # debugging log messages.
     def get_filenames(self):
         return map(
             lambda recording: recording.filename,
-            self.nearby_unplayed_recordings)
+            self.playlist_proximity)
 
-    # True if the collection has any recordings left to play.
-    def has_recording(self):
-        return len(self.nearby_unplayed_recordings) > 0
+    def count(self):
+        return len(self.playlist_proximity) + len(self.playlist_timed)
 
-    ######################################################################
-    # Private
-    ######################################################################
+    def has_played(self):
+        """
+        Returns true if there are banned_timeout or banned_proximity recordings.
+        """
+        return (len(self.banned_proximity) > 0 and len(self.banned_timeout) > 0)
 
-    def update_nearby_recordings(self, listener):
-        new_far_recordings = []
-        new_nearby_unplayed_recordings = []
-        new_nearby_played_recordings = []
-
-        for r in self.far_recordings:
-            if self.is_nearby(listener, r):
-                new_nearby_unplayed_recordings.append(r)
-            else:
-                new_far_recordings.append(r)
-
-        for r in self.nearby_unplayed_recordings:
-            if self.is_nearby(listener, r):
-                new_nearby_unplayed_recordings.append(r)
-            else:
-                new_far_recordings.append(r)
-
-        for r in self.nearby_played_recordings:
-            if self.is_nearby(listener, r):
-                new_nearby_played_recordings.append(r)
-            else:
-                new_far_recordings.append(r)
-
-        logging.debug('Ordering is: ' + self.ordering)
+    def order_assets(self, assets):
+        """
+        Order assets by ordering method set in project config
+        """
+        logger.debug("Ordering assets by: %s" % self.ordering)
         if self.ordering == 'random':
-            new_nearby_unplayed_recordings = \
-                order_assets_randomly(new_nearby_unplayed_recordings)
+            return order_assets_randomly(assets)
         elif self.ordering == 'by_like':
-            new_nearby_unplayed_recordings = \
-                order_assets_by_like(new_nearby_unplayed_recordings)
+            return order_assets_by_like(assets)
         elif self.ordering == 'by_weight':
-            new_nearby_unplayed_recordings = \
-                order_assets_by_weight(new_nearby_unplayed_recordings)
+            return order_assets_by_weight(assets)
+        return []
 
-        self.far_recordings = new_far_recordings
-        self.nearby_unplayed_recordings = new_nearby_unplayed_recordings
-        self.nearby_played_recordings = new_nearby_played_recordings
+    def _update_playlist_proximity(self, request):
+        current_time = time()
+        # Remove all expired asset bans from the ban list.
+        self.banned_timeout = {id:lastplay for id, lastplay in self.banned_timeout.iteritems()
+                       if (lastplay + settings.BANNED_TIMEOUT_LIMIT) > current_time}
+        if self.project.geo_listen_enabled:
+            # Remove no longer nearby items from the nearby played list.
+            self.banned_proximity = [r for r in self.banned_proximity
+                                  if self._is_nearby(request, r)]
+        # If debug, print some nice details.
+        if settings.DEBUG:
+            time_remaining = {}
+            for id, lastplay in self.banned_timeout.iteritems():
+                time_remaining[id] = int((lastplay +
+                    settings.BANNED_TIMEOUT_LIMIT) - current_time)
 
-    # Moved to roundwared/asset_sorters
-    # def order_assets_by_like(self, assets):
-    #     unplayed = []
-    #     for asset in assets:
-    #         count = models.Asset.get_likes(asset)
-    #         unplayed.append((count, asset))
-    #     logging.info('Unordered: ' +
-    #                  str([(u[0], u[1].filename) for u in unplayed]))
-    #     unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
-    #     logging.info('Ordered by like: ' +
-    #                  str([(u[0], u[1].filename) for u in unplayed]))
-    #     return [x[1] for x in unplayed]
+            logger.debug("Timeout banned assets and seconds remaining: %s" %
+                         time_remaining)
+            if self.project.geo_listen_enabled:
+                logger.debug("Proximity banned assets: %s" %
+                             self.banned_proximity)
 
-    # def order_assets_by_weight(self, assets):
-    #     unplayed = []
-    #     for asset in assets:
-    #         weight = asset.weight
-    #         unplayed.append((weight, asset))
-    #     logging.debug('Unordered: ' +
-    #                   str([(u[0], u[1].filename) for u in unplayed]))
-    #     unplayed = sorted(unplayed, key=itemgetter(0), reverse=True)
-    #     logging.debug('Ordered by weighting: ' +
-    #                   str([(u[0], u[1].filename) for u in unplayed]))
-    #     return [x[1] for x in unplayed]
+        self.playlist_proximity = []
+        for r in self.all:
+            # If the asset is nearby, not nearby banned_timeout and not timeout banned_timeout,
+            # then add it to the list of playlist_proximity items.
+            if not self._banned(r) and self._is_nearby(request, r):
+                self.playlist_proximity.append(r)
 
-    #True if the listener and recording are close enough to be heard.
-    def is_nearby(self, listener, recording):
-        if listener.has_key('latitude') \
-            and listener['latitude'] \
-            and listener['longitude']:
+        # apply project ordering
+        self.playlist_proximity = self.order_assets(self.playlist_proximity)
+
+
+    def _is_nearby(self, request, recording):
+        """
+        True if the request and recording are close enough to be heard.
+        """
+        if not self.project.geo_listen_enabled:
+            return True
+
+        if 'latitude' in request and 'longitude' in request:
             distance = gpsmixer.distance_in_meters(
-                listener['latitude'], listener['longitude'],
+                request['latitude'], request['longitude'],
                 recording.latitude, recording.longitude)
 
             return distance <= self.radius
         else:
             return True
+
+
+    def _banned(self, recording):
+        """
+        Returns whether an asset/recording is currently banned.
+        """
+
+        return (recording.id in self.banned_timeout.keys() or
+            recording in self.banned_proximity)
+
+    def _update_playlist_timed(self):
+        elapsed_time = time() - self.start_time
+        # logger.debug("Elapsed Time: %s" % elapsed_time)
+
+        # Get assets: End time > Elapsed time and Start Time < Elapsed time
+        playlist = TimedAsset.objects.filter(project=self.project,
+                                                           start__lte=elapsed_time,
+                                                           end__gte=elapsed_time)
+
+        # Make a list of all assets that aren't banned
+        # and are in self.all, ensuring that tag filters are applied
+        self.playlist_timed = [item.asset for item in playlist
+                               if not self._banned(item.asset) and item.asset in self.all]
+
+        # apply project ordering
+        self.playlist_timed = self.order_assets(self.playlist_timed)
+
+        # logger.debug("Found timed assets: %s" % self.playlist_timed)

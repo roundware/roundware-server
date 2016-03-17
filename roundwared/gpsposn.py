@@ -1,38 +1,16 @@
-#***********************************************************************************#
-
-# ROUNDWARE
-# a contributory, location-aware media platform
-
-# Copyright (C) 2008-2014 Halsey Solutions, LLC
-# with contributions from:
-# Mike MacHenry, Ben McAllister, Jule Slootbeek and Halsey Burgund (halseyburgund.com)
-# http://roundware.org | contact@roundware.org
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
-
-#***********************************************************************************#
-
+# Roundware Server is released under the GNU Affero General Public License v3.
+# See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 # Taken from http://www.movable-type.co.uk/scripts/latlong.html
 # More accurate stuff here: http://www.movable-type.co.uk/scripts/latlong.js
-
+from __future__ import unicode_literals
 import math
 
 R = 6371.0  # The radius of the Earth
 
 
 class GPSPosn:
+
     def __init__(self, latitude, longitude):
         self.latitude = latitude
         self.longitude = longitude
@@ -59,14 +37,14 @@ class GPSPosn:
         lat1 = math.radians(self.latitude)
         lon1 = math.radians(self.longitude)
 
-        lat2 = math.asin( \
-            math.sin(lat1) * math.cos(dist) \
-            + math.cos(lat1) * math.sin(dist) \
+        lat2 = math.asin(
+            math.sin(lat1) * math.cos(dist)
+            + math.cos(lat1) * math.sin(dist)
             * math.cos(brng))
-        lon2 = lon1 + math.atan2( \
-            math.sin(brng) * math.sin(dist) \
-            * math.cos(lat1), \
-            math.cos(dist) - math.sin(lat1) \
+        lon2 = lon1 + math.atan2(
+            math.sin(brng) * math.sin(dist)
+            * math.cos(lat1),
+            math.cos(dist) - math.sin(lat1)
             * math.sin(lat2))
         lon2 = (lon2 + 3 * math.pi) % (2 * math.pi) - math.pi
         return GPSPosn(math.degrees(lat2), math.degrees(lon2))
@@ -77,10 +55,10 @@ class GPSPosn:
         lat1 = math.radians(self.latitude)
         lat2 = math.radians(posn.latitude)
         dLon = math.radians(posn.longitude - self.longitude)
-        y = math.sin(dLon) * math.cos(lat2);
+        y = math.sin(dLon) * math.cos(lat2)
         x = math.cos(lat1) * math.sin(lat2) \
             - math.sin(lat1) * math.cos(lat2) \
-            * math.cos(dLon);
+            * math.cos(dLon)
         brng = math.atan2(y, x)
         return (math.degrees(brng) + 360) % 360
 

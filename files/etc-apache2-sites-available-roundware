@@ -1,0 +1,46 @@
+<VirtualHost *:80>
+  ServerAdmin webmaster@localhost
+
+  ServerName roundware-server
+
+  <Directory /var/www/roundware/static>
+    Options Indexes
+    AllowOverride None
+    Order allow,deny
+    allow from all
+  </Directory>
+
+  <Directory /var/www/roundware/rwmedia>
+    Options Indexes
+    AllowOverride None
+    Order allow,deny
+    allow from all
+  </Directory>
+
+  Alias /static /var/www/roundware/static
+  Alias /rwmedia /var/www/roundware/rwmedia
+
+  # Rewrite/Redirect from old Roundware API paths to new V1 /api/1 path. Delete when V1 API is removed.
+  RewriteEngine on
+  RewriteRule ^/roundware/api/v1/(.+)$ /api/1/rest/$1 [R]
+  RewriteRule ^/roundware/?(.+) /api/1$1 [R]
+
+  ErrorLog /var/log/apache2/error.log
+
+  # Possible values include: debug, info, notice, warn, error, crit,
+  # alert, emerg.
+  LogLevel warn
+
+  CustomLog /var/log/apache2/access.log combined
+
+  WSGIDaemonProcess roundware user=USERNAME group=USERNAME umask=002
+  WSGIApplicationGroup %{GLOBAL}
+  WSGIProcessGroup roundware
+  WSGIScriptAlias / /var/www/roundware/source/files/roundware.wsgi
+  WSGIPassAuthorization On
+
+  # allow CORS for listen map, session map etc
+  Header set Access-Control-Allow-Origin "*"
+
+</VirtualHost>
+

@@ -1,135 +1,120 @@
-#***********************************************************************************#
+# Roundware Server is released under the GNU Affero General Public License v3.
+# See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-# ROUNDWARE
-# a contributory, location-aware media platform
-
-# Copyright (C) 2008-2014 Halsey Solutions, LLC
-# with contributions from:
-# Mike MacHenry, Ben McAllister, Jule Slootbeek and Halsey Burgund (halseyburgund.com)
-# http://roundware.org | contact@roundware.org
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.html>.
-
-#***********************************************************************************#
-
-
+from __future__ import unicode_literals
 import gobject
-from roundware.rw.models import Tag
-
 gobject.threads_init()
 import pygst
 pygst.require("0.10")
 import gst
 import logging
 import time
-from roundwared import settings, asset_sorters
-from roundwared import composition
-from roundwared import icecast2
-from roundwared.server import icecast_mount_point
-from roundwared import gpsmixer
-from roundwared import recording_collection
+import urllib
+from django.conf import settings
 from roundware.rw import models
-from roundwared import db
+from roundware.lib.api import log_event
+from roundwared.audiotrack import AudioTrack
+from roundwared import icecast2
+from roundwared import gpsmixer
+from roundwared.recording_collection import RecordingCollection
+
+logger = logging.getLogger(__name__)
 
 
 class RoundStream:
     ######################################################################
     # PUBLIC
     ######################################################################
+
     def __init__(self, sessionid, audio_format, request):
-        logging.debug("begin stream")
+        self.audiotracks = []
         self.sessionid = sessionid
         self.request = request
         self.bitrate = request["audio_stream_bitrate"]
-        logging.debug("Roundstream init: bitrate: {0}".format(self.bitrate))
-        logging.debug("Roundstream init: getting session id")
-        session = models.Session.objects.select_related('project').get(id=sessionid)
-        logging.debug("Roundstream init: got session, getting project radius")
-        self.radius = session.project.recording_radius
-        self.ordering = session.project.ordering
-        logging.debug("Roundstream init: got session, got project radius: " + str(self.radius))
-        if self.radius == None:
-            self.radius = settings.config["recording_radius"]
+        logger.debug("Roundstream init: bitrate: {0}".format(self.bitrate))
+        session = models.Session.objects.select_related(
+            'project').get(id=sessionid)
+        self.project = session.project
+        if self.project.geo_listen_enabled and (
+                        self.request.get('latitude') is False or self.request.get('longitude') is False):
+            raise Exception("Lat and Lon not provided for geo_listen project, {}".format(self.project.name))
 
-        #todo - why the f is this called 'listener'?
+        self.radius = self.project.recording_radius
+        self.ordering = self.project.ordering
+        # Keeps track of whether the stream has started playing audio.
+        self.started = False
+
+        logger.debug("Project radius: %d meters" % self.radius)
+        if self.radius == None:
+            self.radius = settings.RECORDING_RADIUS
+
+        # TODO - Why is this stored as listener and as request?
         self.listener = request
         self.audio_format = audio_format
         self.last_listener_count = 1
         self.gps_mixer = None
         self.main_loop = gobject.MainLoop()
-        self.icecast_admin = icecast2.Admin(
-            settings.config["icecast_host"] + ":" + str(settings.config["icecast_port"]),
-                settings.config["icecast_username"],
-                settings.config["icecast_password"])
+        self.icecast_admin = icecast2.Admin()
         self.heartbeat()
-        # project = models.Session.objects.get(id=sessionid)  # not used
-        self.recordingCollection = \
-            recording_collection.RecordingCollection(
-                    self, request, self.radius, str(self.ordering))
+        self.recordingCollection = RecordingCollection(
+                self, request, self.radius, str(self.ordering))
 
     def start(self):
-        logging.info("Serving stream" + str(self.sessionid))
+        logger.info("Session %s - Starting stream", self.sessionid)
 
         self.pipeline = gst.Pipeline()
         self.adder = gst.element_factory_make("adder")
         self.sink = RoundStreamSink(self.sessionid, self.audio_format, self.bitrate)
+        self.set_metadata({'stream_started': True})
         self.pipeline.add(self.adder, self.sink)
         self.adder.link(self.sink)
 
-        logging.info("Stream: start: Going to play: " \
-            + ",".join(self.recordingCollection.get_filenames()) \
-            + " Total of " \
-            + str(len(self.recordingCollection.get_filenames()))
-            + " files.")
-
-        self.add_music_source()
-        self.add_voice_compositions()
-        self.add_message_wacher()
+        self.add_speakers()
+        self.add_audiotracks()
+        self.add_message_watcher()
 
         self.pipeline.set_state(gst.STATE_PLAYING)
-        gobject.timeout_add(
-            settings.config["stereo_pan_interval"],
-            self.stereo_pan)
+        gobject.timeout_add(settings.STEREO_PAN_INTERVAL, self.stereo_pan)
+        logger.debug("starting main loop!")
         self.main_loop.run()
 
     def play_asset(self, request):
         asset_id = request['asset_id'][0]
-        logging.debug("!!!!!!!!!! Stream Play asset: " + str(asset_id))
-        for comp in self.compositions:
-            comp.play_asset(asset_id)
+        logger.debug("Stream play asset: %s", asset_id)
+        for track in self.audiotracks:
+            track.play_asset(asset_id)
 
     def skip_ahead(self):
-        logging.debug("!!!!!!!!!!Skip ahead")
-        for comp in self.compositions:
-            comp.skip_ahead()
+        logger.debug("Skip ahead")
+        for track in self.audiotracks:
+            track.skip_ahead()
 
     # Sets the activity timestamp to right now.
     # The timestamp is used to detect
     # when the client last sent any message.
     def heartbeat(self):
         self.activity_timestamp = time.time()
-        #logging.debug("update time="+str(self.activity_timestamp))
+
+    # Sets the stream metadata using tag injection.
+    def set_metadata(self, query):
+        metadata = 'artist="Roundware",title="%s"' % urllib.urlencode(query)
+        self.sink.taginjector.set_property("tags", metadata)
 
     def modify_stream(self, request):
         self.heartbeat()
         self.request = request
         self.listener = request
-        self.refresh_recordings()
-        logging.info("Stream modification: Going to play: " \
-            + ",".join(self.recordingCollection.get_filenames()) \
+        # only refresh recordings if tags are present and not blank in request
+        # NOT if only lat/lon are present; this prevents refresh_recordings from
+        # happening on modify_streams that have only location changes
+        if "tags" in self.request and self.request["tags"]:
+            self.refresh_recordings()
+
+        filenames = self.recordingCollection.get_filenames()
+        logger.info("Stream modification: Going to play: " \
+            + ",".join(filenames) \
             + " Total of " \
-            + str(len(self.recordingCollection.get_filenames()))
+            + str(len(filenames))
             + " files.")
         self.move_listener(request)
         return True
@@ -138,49 +123,30 @@ class RoundStream:
     def refresh_recordings(self):
         self.recordingCollection.update_request(self.request)
 
-        #filter recordings
-        if "tags" in self.request:
-            tag_ids = self.request["tags"]
-            if not hasattr(tag_ids, "__iter__"):
-                tag_ids = tag_ids.split(",")
-
-            tags = Tag.objects.filter(pk__in=tag_ids)
-            for tag in tags:
-                if tag.filter:
-                    logging.debug("Tag with filter found: %s: %s" % (tag, tag.filter))
-                    self.recordingCollection.nearby_unplayed_recordings = getattr(asset_sorters, tag.filter)(assets=self.recordingCollection.all_recordings, request=self.request)
-
-        for comp in self.compositions:
-            comp.move_listener(self.listener)
-
-    def move_listener(self, listener):
-        if listener['latitude'] != False and listener['longitude'] != False:
-            logging.debug("stream: move_listener: recvd lat and long, moving...")
+    def move_listener(self, request):
+        if request['latitude'] and request['longitude']:
             self.heartbeat()
-            self.listener = listener
-            logging.debug("move_listener("
-                + str(listener['latitude']) + ","
-                + str(listener['longitude']) + ")")
+            self.listener = request
+            logger.debug("move_listener(%s,%s)", request['latitude'],
+                         request['longitude'])
             if self.gps_mixer:
-                self.gps_mixer.move_listener(listener)
-            self.recordingCollection.move_listener(listener)
-            #logging.info("Stream: move_listener: Going to play: " \
-                #+ ",".join(self.recordingCollection.get_filenames()) \
-                #+ " Total of " \
-                #+ str(len(self.recordingCollection.get_filenames()))
-                #+ " files.")
-            for comp in self.compositions:
-                comp.move_listener(listener)
+                self.gps_mixer.move_listener(request)
+            self.recordingCollection.move_listener(request)
         else:
-            logging.debug("stream: move_listener: no lat and long.  returning...")
+            logger.debug("no lat and long. Returning...")
 
     ######################################################################
     # PRIVATE
     ######################################################################
-    def add_message_wacher(self):
+    def add_message_watcher(self):
+        logger.debug("Getting bus.")
         self.bus = self.pipeline.get_bus()
+        logger.debug("Adding Signal Watch.")
         self.bus.add_signal_watch()
+        logger.debug("Connecting.")
         self.watch_id = self.bus.connect("message", self.get_message)
+        logger.debug("Success!")
+
 
     def add_source_to_adder(self, src_element):
         self.pipeline.add(src_element)
@@ -188,79 +154,71 @@ class RoundStream:
         addersinkpad = self.adder.get_request_pad('sink%d')
         srcpad.link(addersinkpad)
 
-    def add_music_source(self):
-        p = models.Project.objects.get(id=self.request["project_id"])
-        speakers = models.Speaker.objects.filter(project=p).filter(activeyn=True)
-        #FIXME: We might need to unconditionally add blankaudio.
+    def add_speakers(self):
+
+        # FIXME: We might need to unconditionally add blank-audio.
         # what happens if the only speaker is out of range? I think
         # it'll be fine but test this.
-        if speakers.count() > 0:
-            self.gps_mixer = gpsmixer.GPSMixer(
+        self.add_source_to_adder(BlankAudioSrc())
+        self.gps_mixer = gpsmixer.GPSMixer(
                 {'latitude': self.request['latitude'],
-                'longitude': self.request['longitude']},
-                speakers)
-            self.add_source_to_adder(self.gps_mixer)
-        else:
-            self.add_source_to_adder(BlankAudioSrc())
+                 'longitude': self.request['longitude']},
+                self.project)
 
-    def add_voice_compositions(self):
-        p = models.Project.objects.get(id=self.request["project_id"])
-        c = models.Audiotrack.objects.filter(project=p)
-        logging.debug("Stream: add_voice_compositions: got composition: " + str(c))
-        self.compositions = []
-        for t in c:
-            self.compositions.append(composition.Composition(self,
-                                                             self.pipeline,
-                                                             self.adder,
-                                                             t,
-                                                             self.recordingCollection))
+        self.add_source_to_adder(self.gps_mixer)
 
-        #self.compositions = [composition.Composition(self,
-                                                    #self.pipeline,
-                                                    #self.adder,
-                                                    #c,
-                                                    #self.recordingCollection)]
+    def add_audiotracks(self):
+        settings = models.Audiotrack.objects.filter(project=self.project)
+        logger.debug("Got AudioTrack Settings: %s" % settings)
+        self.audiotracks = []
+        for setting in settings:
+            logger.debug("Creating track: {}".format(setting))
+            track = AudioTrack(self, self.pipeline, self.adder, setting, self.recordingCollection)
+            self.audiotracks.append(track)
+        logger.debug("Done adding audiotracks.")
+        # TODO - ask if there is > 1 logical audiotrack per proj. for now, assume 1 to 1.
+        # self.audiotracks = \
+            # map (lambda settings:
+            # AudioTrack(
+            # self,
+            # self.pipeline,
+            # self.adder,
+            # settings,
+            # self.recordingCollection),
+            #[c])
 
-        #todo - ask if there is > 1 logical composition per proj. for now, assume 1 to 1.
-        #self.compositions = \
-            #map (lambda comp_settings:
-                #composition.Composition(
-                    #self,
-                    #self.pipeline,
-                    #self.adder,
-                    #comp_settings,
-                    #self.recordingCollection),
-                        #[c])
-
+    # Gst Pipeline Bus Signal watcher starts audiotracks when the stream is
+    # available for ouput.
     def get_message(self, bus, message):
-        #logging.debug(message.src.get_name() + str(message.type))
+        # logger.debug(message.src.get_name() + str(message.type))
         if message.type == gst.MESSAGE_ERROR:
             err, debug = message.parse_error()
             if err.message == "Could not read from resource.":
-                logging.warning("Error reading file: " \
-                    + message.src.get_property("location"))
+                logger.warning("Error reading file: "
+                               + message.src.get_property("location"))
             else:
-                logging.error("Error on " + str(self.sessionid) \
-                    + " from " + message.src.get_name() + \
-                    ": " + str(err) + " debug: " + debug)
+                logger.error("Error on " + str(self.sessionid)
+                             + " from " + message.src.get_name() +
+                             ": " + str(err) + " debug: " + debug)
                 self.cleanup()
         elif message.type == gst.MESSAGE_STATE_CHANGED:
             prev, new, pending = message.parse_state_changed()
-            if message.src == self.pipeline \
-                and new == gst.STATE_PLAYING:
-                logging.debug("Announcing " + str(self.sessionid) \
-                        + " is playing")
-                gobject.timeout_add(
-                    settings.config["ping_interval"],
-                    self.ping)
-                for comp in self.compositions:
-                    comp.wait_and_play()
+            # If the event message comes from the pipeline, the new state is
+            # "playing" and we haven't already started the audiotracks, then
+            # start everything.
+            if message.src == self.pipeline and new == gst.STATE_PLAYING \
+                    and not self.started:
+                logger.debug("Stream for session %d has started." % self.sessionid)
+                self.started = True
+                gobject.timeout_add(settings.PING_INTERVAL, self.ping)
+                self.recordingCollection.start()
+                for track in self.audiotracks:
+                    track.start_audio()
 
     def cleanup(self):
-        db.log_event("cleanup_session", self.sessionid, None)
-        logging.debug("Cleaning up" + str(self.sessionid))
+        log_event("cleanup_session", self.sessionid)
+        logger.info("Session %d - Stream cleanup", self.sessionid)
 
-        #db.cleanup_history_for_session(self.sessionid)
         if self.pipeline:
             if self.watch_id:
                 self.pipeline.get_bus().remove_signal_watch()
@@ -270,43 +228,40 @@ class RoundStream:
         self.main_loop.quit()
 
     def stereo_pan(self):
-        for comp in self.compositions:
-            comp.stereo_pan()
+        for track in self.audiotracks:
+            track.stereo_pan()
         return True
 
     def ping(self):
-        is_stream_active = \
-            self.is_anyone_listening() \
-            or self.is_activity_timestamp_recent()
+        is_stream_active = self.is_anyone_listening() or self.is_activity_timestamp_recent()
 
         if is_stream_active:
             return True
-        else:
-            self.cleanup()
-            return False
+
+        self.cleanup()
+        return False
 
     def is_anyone_listening(self):
-        listeners = self.icecast_admin.get_client_count(
-            icecast_mount_point(
-                self.sessionid, self.audio_format))
-        #logging.debug("Number of listeners: " + str(listeners))
+        mount_point = icecast2.mount_point(self.sessionid, self.audio_format)
+        listeners = self.icecast_admin.get_client_count(mount_point)
+        logger.debug("Number of listeners: %d " % listeners)
         if self.last_listener_count == 0 and listeners == 0:
-            #logging.info("Detected noone listening.")
             return False
-        else:
-            self.last_listener_count = listeners
-            return True
+
+        self.last_listener_count = listeners
+        return True
 
     def is_activity_timestamp_recent(self):
-        #logging.debug("check now=" + str(time.time()) \
+        # logger.debug("check now=" + str(time.time()) \
         #   + " time=" + str(self.activity_timestamp) \
         #   + " diff=" + str(time.time() - self.activity_timestamp))
-        return time.time() - self.activity_timestamp < settings.config["heartbeat_timeout"]
+        return time.time() - self.activity_timestamp < settings.HEARTBEAT_TIMEOUT
 
 
 # If there is no music this is needed to keep the stream not in
 # and EOS state while there is dead air.
 class BlankAudioSrc (gst.Bin):
+
     def __init__(self, wave=4):
         gst.Bin.__init__(self)
         audiotestsrc = gst.element_factory_make("audiotestsrc")
@@ -320,24 +275,22 @@ class BlankAudioSrc (gst.Bin):
 
 
 class RoundStreamSink (gst.Bin):
+
     def __init__(self, sessionid, audio_format, bitrate):
         gst.Bin.__init__(self)
-        #self.taginjector = gst.element_factory_make("taginject")
-        #self.taginjector.set_property("tags","title=\"asset_id=123\"")
 
         capsfilter = gst.element_factory_make("capsfilter")
         volume = gst.element_factory_make("volume")
-        volume.set_property("volume", settings.config["master_volume"])
+        volume.set_property("volume", settings.MASTER_VOLUME)
+        # Create Metatag Injector
+        self.taginjector = gst.element_factory_make("taginject")
         shout2send = gst.element_factory_make("shout2send")
-        shout2send.set_property("username", settings.config["icecast_source_username"])
-        shout2send.set_property("password", settings.config["icecast_source_password"])
-        #shout2send.set_property("username", "source")
-        #shout2send.set_property("password", "roundice")
+        shout2send.set_property("username", settings.ICECAST_SOURCE_USERNAME)
+        shout2send.set_property("password", settings.ICECAST_SOURCE_PASSWORD)
         shout2send.set_property("mount",
-            icecast_mount_point(sessionid, audio_format))
-        #shout2send.set_property("streamname","initial name")
-        #self.add(capsfilter, volume, self.taginjector, shout2send)
-        self.add(capsfilter, volume, shout2send)
+                                icecast2.mount_point(sessionid, audio_format))
+
+        self.add(capsfilter, volume, self.taginjector, shout2send)
         capsfilter.link(volume)
 
         if audio_format.upper() == "MP3":
@@ -347,10 +300,9 @@ class RoundStreamSink (gst.Bin):
                     "audio/x-raw-int,rate=44100,channels=2,width=16,depth=16,signed=(boolean)true"))
             lame = gst.element_factory_make("lame")
             lame.set_property("bitrate", int(bitrate))
-            logging.debug("roundstreamsink: bitrate: " + str(int(bitrate)))
+            logger.debug("roundstreamsink: bitrate: " + str(bitrate))
             self.add(lame)
-            #gst.element_link_many(volume, lame, self.taginjector, shout2send)
-            gst.element_link_many(volume, lame, shout2send)
+            gst.element_link_many(volume, lame, self.taginjector, shout2send)
         elif audio_format.upper() == "OGG":
             capsfilter.set_property(
                 "caps",
@@ -359,12 +311,10 @@ class RoundStreamSink (gst.Bin):
             vorbisenc = gst.element_factory_make("vorbisenc")
             oggmux = gst.element_factory_make("oggmux")
             self.add(vorbisenc, oggmux)
-            #gst.element_link_many(volume, vorbisenc, oggmux, self.taginjector, shout2send)
-            gst.element_link_many(volume, vorbisenc, oggmux, shout2send)
+            gst.element_link_many(volume, vorbisenc, oggmux, self.taginjector, shout2send)
         else:
             raise "Invalid format"
 
         pad = capsfilter.get_pad("sink")
         ghostpad = gst.GhostPad("sink", pad)
         self.add_pad(ghostpad)
-        #self.shout = shout2send

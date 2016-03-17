@@ -2,18 +2,23 @@ import os
 import sys
 import site
 
-CODE_ROOT = '/media/sf_roundware-server'
-PROJECT_ROOT = os.path.join(CODE_ROOT, 'roundware')
-SITE_PACKAGES = '/home/jule/.virtualenvs/againfaster/lib/python2.6/site-packages'
+SITE_PACKAGES = '/var/www/roundware/lib/python2.7/site-packages/'
+PROJECT_ROOT = '/var/www/roundware/source/'
+CODE_ROOT = '/var/www/roundware/source/roundware/'
+SETTINGS_ROOT = '/var/www/roundware/settings/'
+ACTIVATE_VENV = '/var/www/roundware/bin/activate_this.py'
 
 sys.stdout = sys.stderr
 
-site.addsitedir(os.path.abspath(site_packages))
-sys.path.insert(0, CODE_ROOT)
-sys.path.insert(1, PROJECT_ROOT)
-sys.path.insert(2, os.path.join(PROJECT_ROOT))
-sys.path.insert(3, SITE_PACKAGES)
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+site.addsitedir(SITE_PACKAGES)
+sys.path.append(PROJECT_ROOT)
+sys.path.append(CODE_ROOT)
+sys.path.append(SETTINGS_ROOT)
+os.environ['DJANGO_SETTINGS_MODULE'] = 'roundware_production'
 
-import django.core.handlers.wsgi
-application = django.core.handlers.wsgi.WSGIHandler()
+# Enable Virtual Environment
+execfile(ACTIVATE_VENV, dict(__file__=ACTIVATE_VENV))
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+

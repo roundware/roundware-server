@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 #from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 
@@ -15,9 +16,7 @@ basic_user = Recipe(
     password='password',
     first_name='Test',
     last_name='User',
-    email='bryanlandia@gmail.com',
+    email='user@example.com',
 )
 
-default_session = Recipe(
-    Session,
-    id=DEFAULT_SESSION_ID)
+default_session = Recipe(Session)

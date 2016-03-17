@@ -1,0 +1,22 @@
+language: python
+python:
+  - "2.7"
+before_install:
+  - sudo apt-get -y update
+install:
+  - DEBIAN_FRONTEND=noninteractive sudo apt-get -y install python-dev build-essential python-dbus python-gst0.10 postgresql-server-dev-9.3 postgresql-9.3-postgis-2.1
+  - sudo su - postgres -c 'psql -c "create role round superuser login;"'
+  - sudo su - postgres -c 'psql -c "create database roundware"'
+  - sudo su - postgres -c 'psql -c "grant all on database roundware to round"'
+  - sudo su - postgres -c "psql -c \"alter user round password 'round'\""
+  - sudo su - postgres -c "psql roundware -c 'create extension postgis'"
+  - pip install -r requirements/dev.txt
+before_script:
+# Setup Roundware log file.
+  - sudo touch /var/log/roundware
+  - sudo chmod 777 /var/log/roundware
+# Setup rwmedia directory for mock files.
+  - sudo mkdir /var/www
+  - sudo chmod 777 /var/www
+  - export PYTHONPATH=.:/usr/lib/python2.7/dist-packages/
+script: python roundware/manage.py test --settings=roundware.settings.testing
