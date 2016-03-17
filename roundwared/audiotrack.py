@@ -5,10 +5,12 @@
 #   when all audiotracks are finished (only happens
 #   when repeat is off)
 # TODO: Reimplement panning using a gst.Controller
-# TODO: Remove stero_pan from public interface
+# TODO: Remove stereo_pan from public interface
 
 from __future__ import unicode_literals
 import gobject
+
+
 gobject.threads_init()
 import pygst
 pygst.require("0.10")
@@ -16,13 +18,16 @@ import gst
 import random
 import logging
 import os
+import time
 from roundwared import src_wav_file
 from roundwared import db
 from django.conf import settings
+from roundware.rw.models import Asset
 
 STATE_PLAYING = 0
 STATE_DEAD_AIR = 1
 STATE_WAITING = 2
+
 logger = logging.getLogger(__name__)
 
 
@@ -60,6 +65,7 @@ class AudioTrack:
             return False
 
         def track_timer():
+            logger.debug("AT State: %d, Stream state: %d" % (self.state, self.stream.get_state()))
             """
             The audio manager.
 
@@ -69,7 +75,7 @@ class AudioTrack:
             self.track_timer += 1
 
             # Do nothing if audio is playing already.
-            if self.state == STATE_PLAYING:
+            if self.state == STATE_PLAYING or self.stream.is_paused():
                 return True
             # No audio playing and asset_timer_callback is not scheduled, this
             # is set by self.clean_up() when an asset ends.
@@ -122,6 +128,10 @@ class AudioTrack:
                     gst.SECOND),
                 max(self.settings.maxduration,
                     gst.SECOND)))
+
+        # TODO: Make this more dynamic
+        duration = self.current_recording.audiolength
+
 
         start = random.randint(
             0,
@@ -217,18 +227,26 @@ class AudioTrack:
             self.settings.minfadeouttime,
             self.settings.maxfadeouttime)
         if self.src_wav_file != None and not self.src_wav_file.fading:
+            logger.info("fading out for: " + str(fadeoutnsecs))
             self.src_wav_file.fade_out(fadeoutnsecs)
             # 1st arg is in milliseconds
             # 1000000000
             #gobject.timeout_add(fadeoutnsecs/gst.MSECOND, self.clean_up)
+            # wait until fade is complete and then clean-up
+            time.sleep(fadeoutnsecs / 1000000000)
             self.clean_up()
         else:
             logger.debug("skip_ahead: no src_wav_file")
 
     def play_asset(self, asset_id):
-        logger.debug("AudioTrack play asset: " + str(asset_id))
-        self.rc.add_recording(asset_id)
-        self.skip_ahead()
+        logger.info("AudioTrack play asset: " + str(asset_id))
+        try:
+            asset = Asset.objects.get(id=str(asset_id))
+            self.rc.remove_asset_from_rc(asset)
+            self.rc.add_asset_to_rc(asset)
+            self.skip_ahead()
+        except Asset.DoesNotExist:
+            logger.error("Asset with ID %d does not exist." % asset_id)
 
     def set_track_metadata(self, metadata={}):
         """

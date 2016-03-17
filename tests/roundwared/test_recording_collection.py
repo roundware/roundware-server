@@ -269,7 +269,7 @@ class TestRecordingCollection(RoundwaredTestCase):
             rc.update_request(req)
             self.assertEquals([self.asset1, self.asset2, self.asset3],
                               rc.playlist_proximity)
-            rc.add_recording(self.asset2.id)
+            rc.add_asset_to_rc(self.asset2)
             self.assertEquals([self.asset1, self.asset2, self.asset3,
                                self.asset2], rc.playlist_proximity)
 

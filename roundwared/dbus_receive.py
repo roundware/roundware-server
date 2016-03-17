@@ -21,6 +21,10 @@ def add_signal_receiver(stream):
                 stream.heartbeat()
             elif operation == "skip_ahead":
                 stream.skip_ahead()
+            elif operation == "pause":
+                stream.pause()
+            elif operation == "resume":
+                stream.resume()
             elif operation == "play_asset":
                 request = json.loads(args)
                 stream.play_asset(request)

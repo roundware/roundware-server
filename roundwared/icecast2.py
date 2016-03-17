@@ -43,10 +43,10 @@ class Admin:
         return False
 
     def process_xml(self, url, xpath):
-        # logger.debug("Request: %s, auth=%s", self.base_uri + url, self.auth)
+        logger.debug("Request: %s, auth=%s", self.base_uri + url, self.auth)
         response = requests.get(self.base_uri + url, auth=self.auth)
         response.raise_for_status()
-        # logger.debug("Response: %s", response.content)
+        logger.debug("Response: %s", response.content)
         # Parse the XML and get the requested xpath results.
         xml = libxml2.parseDoc(response.content)
         context = xml.xpathNewContext()

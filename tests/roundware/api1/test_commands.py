@@ -23,7 +23,7 @@ from roundware.api1.commands import (check_for_single_audiotrack, get_asset_info
                                      get_available_assets)
 from roundware.api1 import commands
 from roundware.lib import api
-from roundware.lib.api import (request_stream, get_project_tags_old as get_project_tags, get_current_streaming_asset,
+from roundware.lib.api import (request_stream, get_project_tags_old as get_project_tags, get_currently_streaming_asset,
                                _get_current_streaming_asset, vote_asset)
 from roundwared import gpsmixer
 
@@ -114,7 +114,7 @@ class TestServer(RoundwaredTestCase):
         req.GET = {'session_id': self.session.id}
         track2 = mommy.make(Audiotrack, project=self.project1, id=2)
         with self.assertRaises(RoundException):
-            current = get_current_streaming_asset(req)
+            current = get_currently_streaming_asset(req)
             # delete extra track
             Audiotrack.objects.filter(id__exact=2).delete()
 
@@ -122,7 +122,7 @@ class TestServer(RoundwaredTestCase):
 
         req = FakeRequest()
         req.GET = {'session_id': self.session.id}
-        current = get_current_streaming_asset(req)
+        current = get_currently_streaming_asset(req)
         self.assertEquals('dict', type(current).__name__)
         self.assertEquals(2, current['asset_id'])
         self.assertEquals('2013-11-21T17:29:44.610672', current['start_time'])

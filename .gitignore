@@ -4,8 +4,6 @@ vagrant_ansible_inventory_default
 build
 roundware/settings/local_settings.py
 
-build
 static
-local_settings.py
 .coverage
 .idea/*

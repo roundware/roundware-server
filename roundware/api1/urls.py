@@ -3,14 +3,14 @@
 
 
 from __future__ import unicode_literals
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 from roundware.api1 import views
 import logging
 logger = logging.getLogger(__name__)
 
-urlpatterns = patterns('',
+urlpatterns = [
     # V1 API
-    url(r'^$', 'api1.views.operations'),
+    url(r'^$', views.operations),
     url(r'^auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
 
@@ -32,4 +32,4 @@ urlpatterns = patterns('',
     url(r'^rest/listeninghistoryitem/$',
         views.ListeningHistoryItemList.as_view(),
         name='api1-listeninghistoryitem'),
-)
+]

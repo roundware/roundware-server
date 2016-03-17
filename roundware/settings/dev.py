@@ -1,23 +1,21 @@
 from .common import *
-try:
-    from .local_settings import *
-except ImportError:
-    pass
 
 # Set Roundware API for internal calls to development environment
 API_URL = "http://127.0.0.1:8888/roundware/"
 # Change banned_timeout limit to better development testing value
-BANNED_TIMEOUT_LIMIT = 90
+BANNED_TIMEOUT_LIMIT = 10
 
 # Remove possibility of demo stream to avoid confusion while testing
 DEMO_STREAM_CPU_LIMIT = 0.0
 
-INSTALLED_APPS = INSTALLED_APPS + (
+INSTALLED_APPS += (
     'debug_toolbar',
 )
 
 DEBUG = True
-TEMPLATE_DEBUG = True
+for TEMPLATE_SETTINGS_BLOCK in TEMPLATES:
+    TEMPLATE_SETTINGS_BLOCK['OPTIONS']['debug'] = DEBUG
+
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 CRISPY_FAIL_SILENTLY = not DEBUG
 
@@ -25,6 +23,7 @@ CRISPY_FAIL_SILENTLY = not DEBUG
 MIDDLEWARE_CLASSES = (
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ) + MIDDLEWARE_CLASSES
+
 
 # Bypass the INTERNAL_IPS check for Debug Toolbar
 class internal_list(list):
@@ -89,3 +88,8 @@ LOGGING['loggers'] = {
     #    'handlers': ['console'],
     # },
 }
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass

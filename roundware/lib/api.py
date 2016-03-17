@@ -381,6 +381,54 @@ def skip_ahead(request, session_id=None):
     return {"success": True}
 
 
+def play(form):
+    session_id = int(form['session_id'])
+    request = form_to_request(form)
+    arg_hack = json.dumps(request)
+
+    log_event("play_asset_in_stream", session_id, form)
+
+    if 'session_id' not in form:
+        raise RoundException("a session_id is required for this operation")
+    if not check_for_single_audiotrack(form.get('session_id')):
+        raise RoundException("this operation is only valid for projects with 1 audiotrack")
+    if 'asset_id' not in form:
+        raise RoundException("an asset_id is required for this operation")
+
+    # Check if asset exists
+    if not models.Asset.objects.filter(id=form['asset_id']).exists():
+        raise RoundException("no asset found with this asset_id")
+
+    dbus_send.emit_stream_signal(session_id, "play_asset", arg_hack)
+
+    return {"success": True}
+
+
+def pause(request, session_id=None):
+    if session_id is None:
+        session_id = request.GET.get('session_id', None)
+    if session_id is None:
+        raise RoundException("a session_id is required for this operation")
+
+    logger.debug("pausing")
+    log_event("pause", int(session_id))
+
+    dbus_send.emit_stream_signal(int(session_id), "pause", "")
+    return {"success": True}
+
+
+def resume(request, session_id=None):
+    if session_id is None:
+        session_id = request.GET.get('session_id', None)
+    if session_id is None:
+        raise RoundException("a session_id is required for this operation")
+
+    logger.debug("resuming")
+    log_event("resume", int(session_id))
+
+    dbus_send.emit_stream_signal(int(session_id), "resume", "")
+    return {"success": True}
+
 def check_for_single_audiotrack(session_id):
     ret = False
     session = models.Session.objects.select_related(
@@ -597,7 +645,7 @@ def get_parameter_from_request(request, name, required=False):
     return ret
 
 
-def get_current_streaming_asset(request, session_id=None):
+def get_currently_streaming_asset(request, session_id=None):
     if session_id is None:
         session_id = request.GET.get('session_id', None)
     if session_id is None:

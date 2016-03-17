@@ -3,8 +3,10 @@
 
 from __future__ import unicode_literals
 import gobject
+
 gobject.threads_init()
 import pygst
+
 pygst.require("0.10")
 import gst
 import logging
@@ -20,6 +22,8 @@ from roundwared.recording_collection import RecordingCollection
 
 logger = logging.getLogger(__name__)
 
+STATE_PAUSED = 0
+STATE_PLAYING = 1
 
 class RoundStream:
     ######################################################################
@@ -43,6 +47,7 @@ class RoundStream:
         self.ordering = self.project.ordering
         # Keeps track of whether the stream has started playing audio.
         self.started = False
+        self.state = STATE_PAUSED
 
         logger.debug("Project radius: %d meters" % self.radius)
         if self.radius is None:
@@ -57,7 +62,7 @@ class RoundStream:
         self.icecast_admin = icecast2.Admin()
         self.heartbeat()
         self.recordingCollection = RecordingCollection(
-                self, request, self.radius, str(self.ordering))
+            self, request, self.radius, str(self.ordering))
 
     def start(self):
         logger.info("Session %s - Starting stream", self.sessionid)
@@ -89,6 +94,23 @@ class RoundStream:
         for track in self.audiotracks:
             track.skip_ahead()
 
+    def pause(self):
+        logger.info("Session %s - Pausing stream", self.sessionid)
+        self.state = STATE_PAUSED
+
+        for track in self.audiotracks:
+            track.skip_ahead()
+
+    def resume(self):
+        logger.info("Session %s - Unpausing stream", self.sessionid)
+        self.state = STATE_PLAYING
+
+    def is_paused(self):
+        return self.state == STATE_PAUSED
+
+    def get_state(self):
+        return self.state
+
     # Sets the activity timestamp to right now.
     # The timestamp is used to detect
     # when the client last sent any message.
@@ -112,10 +134,10 @@ class RoundStream:
 
         filenames = self.recordingCollection.get_filenames()
         logger.info("Stream modification: Going to play: " \
-            + ",".join(filenames) \
-            + " Total of " \
-            + str(len(filenames))
-            + " files.")
+                    + ",".join(filenames) \
+                    + " Total of " \
+                    + str(len(filenames))
+                    + " files.")
         self.move_listener(request)
         return True
 
@@ -147,7 +169,6 @@ class RoundStream:
         self.watch_id = self.bus.connect("message", self.get_message)
         logger.debug("Success!")
 
-
     def add_source_to_adder(self, src_element):
         self.pipeline.add(src_element)
         srcpad = src_element.get_pad('src')
@@ -161,9 +182,9 @@ class RoundStream:
         # it'll be fine but test this.
         self.add_source_to_adder(BlankAudioSrc())
         self.gps_mixer = gpsmixer.GPSMixer(
-                {'latitude': self.request['latitude'],
-                 'longitude': self.request['longitude']},
-                self.project)
+            {'latitude': self.request['latitude'],
+             'longitude': self.request['longitude']},
+            self.project)
 
         self.add_source_to_adder(self.gps_mixer)
 
@@ -178,14 +199,14 @@ class RoundStream:
         logger.debug("Done adding audiotracks.")
         # TODO - ask if there is > 1 logical audiotrack per proj. for now, assume 1 to 1.
         # self.audiotracks = \
-            # map (lambda settings:
-            # AudioTrack(
-            # self,
-            # self.pipeline,
-            # self.adder,
-            # settings,
-            # self.recordingCollection),
-            #[c])
+        # map (lambda settings:
+        # AudioTrack(
+        # self,
+        # self.pipeline,
+        # self.adder,
+        # settings,
+        # self.recordingCollection),
+        # [c])
 
     # Gst Pipeline Bus Signal watcher starts audiotracks when the stream is
     # available for ouput.
@@ -210,6 +231,7 @@ class RoundStream:
                     and not self.started:
                 logger.debug("Stream for session %d has started." % self.sessionid)
                 self.started = True
+                self.state = STATE_PLAYING
                 gobject.timeout_add(settings.PING_INTERVAL, self.ping)
                 self.recordingCollection.start()
                 for track in self.audiotracks:
@@ -260,8 +282,7 @@ class RoundStream:
 
 # If there is no music this is needed to keep the stream not in
 # and EOS state while there is dead air.
-class BlankAudioSrc (gst.Bin):
-
+class BlankAudioSrc(gst.Bin):
     def __init__(self, wave=4):
         gst.Bin.__init__(self)
         audiotestsrc = gst.element_factory_make("audiotestsrc")
@@ -274,8 +295,7 @@ class BlankAudioSrc (gst.Bin):
         self.add_pad(ghost_pad)
 
 
-class RoundStreamSink (gst.Bin):
-
+class RoundStreamSink(gst.Bin):
     def __init__(self, sessionid, audio_format, bitrate):
         gst.Bin.__init__(self)
 
