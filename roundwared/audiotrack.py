@@ -231,9 +231,13 @@ class AudioTrack:
 
     def play_asset(self, asset_id):
         logger.info("AudioTrack play asset: " + str(asset_id))
-        self.rc.remove_recording(asset_id)
-        self.rc.add_recording(asset_id)
+        try:
+            asset = Asset.objects.get(id=str(asset_id))
+            self.rc.remove_asset_from_rc(asset)
+            self.rc.add_asset_to_rc(asset)
         self.skip_ahead()
+        except Asset.DoesNotExist:
+            logger.error("Asset with ID %d does not exist." % asset_id)
 
     def set_track_metadata(self, metadata={}):
         """
