@@ -417,7 +417,7 @@ class TestServer(RoundwaredTestCase):
         self.assertEquals(expected, get_available_assets(req))
 
     def test_get_available_assets_pass_tag_ids_with_or(self):
-        """ test assets returned only need match one of passed tags 
+        """ test assets returned only need match one of passed tags
         """
         req = FakeRequest()
         req.GET = {'tagids': '1,2', 'project_id': '12', 'tagbool': 'or'}
@@ -437,7 +437,7 @@ class TestServer(RoundwaredTestCase):
     @patch.object(gpsmixer, 'distance_in_meters',
                   mock_distance_in_meters_near)
     def test_get_available_assets_pass_radius(self):
-        """project's radius is bigger than the mock near distance.  
+        """project's radius is bigger than the mock near distance.
         should get no assets if we pass a radius of 0, overriding
         project radius.
         """
@@ -454,7 +454,7 @@ class TestServer(RoundwaredTestCase):
         self.assertEquals(expected, get_available_assets(req))
 
     def test_get_available_assets_pass_envelope_id(self):
-        """ ignore other filters and return asset info for 
+        """ ignore other filters and return asset info for
             assets in envelope.
         """
         req = FakeRequest()
@@ -469,7 +469,7 @@ class TestServer(RoundwaredTestCase):
         self.assertEquals(expected, get_available_assets(req))
 
     def test_get_available_assets_pass_multiple_envelope_ids(self):
-        """ ignore other filters and return asset info for 
+        """ ignore other filters and return asset info for
             assets in envelopes.
         """
         req = FakeRequest()
@@ -487,7 +487,7 @@ class TestServer(RoundwaredTestCase):
         self.assertEquals(expected, get_available_assets(req))
 
     def test_get_available_assets_pass_bad_envelope(self):
-        """ ignore other filters and return asset info for 
+        """ ignore other filters and return asset info for
             assets in envelopes, ignoring bad envelope id.
         """
         req = FakeRequest()
@@ -506,7 +506,7 @@ class TestServer(RoundwaredTestCase):
         self.assertEquals(expected, result)
 
     def test_get_available_assets_pass_extra_kwarg(self):
-        """ extra kwargs should provide extra filter 
+        """ extra kwargs should provide extra filter
         """
         req = FakeRequest()
         req.GET = {'project_id': '12', 'audiolength': '5000000'}
@@ -621,11 +621,12 @@ class TestServer(RoundwaredTestCase):
     ################
 
     def test_request_stream_demo_stream_enabled(self):
-        """ Make sure we get the demo stream data if it's enabled for the 
-        session, and the localized message in the correct language for the 
+        """ Make sure we get the demo stream data if it's enabled for the
+        session, and the localized message in the correct language for the
         session. Doesn't test actual stream being served.
         """
         req = FakeRequest()
+        req.method = 'GET'
         req.GET = {'session_id': '1'}
         self.session.demo_stream_enabled = True
         self.session.save()
@@ -645,6 +646,7 @@ class TestServer(RoundwaredTestCase):
         Doesn't test actual stream being served.
         """
         req = FakeRequest()
+        req.method = 'GET'
         req.GET.update({'session_id': '1'})
         req.GET.update(TEST_LOCATIONS['point_in_speaker'])
         expected = {'stream_url': 'http://rw.com:8000/stream1.ogg'}
@@ -669,6 +671,7 @@ class TestServer(RoundwaredTestCase):
         Doesn't test actual stream being served.
         """
         req = FakeRequest()
+        req.method = 'GET'
         req.GET = {'session_id': '1'}
         expected = {'stream_url': 'http://rw.com:8000/stream1.ogg'}
         self.assertEquals(expected, request_stream(req))
@@ -679,6 +682,7 @@ class TestServer(RoundwaredTestCase):
         Doesn't test actual stream being served.
         """
         req = FakeRequest()
+        req.method = 'GET'
         req.GET = {'session_id': '1', 'latitude': '0.1', 'longitude': '0.1'}
         expected = {
             'user_message': ('This application is designed to be used in '
@@ -697,6 +701,7 @@ class TestServer(RoundwaredTestCase):
         """ Inactive speakers don't count for in-range
         """
         req = FakeRequest()
+        req.method = 'GET'
         req.GET = {'session_id': '1', 'latitude': '0.1', 'longitude': '0.1'}
         self.speaker1.activeyn = False
         self.speaker1.save()
@@ -722,6 +727,7 @@ class TestServer(RoundwaredTestCase):
                               maxdistance=circumference_of_earth, activeyn=True)
         speaker2.save()
         req = FakeRequest()
+        req.method = 'GET'
         req.GET = {'session_id': '1'}
         expected = {'stream_url': 'http://rw.com:8000/stream1.ogg'}
         self.assertEquals(expected, request_stream(req))
@@ -810,13 +816,13 @@ class TestGetProjectTagJSON(RoundwaredTestCase):
                           config['listen']])
 
     def test_session_project_overrides_passed_project(self):
-        """ The project associated with a passed session should be used 
+        """ The project associated with a passed session should be used
             even if a project is explicitly passed. (really?)
         """
         pass
 
     def test_only_active_masteruis_returned(self):
-        """ Confirm that only active MasterUIs are returned in 
+        """ Confirm that only active MasterUIs are returned in
             config tag 'JSON' (dictionary)
         """
         self.master_ui_two.active = False
@@ -835,7 +841,7 @@ class TestGetProjectTagJSON(RoundwaredTestCase):
         self.assertEquals(expected, config)
 
     def test_get_correct_localized_header_text(self):
-        """ Test that we get correct localized header text for session, or if 
+        """ Test that we get correct localized header text for session, or if
             none passed, header text in English.
         """
         config = get_project_tags(None, self.spanish_sess)
