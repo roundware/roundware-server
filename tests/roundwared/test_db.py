@@ -27,8 +27,8 @@ class TestGetRecordings(RoundwaredTestCase):
                                    language=self.english)
         self.tagcat2 = mommy.make(TagCategory)
         self.tagcat3 = mommy.make(TagCategory)
-        self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2')
-        self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3')
+        self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2', id=2)
+        self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3', id=3)
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
                                     ui_mode=MasterUI.LISTEN,
                                     tag_category=self.tagcat1)
@@ -131,8 +131,8 @@ class TestFilterRecsForTags(RoundwaredTestCase):
 
         self.tagcat2, self.tagcat3, self.tagcat4 = \
             mommy.make(TagCategory, _quantity=3)
-        self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2')
-        self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3')
+        self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2', id=2)
+        self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3', id=3)
         self.project1 = mommy.make(Project, name='Project One')
         self.project2 = mommy.make(Project, name='Project Two')
         self.masterui1 = mommy.make(MasterUI, project=self.project1,
