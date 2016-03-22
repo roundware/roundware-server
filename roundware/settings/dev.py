@@ -9,6 +9,9 @@ API_URL = "http://127.0.0.1:8888/roundware/"
 # Change banned_timeout limit to better development testing value
 BANNED_TIMEOUT_LIMIT = 90
 
+# Remove possibility of demo stream to avoid confusion while testing
+DEMO_STREAM_CPU_LIMIT = 0.0
+
 INSTALLED_APPS = INSTALLED_APPS + (
     'debug_toolbar',
 )
