@@ -35,19 +35,20 @@ the installation process and run both schema and data migrations.
 #### Detailed Steps
 
 1. Update to final MySQL-based commit: `git checkout pre-postgres`
-2. Dump RW data
+2. Deploy code as necessary: `sudo ./deploy.sh`
+3. Dump RW data
 
  ```
- sudo su - roundware -c "/var/www/roundware/source/roundware/manage.py dumpdata rw > ~/rw-pre-postgres.json"
+ sudo su - roundware -c "/var/www/roundware/source/roundware/manage.py dumpdata --all --indent=4 > ~/rw-pre-postgres.json"
  ```
-3. Update server to initial postgres version before any schema changes: `git checkout post-postgres`
-4. Install dependencies
+4. Update server to initial postgres version before any schema changes: `git checkout post-postgres`
+5. Install dependencies
 
  ```
  sudo apt-get install binutils libproj-dev gdal-bin postgresql-server-dev-9.3 postgresql-9.3-postgis-2.1 libgdal-dev
  sudo pip install psycopg2 geopy
  ```
-5. Configure Postgres DB
+6. Configure Postgres DB
 
  ```
  sudo su - postgres -c 'psql -c "create role round superuser login;"'
@@ -56,10 +57,16 @@ the installation process and run both schema and data migrations.
  sudo su - postgres -c "psql -c \"alter user round password 'round'\""
  sudo su - postgres -c "psql roundware -c 'create extension postgis'"
  ```
-6. Run migration required for Postgres update: `python manage.py migrate`
-7. Import dumped db from MySQL into Postgres db: `python manage.py loaddata rw-pre-postgres.json`
-8. Update to most recent code including speaker polygon updates: `git checkout develop`
-9. Deploy newest code (includes pip installs and db migrations): `sudo ./deploy.sh`
+7. Deploy code again to run pip installs and minor migration in preparation for data import: `sudo ./deploy.sh`
+8. Prepare database and import fixture
+ 1. switch to `roundware` user in order to run `manage.py` commands: `sudo su roundware`
+ 2. enter virtualenv: `source /var/www/roundware/bin/activate`
+ 3. set PYTHONPATH: `export PYTHONPATH=/var/www/roundware/source/`
+ 4. Flush database to enable import w/o errors (default pw: round - CHANGE!): `(roundware)roundware@rw-server:/var/www/roundware/source/roundware$ ./manage.py sqlflush | ./manage.py dbshell`
+ 5. Load exported fixture: `./manage.py loaddata /path/to/rw-pre-postgres.json`
+9. `exit` `roundware` user
+10. Update to most recent code including speaker polygon updates: `git checkout develop`
+11. Deploy newest code (includes additional pip installs and data/schema migrations): `sudo ./deploy.sh`
 
 ### 3/12/15 - Convert MyISAM tables to InnoDB
 Related Github issue: https://github.com/roundware/roundware-server/pull/217
