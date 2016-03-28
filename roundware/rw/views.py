@@ -281,4 +281,9 @@ class UpdateTagUIOrder(TemplateView):
 
 @login_required
 def asset_map(request):
-    return render_to_response("asset-map.html")
+    return render_to_response("tools/asset-map.html")
+
+@login_required
+def listen_map(request):
+    return render_to_response("tools/listen-map.html")
+

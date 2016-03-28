@@ -1,0 +1,560 @@
+/* =============================================================================
+   HTML5 display definitions
+   ========================================================================== */
+
+article, aside, details, figcaption, figure, footer, header, hgroup, nav, section {
+    display: block;
+}
+
+audio, canvas, video {
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+}
+
+/* =============================================================================
+   Base
+   ========================================================================== */
+
+/*
+ * 1. Correct text resizing oddly in IE6/7 when body font-size is set using em units
+ * 2. Prevent iOS text size adjust on device orientation change, without disabling user zoom: h5bp.com/g
+ */
+
+html {
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+html, button, input, select, textarea {
+    font-family: sans-serif;
+    color: #222;
+}
+
+body {
+    margin: 0;
+    font-size: 1em;
+    line-height: 1.4;
+}
+
+/* =============================================================================
+   Links
+   ========================================================================== */
+
+a {
+    color: #5d7ca1;
+    font-weight: bold;
+    background: inherit;
+    text-decoration: none;
+}
+
+a:visited {
+    color: #551a8b;
+}
+
+a:hover {
+    color: #CCCCCC;
+    background: inherit;
+    text-decoration: none;
+}
+
+a:focus {
+    outline: thin dotted;
+}
+
+/* =============================================================================
+   Lists
+   ========================================================================== */
+
+ul, ol {
+    margin: 1em 0;
+    padding: 0 0 0 40px;
+}
+
+dd {
+    margin: 0 0 0 40px;
+}
+
+nav ul, nav ol {
+    list-style: none;
+    list-style-image: none;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* ==|== primary styles =====================================================
+   ========================================================================== */
+
+html {
+    background: #FFF;
+    color: #333;
+}
+
+html.ie {
+    background: none;
+}
+
+html.ie a {
+    position: relative;
+}
+
+body {
+    font-family: 'Helvetica Neue';
+    position: relative;
+}
+
+.container {
+    width: 90vw;
+}
+
+#title {
+    height: 100%;
+    font-size: 3em;
+    font-weight: bold;
+    padding-top: 25px;
+}
+
+div#filter-block input[type='checkbox'] {
+    display: none;
+    /*	-khtml-appearance: none;
+         width: 30px;
+         height: 30px;
+         vertical-align: middle;
+         margin: 2px 0px 10px 5px;*/
+}
+
+div#main input[type='radio'] {
+    display: none;
+    -khtml-appearance: none;
+    width: 20px;
+    height: 20px;
+    float: left;
+    padding: 18px 0px 30px 10px;
+    margin: 0;
+}
+
+div#main input[type='radio']:checked {
+    display: none;
+}
+
+div#filter-block ul.filtering-options li label {
+    padding: 13px 8px 13px 8px;
+    background: #666666;
+    color: #ECECEC;
+    float: left;
+    width: 100%;
+    margin-top: -5px;
+    font-size: 16px;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+}
+
+div#content {
+    background: rgba(255, 255, 255, 0.9);
+    /*border: 1px solid #b1b4ac;*/
+    float: none;
+    width: auto;
+    clear: both;
+    margin: 20px auto 20px auto;
+    padding: 20px;
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 20px;
+    border-radius: 20px;
+}
+
+div#content input[type='text'], div#content select {
+    width: 100%;
+    font-family: "Helvetica Neue", Helvetica, Arial sans-serif;
+}
+
+div#content input[type='text'] {
+    padding: 5px;
+    width: 98%;
+}
+
+div#filter-block ul.filtering-options {
+    float: left;
+    margin: 0;
+    padding: 0 0 50px 0;
+    width: 50%;
+}
+
+div#filter-block ul li {
+    list-style: none;
+    font-size: 16px;
+}
+
+div#filter-block ul li.question {
+    color: #666666;
+    font-weight: bold;
+    font-size: 22px;
+    margin-bottom: 0px;
+}
+
+div#filter-block ul.filtering-options li {
+    padding: 15px 0 15px 0;
+    width: 90%;
+    height: 6px;
+    margin: 20px 0 0 0;
+    font-size: 18px;
+    float: left;
+}
+
+div.float-block {
+    float: left;
+    width: 50%;
+    margin: 0;
+    padding: 0;
+}
+
+div.full-float-block {
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+    height: 0px;
+}
+
+div.full-float-block h2 {
+    color: #66666;
+}
+
+div#jquery_jplayer_1 {
+    float: left;
+    clear: both;
+    width: 878px;
+    margin: 0 auto;
+    position: relative;
+}
+
+div.jp-interface div.jp-controls a {
+    display: block;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+div.jp-controls {
+    width: 100%;
+    padding: 20px 0px 0px 0px !important;
+    /*margin: 0px !important;*/
+}
+
+.btn-jplayer {
+    background-color: hsl(201, 100%, 30%) !important;
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#00a5ff", endColorstr="#006399");
+    background-image: -khtml-gradient(linear, left top, left bottom, from(#00a5ff), to(#006399));
+    background-image: -moz-linear-gradient(top, #00a5ff, #006399);
+    background-image: -ms-linear-gradient(top, #00a5ff, #006399);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #00a5ff), color-stop(100%, #006399));
+    background-image: -webkit-linear-gradient(top, #00a5ff, #006399);
+    background-image: -o-linear-gradient(top, #00a5ff, #006399);
+    background-image: linear-gradient(#00a5ff, #006399);
+    border-color: #006399 #006399 hsl(201, 100%, 25%);
+    color: #fff !important;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.33);
+    -webkit-font-smoothing: antialiased;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
+#spinner-1, #spinner-2 {
+    float: left;
+    clear: both;
+    margin: 20px 30px 0px 0px;
+}
+
+.jp-play {
+    /*background: url(../images/play.png) no-repeat;*/
+    /*text-indent: -9999px;*/
+    display: block;
+    overflow: hidden;
+    width: 200px;
+    height: 60px;
+    float: left;
+    clear: both;
+    margin: 10px 10px 0px 0px;
+    text-align: center;
+    line-height: 60px;
+    font-size: 24px;
+}
+
+.jp-pause {
+    /*background: url(../images/play.png) no-repeat;*/
+    /*text-indent: -9999px;*/
+    display: block;
+    overflow: hidden;
+    width: 200px;
+    height: 60px;
+    float: left;
+    clear: both;
+    margin: 10px 10px 0px 0px;
+    text-align: center;
+    line-height: 60px;
+    font-size: 24px;
+}
+
+div#tag-block ul {
+    margin: 0px;
+    padding-left: 0;
+}
+
+.clear {
+    clear: both;
+}
+
+#tag-block {
+    margin: 20px 0 20px 0;
+}
+
+#tag-block li {
+    font-size: 26px !important;
+    line-height: 1.6;
+}
+
+#tag-text {
+    color: #855207;
+    font-weight: bold;
+}
+
+#voicemap-block {
+    /*width: 960px;*/
+    /*min-width: 960px;*/
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 800px;
+    position: relative;
+    margin-left: 0px;
+}
+
+#voicemap-nav {
+    width: 100%;
+    /*position: absolute;*/
+    margin-left: 0px;
+}
+
+#voicemap-loading {
+    position: absolute;
+    width: 100%;
+    height: 800px;
+    display: none;
+    z-index: 10;
+    background: rgba(0, 0, 0, .5);
+}
+
+#voicemap-loading h1 {
+    color: #ffffff;
+    text-align: center;
+}
+
+#gmap_canvas {
+    width: 100%;
+}
+
+.markerDiv {
+    height: 100%;
+    width: 100%;
+    float: left;
+    padding: 10px 0px;
+}
+
+.markerDiv img {
+    margin: 10px 0px;
+}
+
+.markerDiv h1 {
+    font-size: 14px;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+}
+
+.markerDiv h2 {
+    font-size: 12px;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+}
+
+.markerDiv p {
+    margin: 0px;
+    font-size: 12px;
+    padding: 5px 0px;
+}
+
+#main .markerDiv input[type="checkbox"], #main .markerDiv input[type="checkbox"]:checked {
+    visibility: hidden;
+    width: 0px;
+    height: 0px;
+    background: transparent;
+    margin: 0;
+    padding: 0;
+}
+
+.markerDiv p a {
+    font-style: italic;
+    font-size: 11px;
+}
+
+#mapframe {
+    background-color: #e7e7e7;
+    position: absolute;
+    top: 70px;
+    visibility: hidden;
+    width: 100%;
+    margin: 0;
+}
+
+#mapframe #mapwindow {
+    height: 300px;
+    margin: 8px;
+    padding: 0;
+}
+
+.spinner {
+    margin: 15px auto 0px auto;
+    visibility: hidden;
+    padding-top: 27px;
+}
+
+.spinner span {
+    margin-left: 5px;
+}
+
+div #header, div#main {
+    width: 100%;
+    background: transparent;
+    padding: 0;
+}
+
+div #content h2 {
+    margin-top: 0;
+}
+
+/* ==|== media queries ======================================================
+   EXAMPLE Media Query for Responsive Design.
+   This example overrides the primary ('mobile first') styles
+   Modify as content requires.
+   ========================================================================== */
+@media only screen and (max-width: 1024px) and (min-width: 35em) {
+    /* Style adjustments for viewports that meet the condition */
+    html {
+        font-size: .8em;
+    }
+}
+
+@media only screen and (max-width: 35em) {
+    /* Style adjustments for viewports that meet the condition */
+    html {
+        font-size: .65em;
+    }
+}
+
+
+/*!
+ * Start Bootstrap - Landing Page Bootstrap Theme (http://startbootstrap.com)
+ * Code licensed under the Apache License v2.0.
+ * For details, see http://www.apache.org/licenses/LICENSE-2.0.
+ */
+
+body,
+html {
+    width: 100%;
+    height: 100%;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    /*font-weight: 700;*/
+}
+
+#content-map {
+    /*height: 100%;*/
+    padding: 0 0 !important;
+}
+
+#content-map .container {
+    width: 100%;
+    height: 800px;
+    padding-right: 0;
+    padding-left: 0;
+}
+
+#tag-block {
+    margin: 20px 0 20px 0;
+}
+
+#tag-block li {
+    font-size: 26px !important;
+    line-height: 1.6;
+    list-style-type: none;
+}
+
+#tag-text {
+    color: #855207;
+    font-weight: bold;
+}
+
+#map-block {
+    width: auto;
+    margin: 0;
+    padding: 0;
+    height: 600px;
+    position: relative;
+}
+
+.content-section-a {
+    padding: 20px 0;
+    background-color: #f8f8f8;
+}
+
+.content-section-b {
+    padding: 50px 0;
+    border-top: 1px solid #e7e7e7;
+    border-bottom: 1px solid #e7e7e7;
+}
+
+.section-heading {
+    margin-bottom: 30px;
+}
+
+.section-heading-spacer {
+    float: left;
+    width: 200px;
+    border-top: 3px solid #e7e7e7;
+}
+
+.first-section {
+    margin-top: 50px;
+}
+
+@media (max-width: 767px) {
+    #tag-block li {
+        font-size: 18px !important;
+        line-height: 1.4;
+        list-style-type: none;
+    }
+
+    #content-map .container {
+        width: 100%;
+        height: 400px;
+        padding-right: 0;
+        padding-left: 0;
+        /*display: none;*/
+    }
+
+    #voicemap-block {
+        height: 400px;
+    }
+}
