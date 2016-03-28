@@ -202,8 +202,8 @@ class AssetAdmin(ProjectProtectedModelAdmin):
         ('Geographical Data', {
             'fields': (
                 'location_map',
-                'longitude',
-                'latitude'
+                'latitude',
+                'longitude'
             )
         })
     )
@@ -282,7 +282,8 @@ class ProjectAdmin(GuardedModelAdmin):
             'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',
                        'demo_stream_enabled', 'reset_tag_defaults_on_startup', 'timed_asset_priority',
                        'max_recording_length', 'recording_radius', 'out_of_range_distance', 'audio_stream_bitrate', 'sharing_url',
-                       'out_of_range_url', 'demo_stream_url', 'files_url', 'files_version', 'repeat_mode', 'ordering')
+                       'out_of_range_url', 'demo_stream_url', 'files_url', 'files_version', 'repeat_mode',
+                       'ordering', 'audio_format')
         }),
         ('Localized Strings', {
             'fields': ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',
@@ -290,7 +291,7 @@ class ProjectAdmin(GuardedModelAdmin):
         }),
         ('Other', {
             'classes': ('collapse',),
-            'fields': ('audio_format', 'listen_questions_dynamic', 'speak_questions_dynamic')
+            'fields': ('listen_questions_dynamic', 'speak_questions_dynamic')
         }),
     )
 
@@ -442,6 +443,7 @@ class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):
 
 class TimedAssetAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'project', 'asset', 'start', 'end')
+    list_editable = ('start', 'end',)
     ordering = ['id']
     list_filter = ('project__name',)
 
