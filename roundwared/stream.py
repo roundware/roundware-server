@@ -45,7 +45,7 @@ class RoundStream:
         self.started = False
 
         logger.debug("Project radius: %d meters" % self.radius)
-        if self.radius == None:
+        if self.radius is None:
             self.radius = settings.RECORDING_RADIUS
 
         # TODO - Why is this stored as listener and as request?

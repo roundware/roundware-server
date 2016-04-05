@@ -86,13 +86,20 @@ def get_project_tags(p=None, s=None):
 
 # @profile(stats=True)
 def request_stream(request):
-    session_id = request.GET.get('session_id', None)
+    if not hasattr(request, 'data'):
+        if request.method == 'POST':
+            data = request.POST
+        else:
+            data = request.GET
+    else:
+        data = request.data
+    session_id = data.get('session_id', None)
     if session_id is None and hasattr(request, 'data'):
-        session_id = request.data.get('session_id', None)
+        session_id = data.get('session_id', None)
     if not session_id:
         raise RoundException("Must supply session_id.")
 
-    log_event("request_stream", int(session_id), request.GET)
+    log_event("request_stream", int(session_id), data)
 
     session = models.Session.objects.select_related('project').get(id=session_id)
     project = session.project
@@ -123,11 +130,11 @@ def request_stream(request):
             command = [settings.PROJECT_ROOT + '/roundwared/rwstreamd.py',
                        '--session_id', str(session.id), '--project_id', str(project.id)]
             for p in ['latitude', 'longitude', 'audio_format']:
-                if p in request.GET and request.GET[p]:
-                    command.extend(['--' + p, request.GET[p].replace("\t", ",")])
-            if 'audio_stream_bitrate' in request.GET:
+                if p in data and data[p]:
+                    command.extend(['--' + p, data[p].replace("\t", ",")])
+            if 'audio_stream_bitrate' in data:
                 command.extend(
-                    ['--audio_stream_bitrate', str(request.GET['audio_stream_bitrate'])])
+                    ['--audio_stream_bitrate', str(data['audio_stream_bitrate'])])
 
             apache_safe_daemon_subprocess(command)
             wait_for_stream(session.id, audio_format)

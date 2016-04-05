@@ -180,8 +180,8 @@ class StreamSerializer(serializers.Serializer):
     project_id = serializers.IntegerField(required=False)
     tags = serializers.CharField(max_length=255, required=False)
 
-    lat = serializers.FloatField(required=False)
-    long = serializers.FloatField(required=False)
+    latitude = serializers.FloatField(required=False)
+    longitude = serializers.FloatField(required=False)
     url = serializers.URLField(required=False)
 
     def validate_session_id(self, value):
@@ -203,6 +203,12 @@ class StreamSerializer(serializers.Serializer):
         if 'project_id' in attrs and attrs['project_id'] != project.id:
             raise ValidationError("project_id=%s does not match session.project=%s." %
                                   (attrs['project_id'], project.id))
+
+        # if project is geo_listen_enabled, require a latitude and longitude
+        if project.geo_listen_enabled:
+            if 'latitude' not in attrs or 'longitude' not in attrs:
+                raise ValidationError("latitude and longitude required for geo_listen_enabled project")
+
         # Set project_id to make sure it exists.
         attrs['project_id'] = project.id
 
