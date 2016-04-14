@@ -19,6 +19,47 @@ Done!
 The following instructions describe modifications to the standard upgrade process required due to
 specific changes. Items are listed in reverse chronological order.
 
+## 4/28/16 - Upgrade Django from 1.7 to 1.9
+
+The time has come to upgrade Django and other required apps to their newest versions. If you are
+installing Roundware from scratch, there is no need to take extra steps. However, if your
+installation is based on a commit prior to the Django 1.9 migration, some manual setup is needed.
+
+As part of the upgrade process, [django-guardian](http://django-guardian.readthedocs.io/en/stable/)
+must be updated from 1.2.4 to 1.4.4. While the old versions of guardian used `syncdb` to populate
+the database, newer versions use migrations. The database structures are identical; however, these
+migrations do not check if the tables and relationships are already in place. Therefore, you must
+suppress guardian's initial migration.
+
+1. Make sure that you are in `su - roundware` or `su - vagrant` as appropriate
+2. Pull the relevant post-upgrade roundware-server commit (or newer)
+3. Run `pip install -r ~/roundware-server/requirements/dev.txt`
+   This will download the new requirements, both `common` and `dev`
+   Alternatively, you can `./scripts/runserver.sh` and then `Ctrl+C`
+   It should warn you about unapplied migrations
+4. Navigate to the `roundware` folder in your terminal
+5. Run `python manage.py migrate guardian --fake-initial`
+6. Run `python manage.py migrate` for the other migrations
+
+Note that you might have to also manually uninstall `django-chartit`. `django-chartit2` is meant
+to be a drop-in replacement, but if `django-chartit` is still installed, it will not work. Ensure
+that the `roundware` user can access all new `site-packages`.
+
+Next, you must run the following commands:
+
+ ```
+ rm -f /etc/apache2/sites-available/roundware.conf
+ sed s/USERNAME/roundware/g /var/www/roundware/source/files/etc-apache2-sites-available-roundware > /etc/apache2/sites-available/roundware.conf
+ # If you are using vagrant, replace roundware with vagrant after USERNAME
+ ```
+
+Roundware's `wsgi.py` was moved in this commit, and the Apache conf file must be updated. If you
+get 404 errors after upgrading, chances are you skipped this step.
+
+Lastly, ensure that you are not in a virtual environment, and run `./deploy.sh`
+Check the log to ensure that all of the required apps are located in `/var/www/roundware/lib/`
+It isn't necessary, but it might save you some headache with permissions.
+
 ### 3/7/16 - Convert from MySQL to Postgresql for GIS speaker upgrades
 Related Github issue: https://github.com/roundware/roundware-server/pull/270
 

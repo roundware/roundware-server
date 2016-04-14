@@ -7,7 +7,6 @@ import logging
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
-from django.forms.models import save_instance
 from django.views.generic.base import TemplateView
 from django.utils.safestring import mark_safe
 from django.shortcuts import render_to_response
@@ -217,8 +216,10 @@ class MasterUIMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
                 'tag').filter(master_ui=mui)
             # instance isn't constructed yet with data from form so we can't
             # use form.save() but have to do the following with construct=True
-            save_instance(form, mui, form._meta.fields, 'form changed', True,
-                          form._meta.exclude, True)
+
+            save(form, mui, form._meta.fields, 'form changed', True,
+                 form._meta.exclude, True)
+
             self.update_ui_mappings(uimaps, formtags, defaults, indexes, mui)
 
         else:

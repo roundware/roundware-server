@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 from django.contrib.admin import DateFieldListFilter, RelatedFieldListFilter
-from django.contrib.admin.util import (get_model_from_relation,
+from django.contrib.admin.utils import (get_model_from_relation,
                                        prepare_lookup_value)
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import smart_unicode

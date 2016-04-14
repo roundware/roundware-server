@@ -16,7 +16,6 @@ from validatedfile.fields import ValidatedFileField
 from django.conf import settings
 from datetime import datetime
 from cache_utils.decorators import cached
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 import logging
 from geopy.distance import vincenty
@@ -68,9 +67,9 @@ class Project(models.Model):
     speak_questions_dynamic = models.BooleanField(default=False)
     sharing_url = models.CharField(max_length=512)
     sharing_message_loc = models.ManyToManyField(
-        LocalizedString, related_name='sharing_msg_string', null=True, blank=True)
+        LocalizedString, related_name='sharing_msg_string', blank=True)
     out_of_range_message_loc = models.ManyToManyField(
-        LocalizedString, related_name='out_of_range_msg_string', null=True, blank=True)
+        LocalizedString, related_name='out_of_range_msg_string', blank=True)
     out_of_range_url = models.CharField(max_length=512)
     recording_radius = models.IntegerField(null=True)
     listen_enabled = models.BooleanField(default=False)
@@ -80,7 +79,7 @@ class Project(models.Model):
     reset_tag_defaults_on_startup = models.BooleanField(default=False)
     timed_asset_priority = models.BooleanField(default=True)
     legal_agreement_loc = models.ManyToManyField(
-        LocalizedString, related_name='legal_agreement_string', null=True, blank=True)
+        LocalizedString, related_name='legal_agreement_string', blank=True)
     repeat_mode = models.CharField(default=STOP, max_length=10, blank=False,
                                choices=REPEAT_MODES)
 
@@ -97,7 +96,7 @@ class Project(models.Model):
     demo_stream_enabled = models.BooleanField(default=False)
     demo_stream_url = models.CharField(max_length=512, blank=True)
     demo_stream_message_loc = models.ManyToManyField(
-        LocalizedString, related_name='demo_stream_msg_string', null=True, blank=True)
+        LocalizedString, related_name='demo_stream_msg_string', blank=True)
 
     out_of_range_distance = models.FloatField(default=1000)
 
@@ -156,11 +155,11 @@ class Tag(models.Model):
     value = models.TextField()
     description = models.TextField(null=True, blank=True)
     loc_description = models.ManyToManyField(
-        LocalizedString, null=True, blank=True, related_name='tag_desc')
-    loc_msg = models.ManyToManyField(LocalizedString, null=True, blank=True)
+        LocalizedString, blank=True, related_name='tag_desc')
+    loc_msg = models.ManyToManyField(LocalizedString, blank=True)
     data = models.TextField(null=True, blank=True)
     relationships = models.ManyToManyField(
-        'self', symmetrical=True, related_name='related_to', null=True, blank=True)
+        'self', symmetrical=True, related_name='related_to', blank=True)
     filter = models.CharField(
         max_length=255, default="", null=False, blank=True, choices=FILTERS)
 
@@ -199,7 +198,7 @@ class MasterUI(models.Model):
     )
     name = models.CharField(max_length=50)
     header_text_loc = models.ManyToManyField(
-        LocalizedString, null=True, blank=True)
+        LocalizedString, blank=True)
     ui_mode = models.CharField(default=LISTEN, max_length=6, blank=False,
                                choices=UI_MODES)
     tag_category = models.ForeignKey(TagCategory)
@@ -340,7 +339,7 @@ class Asset(models.Model):
 
     created = models.DateTimeField(default=datetime.now)
     audiolength = models.BigIntegerField(null=True, blank=True)
-    tags = models.ManyToManyField(Tag, null=True, blank=True)
+    tags = models.ManyToManyField(Tag, blank=True)
     language = models.ForeignKey(Language, null=True)
     weight = models.IntegerField(
         choices=[(i, i) for i in range(0, 100)], default=50)
@@ -348,7 +347,7 @@ class Asset(models.Model):
         max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
     description = models.TextField(max_length=2048, blank=True)
     loc_description = models.ManyToManyField(
-        LocalizedString, null=True, blank=True)
+        LocalizedString, blank=True)
 
     # enables inline adding/editing of Assets in Envelope Admin.
     # creates a relationship of an Asset to the Envelope, in which it was
@@ -632,7 +631,7 @@ class TimedAsset(models.Model):
         return "%s: Asset id: %s: Start: %s: End: %s" % (self.id, self.asset.id, self.start, self.end)
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL)
     device_id = models.CharField(max_length=255, null=True)
     client_type = models.CharField(max_length=255, null=True)
 
@@ -641,7 +640,7 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.get_or_create(user=instance)
 
-post_save.connect(create_user_profile, sender=User)
+post_save.connect(create_user_profile, sender=settings.AUTH_USER_MODEL)
 
 
 def get_field_names_from_model(model):

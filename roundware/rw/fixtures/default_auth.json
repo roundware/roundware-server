@@ -820,24 +820,6 @@
 },
 {
   "fields": {
-    "username": "AnonymousUser",
-    "first_name": "",
-    "last_name": "",
-    "is_active": true,
-    "is_superuser": false,
-    "is_staff": false,
-    "last_login": "2015-10-08T13:02:44",
-    "groups": [],
-    "user_permissions": [],
-    "password": "",
-    "email": "",
-    "date_joined": "2015-10-08T13:02:44"
-  },
-  "model": "auth.user",
-  "pk": -1
-},
-{
-  "fields": {
     "username": "round",
     "first_name": "",
     "last_name": "",

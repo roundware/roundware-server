@@ -19,6 +19,7 @@ ADMINS = (
 
 # here() gives us file paths from the root of the system to the directory
 # holding the current file.
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # 1.8
 here = lambda * x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
 
 # Root of roundware Django project
@@ -124,6 +125,8 @@ USE_I18N = True
 # calendars according to the current locale
 USE_L10N = True
 
+USE_TZ = False # Django 1.9 (timezone)
+
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
 MEDIA_ROOT = '/var/www/roundware/rwmedia/'
@@ -187,6 +190,8 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'roundware.urls'
 
+WSGI_APPLICATION = 'roundware.wsgi.application'
+
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
@@ -196,9 +201,10 @@ TEMPLATE_DIRS = (
     PROJECT_PATH + '/../rw/templates/rw',
 )
 
+# The numbers in comments indicate rough loading order for troubleshooting
 INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
+    'django.contrib.auth', #1
+    'django.contrib.contenttypes', #2
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
@@ -206,8 +212,8 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
-    'django.contrib.admin.apps.SimpleAdminConfig',
-    'guardian',
+    'django.contrib.admin.apps.SimpleAdminConfig', #5
+    'guardian', #3
     'chartit',
     'validatedfile',
     'adminplus',
@@ -221,7 +227,7 @@ INSTALLED_APPS = (
     'leaflet',
     'corsheaders',
     'roundware.lib',
-    'roundware.rw',
+    'roundware.rw', #4
     'roundware.notifications',
     'roundware.api1',
     'roundware.api2',
@@ -241,8 +247,8 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ),
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/day',
-        'user': '1000/day'
+        'anon': '100000/day', # previously 100
+        'user': '1000000/day' # previously 1000
     }
 }
 
@@ -272,21 +278,22 @@ LOGGING = {
             'formatter': 'verbose',
         },
     },
+    # consider adding mail_admins to the handlers below as needed
     'loggers': {
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['file'],
             'level': 'ERROR',
             'propagate': True,
         },
         # The roundware system logger.
         'roundware': {
             'level': 'DEBUG',
-            'handlers': ['file', 'mail_admins'],
+            'handlers': ['file'],
         },
         # The roundwared stream manager logger.
         'roundwared': {
             'level': 'DEBUG',
-            'handlers': ['file', 'mail_admins'],
+            'handlers': ['file'],
         },
     },
     'formatters': {
@@ -321,3 +328,5 @@ CACHES = {
 
 # use Twitter Bootstrap template pack for django-crispy-forms
 CRISPY_TEMPLATE_PACK = 'bootstrap'
+
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend', 'guardian.backends.ObjectPermissionBackend')
