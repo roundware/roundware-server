@@ -68,7 +68,7 @@ class TagCreateForm(forms.ModelForm):
 class BatchTagFormset(BaseModelFormSet):
 
     def save(self):
-        """ saving is handled by view.  May need to revisit this if we 
+        """ saving is handled by view.  May need to revisit this if we
         add inlines.
         """
         pass

@@ -19,6 +19,59 @@ Done!
 The following instructions describe modifications to the standard upgrade process required due to
 specific changes. Items are listed in reverse chronological order.
 
+### 6/13/16 - Upgrade Django from 1.7 to 1.9
+Related Github issue: https://github.com/roundware/roundware-server/pull/283
+
+The time has come to upgrade Django and other required apps to their newest versions. If you are
+installing Roundware from scratch, there is no need to take extra steps. However, if your
+installation is based on a commit prior to the Django 1.9 migration, some manual setup is needed.
+
+#### Detailed Steps (for production machines, not vagrant)
+
+1. Pull the relevant post-upgrade `roundware-server` commit (or newer)
+2. Remove obsolete `auth_permission` rows (see issue #291):
+
+```
+sudo su - postgres -c 'psql -c "DELETE FROM auth_permission WHERE id IN (SELECT id FROM auth_permission EXCEPT ((SELECT permission_id FROM auth_group_permissions) UNION (SELECT permission_id FROM auth_user_user_permissions)))" roundware'
+```
+
+3. Initial deploy: `sudo ./deploy.sh` (this will error on `django-guardian` but don't worry,
+   we're about to fix that)
+4. Run migrations
+
+ ```
+ sudo su - roundware -c "/var/www/roundware/source/roundware/manage.py migrate guardian --fake-initial"
+ sudo su - roundware -c "/var/www/roundware/source/roundware/manage.py migrate"
+ ```
+5. Replace apache config (note this will over-write any customizations you may have made)
+
+ ```
+ sudo rm -f /etc/apache2/sites-available/roundware.conf
+ sudo su - -c "sed s/USERNAME/roundware/g /var/www/roundware/source/files/etc-apache2-sites-available-roundware > /etc/apache2/sites-available/roundware.conf"
+ ```
+6. Run `sudo ./deploy.sh`
+
+#### Notes / Troubleshooting
+
+* As part of the upgrade process, [django-guardian](http://django-guardian.readthedocs.io/en/stable/)
+must be updated from 1.2.4 to 1.4.4. While the old versions of guardian used `syncdb` to populate
+the database, newer versions use migrations. The database structures are identical; however, these
+migrations do not check if the tables and relationships are already in place. Therefore, you must
+suppress guardian's initial migration.
+* You might have to manually uninstall `django-chartit`. `django-chartit2` is meant
+to be a drop-in replacement, but if `django-chartit` is still installed, it will not work. Ensure
+that the `roundware` user can access all new `site-packages`.
+* You might also need to uninstall `django-admin-bootstrapped` manually. Symptomatically, if the
+Django admin panel has no theme, it's likely that an old version of `django-admin-bootstrapped` was installed globally
+(`/usr/local/lib`) and is now interfering with the new `django-admin-bootstrapped` in the `virtualenv`. Old versions
+required `django_admin_bootstrapped.bootstrap3` to be in `INSTALLED_APPS` to render the theme.
+Otherwise, it would fail silently, and no theme would be rendered. Try running `pip freeze`;
+if `django-admin-bootstrapped` is `v2.0.4`, run `pip uninstall django-admin-bootstrapped`.
+* Roundware's `wsgi.py` was moved in this commit, and the Apache conf file must be updated. If you
+get 404 errors after upgrading, chances are you skipped this step.
+* Check the log to ensure that all of the required apps are located in `/var/www/roundware/lib/`.
+It isn't necessary, but it might save you some headache with permissions.
+
 ### 3/7/16 - Convert from MySQL to Postgresql for GIS speaker upgrades
 Related Github issue: https://github.com/roundware/roundware-server/pull/270
 

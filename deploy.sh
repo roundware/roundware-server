@@ -48,13 +48,8 @@ export PYTHONPATH=$CODE_PATH
 # Install upgrade pip
 pip install -U pip
 
-# Install RoundWare requirements
+# Install Roundware requirements
 pip install -r $CODE_PATH/requirements.txt --upgrade
-
-# Apply patch to fix M2M field deserializing for Tag relationships, force command to return true.
-# Details: https://code.djangoproject.com/ticket/17946
-# TODO: Remove when fixed in Django core, probably when upgrading to Django 1.8.
-patch -N $WWW_PATH/lib/python2.7/site-packages/django/core/serializers/python.py < $CODE_PATH/files/fix-m2m-deserial.patch || true
 
 # Set $USERNAME to own WWW_PATH files
 chown $USERNAME:$USERNAME -R $WWW_PATH

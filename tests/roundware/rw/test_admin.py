@@ -12,7 +12,7 @@ from django_webtest import WebTest
 from roundware.rw.admin import *
 from roundware.rw.models import Project, Asset, Session, MasterUI
 from roundware.settings import DEFAULT_SESSION_ID
-from guardian.shortcuts import assign
+from guardian.shortcuts import assign_perm
 from model_mommy import mommy
 
 from tests.roundware.api1.test_commands import TEST_POLYGONS
@@ -56,7 +56,7 @@ class TestAssetAdmin(RWTestCase, WebTest):
         return form.submit()
 
     def need_updating_for_boostrapped_test_func_filter_by_alpha_tag_cat_show_correct_filters(self):
-        """ test that custom filter providing alphabetized filters by 
+        """ test that custom filter providing alphabetized filters by
         tag category are available, based on tags on assets
         """
         self._login(username=self.username, password='foo')
@@ -149,7 +149,7 @@ class TestProtectedAdmin(RWTestCase):
         #     pub_date="1111-11-11", max_recording_length=1)
         # self.excluded_project = Project.objects.create(name="excluded", latitude=1, longitude=1,
         #     pub_date="1111-11-11", max_recording_length=1)
-        assign("access_project", self.user, self.permitted_project)
+        assign_perm("access_project", self.user, self.permitted_project)
         self.user.save()
         self.request = FakeRequest()
         self.request.user = self.user

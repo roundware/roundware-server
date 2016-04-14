@@ -1,28 +1,26 @@
-Django<1.8
+Django==1.9
 # Creates REST APIs
-djangorestframework==3.2.2
+djangorestframework==3.3.3
 # Used for DRF filtering
-django-filter==0.9
+django-filter==0.13
 # Used in roundware/rw/chart_functions.py
-django-chartit==0.1
+django_chartit2
 # Used in roundware/rw/admin.py, roundware/rw/forms.py, roundware/rw/views, and more.
-django-guardian==1.2.4
+django-guardian==1.4.4
 # Used by roundware/api1/commands.py
-psutil==2.1.3
+psutil==3.4.2
 # Used by roundwared/db.py
 django-cache-utils==0.7.2
 # Used by roundware/rw/fields.py
 django-validated-file==2.0.1
-# Loaded in roundware/settings/common.py
-django-admin-bootstrapped==2.0.4
 # Used in roundware/rw/views.py
 django-braces==1.4.0
 # Loaded in roundware/urls.py
 django-adminplus==0.2.1
 # Used in roundware/rw/forms.py
-django-crispy-forms==1.4.0
+django-crispy-forms==1.6.0
 # Used in roundware/rw/widgets.py
-django-floppyforms==1.2
+django-floppyforms==1.6.1
 # Used in roundware/rw/views.py:
 django-extra-views==0.6.5
 # Used in roundware/rw/fields.py and roundware/rw/widgets.py
@@ -42,6 +40,8 @@ django-cors-headers
 # fiona is a useful tool for processing geographic files (ETL)
 fiona
 # geographic extensions for djangorestframework-gis
-djangorestframework-gis
+djangorestframework-gis==0.10.1
 # leaflet map utilities for django admin
-django-leaflet
+django-leaflet==0.18.0
+# Bootstrap admin theme for Django 1.9
+https://github.com/roundware/django-admin-bootstrapped/zipball/3.0.0

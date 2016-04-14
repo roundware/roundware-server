@@ -911,19 +911,10 @@
 {
     "fields": {
         "client_type": null,
-        "user": -1,
-        "device_id": null
-    },
-    "model": "rw.userprofile",
-    "pk": 1
-},
-{
-    "fields": {
-        "client_type": null,
         "user": 1,
         "device_id": null
     },
     "model": "rw.userprofile",
-    "pk": 2
+    "pk": 1
 }
 ]

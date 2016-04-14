@@ -7,14 +7,15 @@ from __future__ import unicode_literals
 import logging
 import traceback
 
+import django
+django.setup()
+
 from roundwared.stream import RoundStream
 from roundwared import dbus_receive
 import getopt
 import sys
 import re
 import os
-import django
-django.setup()
 
 def listofint(s):
     return map(int, s.split(','))
