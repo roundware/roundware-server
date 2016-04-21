@@ -24,6 +24,12 @@ class WordListFilter(django_filters.Filter):
         return qs
 
 
+class NanoNumberFilter(django_filters.NumberFilter):
+    def filter(self, qs, value):
+        value = round(value * 1000000000, 2)
+        return super(NanoNumberFilter, self).filter(qs, value)
+
+
 class EventFilterSet(django_filters.FilterSet):
     event_type = django_filters.CharFilter(lookup_type='icontains')
     server_time = django_filters.DateTimeFilter(lookup_type='startswith')
@@ -54,6 +60,10 @@ class AssetFilterSet(django_filters.FilterSet):
     longitude = django_filters.NumberFilter(lookup_type='startswith')
     latitude = django_filters.NumberFilter(lookup_type='startswith')
     submitted = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    audiolength__lte = NanoNumberFilter(name='audiolength', lookup_type='lte')
+    audiolength__gte = NanoNumberFilter(name='audiolength', lookup_type='gte')
+    created__lte = django_filters.DateTimeFilter(name='created', lookup_type='lte')
+    created__gte = django_filters.DateTimeFilter(name='created', lookup_type='gte')
 
     class Meta:
         model = Asset
@@ -65,13 +75,14 @@ class AssetFilterSet(django_filters.FilterSet):
                   'envelope',
                   'longitude',
                   'latitude',
-                  'submitted']
+                  'submitted',
+                  'audiolength',
+                  'created']
 
 
 class ListeningHistoryItemFilterSet(django_filters.FilterSet):
     duration__lte = django_filters.NumberFilter('duration', lookup_type='lte')
     duration__gte = django_filters.NumberFilter('duration', lookup_type='gte')
-
     start_time__gte = django_filters.DateTimeFilter(name='starttime', lookup_type='gte')
     start_time__lte = django_filters.DateTimeFilter(name='starttime', lookup_type='lte')
     start_time__range = django_filters.DateRangeFilter(name='starttime')

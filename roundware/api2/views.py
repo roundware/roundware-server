@@ -19,8 +19,9 @@ from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 import logging
+from random import randint
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,25 @@ class AssetViewSet(viewsets.ViewSet):
         else:
             count = vote_count_by_asset(pk)
             return Response(count)
+
+    @list_route(methods=['get'])
+    def random(self, request, pk=None):
+        """
+        GET api/2/assets/random/ - retrieve random list of assets filtered by parameters
+        """
+        # grab 'limit' GET param, if exists; if not, set to 1
+        limit = int(request.query_params.get('limit', 1))
+        assets = AssetFilterSet(request.query_params).qs.values_list('id', flat=True)
+        selected_ids = []
+        counter = 0
+        if len(assets) is not 0:
+            while counter < limit:
+                selected_ids.append(assets[randint(0, len(assets)-1)])
+                counter += 1
+        results = Asset.objects.filter(id__in=selected_ids)
+        serializer = serializers.AssetSerializer(results, many=True)
+        data = serializer.data
+        return Response(data)
 
 
 class EnvelopeViewSet(viewsets.ViewSet):
