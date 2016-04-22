@@ -21,7 +21,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route, list_route
 import logging
-from random import randint
+from random import sample
 
 logger = logging.getLogger(__name__)
 
@@ -101,19 +101,18 @@ class AssetViewSet(viewsets.ViewSet):
         """
         GET api/2/assets/random/ - retrieve random list of assets filtered by parameters
         """
-        # grab 'limit' GET param, if exists; if not, set to 1
-        limit = int(request.query_params.get('limit', 1))
         assets = AssetFilterSet(request.query_params).qs.values_list('id', flat=True)
-        selected_ids = []
-        counter = 0
-        if len(assets) is not 0:
-            while counter < limit:
-                selected_ids.append(assets[randint(0, len(assets)-1)])
-                counter += 1
+        asset_count = len(assets)
+        if asset_count is 0:
+            return Response([])
+        # ensure limit isn't greater than asset_count which causes sample to fail
+        limit = min(int(request.query_params.get('limit', 1)), asset_count)
+        # ensure indices returned are unique
+        random_idx = sample(range(asset_count), limit)
+        selected_ids = [assets[x] for x in random_idx]
         results = Asset.objects.filter(id__in=selected_ids)
         serializer = serializers.AssetSerializer(results, many=True)
-        data = serializer.data
-        return Response(data)
+        return Response(serializer.data)
 
 
 class EnvelopeViewSet(viewsets.ViewSet):
