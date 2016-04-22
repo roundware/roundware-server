@@ -88,13 +88,14 @@ class TestServer(APITestCase):
                                      tag=self.tag2, active=True)
         # setup assets and envelopes
         self.asset1 = mommy.make(Asset, project=self.project1, id=1,
-                                 audiolength=5000000, volume=0.9,
+                                 audiolength=5000000000, volume=0.9,
                                  created=datetime.datetime(
                                      2013, 11, 21, 21, 3, 6, 616402),
                                  latitude='0.1', longitude='0.1',
                                  language=self.english,
                                  tags=(self.tag1,))
         self.asset2 = mommy.make(Asset, project=self.project1, id=2,
+                                 audiolength=10000000000,
                                  language=self.english,
                                  tags=(self.tag1,))
         self.envelope1 = mommy.make(Envelope, session=self.session,
@@ -123,6 +124,7 @@ class TestServer(APITestCase):
         self.projects_get()
         self.projects_tags_get()
         self.projects_assets_get()
+        self.assets_random_get()
 
         # some endpoints cannot be tested currently
         # self.streams_post()
@@ -189,6 +191,22 @@ class TestServer(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
         self.assertEqual(response.data[0]["project"], 1)
+
+    def assets_random_get(self):
+        data = {"mediatype": "audio",
+                "project_id": 1,
+                "audiolength__lte": 8,
+                "limit": 2}
+        response = self.client.get('/api/2/assets/random/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        data = {"mediatype": "audio",
+                "project_id": 1,
+                "audiolength__lte": 12,
+                "limit": 2}
+        response = self.client.get('/api/2/assets/random/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
 
     def ensure_token_required(self):
         self.client.credentials(HTTP_AUTHORIZATION='')
