@@ -1,10 +1,10 @@
-// get around some jQuery namespace conflicts in js files... 
+// get around some jQuery namespace conflicts in js files...
 var $ = django.jQuery;
 var jQuery = django.jQuery;
 
 
-function update_MasterUI_edit_form() {
-    // update the edit form fields with data for the selected masterui 
+function update_UIGroup_edit_form() {
+    // update the edit form fields with data for the selected uigroup
     $form=$('#setup_tag_ui_form');
     var datastring = $form.serialize();
     //console.log('datastring:'+ datastring);

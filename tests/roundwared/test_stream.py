@@ -5,8 +5,8 @@ from __future__ import unicode_literals
 from model_mommy import mommy
 
 from .common import RoundwaredTestCase
-from roundware.rw.models import (MasterUI, Session, Tag, Asset, TagCategory,
-                                 UIMapping, Project, LocalizedString)
+from roundware.rw.models import (UIGroup, Session, Tag, Asset, TagCategory,
+                                 UIItem, Project, LocalizedString)
 from roundwared.stream import RoundStream
 
 

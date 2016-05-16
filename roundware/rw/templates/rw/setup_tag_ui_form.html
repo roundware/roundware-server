@@ -2,7 +2,7 @@
 {% load admin_urls i18n crispy_forms_tags formset_tags %}
 
 {% block extrahead %}
-{{ master_ui_edit_form.media }}
+{{ ui_group_edit_form.media }}
 <script type="text/javascript" language="javascript" src="/admin/jsi18n/"></script>
 
 {% endblock %}
@@ -19,9 +19,9 @@
 
 {% block content %}
 
-<form id="setup_tag_ui_form" class="uniForm" method='post' action=''> 
+<form id="setup_tag_ui_form" class="uniForm" method='post' action=''>
 
-        {% crispy master_ui_select_form master_ui_select_form.helper %}  
+        {% crispy ui_group_select_form ui_group_select_form.helper %}
 
         <div style="clear:both"></div>
 

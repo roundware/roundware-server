@@ -1,4 +1,4 @@
-from roundware.rw.models import Event, Asset, ListeningHistoryItem, Tag
+from roundware.rw.models import Event, Asset, ListeningHistoryItem, Tag, TagRelationship, UIItem, UIGroup
 from distutils.util import strtobool
 import django_filters
 
@@ -101,3 +101,36 @@ class TagFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Tag
+
+
+class TagRelationshipFilterSet(django_filters.FilterSet):
+    tag_id = django_filters.NumberFilter()
+    parent_id = django_filters.NumberFilter()
+
+    class Meta:
+        model = TagRelationship
+
+
+class UIGroupFilterSet(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_type='startswith')
+    ui_mode = django_filters.TypedChoiceFilter(choices=UIGroup.UI_MODES)
+    tag_category_id = django_filters.NumberFilter()
+    select = django_filters.TypedChoiceFilter(choices=UIGroup.SELECT_METHODS)
+    active = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    index = django_filters.NumberFilter()
+    project_id = django_filters.NumberFilter()
+
+    class Meta:
+        model = UIGroup
+
+
+class UIItemFilterSet(django_filters.FilterSet):
+    ui_group_id = django_filters.NumberFilter()
+    index = django_filters.NumberFilter()
+    tag_id = django_filters.NumberFilter()
+    default = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    active = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    parent_id = django_filters.NumberFilter()
+
+    class Meta:
+        model = UIItem

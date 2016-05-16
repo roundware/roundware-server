@@ -12,7 +12,7 @@ function rewriteSortedMultiCheckbox() {
         checkboxes.removeAttr('name');
         $(this).before('<input type="hidden" id="' + id + '" name="' + name + '" />');
         var that = this;
-        var hdn_indexes = $('input#id_master_ui_edit-ui_mappings_tags_indexes');
+        var hdn_indexes = $('input#id_ui_group_edit-ui_items_tags_indexes');
         var recalculate_value = function () {
             var values = [];
             var all_vals = [];

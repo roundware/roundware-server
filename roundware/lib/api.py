@@ -33,8 +33,8 @@ def t(msg, field, language):
         pass
     return msg
 
-
-def get_project_tags(p=None, s=None):
+# This function only used by API/2 to keep backwards compatability
+def get_project_tags_old(p=None, s=None):
     if s is None and p is None:
         raise RoundException("Must pass either a project or a session")
     language = models.Language.objects.filter(language_code='en')[0]
@@ -42,20 +42,20 @@ def get_project_tags(p=None, s=None):
         p = s.project
         language = s.language
 
-    m = models.MasterUI.objects.filter(project=p)
+    uigroups = models.UIGroup.objects.filter(project=p)
     modes = {}
 
-    for masterui in m:
-        if masterui.active:
-            mappings = models.UIMapping.objects.filter(
-                master_ui=masterui, active=True)
-            header = t("", masterui.header_text_loc, language)
+    for uigroup in uigroups:
+        if uigroup.active:
+            mappings = models.UIItem.objects.filter(
+                ui_group=uigroup, active=True)
+            header = t("", uigroup.header_text_loc, language)
 
-            masterD = {'name': masterui.name,
+            masterD = {'name': uigroup.name,
                        'header_text': header,
-                       'code': masterui.tag_category.name,
-                       'select': masterui.get_select_display(),
-                       'order': masterui.index
+                       'code': uigroup.tag_category.name,
+                       'select': uigroup.get_select_display(),
+                       'order': uigroup.index
                        }
             masterOptionsList = []
 
@@ -70,18 +70,34 @@ def get_project_tags(p=None, s=None):
                     # {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
 
                 masterOptionsList.append({'tag_id': mapping.tag.id, 'order': mapping.index, 'data': mapping.tag.data,
-                                          'relationships': mapping.tag.get_relationships(),
+                                          'relationships': mapping.tag.get_relationships_old(),
                                           'description': mapping.tag.description, 'shortcode': mapping.tag.value,
                                           'loc_description': loc_desc,
                                           'value': t("", mapping.tag.loc_msg, language)})
             masterD["options"] = masterOptionsList
             masterD["defaults"] = default
-            if masterui.ui_mode not in modes:
-                modes[masterui.ui_mode] = [masterD, ]
+            if uigroup.ui_mode not in modes:
+                modes[uigroup.ui_mode] = [masterD, ]
             else:
-                modes[masterui.ui_mode].append(masterD)
+                modes[uigroup.ui_mode].append(masterD)
 
     return modes
+
+# This function is used in API/2 (aliased as get_project_tags)
+def get_project_tags_new(p=None, s=None):
+
+    if s is None and p is None:
+        raise RoundException("Must pass either a project or a session")
+
+    language = models.Language.objects.filter(language_code='en')[0]
+
+    if s is not None and p is None:
+        p = s.project
+        language = s.language
+
+    tags = models.Tag.objects.filter(project=p)
+
+    return tags
 
 
 # @profile(stats=True)

@@ -7,10 +7,12 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from roundware.rw.models import (Asset, Event, Envelope, ListeningHistoryItem, Project,
-                                 Session, Tag, UserProfile)
+                                 Session, Tag, TagRelationship, UIGroup, UIItem, UserProfile)
 from roundware.api2 import serializers
-from roundware.api2.filters import EventFilterSet, AssetFilterSet, ListeningHistoryItemFilterSet, TagFilterSet
-from roundware.lib.api import (get_project_tags, modify_stream, move_listener, heartbeat,
+from roundware.api2.filters import (EventFilterSet, AssetFilterSet, ListeningHistoryItemFilterSet,
+                                    TagFilterSet, TagRelationshipFilterSet, UIGroupFilterSet,
+                                    UIItemFilterSet)
+from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, add_asset_to_envelope, get_current_streaming_asset,
                                save_asset_from_request, vote_asset,
                                vote_count_by_asset, log_event)
@@ -244,14 +246,21 @@ class ProjectViewSet(viewsets.ViewSet):
 
     @detail_route(methods=['get'])
     def tags(self, request, pk=None):
+        session = None
         if "session_id" in request.query_params:
             session = get_object_or_404(Session, pk=request.query_params["session_id"])
-            tags = get_project_tags(s=session)
-        else:
-            raise ParseError("session_id is required")
-            project = get_object_or_404(Project, pk=pk)
-            tags = get_project_tags(p=project)
-        return Response(tags)
+
+        tags = get_project_tags(p=pk)
+        serializer = serializers.TagSerializer(tags, context={"session": session}, many=True)
+        return Response({"tags":serializer.data})
+
+    @detail_route(methods=['get'])
+    def uigroups(self, request, pk=None):
+        params = request.query_params.copy()
+        params["project_id"] = pk
+        uigroups = UIGroupFilterSet(params)
+        serializer = serializers.UIGroupSerializer(uigroups, many=True)
+        return Response({"ui_groups":serializer.data})
 
     @detail_route(methods=['get'])
     def assets(self, request, pk=None):
@@ -352,7 +361,7 @@ class TagViewSet(viewsets.ViewSet):
         """
         tags = TagFilterSet(request.query_params)
         serializer = serializers.TagSerializer(tags, many=True)
-        return Response(serializer.data)
+        return Response({"tags":serializer.data})
 
     def retrieve(self, request, pk=None):
         """
@@ -369,6 +378,97 @@ class TagViewSet(viewsets.ViewSet):
             except:
                 raise ParseError("Session not found")
         serializer = serializers.TagSerializer(tag, context={"session": session})
+        return Response(serializer.data)
+
+
+class TagRelationshipViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/tagrelationships/
+            api/2/tagrelationships/:id/
+    """
+    queryset = TagRelationship.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def list(self, request):
+        """
+        GET api/2/tagrelationships/ - Provides list of TagRelationships filtered by parameters
+        """
+        tagrelationships = TagRelationshipFilterSet(request.query_params)
+        serializer = serializers.TagRelationshipSerializer(tagrelationships, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/tagrelationships/:id/ - Get TagRelationship by id
+        """
+        try:
+            tagrelationship = TagRelationship.objects.get(pk=pk)
+        except TagRelationship.DoesNotExist:
+            raise Http404("TagRelationship not found")
+        # session_id not needed, because no localization..?
+        serializer = serializers.TagRelationshipSerializer(tagrelationship)
+        return Response(serializer.data)
+
+
+class UIGroupViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/uigroups/
+            api/2/uigroups/:uigroup_id/
+    """
+    queryset = UIGroup.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def list(self, request):
+        """
+        GET api/2/uigroups/ - Provides list of uigroups filtered by parameters
+        """
+        uigroups = UIGroupFilterSet(request.query_params)
+        serializer = serializers.UIGroupSerializer(uigroups, many=True)
+        return Response({"ui_groups":serializer.data})
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/uigroups/:id/ - Get uigroup by id
+        """
+        try:
+            uigroup = UIGroup.objects.get(pk=pk)
+        except UIGroup.DoesNotExist:
+            raise Http404("UIGroup not found")
+        session = None
+        if "session_id" in request.query_params:
+            try:
+                session = Session.objects.get(pk=request.query_params["session_id"])
+            except:
+                raise ParseError("Session not found")
+        serializer = serializers.UIGroupSerializer(uigroup, context={"session": session})
+        return Response(serializer.data)
+
+class UIItemViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/uiitems/
+            api/2/uiitems/:uiitem_id/
+    """
+    queryset = UIItem.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def list(self, request):
+        """
+        GET api/2/uiitems/ - Provides list of uiitems filtered by parameters
+        """
+        uiitems = UIItemFilterSet(request.query_params)
+        serializer = serializers.UIItemSerializer(uiitems, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/uiitems/:id/ - Get uiitem by id
+        """
+        try:
+            uiitem = UIItem.objects.get(pk=pk)
+        except UIItem.DoesNotExist:
+            raise Http404("UIItem not found")
+        # session_id not needed, because no localization..?
+        serializer = serializers.UIItemSerializer(uiitem)
         return Response(serializer.data)
 
 

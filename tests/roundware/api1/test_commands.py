@@ -14,7 +14,7 @@ from django.test.client import Client
 from django.conf import settings
 from roundware.rw.models import (ListeningHistoryItem, Asset, Project,
                                  Audiotrack, Session, Vote, Envelope,
-                                 Speaker, LocalizedString, MasterUI, UIMapping)
+                                 Speaker, LocalizedString, UIGroup, UIItem)
 from tests.roundwared.common import (RoundwaredTestCase, FakeRequest,
                                      mock_distance_in_meters_near,
                                      mock_distance_in_meters_far)
@@ -23,7 +23,7 @@ from roundware.api1.commands import (check_for_single_audiotrack, get_asset_info
                                      get_available_assets)
 from roundware.api1 import commands
 from roundware.lib import api
-from roundware.lib.api import (request_stream, get_project_tags, get_current_streaming_asset,
+from roundware.lib.api import (request_stream, get_project_tags_old as get_project_tags, get_current_streaming_asset,
                                _get_current_streaming_asset, vote_asset)
 from roundwared import gpsmixer
 
@@ -743,75 +743,75 @@ class TestGetProjectTagJSON(RoundwaredTestCase):
     def setUp(self):
         super(type(self), TestGetProjectTagJSON).setUp(self)
 
-        # make a masterui, a project, a ui_mode, tag category, selectionmethod
+        # make a uigroup, a project, a ui_mode, tag category, selectionmethod
         self.english_hdr = mommy.make(LocalizedString,
                                       localized_string="Head",
                                       language=self.english)
         self.spanish_hdr = mommy.make(LocalizedString,
                                       localized_string="Cabeza",
                                       language=self.spanish)
-        self.masterui = mommy.make(MasterUI, active=True,
-                                   ui_mode=MasterUI.LISTEN, index=1,
+        self.uigroup = mommy.make(UIGroup, active=True,
+                                   ui_mode=UIGroup.LISTEN, index=1,
                                    tag_category__name='TagCatName',
                                    header_text_loc=[self.english_hdr,
                                                     self.spanish_hdr])
-        self.ui_mode_one = self.masterui.ui_mode
+        self.ui_mode_one = self.uigroup.ui_mode
 
-        self.english_sess = mommy.make(Session, project=self.masterui.project,
+        self.english_sess = mommy.make(Session, project=self.uigroup.project,
                                        language=self.english)
-        self.spanish_sess = mommy.make(Session, project=self.masterui.project,
+        self.spanish_sess = mommy.make(Session, project=self.uigroup.project,
                                        language=self.spanish)
-        self.project_one = self.masterui.project
-        self.ui_mapping_one = mommy.make(UIMapping, master_ui=self.masterui,
+        self.project_one = self.uigroup.project
+        self.ui_item_one = mommy.make(UIItem, ui_group=self.uigroup,
                                          active=True, tag=self.tag1,
                                          index=1, default=True)
-        self.master_ui_two = mommy.make(MasterUI, name='inactivemui',
+        self.ui_group_two = mommy.make(UIGroup, name='inactivemui',
                                         ui_mode=self.ui_mode_one, active=True)
-        self.project_two = self.master_ui_two.project
+        self.project_two = self.ui_group_two.project
         self.project_three = mommy.make(Project, name='project_three')
 
     def _proj_one_config(self):
         # Translate the description tag like db.get_config_tag_json()
         loc_desc = ""
-        temp_desc = self.ui_mapping_one.tag.loc_description.filter(language=self.english)
+        temp_desc = self.ui_item_one.tag.loc_description.filter(language=self.english)
         if temp_desc:
             loc_desc = temp_desc[0].localized_string
 
         return {'listen': [
-            {'name': self.masterui.name,
+            {'name': self.uigroup.name,
              'header_text': "Head",
              'code': 'TagCatName',
-             'select': self.masterui.get_select_display(),
+             'select': self.uigroup.get_select_display(),
              'order': 1,
-             'defaults': [self.ui_mapping_one.tag.id],
+             'defaults': [self.ui_item_one.tag.id],
              'options': [{
-                 'tag_id': self.ui_mapping_one.tag.id,
+                 'tag_id': self.ui_item_one.tag.id,
                  'order': 1,
                  'data': "{'json':'value'}",
-                 'description': self.ui_mapping_one.tag.description,
+                 'description': self.ui_item_one.tag.description,
                  'loc_description': loc_desc,
-                 'shortcode': self.ui_mapping_one.tag.value,
+                 'shortcode': self.ui_item_one.tag.value,
                  'relationships': [],
                  'value': 'One'
              }]},
         ]}
 
-    def test_get_uimapping_info_for_project(self):
-        """ Test proper UIMapping data returned based on project passed """
+    def test_get_uiitem_info_for_project(self):
+        """ Test proper UIItem data returned based on project passed """
         config = get_project_tags(self.project_one, self.english_sess)
         expected = self._proj_one_config()
         self.assertEquals(expected, config)
 
-    def test_only_masteruis_for_project_returned(self):
-        """ Confirm only info for MasterUIs for passed project or session
+    def test_only_uigroups_for_project_returned(self):
+        """ Confirm only info for UIGroups for passed project or session
             project are returned in config tag dictionary
         """
         config = get_project_tags(self.project_three)
         self.assertEquals({}, config)
 
         config = get_project_tags(self.project_two)
-        # should not have any uimapping info for project _one_
-        self.assertNotIn(self.masterui.name,
+        # should not have any uiitem info for project _one_
+        self.assertNotIn(self.uigroup.name,
                          [dic['name'] for dic in
                           config['listen']])
 
@@ -821,20 +821,20 @@ class TestGetProjectTagJSON(RoundwaredTestCase):
         """
         pass
 
-    def test_only_active_masteruis_returned(self):
-        """ Confirm that only active MasterUIs are returned in
+    def test_only_active_uigroups_returned(self):
+        """ Confirm that only active UIGroups are returned in
             config tag 'JSON' (dictionary)
         """
-        self.master_ui_two.active = False
-        self.master_ui_two.save()
+        self.ui_group_two.active = False
+        self.ui_group_two.save()
         config = get_project_tags(self.project_two)
         self.assertEquals({}, config)
-        self.master_ui_two.active = True
-        self.master_ui_two.save()
+        self.ui_group_two.active = True
+        self.ui_group_two.save()
 
-    def test_get_right_masterui_without_passed_project(self):
+    def test_get_right_uigroup_without_passed_project(self):
         """ Don't pass a project, just use the project for the session.
-            Do we still get the right MasterUI?
+            Do we still get the right UIGroup?
         """
         config = get_project_tags(None, self.english_sess)
         expected = self._proj_one_config()

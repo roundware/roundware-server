@@ -13,7 +13,7 @@ from django.core.urlresolvers import reverse
 
 from roundware.rw.models import (ListeningHistoryItem, Asset, Project,
                                  Audiotrack, Session, Envelope,
-                                 Speaker, LocalizedString, MasterUI, UIMapping,
+                                 Speaker, LocalizedString, UIGroup, UIItem,
                                  Language, Tag, TagCategory)
 from roundware.settings import DEFAULT_SESSION_ID
 
@@ -49,43 +49,107 @@ class TestServer(APITestCase):
                                       language=self.english)
         self.spanish_msg = mommy.make(LocalizedString, localized_string="Uno",
                                       language=self.spanish)
+
         # create project and session
-        self.project1 = mommy.make(Project, name='Uno', recording_radius=10,
-                                   id=1, audio_format='ogg',
-                                   demo_stream_message_loc=[self.english_msg,
-                                                            self.spanish_msg],
-                                   out_of_range_url='http://rw.com:8000/outofrange.mp3')
-        self.session = mommy.make(Session, project=self.project1,
-                                  language=self.english)
+        self.project1 = mommy.make(
+            Project,
+            id = 1,
+            name = 'Uno',
+            recording_radius = 10,
+            audio_format = 'ogg',
+            demo_stream_message_loc = [self.english_msg, self.spanish_msg],
+            out_of_range_url='http://rw.com:8000/outofrange.mp3'
+        )
+
+        self.session = mommy.make(
+            Session,
+            project=self.project1,
+            language=self.english
+        )
+
+        # setup tag categories
+        self.tagcat1 = mommy.make(TagCategory, name='gender')
+        self.tagcat2 = mommy.make(TagCategory, name='age')
+        self.tagcat3 = mommy.make(TagCategory, name='color')
+
         # setup tags
-        self.tagcat1 = mommy.make(TagCategory, name='tagcatname')
-        self.tagcat2 = mommy.make(TagCategory)
-        self.tagcat3 = mommy.make(TagCategory)
-        self.tag1 = mommy.make(Tag, data="{'json':'value'}",
-                               loc_msg=[self.english_msg, self.spanish_msg],
-                               tag_category=self.tagcat1,
-                               value='tag1', id=1)
-        self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2', id=2)
-        self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3', id=3)
-        self.masterui1 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.LISTEN,
-                                    tag_category=self.tagcat1)
-        self.masterui2 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.LISTEN,
-                                    tag_category=self.tagcat2)
-        self.masterui3 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.SPEAK,
-                                    tag_category=self.tagcat1)
-        self.masterui4 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.SPEAK,
-                                    tag_category=self.tagcat2)
-        self.masterui5 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.SPEAK,
-                                    tag_category=self.tagcat3)
-        self.uimapping1 = mommy.make(UIMapping, master_ui=self.masterui1,
-                                     tag=self.tag1, active=True)
-        self.uimapping2 = mommy.make(UIMapping, master_ui=self.masterui1,
-                                     tag=self.tag2, active=True)
+        self.tag1 = mommy.make(
+            Tag,
+            project = self.project1,
+            tag_category = self.tagcat1,
+            value = 'male',
+            loc_description = [self.english_msg, self.spanish_msg],
+            loc_msg = [self.english_msg, self.spanish_msg],
+            data = None,
+            filter = "",
+            location = None
+        )
+
+        self.tag2 = mommy.make(
+            Tag,
+            project = self.project1,
+            tag_category=self.tagcat2,
+            value = 'young'
+        )
+
+        self.tag3 = mommy.make(
+            Tag,
+            project = None, # this tag should not appear in projects_tags_get
+            tag_category = self.tagcat3,
+            value = 'red'
+        )
+
+        # setup ui_groups
+        self.uigroup1 = mommy.make(
+            UIGroup,
+            project=self.project1,
+            ui_mode=UIGroup.LISTEN,
+            tag_category=self.tagcat1
+        )
+
+        self.uigroup2 = mommy.make(
+            UIGroup,
+            project=self.project1,
+            ui_mode=UIGroup.LISTEN,
+            tag_category=self.tagcat2
+        )
+
+        self.uigroup3 = mommy.make(
+            UIGroup,
+            project=self.project1,
+            ui_mode=UIGroup.SPEAK,
+            tag_category=self.tagcat1
+        )
+
+        self.uigroup4 = mommy.make(
+            UIGroup,
+            project=self.project1,
+            ui_mode=UIGroup.SPEAK,
+            tag_category=self.tagcat2
+        )
+
+        self.uigroup5 = mommy.make(
+            UIGroup,
+            project=self.project1,
+            ui_mode=UIGroup.SPEAK,
+            tag_category=self.tagcat3
+        )
+
+        # setup ui_items
+        self.uiitem1 = mommy.make(
+            UIItem,
+            ui_group=self.uigroup1,
+            tag=self.tag1,
+            active=True
+        )
+
+        self.uiitem2 = mommy.make(
+            UIItem,
+            ui_group=self.uigroup1,
+            tag=self.tag2,
+            active=True
+        )
+
         # setup assets and envelopes
         self.asset1 = mommy.make(Asset, project=self.project1, id=1,
                                  audiolength=5000000000, volume=0.9,
@@ -102,6 +166,7 @@ class TestServer(APITestCase):
                                     assets=[self.asset1, ])
         self.envelope2 = mommy.make(Envelope, session=self.session,
                                     assets=[self.asset2, ])
+
         # setup audio elements
         self.history1 = mommy.make(ListeningHistoryItem, asset=self.asset1,
                                    session=self.session,
@@ -166,42 +231,43 @@ class TestServer(APITestCase):
         self.session_id = response.data["session_id"]
 
     def projects_get(self):
-        url = "%s?session_id=%s" % (reverse('project-detail', args=[1]), self.session_id)
+        url = "%s?session_id=%s" % (reverse('project-detail', args=[self.project1.id]), self.session_id)
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # ensure _loc fields are transformed
         self.assertIn("out_of_range_message", response.data)
         self.assertNotIn("out_of_range_message_loc", response.data)
-        self.assertEqual(1, response.data["project_id"])
+        self.assertEqual(self.project1.id, response.data["project_id"])
 
     def projects_tags_get(self):
-        url = "%s?session_id=%s" % (reverse('project-tags', args=[1]), self.session_id)
+        # Strictly speaking, session_id is necessary only for localization purposes
+        # url = "%s?session_id=%s" % (reverse('project-tags', args=[self.project1.id]), self.session_id)
+        url = "%s" % (reverse('project-tags', args=[self.project1.id]))
         data = {}
         response = self.client.get(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-        self.assertEqual(len(response.data["speak"]), 3)
-        self.assertEqual(len(response.data["listen"]), 2)
-        self.assertEqual(len(response.data["listen"][0]["options"]), 2)
+        self.assertEqual(len(response.data), 1) # { "tags" : [] }
+        self.assertEqual(len(response.data["tags"]), 2) # one tag excluded
+        self.assertEqual(response.data["tags"][0]["project"], self.project1.id)
 
     def projects_assets_get(self):
-        url = reverse('project-assets', args=[1])
+        url = reverse('project-assets', args=[self.project1.id])
         data = {}
         response = self.client.get(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[0]["project"], 1)
+        self.assertEqual(response.data[0]["project"], self.project1.id)
 
     def assets_random_get(self):
         data = {"mediatype": "audio",
-                "project_id": 1,
+                "project_id": self.project1.id,
                 "audiolength__lte": 8,
                 "limit": 2}
         response = self.client.get('/api/2/assets/random/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         data = {"mediatype": "audio",
-                "project_id": 1,
+                "project_id": self.project1.id,
                 "audiolength__lte": 12,
                 "limit": 2}
         response = self.client.get('/api/2/assets/random/', data, format='json')
