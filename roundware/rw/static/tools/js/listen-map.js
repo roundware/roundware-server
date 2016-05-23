@@ -24,7 +24,7 @@ if (!Roundware) {
  */
 Roundware.ListenMap = function (opts) {
     var options = $.extend({}, {
-        url: 'http://rwdev.dyndns.org/roundware/',
+        url: 'http://roundware.dyndns.org/api/1/',
     }, opts);
 
 
@@ -60,8 +60,8 @@ Roundware.ListenMap = function (opts) {
      * main_callback(), which loops through the methods of RW.workflow to retrieve
      * the data and display it.
      *
-     * @param string m_url: URL of the roundware server, e.g. http://siswh.dyndns.org/roundware/
-     * @param int m_project_id: project PK on the roundware server
+     * @param string m_url: URL of the roundware server, e.g. http://roundware.dyndns.org/api/1/
+     * @param int m_project_id: project PK on the Roundware server
      * @param google.maps.Map m_map: a Google Map
      */
     this.main = function (m_project_id, m_map) {
@@ -369,9 +369,8 @@ Roundware.ListenMap = function (opts) {
                 });
             });
 
-            var fnmp3 = "http://scapesaudio.dyndns.org:8090" + item.asset_url.replace("wav", "mp3");
+            var fnmp3 = item.asset_url.replace("wav", "mp3");
             var id = item.asset_id;
-            // $wavfilename = substr($wavfilename, 0, strlen($wavfilename)-3) . 'wav';
             var iw = create_info_window(item.asset_id, desc.join(' '), fnmp3, item.asset_url, id);
             var marker = create_marker(item, iw, 'blue');
             var radius = config.project.recording_radius || 5;
@@ -455,12 +454,14 @@ Roundware.ListenMap = function (opts) {
      */
     function add_listening_pin() {
         var marker_img = new google.maps.MarkerImage('http://www.google.com/intl/en_us/mapfiles/ms/micons/green-dot.png');
+        var mapCenter = new google.maps.LatLng(config.project.latitude, config.project.longitude);
         listening_pin = new google.maps.Marker({
-            position: map.getCenter(),
+            position: mapCenter,
             map: map,
             icon: marker_img,
             draggable: true
         });
+        map.setCenter(mapCenter);
 
         google.maps.event.addListener(listening_pin, "dragend", function (event) {
             modify_stream();

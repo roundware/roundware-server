@@ -9,6 +9,7 @@ import traceback
 
 import django_filters
 from django.http import HttpResponse
+from distutils.util import strtobool
 from rest_framework import generics
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
@@ -28,6 +29,8 @@ from roundware.lib.exception import RoundException
 import logging
 logger = logging.getLogger(__name__)
 
+BOOLEAN_CHOICES = (('false', False), ('true', True),
+                   (0, False), (1, True),)
 
 def operations(request):
     returned_data = catch_errors(request)
@@ -115,12 +118,15 @@ class APIRootView(APIView):
 
 class AssetFilter(django_filters.FilterSet):
     mediatype__contains = django_filters.CharFilter(name='mediatype', lookup_type='startswith')
-
+    submitted = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
     created__gte = django_filters.DateTimeFilter(name='created', lookup_type='gte')
     created__lte = django_filters.DateTimeFilter(name='created', lookup_type='lte')
     created__range = django_filters.DateRangeFilter(name='created')
     audiolength__lte = django_filters.NumberFilter('audiolength', lookup_type='lte')
     audiolength__gte = django_filters.NumberFilter('audiolength', lookup_type='gte')
+    id = django_filters.NumberFilter()
+    id__lte = django_filters.NumberFilter('id', lookup_type='lte')
+    id__gte = django_filters.NumberFilter('id', lookup_type='gte')
 
     class Meta:
         model = Asset
@@ -130,6 +136,7 @@ class AssetFilter(django_filters.FilterSet):
                   'project',
                   'language',
                   'session',
+                  'id',
                   ]
 
 

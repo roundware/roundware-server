@@ -119,7 +119,7 @@
 <script type="text/javascript">
     // Roundware Island
     var centerLat = 1;
-    var centerLon = .7;
+    var centerLon = 1;
 
     var project = location.search.split('project_id=')[1] ? location.search.split('project_id=')[1] : '1';
 
@@ -134,7 +134,14 @@
 
         var demoMap = new google.maps.Map(document.getElementById("voicemap-block"), myOptions);
 
-        var lm = new Roundware.ListenMap({url: window.location.protocol + '//' + window.location.hostname + ":8888/api/1/"});
+        // add port 8888 if using on localhost in Vagrant VM
+        if (window.location.hostname == 'localhost') {
+            var lm_url = window.location.protocol + '//' + window.location.hostname + ":8888/api/1/";
+        }
+        else {
+            var lm_url = window.location.protocol + '//' + window.location.hostname + "/api/1/";
+        }
+        var lm = new Roundware.ListenMap({url: lm_url});
         lm.main(project, demoMap);
 
     });

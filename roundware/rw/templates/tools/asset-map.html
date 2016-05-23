@@ -130,7 +130,14 @@
 
             var points = [];
 
-            var project = getUrlVars()["project"];
+            var project = getUrlVars()["project_id"];
+            var id = getUrlVars()["asset_id"];
+            var id__gte = getUrlVars()["asset__gte"];
+            var id__lte = getUrlVars()["asset__lte"];
+            var audiolength__gte = getUrlVars()["audiolength__gte"];
+            var audiolength__lte = getUrlVars()["audiolength__lte"];
+            var submitted = getUrlVars()["submitted"] ? getUrlVars()["submitted"] : 'true';
+            var mediatype = getUrlVars()["mediatype"] ? getUrlVars()["mediatype"] : 'audio';
 
             $.ajax({
                         url: url,
@@ -141,6 +148,13 @@
                         data: {
                             format: "json",
                             project: project,
+                            id: id,
+                            id__gte: id__gte,
+                            id__lte: id__lte,
+                            audiolength__gte: audiolength__gte,
+                            audiolength__lte: audiolength__lte,
+                            submitted: submitted,
+                            mediatype: mediatype,
                             limit: 0
                         },
                         dataType: "json",
