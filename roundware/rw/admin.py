@@ -62,23 +62,30 @@ def project_restricted_queryset_through(model_class, field_name):
             return qset
 
         accessible_projects = get_objects_for_user(
-            request.user, 'rw.access_project')
+            request.user, 'rw.access_project', Project)
         authorized_objects = model_class.objects.filter(
             project__in=accessible_projects)
         return qset.filter(**{field_name + "__in": authorized_objects})
+
     return get_queryset
 
 
 class ProjectProtectedThroughAssetModelAdmin(admin.ModelAdmin):
-    queryset = project_restricted_queryset_through(Asset, 'asset')
+
+    def get_queryset(self, request):
+        return project_restricted_queryset_through(Asset, 'asset')(self, request)
 
 
 class ProjectProtectedThroughSessionModelAdmin(admin.ModelAdmin):
-    queryset = project_restricted_queryset_through(Session, 'session')
+
+    def get_queryset(self, request):
+        return project_restricted_queryset_through(Session, 'session')(self, request)
 
 
 class ProjectProtectedThroughUIModelAdmin(admin.ModelAdmin):
-    queryset = project_restricted_queryset_through(MasterUI, 'master_ui')
+
+    def get_queryset(self, request):
+        return project_restricted_queryset_through(MasterUI, 'master_ui')(self, request)
 
 
 class ProjectProtectedModelAdmin(admin.ModelAdmin):
@@ -89,7 +96,22 @@ class ProjectProtectedModelAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return qset
 
-        return qset.filter(project__in=get_objects_for_user(request.user, 'rw.access_project'))
+        # TODO: Consider using an M2M field instead, if more complex permissions not needed:
+        # models.py: user = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
+        # admin.py: accessible_projects = Project.objects.filter(user=request.user)
+
+        accessible_projects = get_objects_for_user(request.user, 'rw.access_project', Project)
+
+        return qset.filter(project__in=accessible_projects)
+
+class ProjectModelAdmin(GuardedModelAdmin):
+
+     def get_queryset(self, request):
+
+        if request.user.is_superuser:
+            return super(admin.ModelAdmin, self).get_queryset(request)
+
+        return get_objects_for_user(request.user, 'rw.access_project', Project)
 
 
 def copy_asset(modeladmin, request, queryset):
@@ -267,7 +289,7 @@ class VoteAdmin(ProjectProtectedThroughAssetModelAdmin):
     ordering = ['id']
 
 
-class ProjectAdmin(GuardedModelAdmin):
+class ProjectAdmin(ProjectModelAdmin):
     list_display = ('id', 'name', 'latitude', 'longitude',
                     'max_recording_length', 'recording_radius')
     ordering = ['id']
@@ -294,7 +316,6 @@ class ProjectAdmin(GuardedModelAdmin):
             'fields': ('listen_questions_dynamic', 'speak_questions_dynamic')
         }),
     )
-
 
 class SessionAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'project', 'starttime', 'device_id', 'language')

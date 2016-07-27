@@ -16,6 +16,7 @@ from adminplus.sites import AdminSitePlus
 from roundware.rw import urls as rw_urls
 
 admin.site = AdminSitePlus()
+admin.sites.site = admin.site
 admin.autodiscover()
 
 urlpatterns = patterns(

@@ -16,6 +16,7 @@ install:
   - sudo su - postgres -c "psql -c \"alter user round password 'round'\""
   - sudo su - postgres -c "psql roundware -c 'create extension postgis'"
   - pip install -r requirements/dev.txt
+  - sudo apt-get install --reinstall python-setuptools
 before_script:
 # Setup Roundware log file.
   - sudo touch /var/log/roundware

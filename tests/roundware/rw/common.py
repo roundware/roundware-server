@@ -11,8 +11,8 @@ from model_mommy.generators import gen_file_field
 
 
 def use_locmemcache(module, varname):
-    locmem_cache = cache.get_cache(
-        'django.core.cache.backends.locmem.LocMemCache')
+    locmem_cache = cache.caches[
+        'locmemcache']
     locmem_cache.clear()
     return patch.object(module, varname, locmem_cache)
 
@@ -27,7 +27,7 @@ def validated_file_field_gen():
 
 class RWTestCase(TestCase):
 
-    """ provide common testcase data for roundware.rw test cases 
+    """ provide common testcase data for roundware.rw test cases
     """
 
     def setUp(self):
