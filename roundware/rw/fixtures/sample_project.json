@@ -950,14 +950,5 @@
         "device_id": null,
         "client_type": null
     }
-},
-{
-    "model": "rw.userprofile",
-    "pk": 2,
-    "fields": {
-        "user": 2,
-        "device_id": null,
-        "client_type": null
-    }
 }
 ]
