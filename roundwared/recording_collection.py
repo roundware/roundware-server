@@ -158,9 +158,17 @@ class RecordingCollection:
 
     def add_recording(self, asset_id):
         self.lock.acquire()
-        logger.debug("asset id: %s " % asset_id)
+        logger.info("adding asset id to playlist_proximity: %s " % asset_id)
         a = Asset.objects.get(id=str(asset_id))
         self.playlist_proximity.append(a)
+        self.lock.release()
+
+    def remove_recording(self, asset_id):
+        self.lock.acquire()
+        logger.debug("removing asset id from playlist_proximity: %s " % asset_id)
+        a = Asset.objects.get(id=str(asset_id))
+        if a in self.playlist_proximity:
+            self.playlist_proximity.remove(a)
         self.lock.release()
 
     # Updates the collection of recordings according to a new listener

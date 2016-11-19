@@ -230,7 +230,8 @@ class AudioTrack:
             logger.debug("skip_ahead: no src_wav_file")
 
     def play_asset(self, asset_id):
-        logger.debug("AudioTrack play asset: " + str(asset_id))
+        logger.info("AudioTrack play asset: " + str(asset_id))
+        self.rc.remove_recording(asset_id)
         self.rc.add_recording(asset_id)
         self.skip_ahead()
 
