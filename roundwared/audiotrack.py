@@ -5,7 +5,7 @@
 #   when all audiotracks are finished (only happens
 #   when repeat is off)
 # TODO: Reimplement panning using a gst.Controller
-# TODO: Remove stero_pan from public interface
+# TODO: Remove stereo_pan from public interface
 
 from __future__ import unicode_literals
 import gobject
@@ -16,6 +16,7 @@ import gst
 import random
 import logging
 import os
+import time
 from roundwared import src_wav_file
 from roundwared import db
 from django.conf import settings
@@ -217,10 +218,13 @@ class AudioTrack:
             self.settings.minfadeouttime,
             self.settings.maxfadeouttime)
         if self.src_wav_file != None and not self.src_wav_file.fading:
+            logger.info("fading out for: " + str(fadeoutnsecs))
             self.src_wav_file.fade_out(fadeoutnsecs)
             # 1st arg is in milliseconds
             # 1000000000
             #gobject.timeout_add(fadeoutnsecs/gst.MSECOND, self.clean_up)
+            # wait until fade is complete and then clean-up
+            time.sleep(fadeoutnsecs / 1000000000)
             self.clean_up()
         else:
             logger.debug("skip_ahead: no src_wav_file")
