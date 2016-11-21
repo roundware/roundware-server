@@ -105,14 +105,14 @@ class Project(models.Model):
 
     @cached(60 * 60)
     def get_tag_cats_by_ui_mode(self, ui_mode):
-        """ Return TagCategories for this project for specified MasterUI.mode
-            by key MasterUI.SPEAK or MasterUI.LISTEN.
-            MasterUI must be active
+        """ Return TagCategories for this project for specified UIGroup.mode
+            by key UIGroup.SPEAK or UIGroup.LISTEN.
+            UIGroup must be active
         """
         logger.debug('inside get_tag_cats_by_ui_mode... not from cache')
-        master_uis = MasterUI.objects.select_related('tag_category').filter(
+        ui_groups = UIGroup.objects.select_related('tag_category').filter(
             project=self, ui_mode=ui_mode, active=True)
-        return [mui.tag_category for mui in master_uis]
+        return [uig.tag_category for uig in ui_groups]
 
     class Meta:
         permissions = (('access_project', 'Access Project'),)
@@ -143,14 +143,13 @@ class TagCategory(models.Model):
     def __unicode__(self):
         return str(self.id) + ":" + self.name
 
-
 class Tag(models.Model):
     FILTERS = (
         ("", "No filter"),
         ("_within_10km", "Assets within 10km."),
         ("_ten_most_recent_days", "Assets created within 10 days."),
     )
-
+    project = models.ForeignKey(Project, null=True, blank=False)
     tag_category = models.ForeignKey(TagCategory)
     value = models.TextField()
     description = models.TextField(null=True, blank=True)
@@ -158,10 +157,13 @@ class Tag(models.Model):
         LocalizedString, blank=True, related_name='tag_desc')
     loc_msg = models.ManyToManyField(LocalizedString, blank=True)
     data = models.TextField(null=True, blank=True)
-    relationships = models.ManyToManyField(
-        'self', symmetrical=True, related_name='related_to', blank=True)
     filter = models.CharField(
         max_length=255, default="", null=False, blank=True, choices=FILTERS)
+    location = models.MultiPolygonField(geography=True, null=True, blank=True)
+
+    # DEPRECATED: Used in API/1; could be generated from API/2 data
+    relationships_old = models.ManyToManyField(
+        'self', symmetrical=True, related_name='related_to', blank=True)
 
     def get_loc(self):
         return "<br />".join(unicode(t) for t in self.loc_msg.all())
@@ -169,8 +171,9 @@ class Tag(models.Model):
     get_loc.name = "Localized Names"
     get_loc.allow_tags = True
 
-    def get_relationships(self):
-        return [rel['pk'] for rel in self.relationships.all().values('pk')]
+    # relationships_old is used only in API/1
+    def get_relationships_old(self):
+        return [rel['pk'] for rel in self.relationships_old.all().values('pk')]
 
     def __unicode__(self):
         return self.tag_category.name + " : " + self.value
@@ -178,8 +181,14 @@ class Tag(models.Model):
     class Meta:
         app_label = 'rw'  # necessary for special tag batch add form
 
+class TagRelationship(models.Model):
+    tag = models.ForeignKey(Tag)
+    parent = models.ForeignKey("self", null=True, blank=True)
 
-class MasterUI(models.Model):
+    def __unicode__(self):
+        return str(self.id) + self.tag.value + str(self.parent)
+
+class UIGroup(models.Model):
     SINGLE = 'single'
     MULTI = 'multi'
     MULTI_MIN_ONE = 'min_one'
@@ -227,28 +236,29 @@ class MasterUI(models.Model):
         logger.debug("invalidating Project.get_tags_by_ui_mode for project "
                      " %s and UI Mode %s" % (self.project, self.get_ui_mode_display()))
         try:
-            old_instance = MasterUI.objects.get(pk=self.pk)
+            old_instance = UIGroup.objects.get(pk=self.pk)
             old_ui_mode = old_instance.ui_mode
             Project.get_tag_cats_by_ui_mode.invalidate(old_ui_mode)
         except ObjectDoesNotExist:
             pass
-        super(MasterUI, self).save(*args, **kwargs)
+        super(UIGroup, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return str(self.id) + ":" + self.project.name + ":" + self.get_ui_mode_display() + ":" + self.name
 
 
-class UIMapping(models.Model):
-    master_ui = models.ForeignKey(MasterUI)
+class UIItem(models.Model):
+    ui_group = models.ForeignKey(UIGroup)
     index = models.IntegerField()
     tag = models.ForeignKey(Tag)
     default = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
+    parent = models.ForeignKey("self", null=True, blank=True)
     # def toTagDictionary(self):
     # return {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
 
     def __unicode__(self):
-        return str(self.id) + ":" + self.master_ui.name + ":" + self.tag.tag_category.name
+        return str(self.id) + ":" + self.ui_group.name + ":" + self.tag.tag_category.name
 
 
 class Audiotrack(models.Model):
@@ -348,6 +358,15 @@ class Asset(models.Model):
     description = models.TextField(max_length=2048, blank=True)
     loc_description = models.ManyToManyField(
         LocalizedString, blank=True)
+    loc_alt_text = models.ManyToManyField(
+        LocalizedString, blank=True, related_name='alt_text_string')
+
+    # TODO: needs verification
+    loc_caption = ValidatedFileField(storage=FileSystemStorage(
+        location=settings.MEDIA_ROOT,
+        base_url=settings.MEDIA_URL,),
+        content_types=settings.ALLOWED_TEXT_MIME_TYPES,
+        upload_to=".", help_text="Upload captions", null=True)
 
     # enables inline adding/editing of Assets in Envelope Admin.
     # creates a relationship of an Asset to the Envelope, in which it was

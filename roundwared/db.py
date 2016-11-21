@@ -12,8 +12,8 @@ from django.conf import settings
 from roundware.rw.models import (Session,
                                  Asset,
                                  Tag,
-                                 MasterUI,
-                                 UIMapping,
+                                 UIGroup,
+                                 UIItem,
                                  ListeningHistoryItem)
 from cache_utils.decorators import cached
 logger = logging.getLogger(__name__)
@@ -59,10 +59,10 @@ def get_recordings(session_id, tags=None):
 # @profile(stats=True)
 # Used by recording_collection.py only
 def get_default_tags_for_project(project):
-    m = MasterUI.objects.filter(project=project, active=True)
+    m = UIGroup.objects.filter(project=project, active=True)
     default = []
-    for masterui in m:
-        mappings = UIMapping.objects.filter(master_ui=masterui,
+    for uigroup in m:
+        mappings = UIItem.objects.filter(ui_group=uigroup,
                                             active=True, default=True)
         for mapping in mappings:
             default.append(mapping.tag.id)
@@ -86,7 +86,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     recs = []
     tag_ids_per_cat_dict = {}
 
-    project_cats = p.get_tag_cats_by_ui_mode(MasterUI.LISTEN)
+    project_cats = p.get_tag_cats_by_ui_mode(UIGroup.LISTEN)
     logger.debug("Project tag categories: %s", project_cats)
     for cat in project_cats:
         # for each tag category a list of all of the tags with that cat

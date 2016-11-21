@@ -4,7 +4,8 @@
 # The Django REST Framework object serializers for the V2 API.
 from __future__ import unicode_literals
 from roundware.rw.models import (Asset, Event, Envelope, Language, ListeningHistoryItem,
-                                 Project, Tag, Session, LocalizedString, Vote)
+                                 LocalizedString, Project, Tag, TagRelationship, UIGroup,
+                                 UIItem, Session, Vote)
 from roundware.lib.api import request_stream, vote_count_by_asset
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
@@ -222,6 +223,16 @@ class StreamSerializer(serializers.Serializer):
         return stream
 
 
+class TagRelationshipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TagRelationship
+
+    def to_representation(self, obj):
+        result = super(TagRelationshipSerializer, self).to_representation(obj)
+        # TODO: Determine if anything needs to be serialized here
+        return result
+
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -232,13 +243,57 @@ class TagSerializer(serializers.ModelSerializer):
         session = None
         if "session" in self.context:
             session = self.context["session"]
+
+        # TODO: determine who is using these loc_* fields - not in spec doc!
+        # TODO: `filter` field is also not in spec doc
         for field in ["loc_msg", "loc_description"]:
             result[field] = _select_localized_string(result[field], session=session)
-        # field renaming
-        result["tag_id"] = result["id"]
-        del result["id"]
+
+        # field renaming - spec doc asks for `id`
+        # however, all other responses return *_id format
+        # TODO: determine if `id` should be renamed to `tag_id`
+
+        # result["tag_id"] = result["id"]
+        # del result["id"]
+
+        del result["relationships_old"]
+
+        tagrelationships = TagRelationship.objects.filter(tag=result["id"])
+        serializer = TagRelationshipSerializer(tagrelationships, many=True)
+
+        result["relationships"] = serializer.data
+
         return result
 
+class UIItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UIItem
+
+    def to_representation(self, obj):
+        result = super(UIItemSerializer, self).to_representation(obj)
+        # TODO: Determine if anything needs to be serialized here
+        return result
+
+class UIGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UIGroup
+
+    def to_representation(self, obj):
+        result = super(UIGroupSerializer, self).to_representation(obj)
+        # find correct localized strings
+        session = None
+        if "session" in self.context:
+            session = self.context["session"]
+
+        for field in ["header_text_loc"]:
+            result[field] = _select_localized_string(result[field], session=session)
+
+        uiitems = UIItem.objects.filter(ui_group=result["id"])
+        serializer = UIItemSerializer(uiitems, many=True)
+
+        result["ui_items"] = serializer.data
+
+        return result
 
 class UserSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=255, required=False)

@@ -5,8 +5,8 @@ from __future__ import unicode_literals
 from model_mommy import mommy
 
 from .common import RoundwaredTestCase
-from roundware.rw.models import (MasterUI, Session, Tag, Asset, TagCategory,
-                                 UIMapping, Project, ListeningHistoryItem)
+from roundware.rw.models import (UIGroup, Session, Tag, Asset, TagCategory,
+                                 UIItem, Project, ListeningHistoryItem)
 from roundwared.db import (filter_recs_for_tags,
                            get_recordings, get_default_tags_for_project)
 
@@ -29,20 +29,20 @@ class TestGetRecordings(RoundwaredTestCase):
         self.tagcat3 = mommy.make(TagCategory)
         self.tag2 = mommy.make(Tag, tag_category=self.tagcat2, value='tag2', id=2)
         self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3', id=3)
-        self.masterui1 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.LISTEN,
+        self.uigroup1 = mommy.make(UIGroup, project=self.project1,
+                                    ui_mode=UIGroup.LISTEN,
                                     tag_category=self.tagcat1)
-        self.masterui2 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.LISTEN,
+        self.uigroup2 = mommy.make(UIGroup, project=self.project1,
+                                    ui_mode=UIGroup.LISTEN,
                                     tag_category=self.tagcat2)
-        self.masterui2 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.LISTEN,
+        self.uigroup2 = mommy.make(UIGroup, project=self.project1,
+                                    ui_mode=UIGroup.LISTEN,
                                     tag_category=self.tagcat3)
-        self.masterui4 = mommy.make(MasterUI, project=self.project2,
-                                    ui_mode=MasterUI.LISTEN,
+        self.uigroup4 = mommy.make(UIGroup, project=self.project2,
+                                    ui_mode=UIGroup.LISTEN,
                                     tag_category=self.tagcat2)
         # Add one default tag to project1
-        self.uimapping1 = mommy.make(UIMapping, master_ui=self.masterui1,
+        self.uiitem1 = mommy.make(UIItem, ui_group=self.uigroup1,
                                      tag=self.tag1, default=True, active=True)
         self.asset1 = mommy.make(Asset, project=self.project1,
                                  language=self.english,
@@ -119,7 +119,7 @@ class TestGetRecordings(RoundwaredTestCase):
 
 class TestFilterRecsForTags(RoundwaredTestCase):
 
-    """ test db.filter_recs_for_tags, that it returns assets containing at 
+    """ test db.filter_recs_for_tags, that it returns assets containing at
     least one matching tag in each available tag category for tags given in
     the request.
     """
@@ -135,14 +135,14 @@ class TestFilterRecsForTags(RoundwaredTestCase):
         self.tag3 = mommy.make(Tag, tag_category=self.tagcat3, value='tag3', id=3)
         self.project1 = mommy.make(Project, name='Project One')
         self.project2 = mommy.make(Project, name='Project Two')
-        self.masterui1 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.LISTEN,
+        self.uigroup1 = mommy.make(UIGroup, project=self.project1,
+                                    ui_mode=UIGroup.LISTEN,
                                     tag_category=self.tagcat2)
-        self.masterui2 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.LISTEN,
+        self.uigroup2 = mommy.make(UIGroup, project=self.project1,
+                                    ui_mode=UIGroup.LISTEN,
                                     tag_category=self.tagcat3)
-        self.masterui3 = mommy.make(MasterUI, project=self.project2,
-                                    ui_mode=MasterUI.LISTEN,
+        self.uigroup3 = mommy.make(UIGroup, project=self.project2,
+                                    ui_mode=UIGroup.LISTEN,
                                     tag_category=self.tagcat1)
         self.asset1 = mommy.make(Asset, project=self.project1,
                                  language=self.english,
@@ -166,12 +166,12 @@ class TestFilterRecsForTags(RoundwaredTestCase):
                                  audiolength=50)
 
     def test_only_assets_with_correct_tag_categories(self):
-        """ 
+        """
         project 1 has assets 1,2,5,6
-        project1 related to masterui1, masterui2, therefore
+        project1 related to uigroup1, uigroup2, therefore
         tagcat2, tagcat3 are the active cats, therefore
         pass tag 1, 2 that are in categories 1 and 2
-        so, assets returned must have a tag in category 2 
+        so, assets returned must have a tag in category 2
         so, it should return assets with tag2: = asset2
         """
         recs = filter_recs_for_tags(self.project1, [self.tag1.id, self.tag2.id],
@@ -185,8 +185,8 @@ class TestFilterRecsForTags(RoundwaredTestCase):
     def test_assets_match_at_least_one_tag_of_all_active_tag_categories_of_passed_tags(self):
         """
         project1 has assets 1,2,5,6
-        project1 related to masteruis 1,2
-        masteruis 1,2 give tagcategories 2,3
+        project1 related to uigroups 1,2
+        uigroups 1,2 give tagcategories 2,3
         pass tag2 and tag3 that are in categories 2 and 3
         so, assets returned must have a tag in category 2 and 3
         so it should return assets with tag2 and tag3: = no assets
@@ -214,21 +214,21 @@ class TestFilterRecsForTags(RoundwaredTestCase):
         self.assertIn(self.asset3, recs)  # spanish language asset
         self.assertNotIn(self.asset4, recs)  # english
 
-    def test_no_assets_from_tags_from_inactive_masteruis(self):
+    def test_no_assets_from_tags_from_inactive_uigroups(self):
         """
         project1 has assets 1,2,5,6
-        project1 related to masteruis 1,2
-        masterui2 now inactive
+        project1 related to uigroups 1,2
+        uigroup2 now inactive
         so we only care about tagcategory 2
         pass tag 3 that's in category 3
-        if masterui2 were active, we'd care about category 3
+        if uigroup2 were active, we'd care about category 3
         assets returned would have had to have a tag in category 2 and 3
-        but since masterui2 is inactive assets only have to have tag in cat 2
+        but since uigroup2 is inactive assets only have to have tag in cat 2
         """
-        self.masterui2.active = False
-        self.masterui2.save()
+        self.uigroup2.active = False
+        self.uigroup2.save()
         recs = filter_recs_for_tags(self.project1, [self.tag3.id],
                                     self.english)
         self.assertIn(self.asset2, recs)
-        self.masterui2.active = True
-        self.masterui2.save()
+        self.uigroup2.active = True
+        self.uigroup2.save()

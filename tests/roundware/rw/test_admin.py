@@ -10,7 +10,7 @@ from django.contrib.admin.sites import AdminSite
 from django_webtest import WebTest
 
 from roundware.rw.admin import *
-from roundware.rw.models import Project, Asset, Session, MasterUI
+from roundware.rw.models import Project, Asset, Session, UIGroup
 from roundware.settings import DEFAULT_SESSION_ID
 from guardian.shortcuts import assign_perm
 from model_mommy import mommy
@@ -139,12 +139,12 @@ class TestProtectedAdmin(RWTestCase):
         self.site = AdminSite
         self.permitted_project = mommy.make('rw.Project', name='permitted')
         self.excluded_project = mommy.make('rw.Project', name='excluded')
-        self.ui_mode = MasterUI.LISTEN
+        self.ui_mode = UIGroup.LISTEN
         self.default_session = mommy.make_recipe('rw.default_session')
         self.default_session_id = self.default_session.id
         self.tag_category = mommy.make('rw.TagCategory')
         self.tag = mommy.make('rw.Tag')
-        self.selection_method = MasterUI.SINGLE
+        self.selection_method = UIGroup.SINGLE
         # self.permitted_project = Project.objects.create(name="permitted", latitude=1, longitude=1,
         #     pub_date="1111-11-11", max_recording_length=1)
         # self.excluded_project = Project.objects.create(name="excluded", latitude=1, longitude=1,
@@ -204,7 +204,7 @@ class TestProtectedAdmin(RWTestCase):
         """
         protected_model_test_data = [
             ['Session', [['starttime', '1999-01-01']]],
-            ['MasterUI', [['ui_mode', self.ui_mode],
+            ['UIGroup', [['ui_mode', self.ui_mode],
                           ['tag_category_id', self.tag_category.id],
                           ['select', self.selection_method],
                           ['index', 3],
@@ -274,10 +274,10 @@ class TestProtectedAdmin(RWTestCase):
     def test_projected_ui_model_admin(self):
         """
         Test permission on models that have a link to a project through
-        a MasterUI object.
+        a UIGroup object.
         """
         protected_ui_model_data = [
-            ['UIMapping', [['index', 1], ['tag_id', self.tag.id]]]
+            ['UIItem', [['index', 1], ['tag_id', self.tag.id]]]
         ]
 
         extra_params = {
@@ -287,11 +287,11 @@ class TestProtectedAdmin(RWTestCase):
             'index': 3
         }
 
-        permitted_ui_master = MasterUI.objects.create(project=self.permitted_project, **extra_params)
-        excluded_ui_master = MasterUI.objects.create(project=self.excluded_project, **extra_params)
+        permitted_ui_master = UIGroup.objects.create(project=self.permitted_project, **extra_params)
+        excluded_ui_master = UIGroup.objects.create(project=self.excluded_project, **extra_params)
 
-        make_test_objects = self.make_protected_test_objects_func('master_ui',
+        make_test_objects = self.make_protected_test_objects_func('ui_group',
                                                                   permitted_ui_master, excluded_ui_master)
-        get_project_names = lambda qs: [q.master_ui.project.name for q in qs]
+        get_project_names = lambda qs: [q.ui_group.project.name for q in qs]
         self._test_protected_model_admin(make_test_objects,
                                          get_project_names, protected_ui_model_data)

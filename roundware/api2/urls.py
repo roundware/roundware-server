@@ -21,6 +21,10 @@ router.register(r'streams', views.StreamViewSet, base_name="Stream")
 router.register(r'tags', views.TagViewSet)
 router.register(r'users', views.UserViewSet)
 router.register(r'envelopes', views.EnvelopeViewSet)
+router.register(r'tagrelationships', views.TagRelationshipViewSet)
+router.register(r'uigroups', views.UIGroupViewSet)
+router.register(r'uiitems', views.UIItemViewSet)
+
 
 urlpatterns = patterns('',
     url(r'^', include(router.urls)),

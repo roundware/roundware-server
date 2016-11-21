@@ -7,7 +7,7 @@ from mock import patch
 
 from .common import (RoundwaredTestCase, mock_distance_in_meters_near)
 from roundware.rw.models import (Session, Asset,
-                                 Project, MasterUI, UIMapping, Tag, TimedAsset)
+                                 Project, UIGroup, UIItem, Tag, TimedAsset)
 from roundwared.recording_collection import RecordingCollection
 from roundwared.stream import RoundStream
 from roundwared import gpsmixer
@@ -94,20 +94,20 @@ class TestRecordingCollection(RoundwaredTestCase):
                                  tags=[self.tag2],
                                  audiolength=2000, weight=100,
                                  latitude=2.0, longitude=2.0)
-        self.masterui1 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.LISTEN,
+        self.uigroup1 = mommy.make(UIGroup, project=self.project1,
+                                    ui_mode=UIGroup.LISTEN,
                                     tag_category=self.tagcat1)
-        self.masterui2 = mommy.make(MasterUI, project=self.project1,
-                                    ui_mode=MasterUI.LISTEN,
+        self.uigroup2 = mommy.make(UIGroup, project=self.project1,
+                                    ui_mode=UIGroup.LISTEN,
                                     tag_category=self.tagcat1)
-        self.masterui3 = mommy.make(MasterUI, project=self.project3,
-                                    ui_mode=MasterUI.LISTEN,
+        self.uigroup3 = mommy.make(UIGroup, project=self.project3,
+                                    ui_mode=UIGroup.LISTEN,
                                     tag_category=self.tagcat1)
-        self.uimapping1 = mommy.make(UIMapping, master_ui=self.masterui1,
+        self.uiitem1 = mommy.make(UIItem, ui_group=self.uigroup1,
                                      tag=self.tag1, default=True, active=True)
-        self.uimapping2 = mommy.make(UIMapping, master_ui=self.masterui1,
+        self.uiitem2 = mommy.make(UIItem, ui_group=self.uigroup1,
                                      tag=self.tag2, default=True, active=True)
-        self.uimapping3 = mommy.make(UIMapping, master_ui=self.masterui3,
+        self.uiitem3 = mommy.make(UIItem, ui_group=self.uigroup3,
                                      tag=self.tag2, default=True, active=True)
         self.timedasset1 = mommy.make(TimedAsset, project=self.project3,
                                       asset=self.asset4, start=0, end=15)

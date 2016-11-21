@@ -11,42 +11,42 @@ from roundware.settings import DEFAULT_SESSION_ID
 from .common import use_locmemcache, RWTestCase
 
 
-class TestMasterUI(RWTestCase):
+class TestUIGroup(RWTestCase):
 
-    """ exercise MasterUI model class """
+    """ exercise UIGroup model class """
 
     def setUp(self):
-        super(type(self), TestMasterUI).setUp(self)
+        super(type(self), TestUIGroup).setUp(self)
 
-        # make masterui, makes our tagcategory, uimode, project,
+        # make uigroup, makes our tagcategory, uimode, project,
         # selectionmethod
-        self.masterui = mommy.make('rw.MasterUI')
-        self.other_uimode = models.MasterUI.SPEAK
-        self.project = self.masterui.project
+        self.uigroup = mommy.make('rw.UIGroup')
+        self.other_uimode = models.UIGroup.SPEAK
+        self.project = self.uigroup.project
 
     @use_locmemcache(models, 'cache')
     def test_tag_category_cache_invalidation_post_save(self):
-        """ test that cached value for tag categories for the MasterUI's mode
-        is invalidated after MasterUI saved.
+        """ test that cached value for tag categories for the UIGroup's mode
+        is invalidated after UIGroup saved.
         """
-        ui_mode = self.masterui.ui_mode
+        ui_mode = self.uigroup.ui_mode
         get_orig_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode)
 
-        # is original tag_cat of masterui returned by Project's method
-        self.assertIn(self.masterui.tag_category, get_orig_tag_cats)
+        # is original tag_cat of uigroup returned by Project's method
+        self.assertIn(self.uigroup.tag_category, get_orig_tag_cats)
 
-        # change the ui mode of our masterui
-        self.masterui.ui_mode = self.other_uimode
+        # change the ui mode of our uigroup
+        self.uigroup.ui_mode = self.other_uimode
 
         # should still get old tag categories... cached
         get_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode)
-        self.assertIn(self.masterui.tag_category, get_tag_cats)
+        self.assertIn(self.uigroup.tag_category, get_tag_cats)
 
-        # save the masterui, now should not get old tag categories...
+        # save the uigroup, now should not get old tag categories...
         # cached copy invalidated
-        self.masterui.save()
+        self.uigroup.save()
         get_tag_cats = self.project.get_tag_cats_by_ui_mode(ui_mode)
-        self.assertNotIn(self.masterui.tag_category, get_tag_cats)
+        self.assertNotIn(self.uigroup.tag_category, get_tag_cats)
 
 
 class TestProject(RWTestCase):
@@ -54,31 +54,31 @@ class TestProject(RWTestCase):
     def setUp(self):
         super(type(self), TestProject).setUp(self)
         self.project = mommy.make('rw.Project')
-        self.ui_mode = models.MasterUI.LISTEN
+        self.ui_mode = models.UIGroup.LISTEN
 
     def test_no_tag_cats_returned_new_project(self):
-        """ test no tag_categories returned for a new project with no masterui
+        """ test no tag_categories returned for a new project with no uigroup
         """
         cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode)
         self.assertTrue(len(cats) == 0)
 
     def test_correct_tag_cats_returned(self):
         """ test that we get correct tagcategories for our project once
-            we add a MasterUI.
+            we add a UIGroup.
         """
-        masterui = mommy.make('rw.MasterUI', project=self.project,
+        uigroup = mommy.make('rw.UIGroup', project=self.project,
                               ui_mode=self.ui_mode)
         cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode)
-        self.assertIn(masterui.tag_category, cats)
+        self.assertIn(uigroup.tag_category, cats)
 
     def test_no_tag_cats_returned_wrong_uimode(self):
-        """ test no tag_categories returned if we specify a uimode that 
-            is not connected to project via a MasterUI
+        """ test no tag_categories returned if we specify a uimode that
+            is not connected to project via a UIGroup
         """
-        other_master_ui = mommy.make('rw.MasterUI', project=self.project,
-                                     ui_mode=models.MasterUI.SPEAK)
+        other_ui_group = mommy.make('rw.UIGroup', project=self.project,
+                                     ui_mode=models.UIGroup.SPEAK)
         cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode)
-        self.assertNotIn(other_master_ui.tag_category, cats)
+        self.assertNotIn(other_ui_group.tag_category, cats)
 
 
 class TestAsset(RWTestCase):

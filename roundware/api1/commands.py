@@ -16,7 +16,7 @@ from roundware.rw import models
 from roundware.lib import dbus_send
 from roundware.lib.exception import RoundException
 from roundwared import gpsmixer
-from roundware.lib.api import (get_project_tags, t, log_event, form_to_request,
+from roundware.lib.api import (get_project_tags_old as get_project_tags, t, log_event, form_to_request,
                                check_for_single_audiotrack, get_parameter_from_request)
 
 logger = logging.getLogger(__name__)

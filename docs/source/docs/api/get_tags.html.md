@@ -36,7 +36,7 @@ JSON response is broken into sections for `listen` and `speak` at the top level,
 and tag metadata to be different for each mode.  Beneath that, there are nodes for each tag category
 and then the tags themselves.
 
-`get_tags` response is governed by the `master_ui` and `ui_mapping` objects.
+`get_tags` response is governed by the `ui_group` and `ui_item` objects.
 
 ### Example Response
 

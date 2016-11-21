@@ -85,7 +85,7 @@ class ProjectProtectedThroughSessionModelAdmin(admin.ModelAdmin):
 class ProjectProtectedThroughUIModelAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
-        return project_restricted_queryset_through(MasterUI, 'master_ui')(self, request)
+        return project_restricted_queryset_through(UIGroup, 'ui_group')(self, request)
 
 
 class ProjectProtectedModelAdmin(admin.ModelAdmin):
@@ -260,17 +260,20 @@ class AssetInline(admin.StackedInline):
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('id', 'tag_category', 'value', 'get_loc')
+    list_display = ('id', 'project', 'tag_category', 'value', 'get_loc')
     search_fields = ('description',)
     list_filter = ('tag_category',)
     ordering = ['id']
     filter_vertical = ('loc_msg', 'loc_description')
-    filter_horizontal = ('relationships',)
+    filter_horizontal = ('relationships_old',) # TODO: This might need an update..?
     # inlines = [
     #    AssetTagsInline,
     # ]
     change_list_template = 'admin/tag_change_list.html'
 
+class TagRelationshipAdmin(admin.ModelAdmin):
+    list_display = ('id', 'tag_id', 'parent_id')
+    ordering = ['id']
 
 class LanguageAdmin(admin.ModelAdmin):
     list_display = ('id', 'language_code')
@@ -328,9 +331,9 @@ class TagCategoryAdmin(admin.ModelAdmin):
     ordering = ['id']
 
 
-# MasterUIs describe screens containing choices limited to one mode (Speak, Listen),
+# UIGroups describe screens containing choices limited to one mode (Speak, Listen),
 #  and one tag category.
-class MasterUIAdmin(ProjectProtectedModelAdmin):
+class UIGroupAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'project', 'name', 'get_header_text_loc',
                     'ui_mode', 'tag_category', 'select', 'active', 'index')
     list_filter = ('project', 'ui_mode', 'tag_category')
@@ -340,10 +343,10 @@ class MasterUIAdmin(ProjectProtectedModelAdmin):
 
 
 # UI Mappings describe the ordering and selectability of tags for a given
-# MasterUI.
-class UIMappingAdmin(ProjectProtectedThroughUIModelAdmin):
-    list_display = ('id', 'active', 'master_ui', 'index', 'tag', 'default')
-    list_filter = ('master_ui',)
+# UIGroup.
+class UIItemAdmin(ProjectProtectedThroughUIModelAdmin):
+    list_display = ('id', 'active', 'ui_group', 'index', 'tag', 'default')
+    list_filter = ('ui_group',)
     list_editable = ('active', 'default', 'index')
     ordering = ['id']
     save_as = True
@@ -475,8 +478,9 @@ admin.site.register(Session, SessionAdmin)
 admin.site.register(Audiotrack, AudiotrackAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(TagCategory, TagCategoryAdmin)
-admin.site.register(MasterUI, MasterUIAdmin)
-admin.site.register(UIMapping, UIMappingAdmin)
+admin.site.register(TagRelationship, TagRelationshipAdmin)
+admin.site.register(UIGroup, UIGroupAdmin)
+admin.site.register(UIItem, UIItemAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Asset, AssetAdmin)
