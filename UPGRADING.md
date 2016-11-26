@@ -31,9 +31,9 @@ installation is based on a commit prior to the Django 1.9 migration, some manual
 1. Pull the relevant post-upgrade `roundware-server` commit (or newer)
 2. Remove obsolete `auth_permission` rows (see issue #291):
 
-```
-sudo su - postgres -c 'psql -c "DELETE FROM auth_permission WHERE id IN (SELECT id FROM auth_permission EXCEPT ((SELECT permission_id FROM auth_group_permissions) UNION (SELECT permission_id FROM auth_user_user_permissions)))" roundware'
-```
+ ```
+ sudo su - postgres -c 'psql -c "DELETE FROM auth_permission WHERE id IN (SELECT id FROM auth_permission EXCEPT ((SELECT permission_id FROM auth_group_permissions) UNION (SELECT permission_id FROM auth_user_user_permissions)))" roundware'
+ ```
 
 3. Initial deploy: `sudo ./deploy.sh` (this will error on `django-guardian` but don't worry,
    we're about to fix that)

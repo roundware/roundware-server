@@ -1,5 +1,21 @@
 Roundware Server v0.3, XXXX-XX-XX (development version)
 ---------------------
+- Add Audiotracks, LocalizedStrings, TimedAssets, Votes, Speakers,
+  Languages endpoints with full CRUD
+- Add CUD features to Project, Tag Relationship, UI Group, UI Item, Tags endpoints
+- Make geo_listen_enabled session-based rather than project-based
+- Add content-blocking system - ability to block Asset or User
+- Add api/2 stream manipulation functions: skip, replayasset, playasset,
+  pause, resume, isactive
+- Improve and solidify continuous mode
+- Improve and solidify global listening functionality
+- Add api/2 endpoints for UI Groups, UI Items and Tags
+- Improve tagging with UI Groups, UI Items and Tag Relationships
+- Upgrade to Django 1.9
+- Add random asset api endpoint
+- Improve and consolidate web-based map admin tools
+- Add polygon speaker geometry functionality
+- Change database from MySQL to Postgresql/PostGIS
 - Upgraded Django Rest Framework to 3.2.2
 - Added APIv2 endpoints
 - Consolidated shared code between old and new APIs
