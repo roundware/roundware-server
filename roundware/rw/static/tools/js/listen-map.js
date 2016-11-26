@@ -347,7 +347,7 @@ Roundware.ListenMap = function (opts) {
     function map_assets() {
         $.each(assets, function (i, item) {
 
-            if (!item.submitted) {
+            if (!item.submitted || item.mediatype != 'audio') {
                 return;
             }
 
