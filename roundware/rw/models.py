@@ -38,6 +38,10 @@ class LocalizedString(models.Model):
     def __unicode__(self):
         return str(self.id) + ": Language: " + self.language.name + ", String: " + self.localized_string
 
+    class Meta:
+        verbose_name = 'Localized String'
+        verbose_name_plural = 'Localized Strings'
+
 
 class Project(models.Model):
     BITRATES = (
@@ -147,6 +151,11 @@ class TagCategory(models.Model):
     def __unicode__(self):
         return str(self.id) + ":" + self.name
 
+    class Meta:
+        verbose_name = 'Tag Category'
+        verbose_name_plural = 'Tag Categories'
+
+
 class Tag(models.Model):
     FILTERS = (
         ("", "No filter"),
@@ -191,6 +200,11 @@ class TagRelationship(models.Model):
 
     def __unicode__(self):
         return str(self.id) + self.tag.value + str(self.parent)
+
+    class Meta:
+        verbose_name = 'Tag Relationship'
+        verbose_name_plural = 'Tag Relationships'
+
 
 class UIGroup(models.Model):
     SINGLE = 'single'
@@ -250,6 +264,10 @@ class UIGroup(models.Model):
     def __unicode__(self):
         return str(self.id) + ":" + self.project.name + ":" + self.get_ui_mode_display() + ":" + self.name
 
+    class Meta:
+        verbose_name = 'UI Group'
+        verbose_name_plural = 'UI Groups'
+
 
 class UIItem(models.Model):
     ui_group = models.ForeignKey(UIGroup)
@@ -263,6 +281,10 @@ class UIItem(models.Model):
 
     def __unicode__(self):
         return str(self.id) + ":" + self.ui_group.name + ":" + self.tag.tag_category.name
+
+    class Meta:
+        verbose_name = 'UI Item'
+        verbose_name_plural = 'UI Items'
 
 
 class Audiotrack(models.Model):
@@ -626,6 +648,10 @@ class ListeningHistoryItem(models.Model):
     def __unicode__(self):
         return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + " duration: " + str(self.duration)
 
+    class Meta:
+        verbose_name = 'Listening History Item'
+        verbose_name_plural = 'Listening History Items'
+
 
 class Vote(models.Model):
     LIKE = 'like'
@@ -663,6 +689,10 @@ class TimedAsset(models.Model):
 
     def __unicode__(self):
         return "%s: Asset id: %s: Start: %s: End: %s" % (self.id, self.asset.id, self.start, self.end)
+
+    class Meta:
+        verbose_name = 'Timed Asset'
+        verbose_name_plural = 'Timed Assets'
 
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL)
