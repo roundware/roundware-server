@@ -134,8 +134,8 @@
             var id = getUrlVars()["asset_id"];
             var id__gte = getUrlVars()["asset__gte"];
             var id__lte = getUrlVars()["asset__lte"];
-            var audiolength__gte = getUrlVars()["audiolength__gte"];
-            var audiolength__lte = getUrlVars()["audiolength__lte"];
+            var audiolength__gte = getUrlVars()["audiolength__gte"] ? (getUrlVars()["audiolength__gte"] * 1000000000) : '';
+            var audiolength__lte = getUrlVars()["audiolength__lte"] ? (getUrlVars()["audiolength__lte"] * 1000000000) : '';
             var submitted = getUrlVars()["submitted"] ? getUrlVars()["submitted"] : 'true';
             var mediatype = getUrlVars()["mediatype"] ? getUrlVars()["mediatype"] : 'audio';
 
@@ -159,7 +159,7 @@
                         },
                         dataType: "json",
                         success: function(data) {
-                            points = data.results;
+                            points = data;
                         }
                     }
                 );
