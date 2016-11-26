@@ -97,9 +97,9 @@ Restart Icecast for changes to take effect:
 
 To verify that icecast is up and running go to `http://example.com:8000` to see the default Icecast admin page.
 
-## MySQL
+## Postgres
 
-Roundware uses MySQL and requires a dedicated database with a dedicated user.
+Roundware uses Postgresql and requires a dedicated database with a dedicated user.
 
 You may change the database name and account info to fit your needs, but if you do, be sure to change the Roundware config (`/etc/roundware/rw`) and the Django settings (`roundware-server/roundware/settings.py`) to reflect your changes.
 
