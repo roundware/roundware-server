@@ -196,6 +196,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     list_filter = ('project', 'submitted', 'mediatype', 'created', 'language',
                    ('audiolength', AudiolengthListFilter), ('tags', TagCategoryListFilter))
     list_editable = ('submitted', 'weight', 'volume')
+    search_fields = ('description',)
     save_on_top = True
     filter_horizontal = ('tags', 'loc_description')
     fieldsets = (
@@ -261,8 +262,8 @@ class AssetInline(admin.StackedInline):
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'project', 'tag_category', 'value', 'get_loc')
-    search_fields = ('description',)
-    list_filter = ('tag_category',)
+    search_fields = ('description', 'value')
+    list_filter = ('project', 'tag_category',)
     ordering = ['id']
     filter_vertical = ('loc_msg', 'loc_description')
     filter_horizontal = ('relationships_old',) # TODO: This might need an update..?
