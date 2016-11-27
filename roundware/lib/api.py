@@ -221,6 +221,10 @@ def is_listener_in_range_of_stream(form, proj):
     if not form.get('latitude', None) or not form.get('longitude', None):
         return True
 
+    # Return True if project set to global listening
+    if not proj.geo_listen_enabled:
+        return True
+
     listener = Point(float(form['longitude']), float(form['latitude']))
 
     # See if there are any active speakers within range of the listener's location
