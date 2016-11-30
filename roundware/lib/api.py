@@ -166,7 +166,7 @@ def request_stream(request):
                 " locations. Apparently your phone thinks you are not at one of"
                 " those locations, so you will hear a sample audio stream"
                 " instead of the real deal. If you think your phone is"
-                " incorrect, please restart Scapes and it will probably work."
+                " incorrect, please restart Roundware and it will probably work."
                 " Thanks for checking it out!",
                 project.out_of_range_message_loc, session.language)
 
@@ -233,7 +233,7 @@ def is_listener_in_range_of_stream(form, proj):
         activeyn=True,
         shape__dwithin=(listener, D(m=proj.out_of_range_distance))
     ).exists()
-
+    logger.info("is_listener_in_range_of_stream says = %s" % in_range)
     return in_range
 
 
@@ -345,12 +345,14 @@ def form_to_request(form):
 
 
 def move_listener(request, context=None):
-    logger.debug("moving listener")
+    logger.info("moving listener")
     if context is not None and "pk" in context:
         form = request.data.copy()
         form['session_id'] = context["pk"]
     else:
-        form = request.GET
+        # api/1 uses GET and api/2 uses POST
+        # need to check for both until api/1 is deprecated
+        form = request.GET or request.POST
     try:
         request = form_to_request(form)
         arg_hack = json.dumps(request)
