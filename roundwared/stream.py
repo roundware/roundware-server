@@ -124,7 +124,11 @@ class RoundStream:
         self.recordingCollection.update_request(self.request)
 
     def move_listener(self, request):
-        if request['latitude'] and request['longitude']:
+        # if no lat/lon passed, set to 1/1 as default
+        # TODO figure out a better way to handle global streams
+        lat = self.request['latitude'] or 1
+        lon = self.request['longitude'] or 1
+        if lat and lon:
             self.heartbeat()
             self.listener = request
             logger.debug("move_listener(%s,%s)", request['latitude'],
@@ -155,7 +159,6 @@ class RoundStream:
         srcpad.link(addersinkpad)
 
     def add_speakers(self):
-
         # FIXME: We might need to unconditionally add blank-audio.
         # what happens if the only speaker is out of range? I think
         # it'll be fine but test this.
