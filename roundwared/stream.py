@@ -116,7 +116,10 @@ class RoundStream:
             + " Total of " \
             + str(len(filenames))
             + " files.")
-        self.move_listener(request)
+        # only move listener if lat & lon parameters passed and not blank
+        if ("latitude" in self.request and self.request["latitude"]) and \
+           ("longitude" in self.request and self.request["longitude"]):
+            self.move_listener(request)
         return True
 
     # Force the recording collection to get new recordings from the DB
