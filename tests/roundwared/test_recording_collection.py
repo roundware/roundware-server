@@ -296,6 +296,8 @@ class TestRecordingCollection(RoundwaredTestCase):
             self.assertEquals(self.asset3, rc.get_recording())
             self.assertEquals(self.asset2, rc.get_recording())
             self.assertEquals(self.asset1, rc.get_recording())
+            # wait for BANNED_TIMEOUT_LIMIT to pass
+            sleep(3)
             self.assertEquals(self.asset3, rc.get_recording())
 
     def test_get_recording_continuous_global_outofrange(self):
@@ -320,6 +322,8 @@ class TestRecordingCollection(RoundwaredTestCase):
             self.assertEquals(self.asset3, rc.get_recording())
             self.assertEquals(self.asset2, rc.get_recording())
             self.assertEquals(self.asset1, rc.get_recording())
+            # wait for BANNED_TIMEOUT_LIMIT to pass
+            sleep(3)
             self.assertEquals(self.asset3, rc.get_recording())
 
         self.project1.geo_listen_enabled = True
@@ -347,6 +351,8 @@ class TestRecordingCollection(RoundwaredTestCase):
             self.assertEquals(self.asset3, rc.get_recording())
             self.assertEquals(self.asset2, rc.get_recording())
             self.assertEquals(self.asset1, rc.get_recording())
+            # wait for BANNED_TIMEOUT_LIMIT to pass
+            sleep(3)
             self.assertEquals(self.asset3, rc.get_recording())
 
         self.project1.geo_listen_enabled = True

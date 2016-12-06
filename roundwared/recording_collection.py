@@ -120,8 +120,8 @@ class RecordingCollection:
 
     def _get_recording(self):
         """
-        Returns an item from the timed playlist if any exist, return a
-        an item from the proximity playlist if any exist, otherwise return None
+        Returns first existing item, in order, from: timed playlist if prioritized;
+        proximity playlist; timed playlist if not prioritized; otherwise None
         """
         # prioritize timed-assets before proximity assets
         if self.project.timed_asset_priority:
@@ -135,8 +135,10 @@ class RecordingCollection:
             # Check if continuous is enabled for the project.
             if (self.project.repeat_mode == Project.CONTINUOUS):
                 logger.debug("Playback mode: continuous")
-                # Clear the ban list
-                self.banned_timeout = {}
+                # Do not clear the ban list by default so repeated playback of
+                # assets still obeys BANNED_TIMEOUT_LIMIT
+                # TODO: consider parameter to toggle clearing of banned_timeout
+                # self.banned_timeout = {}
                 # Clear the nearby played list
                 self.banned_proximity = []
                 # Update the list of playlist_proximity.
