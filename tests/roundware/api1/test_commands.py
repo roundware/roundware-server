@@ -68,7 +68,8 @@ class TestServer(RoundwaredTestCase):
                                    id=12, audio_format='ogg',
                                    demo_stream_message_loc=[self.english_msg,
                                                             self.spanish_msg],
-                                   out_of_range_url='http://rw.com:8000/outofrange.mp3')
+                                   out_of_range_url='http://rw.com:8000/outofrange.mp3',
+                                   geo_listen_enabled=True)
         self.session = mommy.make(Session, project=self.project1,
                                   language=self.spanish, id=1)
         self.asset1 = mommy.make(Asset, project=self.project1, id=1,
@@ -640,7 +641,6 @@ class TestServer(RoundwaredTestCase):
 
     @patch.object(gpsmixer, 'distance_in_meters',
                   mock_distance_in_meters_near)
-
     def test_request_stream_listener_in_range(self):
         """ Make sure we get good stream data if listener is in range.
         Doesn't test actual stream being served.
@@ -661,7 +661,6 @@ class TestServer(RoundwaredTestCase):
         expected = self.project1.out_of_range_url
         result = request_stream(req)['stream_url']
         self.assertEquals(expected, result)
-
 
 
     @patch.object(gpsmixer, 'distance_in_meters',
@@ -690,11 +689,28 @@ class TestServer(RoundwaredTestCase):
                              'your phone thinks you are not at one of those '
                              'locations, so you will hear a sample audio '
                              'stream instead of the real deal. If you think '
-                             'your phone is incorrect, please restart Scapes '
+                             'your phone is incorrect, please restart Roundware '
                              'and it will probably work. Thanks for '
                              'checking it out!'),
             'stream_url': 'http://rw.com:8000/outofrange.mp3'}
         self.assertEquals(expected, request_stream(req))
+
+    @patch.object(gpsmixer, 'distance_in_meters', mock_distance_in_meters_far)
+    def test_request_stream_listener_out_of_range_global(self):
+        """
+        Make sure custom stream is generated for global listen project
+        even when outside all speaker ranges.
+        Doesn't test actual stream being served.
+        """
+        req = FakeRequest()
+        req.method = 'GET'
+        req.GET = {'session_id': '1', 'latitude': '45', 'longitude': '-80'}
+        expected = {'stream_url': 'http://rw.com:8000/stream1.ogg'}
+        self.project1.geo_listen_enabled = False
+        self.project1.save()
+        self.assertEquals(expected, request_stream(req))
+        self.project1.geo_listen_enabled = True
+        self.project1.save()
 
     @patch.object(gpsmixer, 'distance_in_meters', mock_distance_in_meters_near)
     def test_request_stream_inactive_speakers_not_involved(self):
@@ -711,7 +727,7 @@ class TestServer(RoundwaredTestCase):
                              'your phone thinks you are not at one of those '
                              'locations, so you will hear a sample audio '
                              'stream instead of the real deal. If you think '
-                             'your phone is incorrect, please restart Scapes '
+                             'your phone is incorrect, please restart Roundware '
                              'and it will probably work. Thanks for '
                              'checking it out!'),
             'stream_url': 'http://rw.com:8000/outofrange.mp3'}

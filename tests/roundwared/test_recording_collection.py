@@ -225,15 +225,58 @@ class TestRecordingCollection(RoundwaredTestCase):
         rc.move_listener(req)
         # Check for nothing
         self.assertIsNone(rc.get_recording())
-        # Wait for the BANNED_TIMEOUT_LIMIT to pass
-        sleep(3)
+        # Wait for the BANNED_TIMEOUT_LIMIT to NOT pass
+        sleep(1)
         # Move back
         req['latitude'] = 0.1
+        rc.move_listener(req)
+        # Check the assets remain not available.
+        self.assertIsNone(rc.get_recording())
+        # Wait for the BANNED_TIMEOUT_LIMIT to pass
+        sleep(3)
+        # re-trigger playlist population
         rc.move_listener(req)
         # Check the assets are available again.
         self.assertEquals(self.asset3, rc.get_recording())
         self.assertEquals(self.asset2, rc.get_recording())
         self.assertEquals(self.asset1, rc.get_recording())
+
+    def test_global_listen_add_and_re_add_to_playlist(self):
+        """
+        test for global listen projects that all assets are added
+        to playlist initially and then re-added with tag filtering
+        only after BANNED_TIMEOUT_LIMIT has passed
+        """
+        self.project1.geo_listen_enabled = False
+        self.project1.save()
+        req = self.req2
+        # required by get_recording
+        req["project_id"] = self.project1.id
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+        # Update the list of nearby recordings
+        rc.update_request(req)
+        # Listen to the three nearby
+        self.assertEquals(self.asset3, rc.get_recording())
+        self.assertEquals(self.asset2, rc.get_recording())
+        self.assertEquals(self.asset1, rc.get_recording())
+        # Check there is nothing left
+        self.assertIsNone(rc.get_recording())
+        # Filter with tags
+        req['tags'] = str(self.tag1.id)
+        rc.update_request(req)
+        # Check for nothing because BANNED_TIMEOUT_LIMIT not passed
+        self.assertIsNone(rc.get_recording())
+        # Wait for the BANNED_TIMEOUT_LIMIT to pass
+        sleep(3)
+        # re-trigger playlist population with tag filtering
+        rc.update_request(req)
+        # Check the filtered assets are available again.
+        self.assertEquals(self.asset2, rc.get_recording())
+        self.assertEquals(self.asset1, rc.get_recording())
+
+        self.project1.geo_listen_enabled = True
+        self.project1.save()
 
     def test_get_recording_until_none_repeatmode_continuous(self):
         """ test that we get the next playlist_proximity nearby recording, until there

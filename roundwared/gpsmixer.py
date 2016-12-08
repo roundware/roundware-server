@@ -39,7 +39,7 @@ class GPSMixer (gst.Bin):
                 self.speakers[speaker.id] = speaker
                 self.inspect_speaker(speaker)
 
-        logger.debug("initializing GPSMixer")
+        logger.info("initializing GPSMixer")
 
         self.adder = gst.element_factory_make("adder")
         self.add(self.adder)
@@ -129,10 +129,16 @@ class GPSMixer (gst.Bin):
         logger.info("filtering speakers")
         listener = Point(float(self.listener['longitude']), float(self.listener['latitude']))
 
-        # get active speakers for this project, and select from those all speakers our listener is inside
-        speakers = Speaker.objects.filter(activeyn=True, project=self.project).filter(
+        # filter speakers by geometry only for geo_listen projects;
+        # otherwise include all active speakers for project
+        if self.project.geo_listen_enabled:
+            # get active speakers for this project, and select from those all speakers our listener is inside
+            speakers = Speaker.objects.filter(activeyn=True, project=self.project).filter(
             Q(shape__dwithin=(listener, D(m=0))) | Q(minvolume__gt=0)
         )
+        else:
+            # add all active speakers regardless of geometry
+            speakers = Speaker.objects.filter(activeyn=True, project=self.project)
 
         # make sure all the current speakers are registered in the self.speakers dict
         for s in speakers:
@@ -151,28 +157,33 @@ class GPSMixer (gst.Bin):
         current_speakers = self.get_current_speakers()
 
         speakers_count = len(self.speakers.keys())
-        logger.debug("Processing {} speakers".format(speakers_count))
+        logger.info("Processing {} speakers".format(speakers_count))
 
         for i, (_, speaker) in enumerate(self.speakers.items()):
-            logger.debug("Processing speaker {} of {}".format(i + 1, speakers_count))
+            logger.info("Processing speaker {} of {}".format(i + 1, speakers_count))
 
             if speaker in current_speakers:
-                logger.debug("Speaker {} is within range. Calculating volume...".format(speaker.id))
-                vol = calculate_volume(speaker, self.listener)
+                logger.info("Speaker {} is within range. Calculating volume...".format(speaker.id))
+                # only calculate volume if geo_listen project; otherwise set to maxvolume
+                if self.project.geo_listen_enabled:
+                    vol = calculate_volume(speaker, self.listener)
+                else:
+                    logger.info("GLOBAL LISTEN: setting speaker volume to maxvolume = %s" % speaker.maxvolume)
+                    vol = speaker.maxvolume
             else:
-                logger.debug("Speaker {} is out of range. Setting minvolume...".format(speaker.id))
+                logger.info("Speaker {} is out of range. Setting minvolume...".format(speaker.id))
                 # set speakers that are not in range to minvolume
                 vol = speaker.minvolume
 
             if vol == 0:
-                logger.debug("Speaker {} is off, removing from stream".format(speaker.id))
+                logger.info("Speaker {} is off, removing from stream".format(speaker.id))
                 self.remove_speaker_from_stream(speaker)
                 logger.debug("Removed speaker: {}".format(speaker.id))
             else:
                 logger.debug("Source # {} has a volume of {}".format(speaker.id, vol))
                 self.set_speaker_volume(speaker, vol)
 
-        logger.debug("move listener complete")
+        logger.info("move listener complete")
 
 def lg(x):
     return math.log(x) / math.log(2)
