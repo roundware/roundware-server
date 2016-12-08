@@ -82,7 +82,7 @@ class RecordingCollection:
         # Updating nearby_recording will start stream audio asset play back.
         if update_proximity:
             self._update_playlist_proximity(request)
-        logger.debug("Asset Counts - all: %s, playlist_proximity: %s, banned_proximity: %s, banned_timeout: %s." %
+        logger.info("Asset Counts - all: %s, playlist_proximity: %s, banned_proximity: %s, banned_timeout: %s." %
                      (len(self.all),
                       self.count(),
                       len(self.banned_proximity),
@@ -120,8 +120,8 @@ class RecordingCollection:
 
     def _get_recording(self):
         """
-        Returns an item from the timed playlist if any exist, return a
-        an item from the proximity playlist if any exist, otherwise return None
+        Returns first existing item, in order, from: timed playlist if prioritized;
+        proximity playlist; timed playlist if not prioritized; otherwise None
         """
         # prioritize timed-assets before proximity assets
         if self.project.timed_asset_priority:
@@ -135,8 +135,10 @@ class RecordingCollection:
             # Check if continuous is enabled for the project.
             if (self.project.repeat_mode == Project.CONTINUOUS):
                 logger.debug("Playback mode: continuous")
-                # Clear the ban list
-                self.banned_timeout = {}
+                # Do not clear the ban list by default so repeated playback of
+                # assets still obeys BANNED_TIMEOUT_LIMIT
+                # TODO: consider parameter to toggle clearing of banned_timeout
+                # self.banned_timeout = {}
                 # Clear the nearby played list
                 self.banned_proximity = []
                 # Update the list of playlist_proximity.
@@ -182,7 +184,7 @@ class RecordingCollection:
         """
         Returns true if there are banned_timeout or banned_proximity recordings.
         """
-        return (len(self.banned_proximity) > 0 and len(self.banned_timeout) > 0)
+        return (len(self.banned_proximity) > 0 or len(self.banned_timeout) > 0)
 
     def order_assets(self, assets):
         """

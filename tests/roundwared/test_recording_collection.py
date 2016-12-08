@@ -296,7 +296,67 @@ class TestRecordingCollection(RoundwaredTestCase):
             self.assertEquals(self.asset3, rc.get_recording())
             self.assertEquals(self.asset2, rc.get_recording())
             self.assertEquals(self.asset1, rc.get_recording())
+            # wait for BANNED_TIMEOUT_LIMIT to pass
+            sleep(3)
             self.assertEquals(self.asset3, rc.get_recording())
+
+    def test_get_recording_continuous_global_outofrange(self):
+        """
+        Test that we get the next playlist recording until there are none
+        left (out of range of active speakers). Global listen project in
+        continuous repeat mode should then replay the first played recording.
+        """
+        self.project1.repeat_mode = Project.CONTINUOUS
+        self.project1.geo_listen_enabled = False
+        self.project1.save()
+        req = self.req1
+        req['latitude'] = 10
+        req['longitude'] = 10
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        with patch.object(gpsmixer, 'distance_in_meters',
+                          mock_distance_in_meters_near):
+            rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+            # Update the list of nearby recordings
+            rc.update_request(req)
+
+            self.assertEquals(self.asset3, rc.get_recording())
+            self.assertEquals(self.asset2, rc.get_recording())
+            self.assertEquals(self.asset1, rc.get_recording())
+            # wait for BANNED_TIMEOUT_LIMIT to pass
+            sleep(3)
+            self.assertEquals(self.asset3, rc.get_recording())
+
+        self.project1.geo_listen_enabled = True
+        self.project1.save()
+
+    def test_get_recording_continuous_global_inrange(self):
+        """
+        Test that we get the next playlist recording until there are none
+        left (in range of active speaker). Global listen project in continuous
+        repeat mode should then replay the first played recording.
+        """
+        self.project1.repeat_mode = Project.CONTINUOUS
+        self.project1.geo_listen_enabled = False
+        self.project1.save()
+        req = self.req1
+        req['latitude'] = .1
+        req['longitude'] = .1
+        stream = RoundStream(self.session1.id, 'ogg', req)
+        with patch.object(gpsmixer, 'distance_in_meters',
+                          mock_distance_in_meters_near):
+            rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+            # Update the list of nearby recordings
+            rc.update_request(req)
+
+            self.assertEquals(self.asset3, rc.get_recording())
+            self.assertEquals(self.asset2, rc.get_recording())
+            self.assertEquals(self.asset1, rc.get_recording())
+            # wait for BANNED_TIMEOUT_LIMIT to pass
+            sleep(3)
+            self.assertEquals(self.asset3, rc.get_recording())
+
+        self.project1.geo_listen_enabled = True
+        self.project1.save()
 
     def test_add_recording(self):
         """ add a specific asset id and it should show up in
