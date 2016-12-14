@@ -17,7 +17,7 @@ from roundware.lib import dbus_send
 from roundware.lib.exception import RoundException
 from roundwared import gpsmixer
 from roundware.lib.api import (get_project_tags_old as get_project_tags, t, log_event, form_to_request,
-                               check_for_single_audiotrack, get_parameter_from_request)
+                               check_for_single_audiotrack, get_parameter_from_request, play)
 
 logger = logging.getLogger(__name__)
 
@@ -41,23 +41,9 @@ def get_asset_info(request):
 
 
 def play_asset_in_stream(request):
-    form = request.GET
 
-    request = form_to_request(form)
-    arg_hack = json.dumps(request)
-    log_event("play_asset_in_stream", int(form['session_id']), form)
-
-    if 'session_id' not in form:
-        raise RoundException("a session_id is required for this operation")
-    if not check_for_single_audiotrack(form.get('session_id')):
-        raise RoundException(
-            "this operation is only valid for projects with 1 audiotrack")
-    if 'asset_id' not in form:
-        raise RoundException(
-            "an asset_id is required for this operation")
-    dbus_send.emit_stream_signal(
-        int(form['session_id']), "play_asset", arg_hack)
-    return {"success": True}
+    # APIv2 uses POST, APIv1 uses GET for this command
+    return play( request.GET )
 
 
 # @profile(stats=True)

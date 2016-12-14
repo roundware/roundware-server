@@ -9,6 +9,8 @@
 
 from __future__ import unicode_literals
 import gobject
+
+
 gobject.threads_init()
 import pygst
 pygst.require("0.10")
@@ -20,10 +22,12 @@ import time
 from roundwared import src_wav_file
 from roundwared import db
 from django.conf import settings
+from roundware.rw.models import Asset
 
 STATE_PLAYING = 0
 STATE_DEAD_AIR = 1
 STATE_WAITING = 2
+
 logger = logging.getLogger(__name__)
 
 
@@ -63,14 +67,14 @@ class AudioTrack:
         def track_timer():
             """
             The audio manager.
-
             Timeout called every second to maintain the audio asset stream.
             """
+            logger.debug("AT State: %d, Stream state: %d" % (self.state, self.stream.get_state()))
             # logger.debug("TickTock: %s" % self.track_timer)
             self.track_timer += 1
 
             # Do nothing if audio is playing already.
-            if self.state == STATE_PLAYING:
+            if self.state == STATE_PLAYING or self.stream.is_paused():
                 return True
             # No audio playing and asset_timer_callback is not scheduled, this
             # is set by self.clean_up() when an asset ends.
@@ -235,7 +239,7 @@ class AudioTrack:
             asset = Asset.objects.get(id=str(asset_id))
             self.rc.remove_asset_from_rc(asset)
             self.rc.add_asset_to_rc(asset)
-        self.skip_ahead()
+            self.skip_ahead()
         except Asset.DoesNotExist:
             logger.error("Asset with ID %d does not exist." % asset_id)
 
