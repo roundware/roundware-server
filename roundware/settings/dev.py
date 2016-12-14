@@ -1,8 +1,4 @@
 from .common import *
-try:
-    from .local_settings import *
-except ImportError:
-    pass
 
 # Set Roundware API for internal calls to development environment
 API_URL = "http://127.0.0.1:8888/roundware/"
@@ -92,3 +88,8 @@ LOGGING['loggers'] = {
     #    'handlers': ['console'],
     # },
 }
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass
