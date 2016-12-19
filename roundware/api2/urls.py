@@ -3,7 +3,7 @@
 
 
 from __future__ import unicode_literals
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 from rest_framework.routers import DefaultRouter
 from roundware.api2 import views
 import logging
@@ -26,6 +26,6 @@ router.register(r'uigroups', views.UIGroupViewSet)
 router.register(r'uiitems', views.UIItemViewSet)
 
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^', include(router.urls)),
-)
+]

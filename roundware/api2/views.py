@@ -13,9 +13,9 @@ from roundware.api2.filters import (EventFilterSet, AssetFilterSet, ListeningHis
                                     TagFilterSet, TagRelationshipFilterSet, UIGroupFilterSet,
                                     UIItemFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
-                               skip_ahead, add_asset_to_envelope, get_current_streaming_asset,
+                               skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset,
-                               vote_count_by_asset, log_event)
+                               vote_count_by_asset, log_event, play)
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
@@ -232,7 +232,7 @@ class ProjectViewSet(viewsets.ViewSet):
             api/2/projects/:project_id/tags
     """
     queryset = Project.objects.all()
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     def retrieve(self, request, pk=None):
         if "session_id" in request.query_params:
@@ -252,7 +252,7 @@ class ProjectViewSet(viewsets.ViewSet):
 
         tags = get_project_tags(p=pk)
         serializer = serializers.TagSerializer(tags, context={"session": session}, many=True)
-        return Response({"tags":serializer.data})
+        return Response({"tags": serializer.data})
 
     @detail_route(methods=['get'])
     def uigroups(self, request, pk=None):
@@ -260,7 +260,7 @@ class ProjectViewSet(viewsets.ViewSet):
         params["project_id"] = pk
         uigroups = UIGroupFilterSet(params)
         serializer = serializers.UIGroupSerializer(uigroups, many=True)
-        return Response({"ui_groups":serializer.data})
+        return Response({"ui_groups": serializer.data})
 
     @detail_route(methods=['get'])
     def assets(self, request, pk=None):
@@ -277,7 +277,7 @@ class SessionViewSet(viewsets.ViewSet):
     API V2: api/2/sessions/
     """
     queryset = Session.objects.all()
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     def create(self, request):
         serializer = serializers.SessionSerializer(data=request.data, context={'request': request})
@@ -328,19 +328,48 @@ class StreamViewSet(viewsets.ViewSet):
                             status.HTTP_400_BAD_REQUEST)
 
     @detail_route(methods=['post'])
-    def next(self, request, pk=None):
+    def playasset(self, request, pk=None):
         try:
-            skip_ahead(request, session_id=pk)
-            return Response()
+            return Response(play({
+                'session_id': pk,
+                'asset_id': request.POST.get('asset_id')
+            }))
         except Exception as e:
             return Response({"detail": str(e)},
                             status.HTTP_400_BAD_REQUEST)
 
-    @detail_route(methods=['get'])
-    def current(self, request, pk=None):
+    @detail_route(methods=['post'])
+    def skip(self, request, pk=None):
         try:
-            result = get_current_streaming_asset(request, session_id=pk)
-            return Response(result)
+            return Response(skip_ahead(request, session_id=pk))
+        except Exception as e:
+            return Response({"detail": str(e)},
+                            status.HTTP_400_BAD_REQUEST)
+
+    @detail_route(methods=['post'])
+    def pause(self, request, pk=None):
+        try:
+            return Response(pause(request, session_id=pk))
+        except Exception as e:
+            return Response({"detail": str(e)},
+                            status.HTTP_400_BAD_REQUEST)
+
+    @detail_route(methods=['post'])
+    def resume(self, request, pk=None):
+        try:
+            return Response(resume(request, session_id=pk))
+        except Exception as e:
+            return Response({"detail": str(e)},
+                            status.HTTP_400_BAD_REQUEST)
+
+    @detail_route(methods=['post'])
+    def replayasset(self, request, pk=None):
+        try:
+            result = get_currently_streaming_asset(request, session_id=pk)
+            return Response(play({
+                'session_id': pk,
+                'asset_id': str(result.get('asset_id'))
+            }))
         except Exception as e:
             return Response({"detail": str(e)},
                             status.HTTP_400_BAD_REQUEST)
@@ -361,7 +390,7 @@ class TagViewSet(viewsets.ViewSet):
         """
         tags = TagFilterSet(request.query_params)
         serializer = serializers.TagSerializer(tags, many=True)
-        return Response({"tags":serializer.data})
+        return Response({"tags": serializer.data})
 
     def retrieve(self, request, pk=None):
         """
@@ -424,7 +453,7 @@ class UIGroupViewSet(viewsets.ViewSet):
         """
         uigroups = UIGroupFilterSet(request.query_params)
         serializer = serializers.UIGroupSerializer(uigroups, many=True)
-        return Response({"ui_groups":serializer.data})
+        return Response({"ui_groups": serializer.data})
 
     def retrieve(self, request, pk=None):
         """
@@ -442,6 +471,7 @@ class UIGroupViewSet(viewsets.ViewSet):
                 raise ParseError("Session not found")
         serializer = serializers.UIGroupSerializer(uigroup, context={"session": session})
         return Response(serializer.data)
+
 
 class UIItemViewSet(viewsets.ViewSet):
     """

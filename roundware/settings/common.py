@@ -4,11 +4,10 @@ import os
 # More details here: https://github.com/tomchristie/django-rest-framework/issues/1338
 from dateutil import parser
 from django.forms import fields
+
 fields.DateTimeField.strptime = lambda o, v, f: parser.parse(v)
 
-
 DEBUG = False
-TEMPLATE_DEBUG = False
 # True when unit tests are running. Used by roundwared.recording_collection
 TESTING = False
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
@@ -19,18 +18,19 @@ ADMINS = (
 
 # here() gives us file paths from the root of the system to the directory
 # holding the current file.
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # 1.8
-here = lambda * x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # 1.8
+here = lambda *x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
 
 # Root of roundware Django project
 PROJECT_ROOT = here("../..")
+PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
 
 # Root of roundware-server
 ROUNDWARE_SERVER_ROOT = here("../..")
 
 # root() gives us file paths from the root of the system to whatever
 # folder(s) we pass it starting at the roundware-server root
-root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
+root = lambda *x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
 # Roundwared & rwstreamd.py settings
 ICECAST_PORT = "8000"
@@ -58,7 +58,7 @@ ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/pjpeg
 ALLOWED_TEXT_MIME_TYPES = ['text/plain', 'text/html', 'application/xml']
 ALLOWED_VIDEO_MIME_TYPES = ['video/quicktime']
 ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES \
-    + ALLOWED_TEXT_MIME_TYPES + ALLOWED_VIDEO_MIME_TYPES
+                     + ALLOWED_TEXT_MIME_TYPES + ALLOWED_VIDEO_MIME_TYPES
 
 # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
@@ -82,7 +82,6 @@ BANNED_TIMEOUT_LIMIT = 1800
 # change this to reflect your environment
 # JSS: this will always set PROJECT_PATH to the directory in which
 # settings.py is contained
-PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
 DATABASES = {
     'default': {
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or
@@ -125,7 +124,7 @@ USE_I18N = True
 # calendars according to the current locale
 USE_L10N = True
 
-USE_TZ = False # Django 1.9 (timezone)
+USE_TZ = False  # Django 1.9 (timezone)
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
@@ -173,11 +172,31 @@ STATICFILES_FINDERS = (
 SECRET_KEY = '2am)ks1i88hss27e7uri%$#v4717ms6p869)2%cc*w7oe61q6^'
 
 # List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-    #     'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        "BACKEND": 'django.template.backends.django.DjangoTemplates',
+        "DIRS": [
+            PROJECT_PATH + '/../templates',
+            PROJECT_PATH + '/../rw/templates/rw'
+        ],
+        "OPTIONS": {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+            ],
+            "debug": DEBUG,
+            "loaders": [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader'
+            ]
+        }
+    }
+]
 
 MIDDLEWARE_CLASSES = (
     'corsheaders.middleware.CorsMiddleware',
@@ -192,27 +211,18 @@ ROOT_URLCONF = 'roundware.urls'
 
 WSGI_APPLICATION = 'roundware.wsgi.application'
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    # os.path.join(PROJECT_PATH, 'templates')
-    PROJECT_PATH + '/../templates',
-    PROJECT_PATH + '/../rw/templates/rw',
-)
-
 # The numbers in comments indicate rough loading order for troubleshooting
 INSTALLED_APPS = (
-    'django.contrib.auth', #1
-    'django.contrib.contenttypes', #2
+    'django.contrib.auth',  # 1
+    'django.contrib.contenttypes',  # 2
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'django_admin_bootstrapped',
-    'django.contrib.admin.apps.SimpleAdminConfig', #5
-    'guardian', #3
+    'django.contrib.admin.apps.SimpleAdminConfig',  # 5
+    'guardian',  # 3
     'chartit',
     'validatedfile',
     'adminplus',
@@ -226,7 +236,7 @@ INSTALLED_APPS = (
     'leaflet',
     'corsheaders',
     'roundware.lib',
-    'roundware.rw', #4
+    'roundware.rw',  # 4
     'roundware.notifications',
     'roundware.api1',
     'roundware.api2',
@@ -246,15 +256,14 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ),
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100000/day', # previously 100
-        'user': '1000000/day' # previously 1000
+        'anon': '100000/day',  # previously 100
+        'user': '1000000/day'  # previously 1000
     }
 }
 
 CORS_ORIGIN_WHITELIST = (
     'localhost:8080',
 )
-
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

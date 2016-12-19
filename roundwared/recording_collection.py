@@ -37,7 +37,7 @@ class RecordingCollection:
         self.ordering = ordering
         self.project = Project.objects.get(id=int(self.request['project_id']))
 
-        # these are lists of model.Recording objects ie [rec1,rec2,etc]
+        # these are lists of model.Asset objects ie [rec1,rec2,etc]
         self.all = []
         # The main list of assets to play, in reverse order because it is a stack.
         self.playlist_proximity = []
@@ -156,11 +156,17 @@ class RecordingCollection:
 
         return None
 
-    def add_recording(self, asset_id):
+    def add_asset_to_rc(self, asset):
         self.lock.acquire()
-        logger.debug("asset id: %s " % asset_id)
-        a = Asset.objects.get(id=str(asset_id))
-        self.playlist_proximity.append(a)
+        logger.info("adding asset id to playlist_proximity: %s " % asset.id)
+        self.playlist_proximity.append(asset)
+        self.lock.release()
+
+    def remove_asset_from_rc(self, asset):
+        self.lock.acquire()
+        logger.debug("removing asset id from playlist_proximity: %s " % asset.id)
+        if asset in self.playlist_proximity:
+            self.playlist_proximity.remove(asset)
         self.lock.release()
 
     # Updates the collection of recordings according to a new listener
