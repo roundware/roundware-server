@@ -444,6 +444,12 @@ def check_for_single_audiotrack(session_id):
         ret = True
     return ret
 
+def check_is_active(session_id):
+    session = models.Session.objects.select_related('project').get(id=session_id)
+    audio_format = session.project.audio_format.upper()
+
+    return stream_exists(session_id, audio_format)
+
 
 # create_envelope
 # args: (operation, session_id, [tags])
