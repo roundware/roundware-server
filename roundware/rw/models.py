@@ -110,13 +110,11 @@ class Project(models.Model):
     def __unicode__(self):
         return self.name
 
-    @cached(60 * 60)
     def get_tag_cats_by_ui_mode(self, ui_mode):
         """ Return TagCategories for this project for specified UIGroup.mode
             by key UIGroup.SPEAK or UIGroup.LISTEN.
             UIGroup must be active
         """
-        logger.debug('inside get_tag_cats_by_ui_mode... not from cache')
         ui_groups = UIGroup.objects.select_related('tag_category').filter(
             project=self, ui_mode=ui_mode, active=True)
         return [uig.tag_category for uig in ui_groups]
@@ -249,16 +247,6 @@ class UIGroup(models.Model):
                 }
 
     def save(self, *args, **kwargs):
-        # invalidate cached value for tag categories for all ui_modes for the
-        # associated project.
-        logger.debug("invalidating Project.get_tags_by_ui_mode for project "
-                     " %s and UI Mode %s" % (self.project, self.get_ui_mode_display()))
-        try:
-            old_instance = UIGroup.objects.get(pk=self.pk)
-            old_ui_mode = old_instance.ui_mode
-            Project.get_tag_cats_by_ui_mode.invalidate(old_ui_mode)
-        except ObjectDoesNotExist:
-            pass
         super(UIGroup, self).save(*args, **kwargs)
 
     def __unicode__(self):
