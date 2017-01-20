@@ -380,7 +380,7 @@
     "model": "rw.tag",
     "pk": 3,
     "fields": {
-        "project": null,
+        "project": 1,
         "tag_category": 3,
         "value": "male",
         "description": "male",
@@ -407,7 +407,7 @@
     "model": "rw.tag",
     "pk": 4,
     "fields": {
-        "project": null,
+        "project": 1,
         "tag_category": 3,
         "value": "female",
         "description": "female",
@@ -434,7 +434,7 @@
     "model": "rw.tag",
     "pk": 5,
     "fields": {
-        "project": null,
+        "project": 1,
         "tag_category": 2,
         "value": "Why RW?",
         "description": "Why are you using Roundware?",
@@ -461,7 +461,7 @@
     "model": "rw.tag",
     "pk": 8,
     "fields": {
-        "project": null,
+        "project": 1,
         "tag_category": 4,
         "value": "Artist",
         "description": "Artist",
@@ -488,7 +488,7 @@
     "model": "rw.tag",
     "pk": 9,
     "fields": {
-        "project": null,
+        "project": 1,
         "tag_category": 4,
         "value": "Visitor",
         "description": "Visitor",
@@ -515,7 +515,7 @@
     "model": "rw.tag",
     "pk": 21,
     "fields": {
-        "project": null,
+        "project": 1,
         "tag_category": 6,
         "value": "feedback",
         "description": "Leave feedback",
@@ -534,7 +534,7 @@
     "model": "rw.tag",
     "pk": 22,
     "fields": {
-        "project": null,
+        "project": 1,
         "tag_category": 2,
         "value": "respond",
         "description": "Respond to something you've heard.",
@@ -561,7 +561,7 @@
     "model": "rw.tag",
     "pk": 23,
     "fields": {
-        "project": null,
+        "project": 1,
         "tag_category": 4,
         "value": "curator",
         "description": "curator",
@@ -587,7 +587,7 @@
     "model": "rw.tag",
     "pk": 24,
     "fields": {
-        "project": null,
+        "project": 1,
         "tag_category": 7,
         "value": "recent",
         "description": "recent",
@@ -607,7 +607,7 @@
     "model": "rw.tag",
     "pk": 25,
     "fields": {
-        "project": null,
+        "project": 1,
         "tag_category": 7,
         "value": "nearby",
         "description": "nearby",
@@ -933,10 +933,6 @@
         "project": 1,
         "activeyn": true,
         "code": "1",
-        "latitude": 1.0,
-        "longitude": 1.0,
-        "maxdistance": 20000,
-        "mindistance": 10000,
         "maxvolume": 0.5,
         "minvolume": 0.0,
         "uri": "http://scapesaudio.dyndns.org:8000/scapes1.mp3",
