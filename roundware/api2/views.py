@@ -239,7 +239,8 @@ class ProjectViewSet(viewsets.ViewSet):
             session = get_object_or_404(Session, pk=request.query_params["session_id"])
             project = get_object_or_404(Project, pk=pk)
             serializer = serializers.ProjectSerializer(project,
-                                                       context={"session": session})
+                                                       context={"session": session,
+                                                                "admin": "admin" in request.query_params})
         else:
             raise ParseError("session_id parameter is required")
         return Response(serializer.data)
@@ -251,7 +252,8 @@ class ProjectViewSet(viewsets.ViewSet):
             session = get_object_or_404(Session, pk=request.query_params["session_id"])
 
         tags = get_project_tags(p=pk)
-        serializer = serializers.TagSerializer(tags, context={"session": session}, many=True)
+        serializer = serializers.TagSerializer(tags, context={"session": session,
+                                                              "admin": "admin" in request.query_params}, many=True)
         return Response({"tags": serializer.data})
 
     @detail_route(methods=['get'])
@@ -259,7 +261,9 @@ class ProjectViewSet(viewsets.ViewSet):
         params = request.query_params.copy()
         params["project_id"] = pk
         uigroups = UIGroupFilterSet(params)
-        serializer = serializers.UIGroupSerializer(uigroups, many=True)
+        serializer = serializers.UIGroupSerializer(uigroups,
+                                                   context={"admin": "admin" in request.query_params},
+                                                   many=True)
         return Response({"ui_groups": serializer.data})
 
     @detail_route(methods=['get'])
@@ -268,7 +272,7 @@ class ProjectViewSet(viewsets.ViewSet):
         params["project_id"] = pk
         assets = AssetFilterSet(params)
         # serialize and return
-        serializer = serializers.AssetSerializer(assets, many=True)
+        serializer = serializers.AssetSerializer(assets, context={"admin": "admin" in request.query_params}, many=True)
         return Response(serializer.data)
 
 
