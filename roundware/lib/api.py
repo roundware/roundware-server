@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
+from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ParseError
 from roundware.rw import models
 from roundware.lib import dbus_send, discover_audiolength, convertaudio
@@ -698,7 +699,19 @@ def vote_asset(request, asset_id=None):
         raise RoundException("a vote_type is required for this operation")
     if not check_for_single_audiotrack(form.get('session_id')):
         raise RoundException(
-            "this operation is only valid for projects with 1 audiotrack")
+            "VOTE: this operation is only valid for projects with 1 audiotrack")
+
+    # determine user from provided device_id
+    User = get_user_model()
+    if 'device_id' in form:
+        try:
+            voter = User.objects.get(userprofile__device_id=form.get('device_id'))
+        except:
+            voter = None
+            pass
+    else:
+         # handle api/1 which will not have device_id and therefore no voter
+        voter = None
 
     try:
         log_event("vote_asset", int(form.get('session_id')), form)
@@ -725,12 +738,16 @@ def vote_asset(request, asset_id=None):
     else:
         if 'value' not in form:
             v = models.Vote(
-                asset=asset, session=session, type=form.get('vote_type'))
+                asset=asset, session=session, type=form.get('vote_type'), voter=voter)
         else:
             v = models.Vote(asset=asset, session=session, value=int(
-                form.get('value')), type=form.get('vote_type'))
+                form.get('value')), type=form.get('vote_type'), voter=voter)
         v.save()
-    return {"success": True, "vote": v}
+    # different responses for api/1 vs. api/2
+    if 'operation' in form:
+        return {"success": True}
+    else:
+        return {"vote": v}
 
 
 ###################################
