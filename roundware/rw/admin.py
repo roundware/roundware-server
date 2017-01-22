@@ -288,7 +288,7 @@ class LocalizedStringAdmin(admin.ModelAdmin):
 
 
 class VoteAdmin(ProjectProtectedThroughAssetModelAdmin):
-    list_display = ('id', 'session', 'asset', 'value')
+    list_display = ('id', 'session', 'asset', 'voter', 'type', 'value')
     ordering = ['id']
 
 
