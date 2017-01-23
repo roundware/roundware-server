@@ -9,6 +9,7 @@ from model_mommy import mommy
 from model_mommy.generators import gen_file_field
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 
 from roundware.rw.models import (ListeningHistoryItem, Asset, Project,
@@ -193,6 +194,8 @@ class TestServer(APITestCase):
         self.projects_get()
         self.projects_tags_get()
         self.projects_assets_get()
+        self.vote_assets_post()
+        self.vote_assets_get()
         self.assets_random_get()
 
         # some endpoints cannot be tested currently
@@ -262,6 +265,30 @@ class TestServer(APITestCase):
         self.assertEqual(len(response.data), 2)
         self.assertEqual(response.data[0]["project"], self.project1.id)
 
+    def vote_assets_post(self):
+        data = {"device_id": "12891038109281",
+                "session_id": self.session_id,
+                "vote_type": "rate",
+                "value": 2}
+        response = self.client.post('/api/2/assets/1/votes/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # check returned data matches data provided
+        User = get_user_model()
+        user_id = User.objects.filter(userprofile__device_id=data["device_id"]) \
+                              .values_list('id', flat=True)[0]
+        self.assertEqual(response.data["voter"], user_id)
+        self.assertEqual(response.data["session_id"], data["session_id"])
+        self.assertEqual(response.data["type"], data["vote_type"])
+        self.assertEqual(response.data["value"], data["value"])
+        self.assertIsNotNone(response.data["vote_id"])
+
+    def vote_assets_get(self):
+        response = self.client.get('/api/2/assets/1/votes/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # check returned data matches votes provided
+        self.assertEqual(response.data[0]["type"], "rate")
+        self.assertEqual(response.data[0]["avg"], 2)
+
     def assets_random_get(self):
         data = {"mediatype": "audio",
                 "project_id": self.project1.id,
@@ -284,3 +311,4 @@ class TestServer(APITestCase):
         self.assertRaises(AssertionError, self.projects_get)
         self.assertRaises(AssertionError, self.projects_tags_get)
         self.assertRaises(AssertionError, self.projects_assets_get)
+        self.assertRaises(AssertionError, self.vote_assets_post)
