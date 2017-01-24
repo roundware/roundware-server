@@ -14,10 +14,12 @@ except ImportError: # pragma: no cover
     pass
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from roundwared import gpsmixer
-from roundware.rw.models import Asset, Project, TimedAsset
+from roundware.rw.models import Asset, Project, TimedAsset, Session, Vote, UserProfile
 from roundwared import db
 from roundwared.asset_sorters import order_assets_randomly, order_assets_by_like, order_assets_by_weight
+from roundware.lib.exception import RoundException
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +49,9 @@ class RecordingCollection:
         # A dict of temporarily banned_timeout assets, key is asset.id and value is
         # timestamp of last play time. Reset only when stream is restarted.
         self.banned_timeout = {}
+        # A list of blocked assets per session's user;
+        # includes assets blocked individually as well as based on their creator
+        self.user_blocked_list = []
         # A stack of assets from the project's TimedAssets
         self.playlist_timed = []
 
@@ -56,6 +61,9 @@ class RecordingCollection:
         # @todo: Re-architect this.
         if not self.project.geo_listen_enabled:
             self._update_playlist_proximity(self.request)
+        # initial population of list of blocked assets
+        logger.info("session_id = %s", self.request["session_id"])
+        self._generate_user_blocked_list(self.request["session_id"])
 
 
     def start(self):
@@ -82,11 +90,12 @@ class RecordingCollection:
         # Updating nearby_recording will start stream audio asset play back.
         if update_proximity:
             self._update_playlist_proximity(request)
-        logger.info("Asset Counts - all: %s, playlist_proximity: %s, banned_proximity: %s, banned_timeout: %s." %
+        logger.info("Asset Counts - all: %s, playlist_proximity: %s, banned_proximity: %s, banned_timeout: %s, user_blocked_list: %s." %
                      (len(self.all),
                       self.count(),
                       len(self.banned_proximity),
                       len(self.banned_timeout),
+                      len(self.user_blocked_list)
                       ))
         if lock:
             self.lock.release()
@@ -229,9 +238,10 @@ class RecordingCollection:
 
         self.playlist_proximity = []
         for r in self.all:
-            # If the asset is nearby, not nearby banned_timeout and not timeout banned_timeout,
+            # If the asset is nearby, not nearby banned_timeout,
+            # not timeout banned_timeout, and not blocked by user,
             # then add it to the list of playlist_proximity items.
-            if not self._banned(r) and self._is_nearby(request, r):
+            if not self._banned(r) and self._is_nearby(request, r) and not self._blocked(r):
                 self.playlist_proximity.append(r)
 
         # apply project ordering
@@ -259,9 +269,16 @@ class RecordingCollection:
         """
         Returns whether an asset/recording is currently banned.
         """
-
         return (recording.id in self.banned_timeout.keys() or
             recording in self.banned_proximity)
+
+
+    def _blocked(self, recording):
+        """
+        Returns whether an asset is blocked by session user.
+        """
+        return (recording.id in self.user_blocked_list)
+
 
     def _update_playlist_timed(self):
         elapsed_time = time() - self.start_time
@@ -281,3 +298,74 @@ class RecordingCollection:
         self.playlist_timed = self.order_assets(self.playlist_timed)
 
         # logger.debug("Found timed assets: %s" % self.playlist_timed)
+
+
+    def _assets_by_user(self, user_id):
+        """
+        returns a list of asset_ids created by specified user_id
+        """
+        # get user's device_id
+        User = get_user_model()
+        device_id = UserProfile.objects.filter(user__id=user_id).values('device_id')
+        logger.info("assets_by_user: device_id  = %s", device_id)
+        # get sessions with that device_id
+        device_sessions = Session.objects.filter(device_id=device_id).values_list('id', flat=True)
+        logger.info("assets_by_user: device_sessions  = %s", device_sessions)
+        # get asset_ids with that session_id
+        user_asset_ids = Asset.objects.filter(session_id__in=device_sessions).values_list('id', flat=True)
+        logger.info("assets_by_user: user_asset_ids  = %s", user_asset_ids)
+
+        return user_asset_ids
+
+
+    def _generate_user_blocked_list(self, session_id):
+        """
+        generate list of blocked assets for user based on session_id
+        """
+        # first identify user via session_id
+        logger.info("_generate_user_blocked_list session_id = %s", session_id)
+        try:
+            s = Session.objects.get(id=session_id)
+        except:
+            raise RoundException("session_id does not exist")
+
+        device_id = s.device_id
+        logger.info("_generate_user_blocked_list device_id = %s", device_id)
+        User = get_user_model()
+        try:
+            user = User.objects.get(userprofile__device_id=device_id)
+        except:
+            raise RoundException("no user associated with session_id")
+        logger.info("_generate_user_blocked_list user = %s", user)
+
+        # generate list of blocked assets from vote
+        logger.info("_generate_user_blocked_list user_blocked_list = %s", self.user_blocked_list)
+        asset_votes = Vote.objects.filter(voter_id=user, type='block_asset')
+        for asset_vote in asset_votes:
+            self.user_blocked_list.append(asset_vote.asset_id)
+            logger.info("add new user_blocked_list = %s", self.user_blocked_list)
+        #############
+        # append assets associated with blocked users
+        #############
+        # generate list of assets associated with users that are blocked
+        assets_of_blocked_user = Vote.objects.filter(voter_id=user, type='block_user') \
+                                             .values_list('asset_id', flat=True)
+        logger.info("assets_of_blocked_user = %s", assets_of_blocked_user) # appears to be working
+        # figure out what users created the assets in asset_of_blocked_user
+        # first figure out what session_ids are associated with the blocked assets
+        # extract list of session_ids from queryset
+        sessions_of_blocked_assets = Asset.objects.filter(id__in=assets_of_blocked_user).values_list('session_id', flat=True)
+        logger.info("sessions_of_blocked_assets = %s", sessions_of_blocked_assets) # appears to be working
+        # figure out device_ids associated with list of sessions
+        devices_of_blocked_sessions = Session.objects.filter(id__in=sessions_of_blocked_assets).values_list('device_id', flat=True)
+        logger.info("devices_of_blocked_sessions = %s", devices_of_blocked_sessions) # appears to be working
+        # get the users by knowing the device_ids
+        blocked_user_ids = User.objects.filter(userprofile__device_id__in=devices_of_blocked_sessions).values_list('id', flat=True)
+        logger.info("blocked_user_ids = %s", blocked_user_ids) # appears to be working
+        # generate list of asset_ids made by same user as submitted asset_id
+        # and add to user_blocked_list
+        for blocked_user_id in blocked_user_ids:
+            blocked_user_assets = self._assets_by_user(blocked_user_id)
+            self.user_blocked_list.extend(blocked_user_assets)
+            logger.info("user_blocked_list = %s", self.user_blocked_list)
+
