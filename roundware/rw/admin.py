@@ -276,7 +276,7 @@ class TagRelationshipAdmin(admin.ModelAdmin):
     ordering = ['id']
 
 class LanguageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'language_code')
+    list_display = ('id', 'language_code', 'name')
     ordering = ['id']
 
 
@@ -299,9 +299,11 @@ class ProjectAdmin(ProjectModelAdmin):
     save_on_top = True
     filter_vertical = ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',
                        'demo_stream_message_loc')
+    filter_horizontal = ('languages',)
+
     fieldsets = (
         ('Basic Info', {
-            'fields': ('name', 'latitude', 'longitude', 'pub_date', 'auto_submit')
+            'fields': ('name', 'latitude', 'longitude', 'pub_date', 'auto_submit', 'languages')
         }),
         ('Configuration', {
             'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',

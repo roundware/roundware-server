@@ -3,6 +3,7 @@
     "model": "rw.language",
     "pk": 1,
     "fields": {
+        "name": "English",
         "language_code": "en"
     }
 },
@@ -10,6 +11,7 @@
     "model": "rw.language",
     "pk": 2,
     "fields": {
+        "name": "Spanish",
         "language_code": "es"
     }
 },
@@ -283,6 +285,9 @@
         "demo_stream_enabled": false,
         "demo_stream_url": "http://scapesaudio.dyndns.org:8000/scapes1.mp3",
         "out_of_range_distance": 10000.0,
+        "languages": [
+            1
+        ],
         "sharing_message_loc": [
             49,
             50
@@ -444,9 +449,9 @@
         "relationships_old": [
             3,
             4,
+            5,
             8,
             9,
-            5,
             22,
             23
         ]
@@ -902,9 +907,9 @@
         "loc_caption": "",
         "initialenvelope": null,
         "tags": [
-            8,
             3,
-            5
+            5,
+            8
         ],
         "loc_description": [],
         "loc_alt_text": []
