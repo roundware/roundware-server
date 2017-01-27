@@ -56,14 +56,13 @@ class RecordingCollection:
         self.playlist_timed = []
 
         self.lock = threading.Lock()
+        # initial population of list of blocked assets
+        self._generate_user_blocked_list()
         self.update_request(self.request, update_proximity=False)
         # If geolisten is not enabled update the "proximity" playlist
         # @todo: Re-architect this.
         if not self.project.geo_listen_enabled:
             self._update_playlist_proximity(self.request)
-        # initial population of list of blocked assets
-        logger.info("session_id = %s", self.request["session_id"])
-        self._generate_user_blocked_list(self.request["session_id"])
 
 
     def start(self):
@@ -305,67 +304,61 @@ class RecordingCollection:
         returns a list of asset_ids created by specified user_id
         """
         # get user's device_id
-        User = get_user_model()
         device_id = UserProfile.objects.filter(user__id=user_id).values('device_id')
-        logger.info("assets_by_user: device_id  = %s", device_id)
         # get sessions with that device_id
         device_sessions = Session.objects.filter(device_id=device_id).values_list('id', flat=True)
-        logger.info("assets_by_user: device_sessions  = %s", device_sessions)
         # get asset_ids with that session_id
         user_asset_ids = Asset.objects.filter(session_id__in=device_sessions).values_list('id', flat=True)
-        logger.info("assets_by_user: user_asset_ids  = %s", user_asset_ids)
 
         return user_asset_ids
 
 
-    def _generate_user_blocked_list(self, session_id):
+    def _generate_user_blocked_list(self):
         """
         generate list of blocked assets for user based on session_id
         """
-        # first identify user via session_id
-        logger.info("_generate_user_blocked_list session_id = %s", session_id)
+        # reset user_blocked_list as this function recalculates from scratch
+        self.user_blocked_list = []
+        session_id = self.request["session_id"]
+        # identify user via session_id
         try:
             s = Session.objects.get(id=session_id)
         except:
             raise RoundException("session_id does not exist")
 
         device_id = s.device_id
-        logger.info("_generate_user_blocked_list device_id = %s", device_id)
         User = get_user_model()
         try:
             user = User.objects.get(userprofile__device_id=device_id)
         except:
             raise RoundException("no user associated with session_id")
-        logger.info("_generate_user_blocked_list user = %s", user)
 
         # generate list of blocked assets from vote
-        logger.info("_generate_user_blocked_list user_blocked_list = %s", self.user_blocked_list)
         asset_votes = Vote.objects.filter(voter_id=user, type='block_asset')
         for asset_vote in asset_votes:
             self.user_blocked_list.append(asset_vote.asset_id)
-            logger.info("add new user_blocked_list = %s", self.user_blocked_list)
-        #############
-        # append assets associated with blocked users
-        #############
+
         # generate list of assets associated with users that are blocked
         assets_of_blocked_user = Vote.objects.filter(voter_id=user, type='block_user') \
                                              .values_list('asset_id', flat=True)
-        logger.info("assets_of_blocked_user = %s", assets_of_blocked_user) # appears to be working
+        logger.info("assets_of_blocked_user = %s", assets_of_blocked_user)
         # figure out what users created the assets in asset_of_blocked_user
         # first figure out what session_ids are associated with the blocked assets
         # extract list of session_ids from queryset
-        sessions_of_blocked_assets = Asset.objects.filter(id__in=assets_of_blocked_user).values_list('session_id', flat=True)
-        logger.info("sessions_of_blocked_assets = %s", sessions_of_blocked_assets) # appears to be working
+        sessions_of_blocked_assets = Asset.objects.filter(id__in=assets_of_blocked_user) \
+                                                  .values_list('session_id', flat=True)
         # figure out device_ids associated with list of sessions
-        devices_of_blocked_sessions = Session.objects.filter(id__in=sessions_of_blocked_assets).values_list('device_id', flat=True)
-        logger.info("devices_of_blocked_sessions = %s", devices_of_blocked_sessions) # appears to be working
+        devices_of_blocked_sessions = Session.objects.filter(id__in=sessions_of_blocked_assets) \
+                                                     .values_list('device_id', flat=True)
         # get the users by knowing the device_ids
-        blocked_user_ids = User.objects.filter(userprofile__device_id__in=devices_of_blocked_sessions).values_list('id', flat=True)
-        logger.info("blocked_user_ids = %s", blocked_user_ids) # appears to be working
+        blocked_user_ids = User.objects.filter(userprofile__device_id__in=devices_of_blocked_sessions) \
+                                       .values_list('id', flat=True)
+        logger.info("blocked_user_ids = %s", blocked_user_ids)
         # generate list of asset_ids made by same user as submitted asset_id
         # and add to user_blocked_list
         for blocked_user_id in blocked_user_ids:
             blocked_user_assets = self._assets_by_user(blocked_user_id)
-            self.user_blocked_list.extend(blocked_user_assets)
-            logger.info("user_blocked_list = %s", self.user_blocked_list)
+            # extend user_blocked_list without duplicates
+            self.user_blocked_list.extend(x for x in blocked_user_assets if x not in self.user_blocked_list)
+        logger.info("user_blocked_list = %s", self.user_blocked_list)
 

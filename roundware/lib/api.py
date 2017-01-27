@@ -743,6 +743,13 @@ def vote_asset(request, asset_id=None):
             v = models.Vote(asset=asset, session=session, value=int(
                 form.get('value')), type=form.get('vote_type'), voter=voter)
         v.save()
+
+    # send signal to stream process to have user_blocked_list updated
+    # if new vote is of block_* type
+    if form.get('vote_type') in ('block_asset', 'block_user'):
+        dbus_send.emit_stream_signal(int(form.get('session_id')), "vote_asset", "")
+        logger.info("sending vote signal for session_id = %s", int(form.get('session_id')))
+
     # different responses for api/1 vs. api/2
     if 'operation' in form:
         return {"success": True}

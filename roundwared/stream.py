@@ -164,6 +164,13 @@ class RoundStream:
         else:
             logger.debug("no lat and long. Returning...")
 
+    def vote_asset(self):
+        """
+        pass block vote along to recording collection to trigger
+        re-creation of user_blocked_list
+        """
+        self.recordingCollection._generate_user_blocked_list()
+
     ######################################################################
     # PRIVATE
     ######################################################################

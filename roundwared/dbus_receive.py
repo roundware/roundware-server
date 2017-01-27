@@ -28,6 +28,8 @@ def add_signal_receiver(stream):
             elif operation == "play_asset":
                 request = json.loads(args)
                 stream.play_asset(request)
+            elif operation == "vote_asset":
+                stream.vote_asset()
         else:
             if operation == "refresh_recordings":
                 stream.refresh_recordings()
