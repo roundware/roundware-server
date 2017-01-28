@@ -5,8 +5,8 @@
 from __future__ import unicode_literals
 
 from roundware.rw.models import (Asset, Event, Envelope, Language, ListeningHistoryItem,
-                                 LocalizedString, Project, Tag, TagRelationship, UIGroup,
-                                 UIItem, Session, Vote)
+                                 LocalizedString, Project, Tag, TagRelationship, TagCategory,
+                                 UIGroup, UIItem, Session, Vote)
 from roundware.lib.api import request_stream, vote_count_by_asset
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
@@ -247,6 +247,7 @@ class StreamSerializer(serializers.Serializer):
         return stream
 
 
+
 class TagRelationshipSerializer(serializers.ModelSerializer):
     class Meta:
         model = TagRelationship
@@ -258,7 +259,6 @@ class TagRelationshipSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
-
     class Meta:
         model = Tag
         localized_fields = ['loc_msg', 'loc_description']
@@ -290,6 +290,26 @@ class TagSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerialize
         result["relationships"] = serializer.data
 
         return result
+
+
+class TagCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TagCategory
+
+    def to_representation(self, obj):
+        result = super(TagCategorySerializer, self).to_representation(obj)
+        return result
+
+
+class TagRelationshipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TagRelationship
+
+    def to_representation(self, obj):
+        result = super(TagRelationshipSerializer, self).to_representation(obj)
+        # TODO: Determine if anything needs to be serialized here
+        return result
+
 
 class UIItemSerializer(serializers.ModelSerializer):
     class Meta:

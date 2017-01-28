@@ -1,4 +1,5 @@
-from roundware.rw.models import Event, Asset, ListeningHistoryItem, Tag, TagRelationship, UIItem, UIGroup
+from roundware.rw.models import (Event, Asset, ListeningHistoryItem, Tag, TagRelationship,
+                                TagCategory, UIItem, UIGroup)
 from distutils.util import strtobool
 import django_filters
 
@@ -101,6 +102,13 @@ class TagFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Tag
+
+
+class TagCategoryFilterSet(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_type='icontains')
+
+    class Meta:
+        model = TagCategory
 
 
 class TagRelationshipFilterSet(django_filters.FilterSet):

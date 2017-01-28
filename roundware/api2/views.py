@@ -7,11 +7,12 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from roundware.rw.models import (Asset, Event, Envelope, ListeningHistoryItem, Project,
-                                 Session, Tag, TagRelationship, UIGroup, UIItem, UserProfile)
+                                 Session, Tag, TagRelationship, TagCategory,
+                                 UIGroup, UIItem, UserProfile)
 from roundware.api2 import serializers
 from roundware.api2.filters import (EventFilterSet, AssetFilterSet, ListeningHistoryItemFilterSet,
-                                    TagFilterSet, TagRelationshipFilterSet, UIGroupFilterSet,
-                                    UIItemFilterSet)
+                                    TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet,
+                                    UIGroupFilterSet, UIItemFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -424,6 +425,34 @@ class TagViewSet(viewsets.ViewSet):
             except:
                 raise ParseError("Session not found")
         serializer = serializers.TagSerializer(tag, context={"session": session})
+        return Response(serializer.data)
+
+
+class TagCategoryViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/tagcategories/
+            api/2/tagcategories/:id/
+    """
+    queryset = TagCategory.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def list(self, request):
+        """
+        GET api/2/tagcategories/ - Provides list of TagCategories filtered by parameters
+        """
+        tagcategories = TagCategoryFilterSet(request.query_params)
+        serializer = serializers.TagCategorySerializer(tagcategories, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/tagcategories/:id/ - Get TagCategory by id
+        """
+        try:
+            tagcategory = TagCategory.objects.get(pk=pk)
+        except TagCategory.DoesNotExist:
+            raise Http404("TagCategory not found")
+        serializer = serializers.TagCategorySerializer(tagcategory)
         return Response(serializer.data)
 
 

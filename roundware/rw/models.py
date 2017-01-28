@@ -24,10 +24,11 @@ logger = logging.getLogger(__name__)
 
 
 class Language(models.Model):
+    name = models.CharField(max_length=20, blank=True)
     language_code = models.CharField(max_length=10)
 
     def __unicode__(self):
-        return str(self.id) + ": Language Code: " + self.language_code
+        return str(self.id) + ": Language: " + self.name
 
 
 class LocalizedString(models.Model):
@@ -35,7 +36,7 @@ class LocalizedString(models.Model):
     language = models.ForeignKey(Language)
 
     def __unicode__(self):
-        return str(self.id) + ": Language Code: " + self.language.language_code + ", String: " + self.localized_string
+        return str(self.id) + ": Language: " + self.language.name + ", String: " + self.localized_string
 
 
 class Project(models.Model):
@@ -60,6 +61,8 @@ class Project(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     pub_date = models.DateTimeField('date published')
+    languages = models.ManyToManyField(
+        Language, related_name='languages', blank=False)
     audio_format = models.CharField(max_length=50)
     auto_submit = models.BooleanField(default=False)
     max_recording_length = models.IntegerField()
@@ -551,10 +554,6 @@ class Speaker(models.Model):
     project = models.ForeignKey(Project)
     activeyn = models.BooleanField(default=False)
     code = models.CharField(max_length=10)
-    latitude = models.FloatField(null=True)
-    longitude = models.FloatField(null=True)
-    maxdistance = models.IntegerField(null=True)
-    mindistance = models.IntegerField(null=True)
     maxvolume = models.FloatField()
     minvolume = models.FloatField()
     uri = models.URLField()
