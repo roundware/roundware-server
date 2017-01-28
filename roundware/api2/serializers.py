@@ -3,6 +3,7 @@
 
 # The Django REST Framework object serializers for the V2 API.
 from __future__ import unicode_literals
+
 from roundware.rw.models import (Asset, Event, Envelope, Language, ListeningHistoryItem,
                                  LocalizedString, Project, Tag, TagRelationship, TagCategory,
                                  UIGroup, UIItem, Session, Vote)
@@ -18,12 +19,33 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class AssetSerializer(serializers.ModelSerializer):
+class LocalizedStringSerializer(serializers.ModelSerializer):
+    language = serializers.CharField(source="language.language_code")
+
+    class Meta:
+        model = LocalizedString
+
+
+class AdminLocaleStringSerializerMixin(serializers.Serializer):
+
+    def get_fields(self):
+        fields = super(AdminLocaleStringSerializerMixin, self).get_fields()
+
+        if 'admin' in self.context and self.context['admin']:
+            for localized_field in self.Meta.localized_fields:
+                fields["%s%s" % (localized_field, "_admin")] \
+                    = LocalizedStringSerializer(source=localized_field, many=True)
+
+        return fields
+
+
+class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     audiolength_in_seconds = serializers.FloatField(required=False)
     description = serializers.CharField(max_length=2048, default="")
 
     class Meta:
         model = Asset
+        localized_fields = ['loc_description', 'loc_alt_text']
 
     def to_representation(self, obj):
         result = super(AssetSerializer, self).to_representation(obj)
@@ -95,9 +117,11 @@ class EventSerializer(serializers.ModelSerializer):
         return result
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Project
+        localized_fields = ['demo_stream_message_loc', 'legal_agreement_loc',
+                            'sharing_message_loc', 'out_of_range_message_loc']
 
     def to_representation(self, obj):
         # must include only the related localizationStrings that match out session language
@@ -223,9 +247,21 @@ class StreamSerializer(serializers.Serializer):
         return stream
 
 
-class TagSerializer(serializers.ModelSerializer):
+
+class TagRelationshipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TagRelationship
+
+    def to_representation(self, obj):
+        result = super(TagRelationshipSerializer, self).to_representation(obj)
+        # TODO: Determine if anything needs to be serialized here
+        return result
+
+
+class TagSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Tag
+        localized_fields = ['loc_msg', 'loc_description']
 
     def to_representation(self, obj):
         result = super(TagSerializer, self).to_representation(obj)
@@ -284,9 +320,10 @@ class UIItemSerializer(serializers.ModelSerializer):
         # TODO: Determine if anything needs to be serialized here
         return result
 
-class UIGroupSerializer(serializers.ModelSerializer):
+class UIGroupSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = UIGroup
+        localized_fields = ['header_text_loc']
 
     def to_representation(self, obj):
         result = super(UIGroupSerializer, self).to_representation(obj)
@@ -362,3 +399,4 @@ def _select_localized_string(loc_str_ids, session=None):
         if loc_str.language == lang:
             return loc_str.localized_string
     return None
+
