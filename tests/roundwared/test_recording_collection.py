@@ -5,25 +5,44 @@ from __future__ import unicode_literals
 from model_mommy import mommy
 from mock import patch
 
-from .common import (RoundwaredTestCase, mock_distance_in_meters_near)
-from roundware.rw.models import (Session, Asset,
-                                 Project, UIGroup, UIItem, Tag, TimedAsset)
+from .common import mock_distance_in_meters_near
+from roundware.rw.models import (Session, Asset, Language, LocalizedString, Audiotrack,
+                                 Project, UIGroup, UIItem, Tag, TagCategory, TimedAsset)
 from roundwared.recording_collection import RecordingCollection
 from roundwared.stream import RoundStream
 from roundwared import gpsmixer
 from roundwared import asset_sorters
 from django.conf import settings
+from django.core.urlresolvers import reverse
+from rest_framework import status
 from time import sleep
+
+from rest_framework.test import APITestCase
+
+
 settings.DEBUG = True
 
 
-class TestRecordingCollection(RoundwaredTestCase):
+class TestRecordingCollection(APITestCase):
 
     """ Exercise methods and instances of RecordingCollection
     """
 
     def setUp(self):
         super(type(self), TestRecordingCollection).setUp(self)
+
+        self.default_session = mommy.make(Session)
+        self.english = mommy.make(Language, language_code='en', id=1)
+        self.spanish = mommy.make(Language, language_code='es', id=2)
+        self.english_msg = mommy.make(LocalizedString, localized_string="One",
+                                      language=self.english)
+        self.spanish_msg = mommy.make(LocalizedString, localized_string="Uno",
+                                      language=self.spanish)
+        self.tagcat1 = mommy.make(TagCategory, name='tagcatname')
+        self.tag1 = mommy.make(Tag, data="{'json':'value'}",
+                               loc_msg=[self.english_msg, self.spanish_msg],
+                               tag_category=self.tagcat1,
+                               value='tag1', id=1)
 
         self.project1 = mommy.make(Project, name='Project One',
                                    recording_radius=10,
@@ -43,6 +62,8 @@ class TestRecordingCollection(RoundwaredTestCase):
                                    language=self.english)
         self.session3 = mommy.make(Session, project=self.project3,
                                    language=self.english)
+        self.session4 = mommy.make(Session, project=self.project1,
+                                   language=self.english, device_id="123456")
         # A new tag only for asset #3.
         self.tag2 = mommy.make(Tag, data="{'json':'value'}",
                                loc_msg=[self.english_msg, self.spanish_msg],
@@ -115,6 +136,8 @@ class TestRecordingCollection(RoundwaredTestCase):
                                       asset=self.asset6, start=0, end=30)
         self.timedasset3 = mommy.make(TimedAsset, project=self.project3,
                                       asset=self.asset7, start=0, end=30)
+        self.track1 = mommy.make(Audiotrack, project=self.project1, id=1)
+
 
     def test_instantiate_recording_collection(self):
         req = self.req1
@@ -484,4 +507,54 @@ class TestRecordingCollection(RoundwaredTestCase):
         # verify that asset with largest 'weight' value is returned first
         self.assertEquals(self.asset7, rc.get_recording())
         self.assertEquals(self.asset4, rc.get_recording())
+        self.assertEquals(None, rc.get_recording())
+
+    def test_asset_blocking(self):
+        """ Test that blocking an asset prevents it from being added
+            to the playlist_proximity
+        """
+        # first create a user to perform the blocking
+        # this should eventually be done 'globally' for this set of tests
+        # but for now, this is the best way to ensure proper ordering
+        url = reverse('user-list')
+        data = {"device_id": "123456",
+                "client_type": "phone",
+                "client_system": "iOS"}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # check that a username was generated and token returned
+        self.assertIsNotNone(response.data["username"])
+        self.assertIsNotNone(response.data["token"])
+        # set the token for later requests
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + response.data["token"])
+
+        # create stream prior to blocking asset and
+        # verify all assets show up in playlist
+        self.req1 = {"session_id": self.session4.id,
+                     "project_id": self.project1.id,
+                     "audio_stream_bitrate": '128',
+                     "latitude": 0.1, "longitude": 0.1}
+        req = self.req1
+        stream = RoundStream(self.session4.id, 'ogg', req)
+        rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+        rc.update_request(req)
+        self.assertEquals(self.asset3, rc.get_recording())
+        self.assertEquals(self.asset2, rc.get_recording())
+        self.assertEquals(self.asset1, rc.get_recording())
+        self.assertEquals(None, rc.get_recording())
+
+        # now block asset
+        data = {"device_id": "123456",
+                "session_id": self.session4.id,
+                "vote_type": "block_asset"}
+        url = '/api/2/assets/' + str(self.asset1.id) + '/votes/'
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # generate new stream and verify that asset is blocked
+        stream = RoundStream(self.session4.id, 'ogg', req)
+        rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
+        rc.update_request(req)
+        self.assertEquals(self.asset3, rc.get_recording())
+        self.assertEquals(self.asset2, rc.get_recording())
         self.assertEquals(None, rc.get_recording())
