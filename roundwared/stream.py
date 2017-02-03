@@ -170,6 +170,7 @@ class RoundStream:
         re-creation of user_blocked_list
         """
         self.recordingCollection._generate_user_blocked_list()
+        self.skip_ahead()
 
     ######################################################################
     # PRIVATE
