@@ -701,18 +701,16 @@ def vote_asset(request, asset_id=None):
         raise RoundException(
             "VOTE: this operation is only valid for projects with 1 audiotrack")
 
-    # determine user from provided device_id
+    # determine user/voter from provided session_id
     User = get_user_model()
-    if 'device_id' in form:
-        try:
-            voter = User.objects.get(userprofile__device_id=form.get('device_id'))
-        except:
-            voter = None
-            pass
-    else:
-         # handle api/1 which will not have device_id and therefore no voter
+    device_id = models.Session.objects.filter(id=int(form.get('session_id'))) \
+                                      .values_list('device_id', flat=True)
+    try:
+        voter = User.objects.get(userprofile__device_id=device_id)
+    except:
+        # handle api/1 which will not have User and therefore no voter
         voter = None
-
+        pass
     try:
         log_event("vote_asset", int(form.get('session_id')), form)
         session = models.Session.objects.get(id=int(form.get('session_id')))
