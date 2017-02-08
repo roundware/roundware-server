@@ -331,9 +331,11 @@ class RecordingCollection:
         try:
             user = User.objects.get(userprofile__device_id=device_id)
         except:
-            raise RoundException("no user associated with session_id")
-
-        # generate list of blocked assets from vote
+            user = False
+            logger.info("no user associated with session_id")
+        if not user:
+            return
+        # generate list of blocked assets from vote if user exists
         asset_votes = Vote.objects.filter(voter_id=user, type='block_asset')
         for asset_vote in asset_votes:
             self.user_blocked_list.append(asset_vote.asset_id)
@@ -342,15 +344,13 @@ class RecordingCollection:
         assets_of_blocked_user = Vote.objects.filter(voter_id=user, type='block_user') \
                                              .values_list('asset_id', flat=True)
         logger.info("assets_of_blocked_user = %s", assets_of_blocked_user)
-        # figure out what users created the assets in asset_of_blocked_user
-        # first figure out what session_ids are associated with the blocked assets
-        # extract list of session_ids from queryset
+        # generate list of sessions in which blocked assets were created
         sessions_of_blocked_assets = Asset.objects.filter(id__in=assets_of_blocked_user) \
                                                   .values_list('session_id', flat=True)
-        # figure out device_ids associated with list of sessions
+        # get device_ids associated with list of sessions
         devices_of_blocked_sessions = Session.objects.filter(id__in=sessions_of_blocked_assets) \
                                                      .values_list('device_id', flat=True)
-        # get the users by knowing the device_ids
+        # get the users associated with device_ids
         blocked_user_ids = User.objects.filter(userprofile__device_id__in=devices_of_blocked_sessions) \
                                        .values_list('id', flat=True)
         logger.info("blocked_user_ids = %s", blocked_user_ids)
