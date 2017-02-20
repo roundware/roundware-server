@@ -222,7 +222,7 @@ class AudioTrack:
             self.settings.minfadeouttime,
             self.settings.maxfadeouttime)
         if self.src_wav_file != None and not self.src_wav_file.fading:
-            logger.info("fading out for: " + str(fadeoutnsecs))
+            logger.info("fading out for: " + str(round((fadeoutnsecs/1000000000),2)) + " sec")
             self.src_wav_file.fade_out(fadeoutnsecs)
             # 1st arg is in milliseconds
             # 1000000000

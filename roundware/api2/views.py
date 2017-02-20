@@ -40,7 +40,7 @@ class AssetViewSet(viewsets.ViewSet):
 
     # TODO: Implement DjangoObjectPermissions
     queryset = Asset.objects.all()
-    permission_classes = (IsAuthenticated, DjangoObjectPermissions)
+    permission_classes = (IsAuthenticated,)
 
     def retrieve(self, request, pk=None):
         """

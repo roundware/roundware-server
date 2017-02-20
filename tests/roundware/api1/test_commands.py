@@ -147,12 +147,24 @@ class TestServer(RoundwaredTestCase):
 
     def test_vote_asset(self):
         req = FakeRequest()
-        req.GET = {'session_id': self.session.id, 'asset_id': 1,
+        req.GET = {'operation': 'vote_asset', 'session_id': self.session.id, 'asset_id': 1,
                    'vote_type': 'like', 'value': 2}
         ret = vote_asset(req)
         self.assertEqual(True, ret["success"])
         votes = Vote.objects.filter(asset__id__exact=1)
         self.assertTrue(len(votes) == 1)
+        # send same vote with updated value
+        req.GET = {'operation': 'vote_asset', 'session_id': self.session.id, 'asset_id': 1,
+                   'vote_type': 'like', 'value': 5}
+        ret = vote_asset(req)
+        self.assertEqual(True, ret["success"])
+        votes = Vote.objects.filter(asset__id__exact=1)
+        self.assertEqual(5, votes[0].value)
+        # send same vote again to test removal
+        ret = vote_asset(req)
+        self.assertEqual(True, ret["success"])
+        votes = Vote.objects.filter(asset__id__exact=1)
+        self.assertTrue(votes.exists())
 
     def test_get_config(self):
         result = self.client.get("/api/1/", dict(operation="get_config", project_id=self.project1.id))
