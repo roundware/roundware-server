@@ -697,9 +697,9 @@ def vote_asset(request, asset_id=None):
         raise RoundException("an asset_id is required for this operation")
     if 'vote_type' not in form:
         raise RoundException("a vote_type is required for this operation")
-    if not check_for_single_audiotrack(form.get('session_id')):
-        raise RoundException(
-            "VOTE: this operation is only valid for projects with 1 audiotrack")
+    # if not check_for_single_audiotrack(form.get('session_id')):
+    #     raise RoundException(
+    #         "VOTE: this operation is only valid for projects with 1 audiotrack")
 
     # determine user/voter from provided session_id
     User = get_user_model()
