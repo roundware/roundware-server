@@ -85,11 +85,20 @@ source $VENV_PATH/bin/activate
 export PYTHONPATH=$CODE_PATH
 
 # Setup Postgresql database
-su - postgres -c 'psql -c "create role round superuser login;"'
-su - postgres -c 'psql -c "create database roundware"'
+if ! su - postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='round'\"" | grep -q 1; then
+  su - postgres -c 'psql -c "create role round superuser login;"'
+fi
+
+if ! su - postgres -c "psql -lqt" | cut -d \| -f 1 | grep -qw 'roundware'; then
+  su - postgres -c 'psql -c "create database roundware"'
+fi
+
 su - postgres -c 'psql -c "grant all on database roundware to round"'
 su - postgres -c "psql -c \"alter user round password 'round'\""
-su - postgres -c "psql roundware -c 'create extension postgis'"
+
+if ! su - postgres -c "psql roundware -t -A -c \"select count(*) from pg_extension where extname = 'postgis'\"" | grep -q 1; then
+  su - postgres -c "psql roundware -c 'create extension postgis'"
+fi
 
 # File/directory configurations
 mkdir -p $MEDIA_PATH
