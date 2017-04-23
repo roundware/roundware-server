@@ -63,7 +63,8 @@ class TestServer(APITestCase):
             recording_radius = 10,
             audio_format = 'ogg',
             demo_stream_message_loc = [self.english_msg, self.spanish_msg],
-            out_of_range_url='http://rw.com:8000/outofrange.mp3'
+            out_of_range_url='http://rw.com:8000/outofrange.mp3',
+            geo_listen_enabled=True
         )
 
         self.session = mommy.make(
@@ -222,6 +223,7 @@ class TestServer(APITestCase):
 
     def sessions_post(self):
         url = reverse('session-list')
+        # first pass no geo_listen_enabled
         data = {"timezone": "-0500",
                 "project_id": 1,
                 "client_system": "iOS"}
@@ -229,6 +231,8 @@ class TestServer(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # language wasn't provided, so should be set default to "en"
         self.assertEqual(response.data["language"], "en")
+        # geo_listen_enabled not provided, so set to project.geo_listen_enabled value
+        self.assertEqual(response.data["geo_listen_enabled"], True)
         # check returned data matches data provided
         self.assertEqual(response.data["timezone"], data["timezone"])
         self.assertEqual(response.data["client_system"], data["client_system"])
@@ -236,6 +240,16 @@ class TestServer(APITestCase):
         self.assertIsNotNone(response.data["session_id"])
         # save session_id for later requests
         self.session_id = response.data["session_id"]
+
+        # now pass geo_listen_enabled
+        data = {"timezone": "-0500",
+                "project_id": 1,
+                "client_system": "iOS",
+                "geo_listen_enabled": False}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # check geo_listen_enabled returns same as passed param, not project value
+        self.assertEqual(response.data["geo_listen_enabled"], False)
 
     def projects_get(self):
         url = "%s?session_id=%s" % (reverse('project-detail', args=[self.project1.id]), self.session_id)
