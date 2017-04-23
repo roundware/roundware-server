@@ -7,6 +7,7 @@ import json
 import uuid
 import datetime
 import psutil
+import distutils
 try:
     from profiling import profile
 except ImportError:
@@ -69,6 +70,12 @@ def get_config(request):
         except:
             pass
 
+    # set geo_listen to Project value as default
+    geo_listen = project.geo_listen_enabled
+    # update geo_listen to parameter value if exists
+    if 'geo_listen_enabled' in form:
+        geo_listen = distutils.util.strtobool(form.get('geo_listen_enabled'))
+
     # Get current available CPU as percentage.
     cpu_idle = psutil.cpu_times_percent().idle
     # Demo stream is enabled if enabled project wide or CPU idle is less than
@@ -88,6 +95,7 @@ def get_config(request):
         if 'client_system' in form:
             s.client_system = form.get('client_system')
         s.demo_stream_enabled = demo_stream_enabled
+        s.geo_listen_enabled = geo_listen
 
         s.save()
         session_id = s.id

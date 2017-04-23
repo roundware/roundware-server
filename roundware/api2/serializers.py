@@ -165,6 +165,7 @@ class SessionSerializer(serializers.Serializer):
     language = serializers.CharField(max_length=2, default="en")
     client_system = serializers.CharField(max_length=128, required=True)
     project_id = serializers.IntegerField(required=True)
+    geo_listen_enabled = serializers.BooleanField(required=False)
 
     def validate_language(self, value):
         try:
@@ -187,7 +188,8 @@ class SessionSerializer(serializers.Serializer):
                                          timezone=validated_data["timezone"],
                                          language_id=lang.pk,
                                          client_type=self.context["request"].user.userprofile.client_type,
-                                         client_system=validated_data["client_system"])
+                                         client_system=validated_data["client_system"],
+                                         geo_listen_enabled=validated_data["geo_listen_enabled"])
         session.save()
         self.context["session_id"] = session.pk
         return session
@@ -195,6 +197,7 @@ class SessionSerializer(serializers.Serializer):
     def to_representation(self, obj):
         result = super(SessionSerializer, self).to_representation(obj)
         result.update({"language": self.validated_data["language"]})
+        result.update({"geo_listen_enabled": self.validated_data["geo_listen_enabled"]})
         if "session_id" in self.context:
             result["session_id"] = self.context["session_id"]
         return result
