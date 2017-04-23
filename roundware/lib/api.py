@@ -138,7 +138,7 @@ def request_stream(request):
             'demo_stream_message': msg
         }
 
-    elif is_listener_in_range_of_stream(request.GET, project):
+    elif is_listener_in_range_of_stream(data, project):
         # TODO: audio_format.upper() should be handled when the project is saved.
         audio_format = project.audio_format.upper()
 
@@ -218,12 +218,13 @@ def log_event(event_type, session_id, form=None):
 
 
 def is_listener_in_range_of_stream(form, proj):
+    sn = models.Session.objects.get(id=form['session_id'])
     # If latitude and longitude is not specified assume True.
     if not form.get('latitude', None) or not form.get('longitude', None):
         return True
 
-    # Return True if project set to global listening
-    if not proj.geo_listen_enabled:
+    # Return True if project/session set to global listening
+    if not sn.geo_listen_enabled:
         return True
 
     listener = Point(float(form['longitude']), float(form['latitude']))

@@ -233,7 +233,7 @@ class StreamSerializer(serializers.Serializer):
                                   (attrs['project_id'], project.id))
 
         # if project is geo_listen_enabled, require a latitude and longitude
-        if project.geo_listen_enabled:
+        if session.geo_listen_enabled:
             if 'latitude' not in attrs or 'longitude' not in attrs:
                 raise ValidationError("latitude and longitude required for geo_listen_enabled project")
 

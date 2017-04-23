@@ -61,7 +61,8 @@ class RecordingCollection:
         self.update_request(self.request, update_proximity=False)
         # If geolisten is not enabled update the "proximity" playlist
         # @todo: Re-architect this.
-        if not self.project.geo_listen_enabled:
+        self.s = Session.objects.get(id=self.request['session_id'])
+        if not self.s.geo_listen_enabled:
             self._update_playlist_proximity(self.request)
 
 
@@ -112,7 +113,7 @@ class RecordingCollection:
             logger.debug("Found %s", recording.filename)
             # Add the recording to the ban list.
             self.banned_timeout[recording.id] = time()
-            if self.project.geo_listen_enabled:
+            if self.s.geo_listen_enabled:
                 # Add the recording to the nearby played list.
                 self.banned_proximity.append(recording)
 
@@ -218,7 +219,7 @@ class RecordingCollection:
         # Remove all expired asset bans from the ban list.
         self.banned_timeout = {id:lastplay for id, lastplay in self.banned_timeout.iteritems()
                        if (lastplay + settings.BANNED_TIMEOUT_LIMIT) > current_time}
-        if self.project.geo_listen_enabled:
+        if self.s.geo_listen_enabled:
             # Remove no longer nearby items from the nearby played list.
             self.banned_proximity = [r for r in self.banned_proximity
                                   if self._is_nearby(request, r)]
@@ -231,7 +232,7 @@ class RecordingCollection:
 
             logger.debug("Timeout banned assets and seconds remaining: %s" %
                          time_remaining)
-            if self.project.geo_listen_enabled:
+            if self.s.geo_listen_enabled:
                 logger.debug("Proximity banned assets: %s" %
                              self.banned_proximity)
 
@@ -251,7 +252,7 @@ class RecordingCollection:
         """
         True if the request and recording are close enough to be heard.
         """
-        if not self.project.geo_listen_enabled:
+        if not self.s.geo_listen_enabled:
             return True
 
         if 'latitude' in request and 'longitude' in request:
