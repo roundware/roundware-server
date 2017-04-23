@@ -323,7 +323,8 @@ class ProjectAdmin(ProjectModelAdmin):
     )
 
 class SessionAdmin(ProjectProtectedModelAdmin):
-    list_display = ('id', 'project', 'starttime', 'device_id', 'language')
+    list_display = ('id', 'project', 'starttime', 'device_id', 'language',
+                    'geo_listen_enabled', 'demo_stream_enabled')
     list_filter = ('project', 'language', 'starttime')
     ordering = ['-id']
 

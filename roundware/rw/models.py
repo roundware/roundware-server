@@ -133,6 +133,7 @@ class Session(models.Model):
     client_type = models.CharField(max_length=128, null=True, blank=True)
     client_system = models.CharField(max_length=128, null=True, blank=True)
     demo_stream_enabled = models.BooleanField(default=False)
+    geo_listen_enabled = models.BooleanField(default=True)
     timezone = models.CharField(max_length=5, default="0000")
 
     def __unicode__(self):
