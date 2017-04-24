@@ -455,9 +455,15 @@ class TagViewSet(viewsets.ViewSet):
     queryset = Tag.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return Tag.objects.get(pk=pk)
+        except Tag.DoesNotExist:
+            raise Http404("Tag not found")
+
     def list(self, request):
         """
-        GET api/2/tags/ - Provides list of tag filtered by parameters
+        GET api/2/tags/ - Provides list of Tags filtered by parameters
         """
         tags = TagFilterSet(request.query_params)
         serializer = serializers.TagSerializer(tags, many=True)
@@ -467,10 +473,7 @@ class TagViewSet(viewsets.ViewSet):
         """
         GET api/2/tags/:id/ - Get tag by id
         """
-        try:
-            tag = Tag.objects.get(pk=pk)
-        except Tag.DoesNotExist:
-            raise Http404("Tag not found")
+        tag = self.get_object(pk)
         session = None
         if "session_id" in request.query_params:
             try:
@@ -479,6 +482,36 @@ class TagViewSet(viewsets.ViewSet):
                 raise ParseError("Session not found")
         serializer = serializers.TagSerializer(tag, context={"session": session})
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/tags/ - Create a new Tag
+        """
+        serializer = serializers.TagSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/tags/:id/ - Update existing Tag
+        """
+        tag = self.get_object(pk)
+        serializer = serializers.TagSerializer(tag, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        """
+        POST api/2/tags/:id/ - Delete Tag
+        """
+        tag = self.get_object(pk)
+        tag.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TagCategoryViewSet(viewsets.ViewSet):
