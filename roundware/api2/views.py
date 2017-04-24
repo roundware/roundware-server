@@ -442,6 +442,12 @@ class TagCategoryViewSet(viewsets.ViewSet):
     queryset = TagCategory.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return TagCategory.objects.get(pk=pk)
+        except Tag.DoesNotExist:
+            raise Http404("TagCategory not found")
+
     def list(self, request):
         """
         GET api/2/tagcategories/ - Provides list of TagCategories filtered by parameters
@@ -454,12 +460,39 @@ class TagCategoryViewSet(viewsets.ViewSet):
         """
         GET api/2/tagcategories/:id/ - Get TagCategory by id
         """
-        try:
-            tagcategory = TagCategory.objects.get(pk=pk)
-        except TagCategory.DoesNotExist:
-            raise Http404("TagCategory not found")
+        tagcategory = self.get_object(pk);
         serializer = serializers.TagCategorySerializer(tagcategory)
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/tagcategories/ - Create a new TagCategory
+        """
+        serializer = serializers.TagCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/tagcategories/:id/ - Update existing TagCategory
+        """
+        tagcategory = self.get_object(pk);
+        serializer = serializers.TagCategorySerializer(tagcategory, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/tagcategories/:id/ - Delete a TagCategory
+        """
+        tagcategory = self.get_object(pk);
+        tagcategory.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TagRelationshipViewSet(viewsets.ViewSet):
