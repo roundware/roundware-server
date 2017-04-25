@@ -719,11 +719,11 @@ class TestServer(RoundwaredTestCase):
         req.method = 'GET'
         req.GET = {'session_id': '1', 'latitude': '45', 'longitude': '-80'}
         expected = {'stream_url': 'http://rw.com:8000/stream1.ogg'}
-        self.project1.geo_listen_enabled = False
-        self.project1.save()
+        self.session.geo_listen_enabled = False
+        self.session.save()
         self.assertEquals(expected, request_stream(req))
-        self.project1.geo_listen_enabled = True
-        self.project1.save()
+        self.session.geo_listen_enabled = True
+        self.session.save()
 
     @patch.object(gpsmixer, 'distance_in_meters', mock_distance_in_meters_near)
     def test_request_stream_inactive_speakers_not_involved(self):

@@ -285,6 +285,12 @@ class SessionViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
     def create(self, request):
+        # check if geo_listen_enabled is passed in request.data and if not,
+        # add it with value from project.geo_listen_enabled
+        if 'geo_listen_enabled' not in request.data:
+            p = Project.objects.get(id=request.data['project_id'])
+            request.data['geo_listen_enabled'] = p.geo_listen_enabled
+            logger.info('geo_listen_enabled not passed! set to project value: %s' % request.data['geo_listen_enabled'])
         serializer = serializers.SessionSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()

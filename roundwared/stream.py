@@ -39,7 +39,7 @@ class RoundStream:
         session = models.Session.objects.select_related(
             'project').get(id=sessionid)
         self.project = session.project
-        if self.project.geo_listen_enabled and (
+        if session.geo_listen_enabled and (
                         self.request.get('latitude') is False or self.request.get('longitude') is False):
             raise Exception("Lat and Lon not provided for geo_listen project, {}".format(self.project.name))
 
@@ -197,7 +197,8 @@ class RoundStream:
         self.add_source_to_adder(BlankAudioSrc())
         self.gps_mixer = gpsmixer.GPSMixer(
             {'latitude': self.request['latitude'],
-             'longitude': self.request['longitude']},
+             'longitude': self.request['longitude'],
+             'session_id': self.sessionid},
             self.project)
 
         self.add_source_to_adder(self.gps_mixer)

@@ -270,8 +270,8 @@ class TestRecordingCollection(APITestCase):
         to playlist initially and then re-added with tag filtering
         only after BANNED_TIMEOUT_LIMIT has passed
         """
-        self.project1.geo_listen_enabled = False
-        self.project1.save()
+        self.session1.geo_listen_enabled = False
+        self.session1.save()
         req = self.req2
         # required by get_recording
         req["project_id"] = self.project1.id
@@ -298,8 +298,8 @@ class TestRecordingCollection(APITestCase):
         self.assertEquals(self.asset2, rc.get_recording())
         self.assertEquals(self.asset1, rc.get_recording())
 
-        self.project1.geo_listen_enabled = True
-        self.project1.save()
+        self.session1.geo_listen_enabled = True
+        self.session1.save()
 
     def test_get_recording_until_none_repeatmode_continuous(self):
         """ test that we get the next playlist_proximity nearby recording, until there
@@ -427,8 +427,8 @@ class TestRecordingCollection(APITestCase):
         """ Disable geo-listen and confirm all recordings are available.
             Enable geo-listen and confirm no recordings are available.
         """
-        self.project1.geo_listen_enabled = False
-        self.project1.save()
+        self.session1.geo_listen_enabled = False
+        self.session1.save()
         req = self.req2
         stream = RoundStream(self.session1.id, 'ogg', req)
         rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
@@ -437,8 +437,8 @@ class TestRecordingCollection(APITestCase):
         self.assertEquals(self.asset2, rc.get_recording())
         self.assertEquals(self.asset1, rc.get_recording())
 
-        self.project1.geo_listen_enabled = True
-        self.project1.save()
+        self.session1.geo_listen_enabled = True
+        self.session1.save()
         stream = RoundStream(self.session1.id, 'ogg', req)
         rc = RecordingCollection(stream, req, stream.radius, 'by_weight')
 

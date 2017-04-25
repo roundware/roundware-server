@@ -7,7 +7,7 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.db.models import Q
 
-from roundware.rw.models import calculate_volume, Speaker
+from roundware.rw.models import calculate_volume, Speaker, Session
 
 gobject.threads_init()
 import pygst
@@ -130,8 +130,9 @@ class GPSMixer (gst.Bin):
         listener = Point(float(self.listener['longitude']), float(self.listener['latitude']))
 
         # filter speakers by geometry only for geo_listen projects;
-        # otherwise include all active speakers for project
-        if self.project.geo_listen_enabled:
+        # otherwise include all active speakers for project/session
+        sn = Session.objects.get(id=self.listener['session_id'][0])
+        if sn.geo_listen_enabled:
             # get active speakers for this project, and select from those all speakers our listener is inside
             speakers = Speaker.objects.filter(activeyn=True, project=self.project).filter(
             Q(shape__dwithin=(listener, D(m=0))) | Q(minvolume__gt=0)
@@ -150,6 +151,7 @@ class GPSMixer (gst.Bin):
     def move_listener(self, new_listener):
 
         self.listener = new_listener
+        sn = Session.objects.get(id=self.listener['session_id'][0])
 
         # lookup speakers that should play in the db
         # and make sure they're in the self.speakers dict
@@ -164,8 +166,8 @@ class GPSMixer (gst.Bin):
 
             if speaker in current_speakers:
                 logger.info("Speaker {} is within range. Calculating volume...".format(speaker.id))
-                # only calculate volume if geo_listen project; otherwise set to maxvolume
-                if self.project.geo_listen_enabled:
+                # only calculate volume if geo_listen project/session; otherwise set to maxvolume
+                if sn.geo_listen_enabled:
                     vol = calculate_volume(speaker, self.listener)
                 else:
                     logger.info("GLOBAL LISTEN: setting speaker volume to maxvolume = %s" % speaker.maxvolume)
