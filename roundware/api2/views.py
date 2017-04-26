@@ -550,9 +550,15 @@ class TagRelationshipViewSet(viewsets.ViewSet):
     queryset = TagRelationship.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return TagRelationship.objects.get(pk=pk)
+        except TagRelationship.DoesNotExist:
+            raise Http404("TagRelationship not found")
+
     def list(self, request):
         """
-        GET api/2/tagrelationships/ - Provides list of TagRelationships filtered by parameters
+        GET api/2/tagrelationships/ - Provides list of TagRelationship filtered by parameters
         """
         tagrelationships = TagRelationshipFilterSet(request.query_params)
         serializer = serializers.TagRelationshipSerializer(tagrelationships, many=True)
@@ -562,13 +568,40 @@ class TagRelationshipViewSet(viewsets.ViewSet):
         """
         GET api/2/tagrelationships/:id/ - Get TagRelationship by id
         """
-        try:
-            tagrelationship = TagRelationship.objects.get(pk=pk)
-        except TagRelationship.DoesNotExist:
-            raise Http404("TagRelationship not found")
+        tagrelationship = self.get_object(pk)
         # session_id not needed, because no localization..?
         serializer = serializers.TagRelationshipSerializer(tagrelationship)
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/tagrelationships/ - Create a new TagRelationship
+        """
+        serializer = serializers.TagRelationshipSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/tagrelationships/:id/ - Update existing TagRelationship
+        """
+        tagrelationship = self.get_object(pk)
+        serializer = serializers.TagRelationshipSerializer(tagrelationship, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/tagrelationships/:id/ - Delete a TagRelationship
+        """
+        tagrelationship = self.get_object(pk)
+        tagrelationship.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UIGroupViewSet(viewsets.ViewSet):
