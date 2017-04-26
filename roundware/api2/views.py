@@ -612,6 +612,12 @@ class UIGroupViewSet(viewsets.ViewSet):
     queryset = UIGroup.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return UIGroup.objects.get(pk=pk)
+        except UIGroup.DoesNotExist:
+            raise Http404("UIGroup not found")
+
     def list(self, request):
         """
         GET api/2/uigroups/ - Provides list of uigroups filtered by parameters
@@ -624,10 +630,7 @@ class UIGroupViewSet(viewsets.ViewSet):
         """
         GET api/2/uigroups/:id/ - Get uigroup by id
         """
-        try:
-            uigroup = UIGroup.objects.get(pk=pk)
-        except UIGroup.DoesNotExist:
-            raise Http404("UIGroup not found")
+        uigroup = self.get_object(pk)
         session = None
         if "session_id" in request.query_params:
             try:
@@ -636,6 +639,36 @@ class UIGroupViewSet(viewsets.ViewSet):
                 raise ParseError("Session not found")
         serializer = serializers.UIGroupSerializer(uigroup, context={"session": session})
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/uigroups/ - Create a new UIGroup
+        """
+        serializer = serializers.UIGroupSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/uigroups/:id/ - Update existing UIGroup
+        """
+        uigroup = self.get_object(pk)
+        serializer = serializers.UIGroupSerializer(uigroup, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/uigroups/:id/ - Delete a UIGroup
+        """
+        uigroup = self.get_object(pk)
+        uigroup.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UIItemViewSet(viewsets.ViewSet):
