@@ -7,10 +7,10 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from roundware.rw.models import (Asset, Event, Envelope, ListeningHistoryItem, Project,
-                                 Session, Tag, TagRelationship, TagCategory,
+                                 Session, Tag, TagCategory, TagRelationship,
                                  UIGroup, UIItem, UserProfile)
 from roundware.api2 import serializers
-from roundware.api2.filters import (EventFilterSet, AssetFilterSet, ListeningHistoryItemFilterSet,
+from roundware.api2.filters import (AssetFilterSet, EventFilterSet, ListeningHistoryItemFilterSet,
                                     ProjectFilterSet, TagFilterSet, TagCategoryFilterSet,
                                     TagRelationshipFilterSet, UIGroupFilterSet, UIItemFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,

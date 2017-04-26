@@ -4,9 +4,9 @@
 # The Django REST Framework object serializers for the V2 API.
 from __future__ import unicode_literals
 
-from roundware.rw.models import (Asset, Event, Envelope, Language, ListeningHistoryItem,
-                                 LocalizedString, Project, Tag, TagRelationship, TagCategory,
-                                 UIGroup, UIItem, Session, Vote)
+from roundware.rw.models import (Asset, Envelope, Event, Language, ListeningHistoryItem,
+                                 LocalizedString, Project, Session, Tag, TagCategory,
+                                 TagRelationship, UIGroup, UIItem, Vote)
 from roundware.lib.api import request_stream, vote_count_by_asset
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
@@ -117,6 +117,26 @@ class EventSerializer(serializers.ModelSerializer):
         return result
 
 
+class ListenEventSerializer(serializers.ModelSerializer):
+    duration_in_seconds = serializers.FloatField(required=False)
+
+    class Meta:
+        model = ListeningHistoryItem
+
+    def to_representation(self, obj):
+        result = super(ListenEventSerializer, self).to_representation(obj)
+        result["listenevent_id"] = result["id"]
+        del result["id"]
+        result["start_time"] = result["starttime"]
+        del result["starttime"]
+        result["session_id"] = result["session"]
+        del result["session"]
+        result["asset_id"] = result["asset"]
+        del result["asset"]
+        del result["duration"]
+        return result
+
+
 class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Project
@@ -139,26 +159,6 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
         del result["id"]
         result["language_ids"] = result["languages"]
         del result["languages"]
-        return result
-
-
-class ListenEventSerializer(serializers.ModelSerializer):
-    duration_in_seconds = serializers.FloatField(required=False)
-
-    class Meta:
-        model = ListeningHistoryItem
-
-    def to_representation(self, obj):
-        result = super(ListenEventSerializer, self).to_representation(obj)
-        result["listenevent_id"] = result["id"]
-        del result["id"]
-        result["start_time"] = result["starttime"]
-        del result["starttime"]
-        result["session_id"] = result["session"]
-        del result["session"]
-        result["asset_id"] = result["asset"]
-        del result["asset"]
-        del result["duration"]
         return result
 
 
@@ -252,16 +252,6 @@ class StreamSerializer(serializers.Serializer):
         return stream
 
 
-class TagRelationshipSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TagRelationship
-
-    def to_representation(self, obj):
-        result = super(TagRelationshipSerializer, self).to_representation(obj)
-        # TODO: Determine if anything needs to be serialized here
-        return result
-
-
 class TagSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -321,21 +311,6 @@ class TagRelationshipSerializer(serializers.ModelSerializer):
         return result
 
 
-class UIItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UIItem
-
-    def to_representation(self, obj):
-        result = super(UIItemSerializer, self).to_representation(obj)
-        result['ui_group_id'] = result['ui_group']
-        del result['ui_group']
-        result['tag_id'] = result['tag']
-        del result['tag']
-        result['parent_id'] = result['parent']
-        del result['parent']
-        # TODO: Determine if anything needs to be serialized here
-        return result
-
 class UIGroupSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = UIGroup
@@ -361,6 +336,23 @@ class UIGroupSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
         result["ui_items"] = serializer.data
 
         return result
+
+
+class UIItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UIItem
+
+    def to_representation(self, obj):
+        result = super(UIItemSerializer, self).to_representation(obj)
+        result['ui_group_id'] = result['ui_group']
+        del result['ui_group']
+        result['tag_id'] = result['tag']
+        del result['tag']
+        result['parent_id'] = result['parent']
+        del result['parent']
+        # TODO: Determine if anything needs to be serialized here
+        return result
+
 
 class UserSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=255, required=False)
