@@ -679,9 +679,15 @@ class UIItemViewSet(viewsets.ViewSet):
     queryset = UIItem.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return UIItem.objects.get(pk=pk)
+        except UIItem.DoesNotExist:
+            raise Http404("UIItem not found")
+
     def list(self, request):
         """
-        GET api/2/uiitems/ - Provides list of uiitems filtered by parameters
+        GET api/2/uiitems/ - Provides list of UIItems filtered by parameters
         """
         uiitems = UIItemFilterSet(request.query_params)
         serializer = serializers.UIItemSerializer(uiitems, many=True)
@@ -689,15 +695,42 @@ class UIItemViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-        GET api/2/uiitems/:id/ - Get uiitem by id
+        GET api/2/uiitems/:id/ - Get UIItem by id
         """
-        try:
-            uiitem = UIItem.objects.get(pk=pk)
-        except UIItem.DoesNotExist:
-            raise Http404("UIItem not found")
+        uiitem = self.get_object(pk)
         # session_id not needed, because no localization..?
         serializer = serializers.UIItemSerializer(uiitem)
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/uiitems/ - Create a new UIItem
+        """
+        serializer = serializers.UIItemSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/uiitems/:id/ - Update existing UIItem
+        """
+        uiitem = self.get_object(pk)
+        serializer = serializers.UIItemSerializer(uiitem, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/uiitems/:id/ - Delete a UIItem
+        """
+        uiitem = self.get_object(pk)
+        uiitem.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserViewSet(viewsets.ViewSet):
