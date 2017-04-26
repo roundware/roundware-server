@@ -235,6 +235,12 @@ class ProjectViewSet(viewsets.ViewSet):
     queryset = Project.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return Project.objects.get(pk=pk)
+        except Project.DoesNotExist:
+            raise Http404("Project not found")
+
     def retrieve(self, request, pk=None):
         if "session_id" in request.query_params:
             session = get_object_or_404(Session, pk=request.query_params["session_id"])
@@ -245,6 +251,36 @@ class ProjectViewSet(viewsets.ViewSet):
         else:
             raise ParseError("session_id parameter is required")
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/projects/ - Create a new Project
+        """
+        serializer = serializers.ProjectSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/projects/:id/ - Update existing Project
+        """
+        project = self.get_object(pk)
+        serializer = serializers.ProjectSerializer(project, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/projects/:id/ - Delete a Project
+        """
+        project = self.get_object(pk)
+        project.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @detail_route(methods=['get'])
     def tags(self, request, pk=None):
