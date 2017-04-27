@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
 router.register(r'assets', views.AssetViewSet)
+router.register(r'audiotracks', views.AudiotrackViewSet)
 router.register(r'envelopes', views.EnvelopeViewSet)
 router.register(r'events', views.EventViewSet)
 router.register(r'listenevents', views.ListenEventViewSet)

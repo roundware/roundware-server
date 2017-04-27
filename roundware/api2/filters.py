@@ -1,8 +1,8 @@
 # Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project, Tag,
-                                 TagRelationship, TagCategory, UIItem, UIGroup)
+from roundware.rw.models import (Asset, Audiotrack, Event, ListeningHistoryItem, Project,
+                                 Tag, TagCategory, TagRelationship, UIItem, UIGroup)
 from distutils.util import strtobool
 import django_filters
 
@@ -64,6 +64,26 @@ class AssetFilterSet(django_filters.FilterSet):
                   'created']
 
 
+class AudiotrackFilterSet(django_filters.FilterSet):
+    project_id = django_filters.NumberFilter()
+    minduration__lte = NanoNumberFilter(name='minduration', lookup_type='lte')
+    minduration__gte = NanoNumberFilter(name='minduration', lookup_type='gte')
+    maxduration__lte = NanoNumberFilter(name='maxduration', lookup_type='lte')
+    maxduration__gte = NanoNumberFilter(name='maxduration', lookup_type='gte')
+    mindeadair__lte = NanoNumberFilter(name='mindeadair', lookup_type='lte')
+    mindeadair__gte = NanoNumberFilter(name='mindeadair', lookup_type='gte')
+    maxdeadair__lte = NanoNumberFilter(name='maxdeadair', lookup_type='lte')
+    maxdeadair__gte = NanoNumberFilter(name='maxdeadair', lookup_type='gte')
+
+    class Meta:
+        model = Audiotrack
+        fields = ['project_id',
+                  'minduration',
+                  'maxduration',
+                  'mindeadair',
+                  'maxdeadair']
+
+
 class EventFilterSet(django_filters.FilterSet):
     event_type = django_filters.CharFilter(lookup_type='icontains')
     server_time = django_filters.DateTimeFilter(lookup_type='startswith')
@@ -95,8 +115,7 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
         model = ListeningHistoryItem
         fields = ['starttime',
                   'session',
-                  'asset',
-                  ]
+                  'asset']
 
 
 class ProjectFilterSet(django_filters.FilterSet):

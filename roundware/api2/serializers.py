@@ -4,7 +4,7 @@
 # The Django REST Framework object serializers for the V2 API.
 from __future__ import unicode_literals
 
-from roundware.rw.models import (Asset, Envelope, Event, Language, ListeningHistoryItem,
+from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
                                  LocalizedString, Project, Session, Tag, TagCategory,
                                  TagRelationship, UIGroup, UIItem, Vote)
 from roundware.lib.api import request_stream, vote_count_by_asset
@@ -72,6 +72,28 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
             lang = Language.objects.get(pk=result["language"])
             result["language"] = lang.language_code
 
+        return result
+
+
+class AudiotrackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Audiotrack
+
+    def to_representation(self, obj):
+        result = super(AudiotrackSerializer, self).to_representation(obj)
+        # convert from nanoseconds to seconds for readability
+        result["minduration"] = result["minduration"] / 1000000000
+        result["maxduration"] = result["maxduration"] / 1000000000
+        result["mindeadair"] = result["mindeadair"] / 1000000000
+        result["maxdeadair"] = result["maxdeadair"] / 1000000000
+        result["minfadeintime"] = result["minfadeintime"] / 1000000000
+        result["maxfadeintime"] = result["maxfadeintime"] / 1000000000
+        result["minfadeouttime"] = result["minfadeouttime"] / 1000000000
+        result["maxfadeouttime"] = result["maxfadeouttime"] / 1000000000
+        result["minpanduration"] = result["minpanduration"] / 1000000000
+        result["maxpanduration"] = result["maxpanduration"] / 1000000000
+        result["project_id"] = result["project"]
+        del result["project"]
         return result
 
 

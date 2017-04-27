@@ -6,13 +6,13 @@ from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.http import Http404
-from roundware.rw.models import (Asset, Event, Envelope, ListeningHistoryItem, Project,
+from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, ListeningHistoryItem, Project,
                                  Session, Tag, TagCategory, TagRelationship,
                                  UIGroup, UIItem, UserProfile)
 from roundware.api2 import serializers
-from roundware.api2.filters import (AssetFilterSet, EventFilterSet, ListeningHistoryItemFilterSet,
-                                    ProjectFilterSet, TagFilterSet, TagCategoryFilterSet,
-                                    TagRelationshipFilterSet, UIGroupFilterSet, UIItemFilterSet)
+from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EventFilterSet, ListeningHistoryItemFilterSet,
+                                    ProjectFilterSet, TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet,
+                                    UIGroupFilterSet, UIItemFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -116,6 +116,114 @@ class AssetViewSet(viewsets.ViewSet):
         results = Asset.objects.filter(id__in=selected_ids)
         serializer = serializers.AssetSerializer(results, many=True)
         return Response(serializer.data)
+
+
+class AudiotrackViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/audiotracks/
+            api/2/audiotracks/:id/
+    """
+    queryset = Audiotrack.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, pk):
+        try:
+            return Audiotrack.objects.get(pk=pk)
+        except Audiotrack.DoesNotExist:
+            raise Http404("Audiotrack not found")
+
+    def list(self, request):
+        """
+        GET api/2/audiotracks/ - Provides list of Audiotracks filtered by parameters
+        """
+        audiotracks = AudiotrackFilterSet(request.query_params)
+        serializer = serializers.AudiotrackSerializer(audiotracks, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/audiotracks/:id/ - Get Audiotrack by id
+        """
+        audiotrack = self.get_object(pk)
+        # session_id not needed, because no localization..?
+        serializer = serializers.AudiotrackSerializer(audiotrack)
+        return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/audiotracks/ - Create a new Audiotrack
+        """
+        request.data['project'] = request.data['project_id']
+        del request.data['project_id']
+        # convert from seconds to nanoseconds
+        if 'minduration' in request.data:
+            request.data['minduration'] = float(request.data['minduration']) * float(1000000000)
+        if 'maxduration' in request.data:
+            request.data['maxduration'] = float(request.data['maxduration']) * float(1000000000)
+        if 'mindeadair' in request.data:
+            request.data['mindeadair'] = float(request.data['mindeadair']) * float(1000000000)
+        if 'maxdeadair' in request.data:
+            request.data['maxdeadair'] = float(request.data['maxdeadair']) * float(1000000000)
+        if 'minfadeintime' in request.data:
+            request.data['minfadeintime'] = float(request.data['minfadeintime']) * float(1000000000)
+        if 'maxfadeintime' in request.data:
+            request.data['maxfadeintime'] = float(request.data['maxfadeintime']) * float(1000000000)
+        if 'minfadeouttime' in request.data:
+            request.data['minfadeouttime'] = float(request.data['minfadeouttime']) * float(1000000000)
+        if 'maxfadeouttime' in request.data:
+            request.data['maxfadeouttime'] = float(request.data['maxfadeouttime']) * float(1000000000)
+        if 'minpanduration' in request.data:
+            request.data['minpanduration'] = float(request.data['minpanduration']) * float(1000000000)
+        if 'maxpanduration' in request.data:
+            request.data['maxpanduration'] = float(request.data['maxpanduration']) * float(1000000000)
+        serializer = serializers.AudiotrackSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/audiotracks/:id/ - Update existing Audiotrack
+        """
+        audiotrack = self.get_object(pk)
+        request.data['project'] = request.data['project_id']
+        del request.data['project_id']
+        # convert from seconds to nanoseconds
+        if 'minduration' in request.data:
+            request.data['minduration'] = float(request.data['minduration']) * float(1000000000)
+        if 'maxduration' in request.data:
+            request.data['maxduration'] = float(request.data['maxduration']) * float(1000000000)
+        if 'mindeadair' in request.data:
+            request.data['mindeadair'] = float(request.data['mindeadair']) * float(1000000000)
+        if 'maxdeadair' in request.data:
+            request.data['maxdeadair'] = float(request.data['maxdeadair']) * float(1000000000)
+        if 'minfadeintime' in request.data:
+            request.data['minfadeintime'] = float(request.data['minfadeintime']) * float(1000000000)
+        if 'maxfadeintime' in request.data:
+            request.data['maxfadeintime'] = float(request.data['maxfadeintime']) * float(1000000000)
+        if 'minfadeouttime' in request.data:
+            request.data['minfadeouttime'] = float(request.data['minfadeouttime']) * float(1000000000)
+        if 'maxfadeouttime' in request.data:
+            request.data['maxfadeouttime'] = float(request.data['maxfadeouttime']) * float(1000000000)
+        if 'minpanduration' in request.data:
+            request.data['minpanduration'] = float(request.data['minpanduration']) * float(1000000000)
+        if 'maxpanduration' in request.data:
+            request.data['maxpanduration'] = float(request.data['maxpanduration']) * float(1000000000)
+        serializer = serializers.AudiotrackSerializer(audiotrack, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/audiotracks/:id/ - Delete Audiotrack
+        """
+        audiotrack = self.get_object(pk)
+        audiotrack.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class EnvelopeViewSet(viewsets.ViewSet):
