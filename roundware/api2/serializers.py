@@ -19,13 +19,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class LocalizedStringSerializer(serializers.ModelSerializer):
-    language = serializers.CharField(source="language.language_code")
-
-    class Meta:
-        model = LocalizedString
-
-
 class AdminLocaleStringSerializerMixin(serializers.Serializer):
 
     def get_fields(self):
@@ -156,6 +149,35 @@ class ListenEventSerializer(serializers.ModelSerializer):
         result["asset_id"] = result["asset"]
         del result["asset"]
         del result["duration"]
+        return result
+
+
+class LocalizedStringSerializer(serializers.ModelSerializer):
+    language = serializers.CharField(source="language.language_code")
+
+    class Meta:
+        model = LocalizedString
+
+    def create(self, validated_data):
+        lang = Language.objects.get(language_code=validated_data['language']['language_code'])
+        ls = LocalizedString.objects.create(localized_string=validated_data['localized_string'],
+                                            language_id=lang.pk)
+        ls.save()
+        return ls
+
+    def update(self, instance, validated_data):
+        if 'language' in validated_data:
+            lang = Language.objects.get(language_code=validated_data['language']['language_code'])
+            instance.language_id = lang.pk
+        if 'localized_string' in validated_data:
+            instance.localized_string = validated_data['localized_string']
+        instance.save()
+        return instance
+
+    def to_representation(self, obj):
+        result = super(LocalizedStringSerializer, self).to_representation(obj)
+        result["text"] = result["localized_string"]
+        del result["localized_string"]
         return result
 
 

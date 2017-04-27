@@ -6,13 +6,13 @@ from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.http import Http404
-from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, ListeningHistoryItem, Project,
-                                 Session, Tag, TagCategory, TagRelationship,
+from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, ListeningHistoryItem, LocalizedString,
+                                 Project, Session, Tag, TagCategory, TagRelationship,
                                  UIGroup, UIItem, UserProfile)
 from roundware.api2 import serializers
 from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EventFilterSet, ListeningHistoryItemFilterSet,
-                                    ProjectFilterSet, TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet,
-                                    UIGroupFilterSet, UIItemFilterSet)
+                                    LocalizedStringFilterSet, ProjectFilterSet, TagFilterSet, TagCategoryFilterSet,
+                                    TagRelationshipFilterSet, UIGroupFilterSet, UIItemFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -333,6 +333,72 @@ class ListenEventViewSet(viewsets.ViewSet):
             raise Http404("ListenEvent not found")
         serializer = serializers.ListenEventSerializer(event)
         return Response(serializer.data)
+
+
+class LocalizedStringViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/localizedstrings/
+            api/2/localizedstrings/:id/
+    """
+    queryset = LocalizedString.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, pk):
+        try:
+            return LocalizedString.objects.get(pk=pk)
+        except LocalizedString.DoesNotExist:
+            raise Http404("LocalizedString not found")
+
+    def list(self, request):
+        """
+        GET api/2/localizedstrings/ - Provides list of LocalizedStrings filtered by parameters
+        """
+        localizedstrings = LocalizedStringFilterSet(request.query_params)
+        serializer = serializers.LocalizedStringSerializer(localizedstrings, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/localizedstrings/:id/ - Get LocalizedString by id
+        """
+        localizedstring = self.get_object(pk)
+        serializer = serializers.LocalizedStringSerializer(localizedstring)
+        return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/localizedstrings/ - Create a new LocalizedString
+        """
+        request.data['localized_string'] = request.data['text']
+        del request.data['text']
+        serializer = serializers.LocalizedStringSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/localizedstrings/:id/ - Update existing LocalizedString
+        """
+        localizedstring = self.get_object(pk)
+        if 'text' in request.data:
+            request.data['localized_string'] = request.data['text']
+            del request.data['text']
+        serializer = serializers.LocalizedStringSerializer(localizedstring, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/localizedstrings/:id/ - Delete a LocalizedString
+        """
+        localizedstring = self.get_object(pk)
+        localizedstring.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProjectViewSet(viewsets.ViewSet):
