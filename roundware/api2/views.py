@@ -445,7 +445,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
     def get_object(self, pk):
         try:
             return TagCategory.objects.get(pk=pk)
-        except Tag.DoesNotExist:
+        except TagCategory.DoesNotExist:
             raise Http404("TagCategory not found")
 
     def list(self, request):
@@ -460,7 +460,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
         """
         GET api/2/tagcategories/:id/ - Get TagCategory by id
         """
-        tagcategory = self.get_object(pk);
+        tagcategory = self.get_object(pk)
         serializer = serializers.TagCategorySerializer(tagcategory)
         return Response(serializer.data)
 
@@ -479,7 +479,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
         """
         PATCH api/2/tagcategories/:id/ - Update existing TagCategory
         """
-        tagcategory = self.get_object(pk);
+        tagcategory = self.get_object(pk)
         serializer = serializers.TagCategorySerializer(tagcategory, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -490,7 +490,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
         """
         DELETE api/2/tagcategories/:id/ - Delete a TagCategory
         """
-        tagcategory = self.get_object(pk);
+        tagcategory = self.get_object(pk)
         tagcategory.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
