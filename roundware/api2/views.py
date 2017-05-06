@@ -267,6 +267,8 @@ class ProjectViewSet(viewsets.ViewSet):
         """
         POST api/2/projects/ - Create a new Project
         """
+        request.data['languages'] = request.data['language_ids']
+        del request.data['language_ids']
         serializer = serializers.ProjectSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -279,6 +281,8 @@ class ProjectViewSet(viewsets.ViewSet):
         PATCH api/2/projects/:id/ - Update existing Project
         """
         project = self.get_object(pk)
+        request.data['languages'] = request.data['language_ids']
+        del request.data['language_ids']
         serializer = serializers.ProjectSerializer(project, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -487,6 +491,14 @@ class TagViewSet(viewsets.ViewSet):
         """
         POST api/2/tags/ - Create a new Tag
         """
+        request.data['tag_category'] = request.data['tag_category_id']
+        del request.data['tag_category_id']
+        request.data['project'] = request.data['project_id']
+        del request.data['project_id']
+        request.data['loc_description'] = request.data['description_loc_ids']
+        del request.data['description_loc_ids']
+        request.data['loc_msg'] = request.data['msg_loc_ids']
+        del request.data['msg_loc_ids']
         serializer = serializers.TagSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -499,6 +511,14 @@ class TagViewSet(viewsets.ViewSet):
         PATCH api/2/tags/:id/ - Update existing Tag
         """
         tag = self.get_object(pk)
+        request.data['tag_category'] = request.data['tag_category_id']
+        del request.data['tag_category_id']
+        request.data['project'] = request.data['project_id']
+        del request.data['project_id']
+        request.data['loc_description'] = request.data['description_loc_ids']
+        del request.data['description_loc_ids']
+        request.data['loc_msg'] = request.data['msg_loc_ids']
+        del request.data['msg_loc_ids']
         serializer = serializers.TagSerializer(tag, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -610,6 +630,10 @@ class TagRelationshipViewSet(viewsets.ViewSet):
         """
         POST api/2/tagrelationships/ - Create a new TagRelationship
         """
+        request.data['tag'] = request.data['tag_id']
+        del request.data['tag_id']
+        request.data['parent'] = request.data['parent_id']
+        del request.data['parent_id']
         serializer = serializers.TagRelationshipSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -622,6 +646,10 @@ class TagRelationshipViewSet(viewsets.ViewSet):
         PATCH api/2/tagrelationships/:id/ - Update existing TagRelationship
         """
         tagrelationship = self.get_object(pk)
+        request.data['tag'] = request.data['tag_id']
+        del request.data['tag_id']
+        request.data['parent'] = request.data['parent_id']
+        del request.data['parent_id']
         serializer = serializers.TagRelationshipSerializer(tagrelationship, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -677,6 +705,12 @@ class UIGroupViewSet(viewsets.ViewSet):
         """
         POST api/2/uigroups/ - Create a new UIGroup
         """
+        request.data['tag_category'] = request.data['tag_category_id']
+        del request.data['tag_category_id']
+        request.data['project'] = request.data['project_id']
+        del request.data['project_id']
+        request.data['header_text_loc'] = request.data['header_text_loc_ids']
+        del request.data['header_text_loc_ids']
         serializer = serializers.UIGroupSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -689,6 +723,12 @@ class UIGroupViewSet(viewsets.ViewSet):
         PATCH api/2/uigroups/:id/ - Update existing UIGroup
         """
         uigroup = self.get_object(pk)
+        request.data['tag_category'] = request.data['tag_category_id']
+        del request.data['tag_category_id']
+        request.data['project'] = request.data['project_id']
+        del request.data['project_id']
+        request.data['header_text_loc'] = request.data['header_text_loc_ids']
+        del request.data['header_text_loc_ids']
         serializer = serializers.UIGroupSerializer(uigroup, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -739,6 +779,12 @@ class UIItemViewSet(viewsets.ViewSet):
         """
         POST api/2/uiitems/ - Create a new UIItem
         """
+        request.data['ui_group'] = request.data['ui_group_id']
+        del request.data['ui_group_id']
+        request.data['tag'] = request.data['tag_id']
+        del request.data['tag_id']
+        request.data['parent'] = request.data['parent_id']
+        del request.data['parent_id']
         serializer = serializers.UIItemSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -751,6 +797,12 @@ class UIItemViewSet(viewsets.ViewSet):
         PATCH api/2/uiitems/:id/ - Update existing UIItem
         """
         uiitem = self.get_object(pk)
+        request.data['ui_group'] = request.data['ui_group_id']
+        del request.data['ui_group_id']
+        request.data['tag'] = request.data['tag_id']
+        del request.data['tag_id']
+        request.data['parent'] = request.data['parent_id']
+        del request.data['parent_id']
         serializer = serializers.UIItemSerializer(uiitem, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
