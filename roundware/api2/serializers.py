@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
                                  LocalizedString, Project, Session, Tag, TagCategory,
-                                 TagRelationship, UIGroup, UIItem, Vote)
+                                 TagRelationship, TimedAsset, UIGroup, UIItem, Vote)
 from roundware.lib.api import request_stream, vote_count_by_asset
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
@@ -352,6 +352,24 @@ class TagRelationshipSerializer(serializers.ModelSerializer):
         del result['tag']
         result['parent_id'] = result['parent']
         del result['parent']
+        return result
+
+
+class TimedAssetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TimedAsset
+
+    def validate(self, attrs):
+        if attrs['end'] < attrs['start']:
+            raise ValidationError("End time must be greater than start time.")
+        return attrs
+
+    def to_representation(self, obj):
+        result = super(TimedAssetSerializer, self).to_representation(obj)
+        result['asset_id'] = result['asset']
+        del result['asset']
+        result['project_id'] = result['project']
+        del result['project']
         return result
 
 
