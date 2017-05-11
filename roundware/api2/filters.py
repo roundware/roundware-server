@@ -1,8 +1,8 @@
 # Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-from roundware.rw.models import (Asset, Audiotrack, Event, ListeningHistoryItem, LocalizedString,
-                                 Project, Tag, TagCategory, TagRelationship, TimedAsset, UIItem, UIGroup)
+from roundware.rw.models import (Asset, Audiotrack, Event, ListeningHistoryItem, LocalizedString, Project,
+                                 Tag, TagCategory, TagRelationship, TimedAsset, UIItem, UIGroup, Vote)
 from distutils.util import strtobool
 import django_filters
 
@@ -199,3 +199,13 @@ class UIItemFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = UIItem
+
+class VoteFilterSet(django_filters.FilterSet):
+    voter_id = django_filters.NumberFilter()
+    session_id = django_filters.NumberFilter()
+    asset_id = django_filters.NumberFilter()
+    type = django_filters.TypedChoiceFilter(choices=Vote.VOTE_TYPES)
+    value = django_filters.NumberFilter()
+
+    class Meta:
+        model = Vote

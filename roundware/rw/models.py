@@ -625,12 +625,23 @@ class ListeningHistoryItem(models.Model):
 
 
 class Vote(models.Model):
+    LIKE = 'like'
+    FLAG = 'flag'
+    RATE = 'rate'
+    BLOCK_ASSET = 'block_asset'
+    BLOCK_USER = 'block_user'
+    VOTE_TYPES = (
+        (LIKE, 'like'),
+        (FLAG, 'flag'),
+        (RATE, 'rate'),
+        (BLOCK_ASSET, 'block_asset'),
+        (BLOCK_USER, 'block_user'),
+    )
     voter = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
     value = models.IntegerField(null=True, blank=True)
     session = models.ForeignKey(Session)
     asset = models.ForeignKey(Asset)
-    type = models.CharField(
-        max_length=16, choices=[('like', 'like'), ('flag', 'flag'), ('rate', 'rate'), ('block_asset', 'block_asset'), ('block_user', 'block_user')])
+    type = models.CharField(max_length=16, choices=VOTE_TYPES)
 
     def __unicode__(self):
         return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Type: " + str(self.type)

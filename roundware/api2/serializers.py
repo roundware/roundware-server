@@ -451,6 +451,8 @@ class VoteSerializer(serializers.ModelSerializer):
         result = super(VoteSerializer, self).to_representation(obj)
         result["vote_id"] = result["id"]
         del result["id"]
+        result["voter_id"] = result["voter"]
+        del result["voter"]
         result["asset_id"] = result["asset"]
         del result["asset"]
         result["session_id"] = result["session"]

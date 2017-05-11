@@ -8,11 +8,12 @@ from django.shortcuts import get_object_or_404
 from django.http import Http404
 from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, ListeningHistoryItem, LocalizedString,
                                  Project, Session, Tag, TagCategory, TagRelationship, TimedAsset,
-                                 UIGroup, UIItem, UserProfile)
+                                 UIGroup, UIItem, UserProfile, Vote)
 from roundware.api2 import serializers
 from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EventFilterSet, ListeningHistoryItemFilterSet,
                                     LocalizedStringFilterSet, ProjectFilterSet, TagFilterSet, TagCategoryFilterSet,
-                                    TagRelationshipFilterSet, TimedAssetFilterSet, UIGroupFilterSet, UIItemFilterSet)
+                                    TagRelationshipFilterSet, TimedAssetFilterSet, UIGroupFilterSet, UIItemFilterSet,
+                                    VoteFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -1107,3 +1108,79 @@ class UserViewSet(viewsets.ViewSet):
                 # obtain token for this new user
                 token = Token.objects.create(user=user)
         return Response({"username": user.username, "token": token.key})
+
+
+class VoteViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/votes/
+            api/2/votes/:uiitem_id/
+    """
+    queryset = Vote.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, pk):
+        try:
+            return Vote.objects.get(pk=pk)
+        except UIItem.DoesNotExist:
+            raise Http404("Vote not found")
+
+    def list(self, request):
+        """
+        GET api/2/votes/ - Provides list of Votes filtered by parameters
+        """
+        votes = VoteFilterSet(request.query_params)
+        serializer = serializers.VoteSerializer(votes, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/votes/:id/ - Get Vote by id
+        """
+        vote = self.get_object(pk)
+        serializer = serializers.VoteSerializer(vote)
+        return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/votes/ - Create a new Vote
+        """
+        request.data['asset'] = request.data['asset_id']
+        del request.data['asset_id']
+        request.data['session'] = request.data['session_id']
+        del request.data['session_id']
+        request.data['voter'] = request.data['voter_id']
+        del request.data['voter_id']
+        serializer = serializers.VoteSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/votes/:id/ - Update existing Vote
+        """
+        vote = self.get_object(pk)
+        if "asset_id" in request.data:
+            request.data['asset'] = request.data['asset_id']
+            del request.data['asset_id']
+        if "session_id" in request.data:
+            request.data['session'] = request.data['session_id']
+            del request.data['session_id']
+        if "voter_id" in request.data:
+            request.data['voter'] = request.data['voter_id']
+            del request.data['voter_id']
+        serializer = serializers.VoteSerializer(vote, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/votes/:id/ - Delete a Vote
+        """
+        vote = self.get_object(pk)
+        vote.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

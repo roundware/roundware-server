@@ -290,7 +290,7 @@ class TestServer(APITestCase):
         User = get_user_model()
         user_id = User.objects.filter(userprofile__device_id=data["device_id"]) \
                               .values_list('id', flat=True)[0]
-        self.assertEqual(response.data["voter"], user_id)
+        self.assertEqual(response.data["voter_id"], user_id)
         self.assertEqual(response.data["session_id"], data["session_id"])
         self.assertEqual(response.data["type"], data["vote_type"])
         self.assertEqual(response.data["value"], data["value"])

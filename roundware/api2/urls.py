@@ -28,7 +28,7 @@ router.register(r'timedassets', views.TimedAssetViewSet)
 router.register(r'uigroups', views.UIGroupViewSet)
 router.register(r'uiitems', views.UIItemViewSet)
 router.register(r'users', views.UserViewSet)
-
+router.register(r'votes', views.VoteViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),
