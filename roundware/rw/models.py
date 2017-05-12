@@ -574,14 +574,17 @@ class Speaker(models.Model):
     def save(self, *args, **kwargs):
         shape_changed = (self.shape != self._shape_cache)
         attenuation_distance_changed = self.attenuation_distance != self._attenuation_distance_cache
+        # check if this is a new speaker or an updated speaker
+        speaker_id = self.id
         # if we have modified the shape, update the border field
         if shape_changed:
             self.build_boundary()
 
         super(Speaker, self).save(*args, **kwargs)
 
-        # after saving to the db, run the attenuation border builder
-        if shape_changed or attenuation_distance_changed:
+        # after saving to the db, run the attenuation border builder if
+        # this is a new speaker or if the shape or attenuation border have changed
+        if (speaker_id == None) or (shape_changed or attenuation_distance_changed):
             self.build_attenuation_buffer_line()
 
     def build_boundary(self):

@@ -1,8 +1,9 @@
 # Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-from roundware.rw.models import (Asset, Audiotrack, Event, ListeningHistoryItem, LocalizedString, Project,
-                                 Tag, TagCategory, TagRelationship, TimedAsset, UIItem, UIGroup, Vote)
+from roundware.rw.models import (Asset, Audiotrack, Event, ListeningHistoryItem, LocalizedString,
+                                 Project, Speaker, Tag, TagCategory, TagRelationship, TimedAsset, UIItem,
+                                 UIGroup, Vote)
 from distutils.util import strtobool
 import django_filters
 
@@ -118,7 +119,14 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
                   'asset']
 
 
-<<<<<<< HEAD
+class LocalizedStringFilterSet(django_filters.FilterSet):
+    language = django_filters.CharFilter(name='language__language_code')
+    localized_string = django_filters.CharFilter(lookup_type='icontains')
+
+    class Meta:
+        model = LocalizedString
+
+
 class ProjectFilterSet(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_type='icontains')
     listen_enabled = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
@@ -128,14 +136,14 @@ class ProjectFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Project
-=======
-class LocalizedStringFilterSet(django_filters.FilterSet):
-    language = django_filters.CharFilter(name='language__language_code')
-    localized_string = django_filters.CharFilter(lookup_type='icontains')
+
+
+class SpeakerFilterSet(django_filters.FilterSet):
+    activeyn = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    project_id = django_filters.NumberFilter()
 
     class Meta:
-        model = LocalizedString
->>>>>>> add api/2/localizedstrings/ endpoint with CRUD functionality
+        model = Speaker
 
 
 class TagFilterSet(django_filters.FilterSet):

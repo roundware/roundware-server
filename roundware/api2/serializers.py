@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 
 from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
-                                 LocalizedString, Project, Session, Tag, TagCategory,
+                                 LocalizedString, Project, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIGroup, UIItem, Vote)
 from roundware.lib.api import request_stream, vote_count_by_asset
 from rest_framework import serializers
@@ -246,6 +246,17 @@ class SessionSerializer(serializers.Serializer):
         result.update({"geo_listen_enabled": self.validated_data["geo_listen_enabled"]})
         if "session_id" in self.context:
             result["session_id"] = self.context["session_id"]
+        return result
+
+
+class SpeakerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Speaker
+
+    def to_representation(self, obj):
+        result = super(SpeakerSerializer, self).to_representation(obj)
+        result["project_id"] = result["project"]
+        del result["project"]
         return result
 
 

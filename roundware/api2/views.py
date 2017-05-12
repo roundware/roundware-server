@@ -7,13 +7,13 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, ListeningHistoryItem, LocalizedString,
-                                 Project, Session, Tag, TagCategory, TagRelationship, TimedAsset,
+                                 Project, Session, Speaker, Tag, TagCategory, TagRelationship, TimedAsset,
                                  UIGroup, UIItem, UserProfile, Vote)
 from roundware.api2 import serializers
 from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EventFilterSet, ListeningHistoryItemFilterSet,
-                                    LocalizedStringFilterSet, ProjectFilterSet, TagFilterSet, TagCategoryFilterSet,
-                                    TagRelationshipFilterSet, TimedAssetFilterSet, UIGroupFilterSet, UIItemFilterSet,
-                                    VoteFilterSet)
+                                    LocalizedStringFilterSet, ProjectFilterSet, SpeakerFilterSet, TagFilterSet,
+                                    TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
+                                    UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -524,6 +524,74 @@ class SessionViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SpeakerViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/speakers/
+            api/2/speakers/:uiitem_id/
+    """
+    queryset = Speaker.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, pk):
+        try:
+            return Speaker.objects.get(pk=pk)
+        except UIItem.DoesNotExist:
+            raise Http404("Speaker not found")
+
+    def list(self, request):
+        """
+        GET api/2/speakers/ - Provides list of Speakers filtered by parameters
+        """
+        speakers = SpeakerFilterSet(request.query_params)
+        serializer = serializers.SpeakerSerializer(speakers, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/speakers/:id/ - Get Speaker by id
+        """
+        speaker = self.get_object(pk)
+        serializer = serializers.SpeakerSerializer(speaker)
+        return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/speakers/ - Create a new Speaker
+        """
+        request.data['project'] = request.data['project_id']
+        del request.data['project_id']
+        serializer = serializers.SpeakerSerializer(data=request.data)
+        # calculate attenuation_border
+        # logger.info('serializer = %s' % serializer)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/speakers/:id/ - Update existing Speaker
+        """
+        speaker = self.get_object(pk)
+        if "project_id" in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
+        serializer = serializers.SpeakerSerializer(speaker, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/speakers/:id/ - Delete a Speaker
+        """
+        speaker = self.get_object(pk)
+        speaker.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class StreamViewSet(viewsets.ViewSet):
