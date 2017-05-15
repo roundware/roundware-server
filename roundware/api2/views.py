@@ -6,14 +6,14 @@ from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.http import Http404
-from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, ListeningHistoryItem, LocalizedString,
-                                 Project, Session, Speaker, Tag, TagCategory, TagRelationship, TimedAsset,
-                                 UIGroup, UIItem, UserProfile, Vote)
+from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, Language, ListeningHistoryItem,
+                                 LocalizedString, Project, Session, Speaker, Tag, TagCategory,
+                                 TagRelationship, TimedAsset, UIGroup, UIItem, UserProfile, Vote)
 from roundware.api2 import serializers
-from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EventFilterSet, ListeningHistoryItemFilterSet,
-                                    LocalizedStringFilterSet, ProjectFilterSet, SpeakerFilterSet, TagFilterSet,
-                                    TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
-                                    UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
+from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EventFilterSet, LanguageFilterSet,
+                                    ListeningHistoryItemFilterSet, LocalizedStringFilterSet, ProjectFilterSet,
+                                    SpeakerFilterSet, TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet,
+                                    TimedAssetFilterSet, UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -305,6 +305,67 @@ class EventViewSet(viewsets.ViewSet):
             raise ParseError(str(e))
         serializer = serializers.EventSerializer(e)
         return Response(serializer.data)
+
+
+class LanguageViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/languages/
+            api/2/languages/:id/
+    """
+    queryset = Language.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, pk):
+        try:
+            return Language.objects.get(pk=pk)
+        except Language.DoesNotExist:
+            raise Http404("Language not found")
+
+    def list(self, request):
+        """
+        GET api/2/Languages/ - Provides list of Languages filtered by parameters
+        """
+        languages = LanguageFilterSet(request.query_params)
+        serializer = serializers.LanguageSerializer(languages, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/languages/:id/ - Get Language by id
+        """
+        language = self.get_object(pk)
+        serializer = serializers.LanguageSerializer(language)
+        return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/languages/ - Create a new Language
+        """
+        serializer = serializers.LanguageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/languages/:id/ - Update existing Language
+        """
+        language = self.get_object(pk)
+        serializer = serializers.LanguageSerializer(language, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/languages/:id/ - Delete a Language
+        """
+        language = self.get_object(pk)
+        language.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ListenEventViewSet(viewsets.ViewSet):

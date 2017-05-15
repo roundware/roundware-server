@@ -132,6 +132,15 @@ class EventSerializer(serializers.ModelSerializer):
         return result
 
 
+class LanguageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Language
+
+    def to_representation(self, obj):
+        result = super(LanguageSerializer, self).to_representation(obj)
+        return result
+
+
 class ListenEventSerializer(serializers.ModelSerializer):
     duration_in_seconds = serializers.FloatField(required=False)
 

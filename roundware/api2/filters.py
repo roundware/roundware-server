@@ -1,9 +1,9 @@
 # Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-from roundware.rw.models import (Asset, Audiotrack, Event, ListeningHistoryItem, LocalizedString,
-                                 Project, Speaker, Tag, TagCategory, TagRelationship, TimedAsset, UIItem,
-                                 UIGroup, Vote)
+from roundware.rw.models import (Asset, Audiotrack, Event, Language, ListeningHistoryItem,
+                                 LocalizedString, Project, Speaker, Tag, TagCategory, TagRelationship,
+                                 TimedAsset, UIItem, UIGroup, Vote)
 from distutils.util import strtobool
 import django_filters
 
@@ -103,6 +103,14 @@ class EventFilterSet(django_filters.FilterSet):
                   'latitude',
                   'longitude',
                   'tags']
+
+
+class LanguageFilterSet(django_filters.FilterSet):
+    language_code = django_filters.CharFilter(lookup_type='icontains')
+    name = django_filters.CharFilter(lookup_type='icontains')
+
+    class Meta:
+        model = Language
 
 
 class ListeningHistoryItemFilterSet(django_filters.FilterSet):
