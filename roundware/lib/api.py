@@ -218,7 +218,8 @@ def log_event(event_type, session_id, form=None):
 
 
 def is_listener_in_range_of_stream(form, proj):
-    sn = models.Session.objects.get(id=form['session_id'])
+    # provide default session_id just in case none gets passed in form
+    sn = models.Session.objects.get(id=form.get('session_id', 1))
     # If latitude and longitude is not specified assume True.
     if not form.get('latitude', None) or not form.get('longitude', None):
         return True
@@ -610,7 +611,10 @@ def save_asset_from_request(request, session, asset=None):
         # value
         elif submitted is None or len(submitted) == 0:
             submitted = False
-            if is_listener_in_range_of_stream(request.GET, session.project):
+            # make mutable and add session_id key as required by is_listener_in_range_of_stream
+            form = request.GET.copy()
+            form['session_id'] = session.id
+            if is_listener_in_range_of_stream(form, session.project):
                 submitted = session.project.auto_submit
 
         # save description if provided, null is not allowed
