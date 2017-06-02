@@ -11,8 +11,8 @@ from roundware.rw.models import (Asset, Event, Envelope, ListeningHistoryItem, P
                                  UIGroup, UIItem, UserProfile)
 from roundware.api2 import serializers
 from roundware.api2.filters import (EventFilterSet, AssetFilterSet, ListeningHistoryItemFilterSet,
-                                    TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet,
-                                    UIGroupFilterSet, UIItemFilterSet)
+                                    ProjectFilterSet, TagFilterSet, TagCategoryFilterSet,
+                                    TagRelationshipFilterSet, UIGroupFilterSet, UIItemFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -241,7 +241,18 @@ class ProjectViewSet(viewsets.ViewSet):
         except Project.DoesNotExist:
             raise Http404("Project not found")
 
+    def list(self, request):
+        """
+        GET api/2/projects/ - Provides list of Projects filtered by parameters
+        """
+        projects = ProjectFilterSet(request.query_params)
+        serializer = serializers.ProjectSerializer(projects, many=True)
+        return Response(serializer.data)
+
     def retrieve(self, request, pk=None):
+        """
+        GET api/2/projects/:project_id/ - Get Project by id
+        """
         if "session_id" in request.query_params:
             session = get_object_or_404(Session, pk=request.query_params["session_id"])
             project = get_object_or_404(Project, pk=pk)

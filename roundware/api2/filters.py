@@ -1,5 +1,8 @@
-from roundware.rw.models import (Event, Asset, ListeningHistoryItem, Tag, TagRelationship,
-                                TagCategory, UIItem, UIGroup)
+# Roundware Server is released under the GNU Affero General Public License v3.
+# See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
+
+from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project, Tag,
+                                 TagRelationship, TagCategory, UIItem, UIGroup)
 from distutils.util import strtobool
 import django_filters
 
@@ -94,6 +97,17 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
                   'session',
                   'asset',
                   ]
+
+
+class ProjectFilterSet(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_type='icontains')
+    listen_enabled = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    geo_listen_enabled = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    speak_enabled = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    geo_speak_enabled = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+
+    class Meta:
+        model = Project
 
 
 class TagFilterSet(django_filters.FilterSet):
