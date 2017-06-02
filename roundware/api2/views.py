@@ -600,11 +600,14 @@ class SessionViewSet(viewsets.ViewSet):
         """
         # check if geo_listen_enabled is passed in request.data and if not,
         # add it with value from project.geo_listen_enabled
-        if 'geo_listen_enabled' not in request.data:
-            p = Project.objects.get(id=request.data['project_id'])
-            request.data['geo_listen_enabled'] = p.geo_listen_enabled
-            logger.info('geo_listen_enabled not passed! set to project value: %s' % request.data['geo_listen_enabled'])
-        serializer = serializers.SessionSerializer(data=request.data, context={'request': request})
+        # make request.data mutable to allow POST params to be sent as application/json
+        # rather than requiring multipart/form-data
+        rdm = request.data.copy()
+        if 'geo_listen_enabled' not in rdm:
+            p = Project.objects.get(id=rdm['project_id'])
+            rdm['geo_listen_enabled'] = p.geo_listen_enabled
+            logger.info('geo_listen_enabled not passed! set to project value: %s' % rdm['geo_listen_enabled'])
+        serializer = serializers.SessionSerializer(data=rdm, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -1048,7 +1051,6 @@ class TimedAssetViewSet(viewsets.ViewSet):
         """
         POST api/2/timedassets/ - Create a new TimedAsset
         """
-        logger.info('is this running?')
         if 'asset_id' in request.data:
             request.data['asset'] = request.data['asset_id']
             del request.data['asset_id']
