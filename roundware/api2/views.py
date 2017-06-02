@@ -154,8 +154,9 @@ class AudiotrackViewSet(viewsets.ViewSet):
         """
         POST api/2/audiotracks/ - Create a new Audiotrack
         """
-        request.data['project'] = request.data['project_id']
-        del request.data['project_id']
+        if "project_id" in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
         # convert from seconds to nanoseconds
         if 'minduration' in request.data:
             request.data['minduration'] = float(request.data['minduration']) * float(1000000000)
@@ -432,8 +433,9 @@ class LocalizedStringViewSet(viewsets.ViewSet):
         """
         POST api/2/localizedstrings/ - Create a new LocalizedString
         """
-        request.data['localized_string'] = request.data['text']
-        del request.data['text']
+        if 'text' in request.data:
+            request.data['localized_string'] = request.data['text']
+            del request.data['text']
         serializer = serializers.LocalizedStringSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -504,8 +506,9 @@ class ProjectViewSet(viewsets.ViewSet):
         """
         POST api/2/projects/ - Create a new Project
         """
-        request.data['languages'] = request.data['language_ids']
-        del request.data['language_ids']
+        if 'language_ids' in request.data:
+            request.data['languages'] = request.data['language_ids']
+            del request.data['language_ids']
         serializer = serializers.ProjectSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -621,8 +624,9 @@ class SpeakerViewSet(viewsets.ViewSet):
         """
         POST api/2/speakers/ - Create a new Speaker
         """
-        request.data['project'] = request.data['project_id']
-        del request.data['project_id']
+        if "project_id" in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
         serializer = serializers.SpeakerSerializer(data=request.data)
         # calculate attenuation_border
         # logger.info('serializer = %s' % serializer)
@@ -797,14 +801,18 @@ class TagViewSet(viewsets.ViewSet):
         """
         POST api/2/tags/ - Create a new Tag
         """
-        request.data['tag_category'] = request.data['tag_category_id']
-        del request.data['tag_category_id']
-        request.data['project'] = request.data['project_id']
-        del request.data['project_id']
-        request.data['loc_description'] = request.data['description_loc_ids']
-        del request.data['description_loc_ids']
-        request.data['loc_msg'] = request.data['msg_loc_ids']
-        del request.data['msg_loc_ids']
+        if 'tag_category_id' in request.data:
+            request.data['tag_category'] = request.data['tag_category_id']
+            del request.data['tag_category_id']
+        if 'project_id' in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
+        if 'description_loc_ids' in request.data:
+            request.data['loc_description'] = request.data['description_loc_ids']
+            del request.data['description_loc_ids']
+        if 'msg_loc_ids' in request.data:
+            request.data['loc_msg'] = request.data['msg_loc_ids']
+            del request.data['msg_loc_ids']
         serializer = serializers.TagSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -940,10 +948,12 @@ class TagRelationshipViewSet(viewsets.ViewSet):
         """
         POST api/2/tagrelationships/ - Create a new TagRelationship
         """
-        request.data['tag'] = request.data['tag_id']
-        del request.data['tag_id']
-        request.data['parent'] = request.data['parent_id']
-        del request.data['parent_id']
+        if 'tag_id' in request.data:
+            request.data['tag'] = request.data['tag_id']
+            del request.data['tag_id']
+        if 'parent_id' in request.data:
+            request.data['parent'] = request.data['parent_id']
+            del request.data['parent_id']
         serializer = serializers.TagRelationshipSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -1012,10 +1022,12 @@ class TimedAssetViewSet(viewsets.ViewSet):
         POST api/2/timedassets/ - Create a new TimedAsset
         """
         logger.info('is this running?')
-        request.data['asset'] = request.data['asset_id']
-        del request.data['asset_id']
-        request.data['project'] = request.data['project_id']
-        del request.data['project_id']
+        if 'asset_id' in request.data:
+            request.data['asset'] = request.data['asset_id']
+            del request.data['asset_id']
+        if 'project_id' in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
         serializer = serializers.TimedAssetSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -1089,12 +1101,15 @@ class UIGroupViewSet(viewsets.ViewSet):
         """
         POST api/2/uigroups/ - Create a new UIGroup
         """
-        request.data['tag_category'] = request.data['tag_category_id']
-        del request.data['tag_category_id']
-        request.data['project'] = request.data['project_id']
-        del request.data['project_id']
-        request.data['header_text_loc'] = request.data['header_text_loc_ids']
-        del request.data['header_text_loc_ids']
+        if "tag_category_id" in request.data:
+            request.data['tag_category'] = request.data['tag_category_id']
+            del request.data['tag_category_id']
+        if "project_id" in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
+        if "header_text_loc_ids" in request.data:
+            request.data['header_text_loc'] = request.data['header_text_loc_ids']
+            del request.data['header_text_loc_ids']
         serializer = serializers.UIGroupSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -1166,12 +1181,15 @@ class UIItemViewSet(viewsets.ViewSet):
         """
         POST api/2/uiitems/ - Create a new UIItem
         """
-        request.data['ui_group'] = request.data['ui_group_id']
-        del request.data['ui_group_id']
-        request.data['tag'] = request.data['tag_id']
-        del request.data['tag_id']
-        request.data['parent'] = request.data['parent_id']
-        del request.data['parent_id']
+        if "ui_group_id" in request.data:
+            request.data['ui_group'] = request.data['ui_group_id']
+            del request.data['ui_group_id']
+        if "tag_id" in request.data:
+            request.data['tag'] = request.data['tag_id']
+            del request.data['tag_id']
+        if "parent_id" in request.data:
+            request.data['parent'] = request.data['parent_id']
+            del request.data['parent_id']
         serializer = serializers.UIItemSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -1273,12 +1291,15 @@ class VoteViewSet(viewsets.ViewSet):
         """
         POST api/2/votes/ - Create a new Vote
         """
-        request.data['asset'] = request.data['asset_id']
-        del request.data['asset_id']
-        request.data['session'] = request.data['session_id']
-        del request.data['session_id']
-        request.data['voter'] = request.data['voter_id']
-        del request.data['voter_id']
+        if "asset_id" in request.data:
+            request.data['asset'] = request.data['asset_id']
+            del request.data['asset_id']
+        if "session_id" in request.data:
+            request.data['session'] = request.data['session_id']
+            del request.data['session_id']
+        if "voter_id" in request.data:
+            request.data['voter'] = request.data['voter_id']
+            del request.data['voter_id']
         serializer = serializers.VoteSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
