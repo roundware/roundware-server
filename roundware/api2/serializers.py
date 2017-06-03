@@ -136,6 +136,14 @@ class LanguageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Language
 
+    def validate_language_code(self, value):
+        # ensure language_code is 2 characters and doesn't already exist in db
+        if not len(value) == 2:
+            raise ValidationError("language_code not 2 characters")
+        if Language.objects.filter(language_code=value).exists():
+            raise ValidationError("language_code already exists in database")
+        return value
+
     def to_representation(self, obj):
         result = super(LanguageSerializer, self).to_representation(obj)
         return result
