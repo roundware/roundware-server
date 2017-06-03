@@ -18,6 +18,7 @@ from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
                                vote_count_by_asset, log_event, play)
+from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
@@ -125,7 +126,7 @@ class AudiotrackViewSet(viewsets.ViewSet):
             api/2/audiotracks/:id/
     """
     queryset = Audiotrack.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
     def get_object(self, pk):
         try:
@@ -314,7 +315,7 @@ class LanguageViewSet(viewsets.ViewSet):
             api/2/languages/:id/
     """
     queryset = Language.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
     def get_object(self, pk):
         try:
@@ -405,7 +406,7 @@ class LocalizedStringViewSet(viewsets.ViewSet):
             api/2/localizedstrings/:id/
     """
     queryset = LocalizedString.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
     def get_object(self, pk):
         try:
@@ -472,7 +473,7 @@ class ProjectViewSet(viewsets.ViewSet):
             api/2/projects/:project_id/tags
     """
     queryset = Project.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
     def get_object(self, pk):
         try:
@@ -596,7 +597,7 @@ class SpeakerViewSet(viewsets.ViewSet):
             api/2/speakers/:uiitem_id/
     """
     queryset = Speaker.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
     def get_object(self, pk):
         try:
@@ -767,7 +768,7 @@ class TagViewSet(viewsets.ViewSet):
     """
     # TODO: Return messages and relationships in response
     queryset = Tag.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
     def get_object(self, pk):
         try:
@@ -858,7 +859,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
             api/2/tagcategories/:id/
     """
     queryset = TagCategory.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
     def get_object(self, pk):
         try:
@@ -919,7 +920,7 @@ class TagRelationshipViewSet(viewsets.ViewSet):
             api/2/tagrelationships/:id/
     """
     queryset = TagRelationship.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
     def get_object(self, pk):
         try:
@@ -993,7 +994,7 @@ class TimedAssetViewSet(viewsets.ViewSet):
             api/2/timedassets/:id/
     """
     queryset = TimedAsset.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
     def get_object(self, pk):
         try:
@@ -1067,7 +1068,7 @@ class UIGroupViewSet(viewsets.ViewSet):
             api/2/uigroups/:uigroup_id/
     """
     queryset = UIGroup.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
     def get_object(self, pk):
         try:
@@ -1152,7 +1153,7 @@ class UIItemViewSet(viewsets.ViewSet):
             api/2/uiitems/:uiitem_id/
     """
     queryset = UIItem.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
 
     def get_object(self, pk):
         try:
