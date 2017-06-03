@@ -37,16 +37,26 @@ logger = logging.getLogger(__name__)
 class AssetViewSet(viewsets.ViewSet):
     """
     API V2: api/2/assets/
-            api/2/assets/:asset_id/
+            api/2/assets/:id/
+            api/2/assets/:id/votes/
+            api/2/assets/:id/random/
     """
 
     # TODO: Implement DjangoObjectPermissions
     queryset = Asset.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def list(self, request):
+        """
+        GET api/2/assets/ - retrieve list of Assets filtered by parameters
+        """
+        assets = AssetFilterSet(request.query_params)
+        serializer = serializers.AssetSerializer(assets, many=True)
+        return Response(serializer.data)
+
     def retrieve(self, request, pk=None):
         """
-        GET api/2/assets/:id/ - Get asset by id
+        GET api/2/assets/:id/ - Get Asset by id
         """
         try:
             asset = Asset.objects.get(pk=pk)
@@ -57,7 +67,7 @@ class AssetViewSet(viewsets.ViewSet):
 
     def create(self, request):
         """
-        POST api/2/assets/ - Create a new asset
+        POST api/2/assets/ - Create a new Asset
         """
         if "session_id" not in request.data:
             raise ParseError("session_id required")
@@ -82,16 +92,12 @@ class AssetViewSet(viewsets.ViewSet):
         serializer = serializers.AssetSerializer(asset)
         return Response(serializer.data)
 
-    def list(self, request):
-        """
-        GET api/2/assets/ - retrieve list of assets filtered by parameters
-        """
-        assets = AssetFilterSet(request.query_params)
-        serializer = serializers.AssetSerializer(assets, many=True)
-        return Response(serializer.data)
-
     @detail_route(methods=['post', 'get'])
     def votes(self, request, pk=None):
+        """
+        GET api/2/assets/votes/ - retrieve Votes for specified Asset
+        POST api/2/assets/votes/ - create Vote for specified Asset
+        """
         if request.method == "POST":
             vote_op = vote_asset(request, asset_id=pk)
             vote = vote_op["vote"]
@@ -104,7 +110,7 @@ class AssetViewSet(viewsets.ViewSet):
     @list_route(methods=['get'])
     def random(self, request, pk=None):
         """
-        GET api/2/assets/random/ - retrieve random list of assets filtered by parameters
+        GET api/2/assets/random/ - retrieve random list of Assets filtered by parameters
         """
         assets = AssetFilterSet(request.query_params).qs.values_list('id', flat=True)
         asset_count = len(assets)
@@ -233,13 +239,13 @@ class AudiotrackViewSet(viewsets.ViewSet):
 class EnvelopeViewSet(viewsets.ViewSet):
     """
     API V2: api/2/envelopes/
-            api/2/envelopes/:envelope_id/
+            api/2/envelopes/:id/
     """
     queryset = Envelope.objects.all()
 
     def create(self, request):
         """
-        POST api/2/envelopes/ - Creates a new envelope based on passed session_id
+        POST api/2/envelopes/ - Creates a new Envelope based on passed session_id
         """
         serializer = serializers.EnvelopeSerializer(data=request.data)
         if serializer.is_valid():
@@ -250,7 +256,7 @@ class EnvelopeViewSet(viewsets.ViewSet):
 
     def partial_update(self, request, pk=None):
         """
-        PATCH api/2/envelopes/:id/ - Adds an asset to the envelope
+        PATCH api/2/envelopes/:id/ - Adds an Asset to the Envelope
         """
         if "asset_id" in request.data or "file" in request.FILES:
             try:
@@ -267,7 +273,7 @@ class EnvelopeViewSet(viewsets.ViewSet):
 class EventViewSet(viewsets.ViewSet):
     """
     API V2: api/2/events/
-            api/2/events/:event_id/
+            api/2/events/:id/
     """
 
     # TODO: Implement ViewCreate permission.
@@ -276,7 +282,7 @@ class EventViewSet(viewsets.ViewSet):
 
     def list(self, request):
         """
-        GET api/2/events/ - Provides list of events filtered by parameters
+        GET api/2/events/ - Provides list of Events filtered by parameters
         """
         events = EventFilterSet(request.query_params)
         serializer = serializers.EventSerializer(events, many=True)
@@ -284,7 +290,7 @@ class EventViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-        GET api/2/events/:event_id/ - Get event by id
+        GET api/2/events/:id/ - Get Event by id
         """
         try:
             event = Event.objects.get(pk=pk)
@@ -295,7 +301,7 @@ class EventViewSet(viewsets.ViewSet):
 
     def create(self, request):
         """
-        POST api/2/events/ - Create a new event
+        POST api/2/events/ - Create a new Event
         """
         if 'session_id' not in request.data:
             raise ParseError("a session_id is required for this operation")
@@ -382,7 +388,7 @@ class ListenEventViewSet(viewsets.ViewSet):
 
     def list(self, request):
         """
-        GET api/2/listenevents/ - Get listenevents by filtering parameters
+        GET api/2/listenevents/ - Get ListenEvents by filtering parameters
         """
         events = ListeningHistoryItemFilterSet(request.query_params)
         serializer = serializers.ListenEventSerializer(events, many=True)
@@ -390,7 +396,7 @@ class ListenEventViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-        GET api/2/listenevents/:event_id/ - Get listenevent by id
+        GET api/2/listenevents/:id/ - Get ListenEvent by id
         """
         try:
             event = ListeningHistoryItem.objects.get(pk=pk)
@@ -469,8 +475,10 @@ class LocalizedStringViewSet(viewsets.ViewSet):
 
 class ProjectViewSet(viewsets.ViewSet):
     """
-    API V2: api/2/projects/:project_id
-            api/2/projects/:project_id/tags
+    API V2: api/2/projects/:id/
+            api/2/projects/:id/tags/
+            api/2/projects/:id/uigroups/
+            api/2/projects/:id/assets/
     """
     queryset = Project.objects.all()
     permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
@@ -491,7 +499,7 @@ class ProjectViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-        GET api/2/projects/:project_id/ - Get Project by id
+        GET api/2/projects/:id/ - Get Project by id
         """
         if "session_id" in request.query_params:
             session = get_object_or_404(Session, pk=request.query_params["session_id"])
@@ -541,6 +549,9 @@ class ProjectViewSet(viewsets.ViewSet):
 
     @detail_route(methods=['get'])
     def tags(self, request, pk=None):
+        """
+        GET api/2/projects/:id/tags/ - Get Tags for specific Project
+        """
         session = None
         if "session_id" in request.query_params:
             session = get_object_or_404(Session, pk=request.query_params["session_id"])
@@ -552,6 +563,9 @@ class ProjectViewSet(viewsets.ViewSet):
 
     @detail_route(methods=['get'])
     def uigroups(self, request, pk=None):
+        """
+        GET api/2/projects/:id/uigroups/ - Get UIGroups for specific Project
+        """
         params = request.query_params.copy()
         params["project_id"] = pk
         uigroups = UIGroupFilterSet(params)
@@ -562,6 +576,9 @@ class ProjectViewSet(viewsets.ViewSet):
 
     @detail_route(methods=['get'])
     def assets(self, request, pk=None):
+        """
+        GET api/2/projects/:id/assets/ - Get Assets for specific Project
+        """
         params = request.query_params.copy()
         params["project_id"] = pk
         assets = AssetFilterSet(params)
@@ -578,6 +595,9 @@ class SessionViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
     def create(self, request):
+        """
+        POST api/2/sessions/ - Create a new Session
+        """
         # check if geo_listen_enabled is passed in request.data and if not,
         # add it with value from project.geo_listen_enabled
         if 'geo_listen_enabled' not in request.data:
@@ -594,7 +614,7 @@ class SessionViewSet(viewsets.ViewSet):
 class SpeakerViewSet(viewsets.ViewSet):
     """
     API V2: api/2/speakers/
-            api/2/speakers/:uiitem_id/
+            api/2/speakers/:id/
     """
     queryset = Speaker.objects.all()
     permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
@@ -664,7 +684,13 @@ class StreamViewSet(viewsets.ViewSet):
     """
     The primary communication channel for handling the Roundware audio stream.
     API V2: api/2/streams/
-            api/2/streams/:id/
+            api/2/streams/:id/heartbeat/
+            api/2/streams/:id/playasset/
+            api/2/streams/:id/skip/
+            api/2/streams/:id/pause/
+            api/2/streams/:id/resume/
+            api/2/streams/:id/replayasset/
+            api/2/streams/:id/isactive/
     """
     permission_classes = (IsAuthenticated,)
 
@@ -764,7 +790,7 @@ class StreamViewSet(viewsets.ViewSet):
 class TagViewSet(viewsets.ViewSet):
     """
     API V2: api/2/tags/
-            api/2/tags/:tag_id/
+            api/2/tags/:id/
     """
     # TODO: Return messages and relationships in response
     queryset = Tag.objects.all()
@@ -786,7 +812,7 @@ class TagViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-        GET api/2/tags/:id/ - Get tag by id
+        GET api/2/tags/:id/ - Get Tag by id
         """
         tag = self.get_object(pk)
         session = None
@@ -1065,7 +1091,7 @@ class TimedAssetViewSet(viewsets.ViewSet):
 class UIGroupViewSet(viewsets.ViewSet):
     """
     API V2: api/2/uigroups/
-            api/2/uigroups/:uigroup_id/
+            api/2/uigroups/:id/
     """
     queryset = UIGroup.objects.all()
     permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
@@ -1078,7 +1104,7 @@ class UIGroupViewSet(viewsets.ViewSet):
 
     def list(self, request):
         """
-        GET api/2/uigroups/ - Provides list of uigroups filtered by parameters
+        GET api/2/uigroups/ - Provides list of UIGroups filtered by parameters
         """
         uigroups = UIGroupFilterSet(request.query_params)
         serializer = serializers.UIGroupSerializer(uigroups, many=True)
@@ -1086,7 +1112,7 @@ class UIGroupViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-        GET api/2/uigroups/:id/ - Get uigroup by id
+        GET api/2/uigroups/:id/ - Get UIGroup by id
         """
         uigroup = self.get_object(pk)
         session = None
@@ -1150,7 +1176,7 @@ class UIGroupViewSet(viewsets.ViewSet):
 class UIItemViewSet(viewsets.ViewSet):
     """
     API V2: api/2/uiitems/
-            api/2/uiitems/:uiitem_id/
+            api/2/uiitems/:id/
     """
     queryset = UIItem.objects.all()
     permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
@@ -1235,7 +1261,7 @@ class UserViewSet(viewsets.ViewSet):
 
     def create(self, request):
         """
-        POST api/2/user/ - Creates new user based on either device_id or username/pass. Returns token
+        POST api/2/user/ - Creates new User based on either device_id or username/pass. Returns token.
         """
         serializer = serializers.UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -1261,7 +1287,7 @@ class UserViewSet(viewsets.ViewSet):
 class VoteViewSet(viewsets.ViewSet):
     """
     API V2: api/2/votes/
-            api/2/votes/:uiitem_id/
+            api/2/votes/:id/
     """
     queryset = Vote.objects.all()
     permission_classes = (IsAuthenticated,)
