@@ -113,6 +113,7 @@ class ProjectFilterSet(django_filters.FilterSet):
 class TagFilterSet(django_filters.FilterSet):
     description = django_filters.CharFilter(lookup_type='icontains')
     data = django_filters.CharFilter(lookup_type='icontains')
+    project_id = django_filters.NumberFilter()
 
     class Meta:
         model = Tag
