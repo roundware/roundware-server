@@ -43,9 +43,6 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
     def to_representation(self, obj):
         result = super(AssetSerializer, self).to_representation(obj)
         # consistent naming for output
-        result["asset_id"] = result["id"]
-        del result["id"]
-
         result["media_type"] = result["mediatype"]
         del result["mediatype"]
 
@@ -123,8 +120,6 @@ class EventSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(EventSerializer, self).to_representation(obj)
-        result["event_id"] = result["id"]
-        del result["id"]
         result["session_id"] = result["session"]
         del result["session"]
         result["tag_ids"] = result["tags"]
@@ -157,8 +152,6 @@ class ListenEventSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(ListenEventSerializer, self).to_representation(obj)
-        result["listenevent_id"] = result["id"]
-        del result["id"]
         result["start_time"] = result["starttime"]
         del result["starttime"]
         result["session_id"] = result["session"]
@@ -216,8 +209,6 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
             if key[-4:] == "_loc" and type(result[key]) is list:
                 result[key[:-4]] = _select_localized_string(result[key], session)
                 del result[key]
-        result["project_id"] = result["id"]
-        del result["id"]
         result["language_ids"] = result["languages"]
         del result["languages"]
         return result
@@ -344,11 +335,11 @@ class TagSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerialize
         # rename fields to use *_id convention and for _loc consistency
         result['project_id'] = result['project']
         del result['project']
-        result['tag_categoy_id'] = result['tag_category']
+        result['tag_category_id'] = result['tag_category']
         del result['tag_category']
-        result['description_loc_ids'] = result['loc_description']
+        result['description_loc'] = result['loc_description']
         del result['loc_description']
-        result['msg_loc_ids'] = result['loc_msg']
+        result['msg_loc'] = result['loc_msg']
         del result['loc_msg']
 
         del result["relationships_old"]
@@ -477,8 +468,6 @@ class VoteSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(VoteSerializer, self).to_representation(obj)
-        result["vote_id"] = result["id"]
-        del result["id"]
         result["voter_id"] = result["voter"]
         del result["voter"]
         result["asset_id"] = result["asset"]

@@ -258,7 +258,7 @@ class TestServer(APITestCase):
         # ensure _loc fields are transformed
         self.assertIn("out_of_range_message", response.data)
         self.assertNotIn("out_of_range_message_loc", response.data)
-        self.assertEqual(self.project1.id, response.data["project_id"])
+        self.assertEqual(self.project1.id, response.data["id"])
 
     def projects_tags_get(self):
         # Strictly speaking, session_id is necessary only for localization purposes
@@ -294,7 +294,7 @@ class TestServer(APITestCase):
         self.assertEqual(response.data["session_id"], data["session_id"])
         self.assertEqual(response.data["type"], data["vote_type"])
         self.assertEqual(response.data["value"], data["value"])
-        self.assertIsNotNone(response.data["vote_id"])
+        self.assertIsNotNone(response.data["id"])
 
     def vote_assets_get(self):
         response = self.client.get('/api/2/assets/1/votes/')
