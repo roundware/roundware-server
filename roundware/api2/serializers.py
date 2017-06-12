@@ -215,11 +215,16 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
 
 
 class SessionSerializer(serializers.Serializer):
-    timezone = serializers.CharField(default="0000")
-    language = serializers.CharField(max_length=2, default="en")
     client_system = serializers.CharField(max_length=128, required=True)
-    project_id = serializers.IntegerField(required=True)
+    client_type = serializers.CharField(max_length=128, required=False)
+    demo_stream_enabled = serializers.BooleanField(required=False, default=False)
+    device_id = serializers.CharField(max_length=36, required=False)
     geo_listen_enabled = serializers.BooleanField(required=False)
+    language = serializers.CharField(max_length=2, default="en")
+    project_id = serializers.IntegerField(required=True)
+    starttime = serializers.DateTimeField(required=False)
+    stoptime = serializers.DateTimeField(required=False)
+    timezone = serializers.CharField(default="0000")
 
     def validate_language(self, value):
         try:
@@ -243,7 +248,8 @@ class SessionSerializer(serializers.Serializer):
                                          language_id=lang.pk,
                                          client_type=self.context["request"].user.userprofile.client_type,
                                          client_system=validated_data["client_system"],
-                                         geo_listen_enabled=validated_data["geo_listen_enabled"])
+                                         geo_listen_enabled=validated_data["geo_listen_enabled"],
+                                         demo_stream_enabled=validated_data["demo_stream_enabled"])
         session.save()
         self.context["session_id"] = session.pk
         return session
