@@ -11,8 +11,8 @@ from roundware.rw.models import (Asset, Event, Envelope, ListeningHistoryItem, P
                                  UIGroup, UIItem, UserProfile)
 from roundware.api2 import serializers
 from roundware.api2.filters import (EventFilterSet, AssetFilterSet, ListeningHistoryItemFilterSet,
-                                    TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet,
-                                    UIGroupFilterSet, UIItemFilterSet)
+                                    ProjectFilterSet, TagFilterSet, TagCategoryFilterSet,
+                                    TagRelationshipFilterSet, UIGroupFilterSet, UIItemFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -235,7 +235,24 @@ class ProjectViewSet(viewsets.ViewSet):
     queryset = Project.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return Project.objects.get(pk=pk)
+        except Project.DoesNotExist:
+            raise Http404("Project not found")
+
+    def list(self, request):
+        """
+        GET api/2/projects/ - Provides list of Projects filtered by parameters
+        """
+        projects = ProjectFilterSet(request.query_params)
+        serializer = serializers.ProjectSerializer(projects, many=True)
+        return Response(serializer.data)
+
     def retrieve(self, request, pk=None):
+        """
+        GET api/2/projects/:project_id/ - Get Project by id
+        """
         if "session_id" in request.query_params:
             session = get_object_or_404(Session, pk=request.query_params["session_id"])
             project = get_object_or_404(Project, pk=pk)
@@ -245,6 +262,40 @@ class ProjectViewSet(viewsets.ViewSet):
         else:
             raise ParseError("session_id parameter is required")
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/projects/ - Create a new Project
+        """
+        request.data['languages'] = request.data['language_ids']
+        del request.data['language_ids']
+        serializer = serializers.ProjectSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/projects/:id/ - Update existing Project
+        """
+        project = self.get_object(pk)
+        request.data['languages'] = request.data['language_ids']
+        del request.data['language_ids']
+        serializer = serializers.ProjectSerializer(project, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/projects/:id/ - Delete a Project
+        """
+        project = self.get_object(pk)
+        project.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @detail_route(methods=['get'])
     def tags(self, request, pk=None):
@@ -408,9 +459,15 @@ class TagViewSet(viewsets.ViewSet):
     queryset = Tag.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return Tag.objects.get(pk=pk)
+        except Tag.DoesNotExist:
+            raise Http404("Tag not found")
+
     def list(self, request):
         """
-        GET api/2/tags/ - Provides list of tag filtered by parameters
+        GET api/2/tags/ - Provides list of Tags filtered by parameters
         """
         tags = TagFilterSet(request.query_params)
         serializer = serializers.TagSerializer(tags, many=True)
@@ -420,10 +477,7 @@ class TagViewSet(viewsets.ViewSet):
         """
         GET api/2/tags/:id/ - Get tag by id
         """
-        try:
-            tag = Tag.objects.get(pk=pk)
-        except Tag.DoesNotExist:
-            raise Http404("Tag not found")
+        tag = self.get_object(pk)
         session = None
         if "session_id" in request.query_params:
             try:
@@ -432,6 +486,52 @@ class TagViewSet(viewsets.ViewSet):
                 raise ParseError("Session not found")
         serializer = serializers.TagSerializer(tag, context={"session": session})
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/tags/ - Create a new Tag
+        """
+        request.data['tag_category'] = request.data['tag_category_id']
+        del request.data['tag_category_id']
+        request.data['project'] = request.data['project_id']
+        del request.data['project_id']
+        request.data['loc_description'] = request.data['description_loc_ids']
+        del request.data['description_loc_ids']
+        request.data['loc_msg'] = request.data['msg_loc_ids']
+        del request.data['msg_loc_ids']
+        serializer = serializers.TagSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/tags/:id/ - Update existing Tag
+        """
+        tag = self.get_object(pk)
+        request.data['tag_category'] = request.data['tag_category_id']
+        del request.data['tag_category_id']
+        request.data['project'] = request.data['project_id']
+        del request.data['project_id']
+        request.data['loc_description'] = request.data['description_loc_ids']
+        del request.data['description_loc_ids']
+        request.data['loc_msg'] = request.data['msg_loc_ids']
+        del request.data['msg_loc_ids']
+        serializer = serializers.TagSerializer(tag, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        """
+        POST api/2/tags/:id/ - Delete Tag
+        """
+        tag = self.get_object(pk)
+        tag.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TagCategoryViewSet(viewsets.ViewSet):
@@ -445,7 +545,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
     def get_object(self, pk):
         try:
             return TagCategory.objects.get(pk=pk)
-        except Tag.DoesNotExist:
+        except TagCategory.DoesNotExist:
             raise Http404("TagCategory not found")
 
     def list(self, request):
@@ -460,7 +560,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
         """
         GET api/2/tagcategories/:id/ - Get TagCategory by id
         """
-        tagcategory = self.get_object(pk);
+        tagcategory = self.get_object(pk)
         serializer = serializers.TagCategorySerializer(tagcategory)
         return Response(serializer.data)
 
@@ -479,7 +579,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
         """
         PATCH api/2/tagcategories/:id/ - Update existing TagCategory
         """
-        tagcategory = self.get_object(pk);
+        tagcategory = self.get_object(pk)
         serializer = serializers.TagCategorySerializer(tagcategory, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -490,7 +590,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
         """
         DELETE api/2/tagcategories/:id/ - Delete a TagCategory
         """
-        tagcategory = self.get_object(pk);
+        tagcategory = self.get_object(pk)
         tagcategory.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -503,9 +603,15 @@ class TagRelationshipViewSet(viewsets.ViewSet):
     queryset = TagRelationship.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return TagRelationship.objects.get(pk=pk)
+        except TagRelationship.DoesNotExist:
+            raise Http404("TagRelationship not found")
+
     def list(self, request):
         """
-        GET api/2/tagrelationships/ - Provides list of TagRelationships filtered by parameters
+        GET api/2/tagrelationships/ - Provides list of TagRelationship filtered by parameters
         """
         tagrelationships = TagRelationshipFilterSet(request.query_params)
         serializer = serializers.TagRelationshipSerializer(tagrelationships, many=True)
@@ -515,13 +621,48 @@ class TagRelationshipViewSet(viewsets.ViewSet):
         """
         GET api/2/tagrelationships/:id/ - Get TagRelationship by id
         """
-        try:
-            tagrelationship = TagRelationship.objects.get(pk=pk)
-        except TagRelationship.DoesNotExist:
-            raise Http404("TagRelationship not found")
+        tagrelationship = self.get_object(pk)
         # session_id not needed, because no localization..?
         serializer = serializers.TagRelationshipSerializer(tagrelationship)
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/tagrelationships/ - Create a new TagRelationship
+        """
+        request.data['tag'] = request.data['tag_id']
+        del request.data['tag_id']
+        request.data['parent'] = request.data['parent_id']
+        del request.data['parent_id']
+        serializer = serializers.TagRelationshipSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/tagrelationships/:id/ - Update existing TagRelationship
+        """
+        tagrelationship = self.get_object(pk)
+        request.data['tag'] = request.data['tag_id']
+        del request.data['tag_id']
+        request.data['parent'] = request.data['parent_id']
+        del request.data['parent_id']
+        serializer = serializers.TagRelationshipSerializer(tagrelationship, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/tagrelationships/:id/ - Delete a TagRelationship
+        """
+        tagrelationship = self.get_object(pk)
+        tagrelationship.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UIGroupViewSet(viewsets.ViewSet):
@@ -531,6 +672,12 @@ class UIGroupViewSet(viewsets.ViewSet):
     """
     queryset = UIGroup.objects.all()
     permission_classes = (IsAuthenticated,)
+
+    def get_object(self, pk):
+        try:
+            return UIGroup.objects.get(pk=pk)
+        except UIGroup.DoesNotExist:
+            raise Http404("UIGroup not found")
 
     def list(self, request):
         """
@@ -544,10 +691,7 @@ class UIGroupViewSet(viewsets.ViewSet):
         """
         GET api/2/uigroups/:id/ - Get uigroup by id
         """
-        try:
-            uigroup = UIGroup.objects.get(pk=pk)
-        except UIGroup.DoesNotExist:
-            raise Http404("UIGroup not found")
+        uigroup = self.get_object(pk)
         session = None
         if "session_id" in request.query_params:
             try:
@@ -556,6 +700,48 @@ class UIGroupViewSet(viewsets.ViewSet):
                 raise ParseError("Session not found")
         serializer = serializers.UIGroupSerializer(uigroup, context={"session": session})
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/uigroups/ - Create a new UIGroup
+        """
+        request.data['tag_category'] = request.data['tag_category_id']
+        del request.data['tag_category_id']
+        request.data['project'] = request.data['project_id']
+        del request.data['project_id']
+        request.data['header_text_loc'] = request.data['header_text_loc_ids']
+        del request.data['header_text_loc_ids']
+        serializer = serializers.UIGroupSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/uigroups/:id/ - Update existing UIGroup
+        """
+        uigroup = self.get_object(pk)
+        request.data['tag_category'] = request.data['tag_category_id']
+        del request.data['tag_category_id']
+        request.data['project'] = request.data['project_id']
+        del request.data['project_id']
+        request.data['header_text_loc'] = request.data['header_text_loc_ids']
+        del request.data['header_text_loc_ids']
+        serializer = serializers.UIGroupSerializer(uigroup, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/uigroups/:id/ - Delete a UIGroup
+        """
+        uigroup = self.get_object(pk)
+        uigroup.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UIItemViewSet(viewsets.ViewSet):
@@ -566,9 +752,15 @@ class UIItemViewSet(viewsets.ViewSet):
     queryset = UIItem.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return UIItem.objects.get(pk=pk)
+        except UIItem.DoesNotExist:
+            raise Http404("UIItem not found")
+
     def list(self, request):
         """
-        GET api/2/uiitems/ - Provides list of uiitems filtered by parameters
+        GET api/2/uiitems/ - Provides list of UIItems filtered by parameters
         """
         uiitems = UIItemFilterSet(request.query_params)
         serializer = serializers.UIItemSerializer(uiitems, many=True)
@@ -576,15 +768,54 @@ class UIItemViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         """
-        GET api/2/uiitems/:id/ - Get uiitem by id
+        GET api/2/uiitems/:id/ - Get UIItem by id
         """
-        try:
-            uiitem = UIItem.objects.get(pk=pk)
-        except UIItem.DoesNotExist:
-            raise Http404("UIItem not found")
+        uiitem = self.get_object(pk)
         # session_id not needed, because no localization..?
         serializer = serializers.UIItemSerializer(uiitem)
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/uiitems/ - Create a new UIItem
+        """
+        request.data['ui_group'] = request.data['ui_group_id']
+        del request.data['ui_group_id']
+        request.data['tag'] = request.data['tag_id']
+        del request.data['tag_id']
+        request.data['parent'] = request.data['parent_id']
+        del request.data['parent_id']
+        serializer = serializers.UIItemSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/uiitems/:id/ - Update existing UIItem
+        """
+        uiitem = self.get_object(pk)
+        request.data['ui_group'] = request.data['ui_group_id']
+        del request.data['ui_group_id']
+        request.data['tag'] = request.data['tag_id']
+        del request.data['tag_id']
+        request.data['parent'] = request.data['parent_id']
+        del request.data['parent_id']
+        serializer = serializers.UIItemSerializer(uiitem, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/uiitems/:id/ - Delete a UIItem
+        """
+        uiitem = self.get_object(pk)
+        uiitem.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserViewSet(viewsets.ViewSet):

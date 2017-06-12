@@ -269,7 +269,7 @@ class TestServer(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1) # { "tags" : [] }
         self.assertEqual(len(response.data["tags"]), 2) # one tag excluded
-        self.assertEqual(response.data["tags"][0]["project"], self.project1.id)
+        self.assertEqual(response.data["tags"][0]["project_id"], self.project1.id)
 
     def projects_assets_get(self):
         url = reverse('project-assets', args=[self.project1.id])

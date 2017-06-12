@@ -137,6 +137,8 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
                 del result[key]
         result["project_id"] = result["id"]
         del result["id"]
+        result["language_ids"] = result["languages"]
+        del result["languages"]
         return result
 
 
@@ -277,12 +279,15 @@ class TagSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerialize
         for field in ["loc_msg", "loc_description"]:
             result[field] = _select_localized_string(result[field], session=session)
 
-        # field renaming - spec doc asks for `id`
-        # however, all other responses return *_id format
-        # TODO: determine if `id` should be renamed to `tag_id`
-
-        # result["tag_id"] = result["id"]
-        # del result["id"]
+        # rename fields to use *_id convention and for _loc consistency
+        result['project_id'] = result['project']
+        del result['project']
+        result['tag_categoy_id'] = result['tag_category']
+        del result['tag_category']
+        result['description_loc_ids'] = result['loc_description']
+        del result['loc_description']
+        result['msg_loc_ids'] = result['loc_msg']
+        del result['loc_msg']
 
         del result["relationships_old"]
 
@@ -309,7 +314,10 @@ class TagRelationshipSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(TagRelationshipSerializer, self).to_representation(obj)
-        # TODO: Determine if anything needs to be serialized here
+        result['tag_id'] = result['tag']
+        del result['tag']
+        result['parent_id'] = result['parent']
+        del result['parent']
         return result
 
 
@@ -319,6 +327,12 @@ class UIItemSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(UIItemSerializer, self).to_representation(obj)
+        result['ui_group_id'] = result['ui_group']
+        del result['ui_group']
+        result['tag_id'] = result['tag']
+        del result['tag']
+        result['parent_id'] = result['parent']
+        del result['parent']
         # TODO: Determine if anything needs to be serialized here
         return result
 
@@ -329,6 +343,10 @@ class UIGroupSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
 
     def to_representation(self, obj):
         result = super(UIGroupSerializer, self).to_representation(obj)
+        result['tag_category_id'] = result['tag_category']
+        del result['tag_category']
+        result['project_id'] = result['project']
+        del result['project']
         # find correct localized strings
         session = None
         if "session" in self.context:
