@@ -1,8 +1,9 @@
 # Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-from roundware.rw.models import (Asset, Event, ListeningHistoryItem, Project, Tag,
-                                 TagRelationship, TagCategory, UIItem, UIGroup)
+from roundware.rw.models import (Asset, Audiotrack, Event, Language, ListeningHistoryItem,
+                                 LocalizedString, Project, Speaker, Tag, TagCategory, TagRelationship,
+                                 TimedAsset, UIItem, UIGroup, Vote)
 from distutils.util import strtobool
 import django_filters
 
@@ -32,26 +33,6 @@ class NanoNumberFilter(django_filters.NumberFilter):
     def filter(self, qs, value):
         value = round(value * 1000000000, 2)
         return super(NanoNumberFilter, self).filter(qs, value)
-
-
-class EventFilterSet(django_filters.FilterSet):
-    event_type = django_filters.CharFilter(lookup_type='icontains')
-    server_time = django_filters.DateTimeFilter(lookup_type='startswith')
-    server_time__lt = django_filters.DateTimeFilter(name='server_time', lookup_type='lt')
-    server_time__gt = django_filters.DateTimeFilter(name='server_time', lookup_type='gt')
-    session_id = django_filters.NumberFilter()
-    latitude = django_filters.CharFilter(lookup_type='startswith')
-    longitude = django_filters.CharFilter(lookup_type='startswith')
-    tag_ids = WordListFilter(name='tags', lookup_type='contains')
-
-    class Meta:
-        model = Event
-        fields = ['event_type',
-                  'server_time',
-                  'session_id',
-                  'latitude',
-                  'longitude',
-                  'tags']
 
 
 class AssetFilterSet(django_filters.FilterSet):
@@ -84,6 +65,54 @@ class AssetFilterSet(django_filters.FilterSet):
                   'created']
 
 
+class AudiotrackFilterSet(django_filters.FilterSet):
+    project_id = django_filters.NumberFilter()
+    minduration__lte = NanoNumberFilter(name='minduration', lookup_type='lte')
+    minduration__gte = NanoNumberFilter(name='minduration', lookup_type='gte')
+    maxduration__lte = NanoNumberFilter(name='maxduration', lookup_type='lte')
+    maxduration__gte = NanoNumberFilter(name='maxduration', lookup_type='gte')
+    mindeadair__lte = NanoNumberFilter(name='mindeadair', lookup_type='lte')
+    mindeadair__gte = NanoNumberFilter(name='mindeadair', lookup_type='gte')
+    maxdeadair__lte = NanoNumberFilter(name='maxdeadair', lookup_type='lte')
+    maxdeadair__gte = NanoNumberFilter(name='maxdeadair', lookup_type='gte')
+
+    class Meta:
+        model = Audiotrack
+        fields = ['project_id',
+                  'minduration',
+                  'maxduration',
+                  'mindeadair',
+                  'maxdeadair']
+
+
+class EventFilterSet(django_filters.FilterSet):
+    event_type = django_filters.CharFilter(lookup_type='icontains')
+    server_time = django_filters.DateTimeFilter(lookup_type='startswith')
+    server_time__lt = django_filters.DateTimeFilter(name='server_time', lookup_type='lt')
+    server_time__gt = django_filters.DateTimeFilter(name='server_time', lookup_type='gt')
+    session_id = django_filters.NumberFilter()
+    latitude = django_filters.CharFilter(lookup_type='startswith')
+    longitude = django_filters.CharFilter(lookup_type='startswith')
+    tag_ids = WordListFilter(name='tags', lookup_type='contains')
+
+    class Meta:
+        model = Event
+        fields = ['event_type',
+                  'server_time',
+                  'session_id',
+                  'latitude',
+                  'longitude',
+                  'tags']
+
+
+class LanguageFilterSet(django_filters.FilterSet):
+    language_code = django_filters.CharFilter(lookup_type='icontains')
+    name = django_filters.CharFilter(lookup_type='icontains')
+
+    class Meta:
+        model = Language
+
+
 class ListeningHistoryItemFilterSet(django_filters.FilterSet):
     duration__lte = django_filters.NumberFilter('duration', lookup_type='lte')
     duration__gte = django_filters.NumberFilter('duration', lookup_type='gte')
@@ -95,8 +124,15 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
         model = ListeningHistoryItem
         fields = ['starttime',
                   'session',
-                  'asset',
-                  ]
+                  'asset']
+
+
+class LocalizedStringFilterSet(django_filters.FilterSet):
+    language = django_filters.CharFilter(name='language__language_code')
+    localized_string = django_filters.CharFilter(lookup_type='icontains')
+
+    class Meta:
+        model = LocalizedString
 
 
 class ProjectFilterSet(django_filters.FilterSet):
@@ -110,9 +146,18 @@ class ProjectFilterSet(django_filters.FilterSet):
         model = Project
 
 
+class SpeakerFilterSet(django_filters.FilterSet):
+    activeyn = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    project_id = django_filters.NumberFilter()
+
+    class Meta:
+        model = Speaker
+
+
 class TagFilterSet(django_filters.FilterSet):
     description = django_filters.CharFilter(lookup_type='icontains')
     data = django_filters.CharFilter(lookup_type='icontains')
+    project_id = django_filters.NumberFilter()
 
     class Meta:
         model = Tag
@@ -131,6 +176,20 @@ class TagRelationshipFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = TagRelationship
+
+
+class TimedAssetFilterSet(django_filters.FilterSet):
+    project_id = django_filters.NumberFilter()
+    start__lte = django_filters.NumberFilter(name='start', lookup_type='lte')
+    start__gte = django_filters.NumberFilter(name='start', lookup_type='gte')
+    end__lte = django_filters.NumberFilter(name='end', lookup_type='lte')
+    end__gte = django_filters.NumberFilter(name='end', lookup_type='gte')
+
+    class Meta:
+        model = TimedAsset
+        fields = ['project_id',
+                  'start',
+                  'end']
 
 
 class UIGroupFilterSet(django_filters.FilterSet):
@@ -156,3 +215,13 @@ class UIItemFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = UIItem
+
+class VoteFilterSet(django_filters.FilterSet):
+    voter_id = django_filters.NumberFilter()
+    session_id = django_filters.NumberFilter()
+    asset_id = django_filters.NumberFilter()
+    type = django_filters.TypedChoiceFilter(choices=Vote.VOTE_TYPES)
+    value = django_filters.NumberFilter()
+
+    class Meta:
+        model = Vote

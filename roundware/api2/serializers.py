@@ -4,9 +4,9 @@
 # The Django REST Framework object serializers for the V2 API.
 from __future__ import unicode_literals
 
-from roundware.rw.models import (Asset, Event, Envelope, Language, ListeningHistoryItem,
-                                 LocalizedString, Project, Tag, TagRelationship, TagCategory,
-                                 UIGroup, UIItem, Session, Vote)
+from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
+                                 LocalizedString, Project, Session, Speaker, Tag, TagCategory,
+                                 TagRelationship, TimedAsset, UIGroup, UIItem, Vote)
 from roundware.lib.api import request_stream, vote_count_by_asset
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
@@ -17,13 +17,6 @@ import re
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class LocalizedStringSerializer(serializers.ModelSerializer):
-    language = serializers.CharField(source="language.language_code")
-
-    class Meta:
-        model = LocalizedString
 
 
 class AdminLocaleStringSerializerMixin(serializers.Serializer):
@@ -50,9 +43,6 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
     def to_representation(self, obj):
         result = super(AssetSerializer, self).to_representation(obj)
         # consistent naming for output
-        result["asset_id"] = result["id"]
-        del result["id"]
-
         result["media_type"] = result["mediatype"]
         del result["mediatype"]
 
@@ -72,6 +62,28 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
             lang = Language.objects.get(pk=result["language"])
             result["language"] = lang.language_code
 
+        return result
+
+
+class AudiotrackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Audiotrack
+
+    def to_representation(self, obj):
+        result = super(AudiotrackSerializer, self).to_representation(obj)
+        # convert from nanoseconds to seconds for readability
+        result["minduration"] = result["minduration"] / 1000000000
+        result["maxduration"] = result["maxduration"] / 1000000000
+        result["mindeadair"] = result["mindeadair"] / 1000000000
+        result["maxdeadair"] = result["maxdeadair"] / 1000000000
+        result["minfadeintime"] = result["minfadeintime"] / 1000000000
+        result["maxfadeintime"] = result["maxfadeintime"] / 1000000000
+        result["minfadeouttime"] = result["minfadeouttime"] / 1000000000
+        result["maxfadeouttime"] = result["maxfadeouttime"] / 1000000000
+        result["minpanduration"] = result["minpanduration"] / 1000000000
+        result["maxpanduration"] = result["maxpanduration"] / 1000000000
+        result["project_id"] = result["project"]
+        del result["project"]
         return result
 
 
@@ -108,12 +120,74 @@ class EventSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(EventSerializer, self).to_representation(obj)
-        result["event_id"] = result["id"]
-        del result["id"]
         result["session_id"] = result["session"]
         del result["session"]
         result["tag_ids"] = result["tags"]
         del result["tags"]
+        return result
+
+
+class LanguageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Language
+
+    def validate_language_code(self, value):
+        # ensure language_code is 2 characters and doesn't already exist in db
+        if not len(value) == 2:
+            raise ValidationError("language_code not 2 characters")
+        if Language.objects.filter(language_code=value).exists():
+            raise ValidationError("language_code already exists in database")
+        return value
+
+    def to_representation(self, obj):
+        result = super(LanguageSerializer, self).to_representation(obj)
+        return result
+
+
+class ListenEventSerializer(serializers.ModelSerializer):
+    duration_in_seconds = serializers.FloatField(required=False)
+
+    class Meta:
+        model = ListeningHistoryItem
+
+    def to_representation(self, obj):
+        result = super(ListenEventSerializer, self).to_representation(obj)
+        result["start_time"] = result["starttime"]
+        del result["starttime"]
+        result["session_id"] = result["session"]
+        del result["session"]
+        result["asset_id"] = result["asset"]
+        del result["asset"]
+        del result["duration"]
+        return result
+
+
+class LocalizedStringSerializer(serializers.ModelSerializer):
+    language = serializers.CharField(source="language.language_code")
+
+    class Meta:
+        model = LocalizedString
+
+    def create(self, validated_data):
+        lang = Language.objects.get(language_code=validated_data['language']['language_code'])
+        ls = LocalizedString.objects.create(localized_string=validated_data['localized_string'],
+                                            language_id=lang.pk)
+        ls.save()
+        return ls
+
+    def update(self, instance, validated_data):
+        if 'language' in validated_data:
+            lang = Language.objects.get(language_code=validated_data['language']['language_code'])
+            instance.language_id = lang.pk
+        if 'localized_string' in validated_data:
+            instance.localized_string = validated_data['localized_string']
+        instance.save()
+        return instance
+
+    def to_representation(self, obj):
+        result = super(LocalizedStringSerializer, self).to_representation(obj)
+        result["text"] = result["localized_string"]
+        del result["localized_string"]
         return result
 
 
@@ -135,39 +209,22 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
             if key[-4:] == "_loc" and type(result[key]) is list:
                 result[key[:-4]] = _select_localized_string(result[key], session)
                 del result[key]
-        result["project_id"] = result["id"]
-        del result["id"]
         result["language_ids"] = result["languages"]
         del result["languages"]
         return result
 
 
-class ListenEventSerializer(serializers.ModelSerializer):
-    duration_in_seconds = serializers.FloatField(required=False)
-
-    class Meta:
-        model = ListeningHistoryItem
-
-    def to_representation(self, obj):
-        result = super(ListenEventSerializer, self).to_representation(obj)
-        result["listenevent_id"] = result["id"]
-        del result["id"]
-        result["start_time"] = result["starttime"]
-        del result["starttime"]
-        result["session_id"] = result["session"]
-        del result["session"]
-        result["asset_id"] = result["asset"]
-        del result["asset"]
-        del result["duration"]
-        return result
-
-
 class SessionSerializer(serializers.Serializer):
-    timezone = serializers.CharField(default="0000")
-    language = serializers.CharField(max_length=2, default="en")
     client_system = serializers.CharField(max_length=128, required=True)
-    project_id = serializers.IntegerField(required=True)
+    client_type = serializers.CharField(max_length=128, required=False)
+    demo_stream_enabled = serializers.BooleanField(required=False, default=False)
+    device_id = serializers.CharField(max_length=36, required=False)
     geo_listen_enabled = serializers.BooleanField(required=False)
+    language = serializers.CharField(max_length=2, default="en")
+    project_id = serializers.IntegerField(required=True)
+    starttime = serializers.DateTimeField(required=False)
+    stoptime = serializers.DateTimeField(required=False)
+    timezone = serializers.CharField(default="0000")
 
     def validate_language(self, value):
         try:
@@ -191,7 +248,8 @@ class SessionSerializer(serializers.Serializer):
                                          language_id=lang.pk,
                                          client_type=self.context["request"].user.userprofile.client_type,
                                          client_system=validated_data["client_system"],
-                                         geo_listen_enabled=validated_data["geo_listen_enabled"])
+                                         geo_listen_enabled=validated_data["geo_listen_enabled"],
+                                         demo_stream_enabled=validated_data["demo_stream_enabled"])
         session.save()
         self.context["session_id"] = session.pk
         return session
@@ -202,6 +260,17 @@ class SessionSerializer(serializers.Serializer):
         result.update({"geo_listen_enabled": self.validated_data["geo_listen_enabled"]})
         if "session_id" in self.context:
             result["session_id"] = self.context["session_id"]
+        return result
+
+
+class SpeakerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Speaker
+
+    def to_representation(self, obj):
+        result = super(SpeakerSerializer, self).to_representation(obj)
+        result["project_id"] = result["project"]
+        del result["project"]
         return result
 
 
@@ -252,16 +321,6 @@ class StreamSerializer(serializers.Serializer):
         return stream
 
 
-class TagRelationshipSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TagRelationship
-
-    def to_representation(self, obj):
-        result = super(TagRelationshipSerializer, self).to_representation(obj)
-        # TODO: Determine if anything needs to be serialized here
-        return result
-
-
 class TagSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -282,11 +341,11 @@ class TagSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerialize
         # rename fields to use *_id convention and for _loc consistency
         result['project_id'] = result['project']
         del result['project']
-        result['tag_categoy_id'] = result['tag_category']
+        result['tag_category_id'] = result['tag_category']
         del result['tag_category']
-        result['description_loc_ids'] = result['loc_description']
+        result['description_loc'] = result['loc_description']
         del result['loc_description']
-        result['msg_loc_ids'] = result['loc_msg']
+        result['msg_loc'] = result['loc_msg']
         del result['loc_msg']
 
         del result["relationships_old"]
@@ -321,20 +380,23 @@ class TagRelationshipSerializer(serializers.ModelSerializer):
         return result
 
 
-class UIItemSerializer(serializers.ModelSerializer):
+class TimedAssetSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UIItem
+        model = TimedAsset
+
+    def validate(self, attrs):
+        if attrs['end'] < attrs['start']:
+            raise ValidationError("End time must be greater than start time.")
+        return attrs
 
     def to_representation(self, obj):
-        result = super(UIItemSerializer, self).to_representation(obj)
-        result['ui_group_id'] = result['ui_group']
-        del result['ui_group']
-        result['tag_id'] = result['tag']
-        del result['tag']
-        result['parent_id'] = result['parent']
-        del result['parent']
-        # TODO: Determine if anything needs to be serialized here
+        result = super(TimedAssetSerializer, self).to_representation(obj)
+        result['asset_id'] = result['asset']
+        del result['asset']
+        result['project_id'] = result['project']
+        del result['project']
         return result
+
 
 class UIGroupSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
@@ -361,6 +423,23 @@ class UIGroupSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
         result["ui_items"] = serializer.data
 
         return result
+
+
+class UIItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UIItem
+
+    def to_representation(self, obj):
+        result = super(UIItemSerializer, self).to_representation(obj)
+        result['ui_group_id'] = result['ui_group']
+        del result['ui_group']
+        result['tag_id'] = result['tag']
+        del result['tag']
+        result['parent_id'] = result['parent']
+        del result['parent']
+        # TODO: Determine if anything needs to be serialized here
+        return result
+
 
 class UserSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=255, required=False)
@@ -395,8 +474,8 @@ class VoteSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(VoteSerializer, self).to_representation(obj)
-        result["vote_id"] = result["id"]
-        del result["id"]
+        result["voter_id"] = result["voter"]
+        del result["voter"]
         result["asset_id"] = result["asset"]
         del result["asset"]
         result["session_id"] = result["session"]
