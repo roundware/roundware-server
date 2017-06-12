@@ -51,7 +51,7 @@ class AssetViewSet(viewsets.ViewSet):
         GET api/2/assets/ - retrieve list of Assets filtered by parameters
         """
         assets = AssetFilterSet(request.query_params)
-        serializer = serializers.AssetSerializer(assets, many=True)
+        serializer = serializers.AssetSerializer(assets, context={"admin": "admin" in request.query_params}, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -62,7 +62,7 @@ class AssetViewSet(viewsets.ViewSet):
             asset = Asset.objects.get(pk=pk)
         except Asset.DoesNotExist:
             raise Http404("Asset not found")
-        serializer = serializers.AssetSerializer(asset)
+        serializer = serializers.AssetSerializer(asset, context={"admin": "admin" in request.query_params})
         return Response(serializer.data)
 
     def create(self, request):
@@ -810,7 +810,7 @@ class TagViewSet(viewsets.ViewSet):
         GET api/2/tags/ - Provides list of Tags filtered by parameters
         """
         tags = TagFilterSet(request.query_params)
-        serializer = serializers.TagSerializer(tags, many=True)
+        serializer = serializers.TagSerializer(tags, context={"admin": "admin" in request.query_params}, many=True)
         return Response({"tags": serializer.data})
 
     def retrieve(self, request, pk=None):
@@ -824,7 +824,8 @@ class TagViewSet(viewsets.ViewSet):
                 session = Session.objects.get(pk=request.query_params["session_id"])
             except:
                 raise ParseError("Session not found")
-        serializer = serializers.TagSerializer(tag, context={"session": session})
+        serializer = serializers.TagSerializer(tag, context={"session": session,
+                                                             "admin": "admin" in request.query_params})
         return Response(serializer.data)
 
     def create(self, request):
@@ -1109,7 +1110,9 @@ class UIGroupViewSet(viewsets.ViewSet):
         GET api/2/uigroups/ - Provides list of UIGroups filtered by parameters
         """
         uigroups = UIGroupFilterSet(request.query_params)
-        serializer = serializers.UIGroupSerializer(uigroups, many=True)
+        serializer = serializers.UIGroupSerializer(uigroups,
+                                                   context={"admin": "admin" in request.query_params},
+                                                   many=True)
         return Response({"ui_groups": serializer.data})
 
     def retrieve(self, request, pk=None):
@@ -1123,7 +1126,9 @@ class UIGroupViewSet(viewsets.ViewSet):
                 session = Session.objects.get(pk=request.query_params["session_id"])
             except:
                 raise ParseError("Session not found")
-        serializer = serializers.UIGroupSerializer(uigroup, context={"session": session})
+        serializer = serializers.UIGroupSerializer(uigroup,
+                                                   context={"session": session,
+                                                            "admin": "admin" in request.query_params})
         return Response(serializer.data)
 
     def create(self, request):
