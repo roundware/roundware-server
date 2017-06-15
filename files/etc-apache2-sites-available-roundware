@@ -4,14 +4,14 @@
   ServerName roundware-server
 
   <Directory /var/www/roundware/static>
-    Options Indexes
+    Options -Indexes
     AllowOverride None
     Order allow,deny
     allow from all
   </Directory>
 
   <Directory /var/www/roundware/rwmedia>
-    Options Indexes
+    Options -Indexes
     AllowOverride None
     Order allow,deny
     allow from all
