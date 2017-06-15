@@ -17,12 +17,6 @@ def convert_uploaded_file(filename):
     if not os.path.exists(filepath):
         raise RoundException(
             "Uploaded file not found: " + filepath)
-    elif filename_extension == '.caf':
-        convert_audio_file(
-            upload_dir, filename_prefix, filename_extension, 'wav')
-        convert_audio_file(
-            settings.MEDIA_ROOT, filename_prefix, '.wav', 'mp3')
-        return filename_prefix + '.wav'
     else:
         convert_audio_file(
             upload_dir, filename_prefix, filename_extension, 'wav')
@@ -40,9 +34,5 @@ def convert_audio_file(upload_dir, filename_prefix, filename_extension, dst_type
                 filepath,
                 os.path.join(settings.MEDIA_ROOT, filename_prefix + filename_extension))
     else:
-        if filename_extension == '.caf':
-            os.system("/usr/bin/pacpl --to " + dst_type + " --outdir " +
-                      settings.MEDIA_ROOT + " " + filepath + ">/dev/null")
-        else: # if filename_extension in avconv supported list
-            os.system("/usr/bin/avconv -y -i " + filepath + " " + os.path.join(settings.MEDIA_ROOT,
-                      filename_prefix + "." + dst_type) + " >/dev/null 2>/dev/null")
+        os.system("/usr/bin/avconv -y -i " + filepath + " " + os.path.join(settings.MEDIA_ROOT,
+                  filename_prefix + "." + dst_type) + " >/dev/null 2>/dev/null")
