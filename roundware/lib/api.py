@@ -580,12 +580,7 @@ def save_asset_from_request(request, session, asset=None):
         # get location data from request
         latitude = get_parameter_from_request(request, 'latitude')
         longitude = get_parameter_from_request(request, 'longitude')
-        # if no location data in request, default to project latitude
-        # and longitude
-        if not latitude:
-            latitude = session.project.latitude
-        if not longitude:
-            longitude = session.project.longitude
+
         tagset = []
         tags = get_parameter_from_request(request, 'tags')
         if tags is None:
@@ -597,25 +592,35 @@ def save_asset_from_request(request, session, asset=None):
             except:
                 raise RoundException("Could not decode tag list")
 
-        # get optional submitted parameter from request (Y, N or blank
-        # string are only acceptable values)
+        # get optional submitted parameter from request
         submitted = get_parameter_from_request(request, 'submitted')
         # set submitted variable to proper boolean value if it is
         # passed as parameter
-        if submitted == "N":
+        if submitted in [ "N", "n", "false", "False", "0" ]:
             submitted = False
-        elif submitted == "Y":
+        elif submitted in [ "Y", "y", "true", "True", "1" ]:
             submitted = True
-        # if blank string or not included as parameter, check if in range of project and if so
-        # set asset.submitted based on project.auto_submit boolean
-        # value
+        # if submitted isn't passed or blank string
         elif submitted is None or len(submitted) == 0:
-            submitted = False
-            # make mutable and add session_id key as required by is_listener_in_range_of_stream
-            form = request.GET.copy()
-            form['session_id'] = session.id
-            if is_listener_in_range_of_stream(form, session.project):
-                submitted = session.project.auto_submit
+            # check if location parameters passed
+            if not all([latitude, longitude]):
+                submitted = False
+                latitude = session.project.latitude
+                longitude = session.project.longitude
+            # if latitude and longitude passed, check for in_range
+            else:
+                # make mutable and add session_id key as required by is_listener_in_range_of_stream
+                form = request.GET.copy()
+                form['session_id'] = session.id
+                # set location params for api/2 as they aren't in request.GET
+                form['latitude'] = latitude
+                form['longitude'] = longitude
+                # if listener is in range, set submitted per project.auto_submit
+                if is_listener_in_range_of_stream(form, session.project):
+                    submitted = session.project.auto_submit
+                # if listener out of range, submitted should be False
+                else:
+                    submitted = False
 
         # save description if provided, null is not allowed
         description = get_parameter_from_request(request, 'description')
