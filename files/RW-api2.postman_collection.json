@@ -1,0 +1,3006 @@
+{
+	"variables": [],
+	"info": {
+		"name": "RW api/2",
+		"_postman_id": "37d8727e-da29-06a5-8b9d-b36db8dd9184",
+		"description": "1. Run POST api/2/users/\n2. Add {{token}} to env\n3. Run POST api/2/sessions/\n4. Add {{session_id}} to env",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "assets/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/assets/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/assets/?session_id&project_id&tag_ids&media_type=&language&envelope_id&longitude&latitude&submitted&audiolength__lte&audiolength__gte&created__lte&created__gte",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get list of Assets.\n\nOptional filters:\n- session_id\n- project_id\n- tag_ids\n- media_type\n- language\n- envelope_id\n- longitude\n- latitude\n- submitted\n- audiolength__lte\n- audiolength__gte\n- created__lte\n- created__gte"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/assets/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/assets/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific Asset."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/assets/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/assets/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "session_id",
+									"value": "{{session_id}}",
+									"type": "text"
+								},
+								{
+									"key": "asset_id",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "badeau-site-11-au.wav"
+								},
+								{
+									"key": "mediatype",
+									"value": "audio",
+									"type": "text"
+								},
+								{
+									"key": "latitude",
+									"value": "2",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "2",
+									"type": "text"
+								},
+								{
+									"key": "tags",
+									"value": "3,5",
+									"type": "text"
+								},
+								{
+									"key": "submitted",
+									"value": "true",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Create new Asset.\n\nIf asset_id param is set, replace existing asset.\nBlank params are optional."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/assets/:id/votes/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/assets/1/votes/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get Votes for individual Asset, subtotaled by vote.type."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/assets/:id/votes/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/assets/1/votes/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"session_id\": 1,\n  \"vote_type\": \"rate\",\n  \"value\": 5\n}"
+						},
+						"description": "Create new Vote for specified Asset.\n\nRequired fields:\n- session_id\n- vote_type\n\nOptional fields:\n- voter_id\n- value\n\nData format: application/JSON"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "audiotracks/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/audiotracks/",
+					"request": {
+						"url": {
+							"raw": "{{host}}:{{api_port}}/api/2/audiotracks/?project_id=1&minduration__lte=&minduration__gte=&maxduration__lte=&maxduration__gte&mindeadair__lte&mindeadair__gte&maxdeadair__lte&maxdeadair__gte",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"api",
+								"2",
+								"audiotracks",
+								""
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "minduration__lte",
+									"value": "",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "minduration__gte",
+									"value": "",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "maxduration__lte",
+									"value": "",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "maxduration__gte",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "mindeadair__lte",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "mindeadair__gte",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "maxdeadair__lte",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "maxdeadair__gte",
+									"value": "",
+									"equals": false,
+									"description": ""
+								}
+							],
+							"variable": []
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get list of Audiotracks.\n\nOptional filters:\n- project_id\n- minduration__lte\n- minduration__gte\n- maxduration__lte\n- maxduration__gte\n- mindeadair__lte\n- mindeadair__gte\n- maxdeadair__lte\n- maxdeadair__gte"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/audiotracks/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/audiotracks/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific Audiotrack."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/audiotracks/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/audiotracks/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"project_id\": 1,\n  \"minvolume\": 0,\n  \"maxvolume\": 1,\n  \"minduration\": 2.5,\n  \"maxduration\": 10,\n  \"mindeadair\": 1,\n  \"maxdeadair\": 3,\n  \"minfadeintime\": 0.6,\n  \"maxfadeintime\": 5,\n  \"minfadeouttime\": 0.1,\n  \"maxfadeouttime\": 2,\n  \"minpanpos\": -0.5,\n  \"maxpanpos\": 0.75,\n  \"minpanduration\": 5,\n  \"maxpanduration\": 17,\n  \"repeatrecordings\": false\n}"
+						},
+						"description": "Create new Audiotrack\n\nRequired params:\n- project_id\n- minvolume\n- maxvolume\n- miduration\n- maxduration\n- mindeadair\n- maxdeadair\n- minfadeintime\n- maxfadeintime\n- minfadeouttime\n- maxfadeouttime\n- minpanpos\n- maxpanpos\n- minpanduration\n- maxpanduration\n\nOptional params:\n- repeatrecordings\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/audiotracks/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/audiotracks/2/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"project_id\": 1,\n  \"minvolume\": 0,\n  \"maxvolume\": 1,\n  \"minduration\": 2.5,\n  \"maxduration\": 10,\n  \"mindeadair\": 1,\n  \"maxdeadair\": 3,\n  \"minfadeintime\": 0.6,\n  \"maxfadeintime\": 5,\n  \"minfadeouttime\": 0.1,\n  \"maxfadeouttime\": 2,\n  \"minpanpos\": -0.5,\n  \"maxpanpos\": 0.75,\n  \"minpanduration\": 5,\n  \"maxpanduration\": 17,\n  \"repeatrecordings\": true\n}"
+						},
+						"description": "Update Audiotrack\n\nOptional params:\n- project_id\n- minvolume\n- maxvolume\n- miduration\n- maxduration\n- mindeadair\n- maxdeadair\n- minfadeintime\n- maxfadeintime\n- minfadeouttime\n- maxfadeouttime\n- minpanpos\n- maxpanpos\n- minpanduration\n- maxpanduration\n- repeatrecordings\n\nData format: application/JSON\n\nPartial update allowed; params not included will leave field values unchanged."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/audiotracks/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/audiotracks/3/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": "Delete Audiotrack"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "envelopes/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/envelopes/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/envelopes/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"session_id\": 3\n}"
+						},
+						"description": "Create new Envelope"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/envelopes/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/envelopes/164/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "session_id",
+									"value": "3",
+									"type": "text",
+									"warning": ""
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"warning": "",
+									"src": "badeau-sitep-17-au.wav"
+								},
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "latitude",
+									"value": "1",
+									"description": "",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "1",
+									"description": "",
+									"type": "text"
+								},
+								{
+									"key": "tags",
+									"value": "3,4,5",
+									"description": "",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Upload new Asset to Envelope."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "events/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/events/",
+					"request": {
+						"url": {
+							"raw": "{{host}}:{{api_port}}/api/2/events/?event_type&server_time&session_id=1&latitude&longitude&tag_ids=8",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"api",
+								"2",
+								"events",
+								""
+							],
+							"query": [
+								{
+									"key": "event_type",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "server_time",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "session_id",
+									"value": "1",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "latitude",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "longitude",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "tag_ids",
+									"value": "8",
+									"equals": true,
+									"description": ""
+								}
+							],
+							"variable": []
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get events; see EventFilterSet.\nsession_id used for filtering, not auth"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/events/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/events/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get a single event"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/events/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/events/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"session_id\": 1,\n  \"event_type\": \"heartbeat\",\n  \"client_time\": \"2017-05-06T22:55:15.114568\",\n  \"latitude\": 1.2345,\n  \"longitude\": 2.3456,\n  \"tag_ids\": \"3,8\",\n  \"data\": \"some random data\"\n}"
+						},
+						"description": "Add event"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "languages/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/languages/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/languages/?name=eng&language_code=en",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get list of Languages.\n\nOptional filters:\n- name (contains)\n- language_code (contains)"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/languages/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/languages/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific Language"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/languages/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/languages/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"French\",\n    \"language_code\": \"fr\"\n}"
+						},
+						"description": "Create new Language.\n\nRequired param:\n- language_code\n\nOptional param:\n- name\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/languages/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/languages/6/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"English\",\n    \"language_code\": \"en\"\n}"
+						},
+						"description": "Update Language\n\nOptional params:\n- name\n- language_code\n\nData format: application/JSON\n\nPartial update allowed; params not included will leave field values unchanged."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/languages/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/languages/4/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Delete Language"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "listenevents/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/listenevents/",
+					"request": {
+						"url": {
+							"raw": "{{host}}:{{api_port}}/api/2/listenevents/?session=35&asset=11&duration__lte=28000000000&start_time__gte=2016-04-21T14:58:55",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"api",
+								"2",
+								"listenevents",
+								""
+							],
+							"query": [
+								{
+									"key": "session",
+									"value": "35",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "asset",
+									"value": "11",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "duration__lte",
+									"value": "28000000000",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "start_time__gte",
+									"value": "2016-04-21T14:58:55",
+									"equals": true,
+									"description": ""
+								}
+							],
+							"variable": []
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get a list of listenevents"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/listenevents/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/listenevents/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get a single listenevent"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "localizedstrings/",
+			"description": "api/2/localizedstrings/ endpoints",
+			"item": [
+				{
+					"name": "api/2/localizedstrings/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/localizedstrings/?localized_string=roundware&language=en",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get list of LocalizedStrings.\n\nOptional filters:\n- localized_string (contains, case-insensitive)\n- language"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/localizedstrings/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/localizedstrings/71/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific LocalizedString"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/localizedstrings/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/localizedstrings/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"new localized string\",\n  \"language\": \"es\"\n}"
+						},
+						"description": "Create new LocalizedString\n\nRequired params:\n- text\n- language\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/localizedstrings/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/localizedstrings/73/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"patched localized string\",\n  \"language\": \"es\"\n}"
+						},
+						"description": "Update LocalizedString\n\nOptional params:\n- text (string)\n- language (2-character language shortcode of existing Language)\n\nData format: application/JSON\n\nPartial update allowed; params not included will leave field values unchanged."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/localizedstrings/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/localizedstrings/70/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Delete LocalizedString"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "projects/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/projects/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/projects/?name=test&listen_enabled=true&geo_listen_enabled=true",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get list of Projects.\n\nOptional filters:\n- name (contains)\n- listen_enabled\n- geo_listen_enabled\n- speak_enabled\n- geo_speak_enabled"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/projects/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/projects/1/?session_id={{session_id}}",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get Project info"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/projects/:id/assets/",
+					"request": {
+						"url": {
+							"raw": "{{host}}:{{api_port}}/api/2/projects/1/assets/?session_id=1&project_id&tag_ids&media_type=&language&envelope_id&longitude&latitude&submitted=true&audiolength&created=",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"api",
+								"2",
+								"projects",
+								"1",
+								"assets",
+								""
+							],
+							"query": [
+								{
+									"key": "session_id",
+									"value": "1",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "project_id",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "tag_ids",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "media_type",
+									"value": "",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "language",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "envelope_id",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "longitude",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "latitude",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "submitted",
+									"value": "true",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "audiolength",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "created",
+									"value": "",
+									"equals": true,
+									"description": ""
+								}
+							],
+							"variable": []
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get Assets for a Project"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/projects/:id/tags/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/projects/1/tags/?session_id={{session_id}}",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get Tags for a Project"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/projects/:id/uigroups/",
+					"request": {
+						"url": {
+							"raw": "{{host}}:{{api_port}}/api/2/projects/1/uigroups/?name&ui_mode=listen&tag_category_id&select&active=true&index",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"api",
+								"2",
+								"projects",
+								"1",
+								"uigroups",
+								""
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "ui_mode",
+									"value": "listen",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "tag_category_id",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "select",
+									"value": "",
+									"equals": false,
+									"description": ""
+								},
+								{
+									"key": "active",
+									"value": "true",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "index",
+									"value": "",
+									"equals": false,
+									"description": ""
+								}
+							],
+							"variable": []
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get UIGroups for Project"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/projects/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/projects/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"M2M Test\",\n  \"latitude\": 40,\n  \"longitude\": -80,\n  \"pub_date\": \"2015-01-01T00:00:00\",\n  \"audio_format\": \"mp3\",\n  \"auto_submit\": true,\n  \"max_recording_length\": 35,\n  \"listen_questions_dynamic\": false,\n  \"speak_questions_dynamic\": false,\n  \"sharing_url\": \"http://roundware.org/r/eid=[id]\",\n  \"out_of_range_url\": \"http://roundware.dyndns.org:8000/mg_outofrange.mp3\",\n  \"recording_radius\": 10,\n  \"listen_enabled\": true,\n  \"geo_listen_enabled\": false,\n  \"speak_enabled\": true,\n  \"geo_speak_enabled\": true,\n  \"reset_tag_defaults_on_startup\": false,\n  \"timed_asset_priority\": false,\n  \"repeat_mode\": \"continuous\",\n  \"files_url\": \"http://halseyburgund.com/dev/rw-base/webview/rw.zip\",\n  \"files_version\": \"1\",\n  \"audio_stream_bitrate\": \"128\",\n  \"ordering\": \"random\",\n  \"demo_stream_enabled\": false,\n  \"demo_stream_url\": \"http://roundware.dyndns.org:8000/scapes1.mp3\",\n  \"out_of_range_distance\": 5000,\n  \"language_ids\": [1,2],\n  \"sharing_message_loc\": [49,50],\n  \"out_of_range_message_loc\": [47,48],\n  \"legal_agreement_loc\": [53,54],\n  \"demo_stream_message_loc\": [47,48]\n}"
+						},
+						"description": "Create new Project\n\nRequired params:\n- name\n- latitude\n- longitude\n- pub_date (datetime)\n- audio_format\n- max_recording_length\n- sharing_url\n- out_of_range_url\n- recording_radius\n- repeat_mode (OPTIONS: continuous, stop)\n- audio_stream_bitrate\n- ordering (OPTIONS: random, by_like, by_weight)\n- out_of_range_distance\n- language_ids (list of language_ids)\n\nOptional params:\n- auto_submit\n- listen_enabled\n- geo_listen_enabled\n- speak_enabled\n- geo_speak_enabled\n- reset_tag_defaults_on_startup\n- timed_asset_priority\n- demo_stream_enabled\n- demo_stream_url\n- files_url\n- files_version\n- sharing_message_loc (list of localized_string_ids)\n- out_of_range_message_loc (list of localized_string_ids)\n- legal_agreement_loc (list of localized_string_ids)\n- demo_stream_message_loc (list of localized_string_ids)\n- listen_questions_dynamic\n- speak_questions_dynamic\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/projects/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/projects/8/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"M2M Test Updated\",\n  \"latitude\": 40,\n  \"longitude\": -80,\n  \"listen_enabled\": true,\n  \"geo_listen_enabled\": false,\n  \"repeat_mode\": \"stop\",\n  \"ordering\": \"random\",\n  \"language_ids\": [2],\n  \"sharing_message_loc\": [49],\n  \"out_of_range_message_loc\": [47,48],\n  \"legal_agreement_loc\": [53,54],\n  \"demo_stream_message_loc\": []\n}"
+						},
+						"description": "Update Project info.\n\nOptional params:\n- name\n- latitude\n- longitude\n- pub_date (datetime)\n- audio_format\n- max_recording_length\n- sharing_url\n- out_of_range_url\n- recording_radius\n- repeat_mode (OPTIONS: continuous, stop)\n- audio_stream_bitrate\n- ordering (OPTIONS: random, by_like, by_weight)\n- out_of_range_distance\n- language_ids (list of language_ids)\n- auto_submit\n- listen_enabled\n- geo_listen_enabled\n- speak_enabled\n- geo_speak_enabled\n- reset_tag_defaults_on_startup\n- timed_asset_priority\n- demo_stream_enabled\n- demo_stream_url\n- files_url\n- files_version\n- sharing_message_loc (list of localized_string_ids)\n- out_of_range_message_loc (list of localized_string_ids)\n- legal_agreement_loc (list of localized_string_ids)\n- demo_stream_message_loc (list of localized_string_ids)\n- listen_questions_dynamic\n- speak_questions_dynamic\n\nData format: application/JSON\n\nOnly included parameters are updated; all others remain the unchanged"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/projects/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/projects/2/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Delete Project"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "sessions/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/sessions/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/sessions/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"project_id\": 1,\n  \"client_system\": \"iOS 8.1\",\n  \"geo_listen_enabled\": true,\n  \"demo_stream_enabled\": false,\n  \"language\": \"fr\",\n  \"timezone\": \"-8000\"\n}"
+						},
+						"description": "Create new session"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "speakers/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/speakers/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/speakers/?project_id=1&activeyn=false",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get Speaker list\n\nOptional filters:\n- project_id\n- activeyn"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/speakers/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/speakers/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific Speaker"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/speakers/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/speakers/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"activeyn\": true,\n  \"code\": \"new\",\n  \"maxvolume\": 0.4,\n  \"minvolume\": 0,\n  \"uri\": \"http://roundware.dyndns.org:8000/scapes2.mp3\",\n  \"backupuri\": \"http://roundware.dyndns.org:8000/scapes3.mp3\",\n  \"shape\": {\n    \"type\": \"MultiPolygon\",\n    \"coordinates\": [\n      [\n        [\n          [ 0, 0 ],\n          [ 0, 10 ],\n          [ 10, 10 ],\n          [ 10, 0 ],\n          [ 0, 0 ]\n        ]\n      ]\n    ]\n  },\n  \"attenuation_distance\": 100,\n  \"project_id\": 1\n}"
+						},
+						"description": "Create new Speaker.\n\nRequired params:\n- code\n- project_id\n- maxvolume\n- minvolume\n- uri\n- backupuri\n- shape\n- attenuation_distance\n\nOptional param:\n- activeyn\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/speakers/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/speakers/1/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"activeyn\": true,\n  \"code\": \"new\",\n  \"maxvolume\": 0.4,\n  \"minvolume\": 0,\n  \"uri\": \"http://roundware.dyndns.org:8000/scapes2.mp3\",\n  \"backupuri\": \"http://roundware.dyndns.org:8000/scapes3.mp3\",\n  \"shape\": {\n    \"type\": \"MultiPolygon\",\n    \"coordinates\": [\n      [\n        [\n          [ 0, 0 ],\n          [ 0, 10 ],\n          [ 10, 10 ],\n          [ 10, 0 ],\n          [ 0, 0 ]\n        ]\n      ]\n    ]\n  },\n  \"attenuation_distance\": 100,\n  \"project_id\": 1\n}"
+						},
+						"description": "Update Speaker\n\nOptional params:\n- code\n- project_id\n- maxvolume\n- minvolume\n- uri\n- backupuri\n- shape\n- attenuation_distance\n- activeyn\n\nData format: application/JSON\n\nPartial update allowed; params not included will leave field values unchanged."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/speakers/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/speakers/2/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Delete Speaker"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "streams/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/streams/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/streams/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "session_id",
+									"value": "1",
+									"description": "",
+									"type": "text"
+								},
+								{
+									"key": "latitude",
+									"value": "1",
+									"description": "",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "1",
+									"description": "",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Request new audio stream; add {{stream_id}} to env"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/stream/:id/ [tags]",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/streams/{{stream_id}}/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tag_ids",
+									"value": "50",
+									"type": "text"
+								},
+								{
+									"key": "session_id",
+									"value": "{{session_id}}",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Modify audio stream for tag filters"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/stream/:id/ [loc]",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/streams/{{stream_id}}/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "latitude",
+									"value": "1.1",
+									"type": "text"
+								},
+								{
+									"key": "longitude",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Modify audio stream for location updates"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/streams/:id/heartbeat/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/streams/{{stream_id}}/heartbeat/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": "Send heartbeat to stream"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/streams/:id/playasset/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/streams/{{stream_id}}/playasset/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "asset_id",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Play specific asset in stream"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/streams/:id/replayasset/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/streams/{{stream_id}}/replayasset/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Replay current asset in stream"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/streams/:id/skip/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/streams/{{stream_id}}/skip/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Skip to next asset in stream"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/streams/:id/pause/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/streams/{{stream_id}}/pause/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Pause stream"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/streams/:id/resume/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/streams/{{stream_id}}/resume/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Resume paused stream"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/streams/:id/isactive/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/streams/{{stream_id}}/isactive/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": "Determine if Stream is alive."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "tagcategories/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/tagcategories/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tagcategories/?name=",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get TagCategories list\n\nOptional filters:\n- name (contains)"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tagcategories/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tagcategories/2/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific TagCategory"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tagcategories/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tagcategories/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"new tag category\",\n  \"data\": \"data for new tag category\"\n}"
+						},
+						"description": "Create new TagCategory\n\nRequired param:\n- name\n\nOptional param:\n- data\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tagcategories/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tagcategories/9/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"update tag category\",\n  \"data\": \"data for updated tag category\"\n}"
+						},
+						"description": "Update TagCategory\n\nOptional params:\n- name\n- data\n\nData format: application/JSON\n\nPartial update allowed; params not included will leave field values unchanged."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tagcategories/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tagcategories/11/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Delete TagCategory"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "tagrelationships/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/tagrelationships/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tagrelationships/?tag_id=&parent_id=1",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get TagRelationships list\n\nOptional filters:\n- tag_id\n- parent_id"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tagrelationships/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tagrelationships/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific TagRelationship"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tagrelationships/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tagrelationships/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tag_id\": 3,\n  \"parent_id\": 1\n}"
+						},
+						"description": "Create new TagRelationship\n\nRequired params:\n- tag_id\n- parent_id (can be null)\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tagrelationships/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tagrelationships/16/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tag_id\": 5,\n  \"parent_id\": 1\n}"
+						},
+						"description": "Update TagRelationship\n\nOptional params:\n- tag_id\n- parent_id (can be null)\n\nData format: application/JSON\n\nPartial update allowed; params not included will leave field values unchanged."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tagrelationships/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tagrelationships/16/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Delete TagRelationship"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "tags/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/tags/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tags/?description=male&data=one&project_id=1",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get list of Tags.\n\nOptional filters:\n- project\n- description (contains)\n- data (contains)"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tags/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tags/26/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific Tag"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tags/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tags/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"value\": \"male\",\n  \"description\": \"male\",\n  \"data\": \"class=tag-one\",\n  \"filter\": \"\",\n  \"location\": null,\n  \"project_id\": 1,\n  \"tag_category_id\": 3,\n  \"description_loc_ids\": [44,43],\n  \"msg_loc_ids\": [5,6]\n}"
+						},
+						"description": "Create new Tag\n\nRequired params:\n- value\n- project_id\n- tag_category_id\n\nOptional params:\n- description\n- description_loc_ids (list of localized_string_ids)\n- msg_loc_ids (list of localized_string_ids)\n- data\n- filter\n- location\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tags/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tags/28/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"value\": \"female\",\n  \"description\": \"female\",\n  \"data\": \"class=tag-one\",\n  \"filter\": \"\",\n  \"location\": null,\n  \"project_id\": 1,\n  \"tag_category_id\": 3,\n  \"description_loc_ids\": [44,43],\n  \"msg_loc_ids\": [7,8]\n}"
+						},
+						"description": "Update Tag\n\nOptional params:\n- value\n- project_id\n- tag_category_id\n- description\n- description_loc_ids (list of localized_string_ids)\n- msg_loc_ids (list of localized_string_ids)\n- data\n- filter\n- location\n\nData format: application/JSON\n\nOnly included parameters are updated; all others remain the unchanged"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/tags/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/tags/30/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 3,\n  \"value\": \"female\",\n  \"description\": \"female\",\n  \"data\": \"class=tag-one\",\n  \"filter\": \"\",\n  \"location\": null,\n  \"project_id\": 1,\n  \"tag_category_id\": 3,\n  \"description_loc_ids\": [44,43],\n  \"msg_loc_ids\": [7,8]\n}"
+						},
+						"description": "Delete Tag"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "timedassets/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/timedassets/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/timedassets/?project_id=1",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get list of TimedAssets.\n\nOptional filters:\n- project_id\n- start__gte\n- start__lte\n- end__gte\n- end__lte"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/timedassets/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/timedassets/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific TimedAsset"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/timedassets/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/timedassets/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"start\": 50,\n  \"end\": 100,\n  \"asset_id\" : 2,\n  \"project_id\": 1\n}"
+						},
+						"description": "Create new TimedAsset.\n\nRequired params:\n- project_id\n- asset_id\n- start\n- end\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/timedassets/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/timedassets/1/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"start\": 50,\n  \"end\": 100,\n  \"asset_id\" : 1,\n  \"project_id\": 1\n}"
+						},
+						"description": "Update TimedAsset.\n\nOptional params:\n- project_id\n- asset_id\n- start\n- end\n\nData format: application/JSON\n\nPartial update allowed; params not included will leave field values unchanged."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/timedassets/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/timedassets/2/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Delete TimedAsset"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "uigroups/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/uigroups/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/uigroups/?ui_mode=listen&select=min_one",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get list of UIGroups.\n\nOptional filters:\n- project_id\n- name (startswith)\n- ui_mode (OPTIONS: listen, speak, browse)\n- tag_category_id\n- select (OPTIONS: single, multi, min_one)\n- active\n- index"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/uigroups/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/uigroups/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific UIGroup"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/uigroups/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/uigroups/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"What genders do you want to listen to?\",\n  \"ui_mode\": \"listen\",\n  \"select\": \"min_one\",\n  \"active\": true,\n  \"index\": 1,\n  \"header_text_loc_ids\": [42,41],\n  \"tag_category_id\": 3,\n  \"project_id\": 1\n}"
+						},
+						"description": "Create new UIGroup.\n\nRequired params:\n- name\n- project_id\n- ui_mode (OPTIONS: listen, speak, browse)\n- tag_category\n- select (OPTIONS: single, multi, min_one)\n- index\n\nOptional params:\n- header_text_loc\n- active\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/uigroups/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/uigroups/13/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"new UI Group3\",\n  \"ui_mode\": \"listen\",\n  \"select\": \"multi\",\n  \"active\": true,\n  \"index\": 5,\n  \"tag_category_id\": 3,\n  \"project_id\": 1,\n  \"header_text_loc_ids\": [41,42]\n}"
+						},
+						"description": "Update specific UIGroup.\n\nOptional params:\n- name\n- project_id\n- ui_mode (OPTIONS: listen, speak, browse)\n- tag_category\n- select (OPTIONS: single, multi, min_one)\n- index\n- header_text_loc\n- active\n\nData format: application/JSON\n\nPartial update allowed; params not included will leave field values unchanged."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/uigroups/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/uigroups/9/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Delete UIGroup"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "uiitems/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/uiitems/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/uiitems/?ui_group_id=3&index&tag_id=&default&active=true&parent_id=",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get lits of UIItems.\n\nOptional filters:\n- ui_group_id\n- tag_id\n- active\n- parent_id\n- default\n- index"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/uiitems/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/uiitems/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific UIItem"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/uiitems/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/uiitems/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"index\": 2,\n  \"default\": true,\n  \"active\": true,\n  \"ui_group_id\": 3,\n  \"tag_id\": 8,\n  \"parent_id\": null\n}"
+						},
+						"description": "Create new UIItem.\n\nRequired params:\n- ui_group_id\n- tag_id\n- index\n- parent (can be null)\n\nOptional params:\n- default\n- active\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/uiitems/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/uiitems/58/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"index\": 2,\n  \"default\": false,\n  \"active\": false,\n  \"ui_group_id\": 3,\n  \"tag_id\": 8,\n  \"parent_id\": null\n}"
+						},
+						"description": "Update UIItem.\n\nOptional params:\n- ui_group_id\n- tag_id\n- index\n- default\n- active\n- parent\n\nData format: application/JSON\n\nPartial update allowed; params not included will leave field values unchanged."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/uiitems/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/uiitems/56/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Delete UIItem"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "users/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/users/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/users/",
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "device_id",
+									"value": "12891038109281",
+									"type": "text"
+								},
+								{
+									"key": "client_type",
+									"value": "phone",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Create new User."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "votes/",
+			"description": "",
+			"item": [
+				{
+					"name": "api/2/votes/",
+					"request": {
+						"url": {
+							"raw": "{{host}}:{{api_port}}/api/2/votes/?voter_id=&session_id=&asset_id=1&type=&value=",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"api",
+								"2",
+								"votes",
+								""
+							],
+							"query": [
+								{
+									"key": "voter_id",
+									"value": "",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "session_id",
+									"value": "",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "asset_id",
+									"value": "1",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "type",
+									"value": "",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "value",
+									"value": "",
+									"equals": true,
+									"description": ""
+								}
+							],
+							"variable": []
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get list of Votes.\n\nOptional filters:\n- session_id\n- voter_id\n- asset_id\n- type (OPTIONS: flag, like, rate, block_asset, block_user)\n- value"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/votes/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/votes/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "starttime",
+									"value": "2015-01-01T00:00",
+									"type": "text"
+								},
+								{
+									"key": "client_system",
+									"value": "iOS 8.1",
+									"type": "text"
+								}
+							]
+						},
+						"description": "Get specific Vote."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/votes/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/votes/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"rate\",\n  \"value\": 5,\n  \"asset_id\" : 3,\n  \"session_id\": 1\n}"
+						},
+						"description": "Create new Vote.\n\nRequired params:\n- session_id\n- asset_id\n- type\n\nOptional params:\n- value\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/votes/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/votes/1/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"like\",\n  \"value\": 5,\n  \"asset_id\" : 1,\n  \"session_id\": 1,\n  \"voter_id\": 1\n}"
+						},
+						"description": "Update Vote.\n\nOptional params:\n- session_id\n- asset_id\n- type\n- voter_id\n- value\n\nData format: application/JSON\n\nPartial update allowed; params not included will leave field values unchanged."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/votes/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/votes/2/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Delete Vote"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
