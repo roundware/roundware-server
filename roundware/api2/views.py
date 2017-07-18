@@ -39,7 +39,7 @@ class AssetViewSet(viewsets.ViewSet):
     API V2: api/2/assets/
             api/2/assets/:id/
             api/2/assets/:id/votes/
-            api/2/assets/:id/random/
+            api/2/assets/random/
     """
 
     # TODO: Implement DjangoObjectPermissions
@@ -190,7 +190,7 @@ class AudiotrackViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
@@ -252,7 +252,7 @@ class EnvelopeViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk=None):
         """
@@ -354,7 +354,7 @@ class LanguageViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
@@ -448,7 +448,7 @@ class LocalizedStringViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
@@ -523,7 +523,7 @@ class ProjectViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
@@ -658,7 +658,7 @@ class SpeakerViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
@@ -700,7 +700,7 @@ class StreamViewSet(viewsets.ViewSet):
     def create(self, request):
         serializer = serializers.StreamSerializer(data=request.data, context={"request": request})
         if not serializer.is_valid():
-            raise ParseError(serializer.errors)
+            raise ParseError(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.save())
 
     def partial_update(self, request, pk=None):
@@ -849,7 +849,7 @@ class TagViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
@@ -922,7 +922,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
@@ -990,7 +990,7 @@ class TagRelationshipViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
@@ -1063,7 +1063,7 @@ class TimedAssetViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
@@ -1149,7 +1149,7 @@ class UIGroupViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
@@ -1229,7 +1229,7 @@ class UIItemViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
@@ -1339,7 +1339,7 @@ class VoteViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         """
