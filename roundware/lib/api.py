@@ -516,6 +516,13 @@ def add_asset_to_envelope(request, envelope_id=None):
 
     # Refresh recordings for ALL existing streams.
     dbus_send.emit_stream_signal(0, "refresh_recordings", "")
+
+    # Play newest asset in stream that created asset
+    play({
+        'session_id': str(session.id),
+        'asset_id': str(asset.id)
+    })
+
     return {"success": True,
             "asset_id": asset.id}
 
