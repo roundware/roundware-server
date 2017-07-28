@@ -87,6 +87,9 @@ class ActionNotification(models.Model):
         self.last_sent_time = datetime.datetime.now()
         self.last_sent_reference = ref
         self.save()
-        ret = email.send()
-        logger.info("Email Sent: %(email)s, %(ret)s" %
+        try:
+            ret = email.send()
+            logger.info("Email Sent: %(email)s, %(ret)s" %
                     {'email': email.to, 'ret': ret})
+        except:
+            logger.info("Email send failed; check email account settings.")
