@@ -377,20 +377,30 @@ def heartbeat(request, session_id=None):
 
 
 def skip_ahead(request, session_id=None):
+    """
+    fade out currently playing asset(s) and immediately play next asset in playlist
+    """
     if session_id is None:
         session_id = request.GET.get('session_id', None)
     if session_id is None:
         raise RoundException("a session_id is required for this operation")
 
     log_event("skip_ahead", int(session_id))
-    if not check_for_single_audiotrack(session_id):
-        raise RoundException("this operation is only valid for projects with 1 audiotrack")
 
-    dbus_send.emit_stream_signal(int(session_id), "skip_ahead", "")
-    return {"success": True}
+    # send signal to specified stream if it exists exists
+    if check_is_active(session_id):
+        dbus_send.emit_stream_signal(int(session_id), "skip_ahead", "")
+        return {"success": True}
+    else:
+        return{"success": False,
+               "message": "Specified stream not active; can't skip asset on non-existent stream!"}
 
 
 def play(form):
+    """
+    fade out currently playing asset(s) and immediately play specified asset in stream
+    in next available audiotrack
+    """
     session_id = int(form['session_id'])
     request = form_to_request(form)
     arg_hack = json.dumps(request)
@@ -399,8 +409,6 @@ def play(form):
 
     if 'session_id' not in form:
         raise RoundException("a session_id is required for this operation")
-    if not check_for_single_audiotrack(form.get('session_id')):
-        raise RoundException("this operation is only valid for projects with 1 audiotrack")
     if 'asset_id' not in form:
         raise RoundException("an asset_id is required for this operation")
 
@@ -408,9 +416,13 @@ def play(form):
     if not models.Asset.objects.filter(id=form['asset_id']).exists():
         raise RoundException("no asset found with this asset_id")
 
-    dbus_send.emit_stream_signal(session_id, "play_asset", arg_hack)
-
-    return {"success": True}
+    # send signal to specified stream if it exists exists
+    if check_is_active(session_id):
+        dbus_send.emit_stream_signal(session_id, "play_asset", arg_hack)
+        return {"success": True}
+    else:
+        return{"success": False,
+               "message": "Specified stream not active; can't add new asset to non-existent stream!"}
 
 
 def pause(request, session_id=None):
