@@ -226,7 +226,8 @@ class AssetAdmin(ProjectProtectedModelAdmin):
             'fields': (
                 'location_map',
                 'latitude',
-                'longitude'
+                'longitude',
+                'shape'
             )
         })
     )
