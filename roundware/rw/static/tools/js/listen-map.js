@@ -25,6 +25,7 @@ if (!Roundware) {
 Roundware.ListenMap = function (opts) {
     var options = $.extend({}, {
         url: 'http://roundware.dyndns.org/api/1/',
+        authorization : 'Token aed40ccd8bbc291bf04ccea20627cd8f83eee9ca'
     }, opts);
 
 
@@ -269,17 +270,22 @@ Roundware.ListenMap = function (opts) {
     /**
      * call RW's get_available_assets for the project
      */
-    function get_assets() {
+    function get_assets()
+    {
         $.ajax({
-            url: options.url,
-            data: {operation: "get_available_assets", project_id: project_id},
+            url: 'http://localhost:8888/api/2/assets/?media_type=audio&submitted=true&project_id=' + project_id,
             dataType: 'json',
-            success: function (data) {
-                assets = data.assets;
+            type: 'GET',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('Authorization', options.authorization);
+            },
+            success: function(data) {
+                assets = data;
+                console.log(assets);
                 main_callback();
             },
-            error: function (data) {
-                console.error('could not retrieve tags');
+            error: function(data) {
+                console.error('could not retrieve assets');
             }
         });
     }
@@ -346,8 +352,7 @@ Roundware.ListenMap = function (opts) {
      */
     function map_assets() {
         $.each(assets, function (i, item) {
-
-            if (!item.submitted || item.mediatype != 'audio') {
+            if (!item.submitted || item.media_type != 'audio') {
                 return;
             }
 
@@ -369,7 +374,7 @@ Roundware.ListenMap = function (opts) {
                 });
             });
 
-            var fnmp3 = item.asset_url.replace("wav", "mp3");
+            var fnmp3 = item.file.replace("wav", "mp3");
             var id = item.asset_id;
             var iw = create_info_window(item.asset_id, desc.join(' '), fnmp3, item.asset_url, id);
             var marker = create_marker(item, iw, 'blue');
@@ -377,17 +382,48 @@ Roundware.ListenMap = function (opts) {
             all_assets.push(marker);
 
 
-            var circle = {
-                strokeColor: '#6292CF',
-                strokeOpacity: 0.8,
-                strokeWeight: 1,
-                fillColor: '#6292CF',
-                fillOpacity: 0.25,
-                map: map,
-                center: new google.maps.LatLng(item.latitude, item.longitude),
-                radius: radius
-            };
-            marker.circle = new google.maps.Circle(circle);
+            if (item.shape) {
+                console.log("map the asset's shape");
+                map.data.addGeoJson({
+                    "type": "Feature",
+                    "geometry": item.shape,
+                    "properties": {
+                        "asset_id": item.id,
+                        "name": "range"
+                    }
+                });
+                console.log("shape mapped");
+                map.data.setStyle({
+                    fillColor: 'green',
+                    strokeWeight: 1
+                });
+                map.data.setStyle(function(feature) {
+                    console.log("setting style");
+                    if (feature.getProperty('name') == "range") {
+                        return {
+                            fillColor: '#6292CF',
+                            fillOpacity: .25,
+                            strokeWeight: 1,
+                            strokeOpacity: .8,
+                            strokeColor: '#6292CF'
+                        };
+                    }
+                });
+            }
+            else {
+                console.log("make the default circle");
+                var circle = {
+                    strokeColor: '#6292CF',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 1,
+                    fillColor: '#6292CF',
+                    fillOpacity: 0.25,
+                    map: map,
+                    center: new google.maps.LatLng(item.latitude, item.longitude),
+                    radius: radius
+                };
+                marker.circle = new google.maps.Circle(circle);
+            }
 
         });
 
