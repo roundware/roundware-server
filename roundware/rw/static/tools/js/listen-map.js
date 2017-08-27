@@ -40,6 +40,8 @@ Roundware.ListenMap = function (opts) {
     var is_listening = false;
 
     var listening_pin = null;
+    var listener_circle = null;
+    var use_listener_range = false;
 
     // ordered lists of methods to be called in series
     var workflow = [
@@ -49,6 +51,7 @@ Roundware.ListenMap = function (opts) {
         map_assets,
         map_speakers,
         add_listening_pin,
+        add_listener_range,
         show_filters,
         show_listening_button
     ];
@@ -500,7 +503,63 @@ Roundware.ListenMap = function (opts) {
         map.setCenter(mapCenter);
 
         google.maps.event.addListener(listening_pin, "dragend", function (event) {
-            modify_stream();
+            var listener_location = listening_pin.getPosition();
+            console.log("new listener lat: " + listener_location.lat());
+            listener_circle.setCenter(new google.maps.LatLng(listener_location.lat(),listener_location.lng()));
+            var lr = Math.round(listener_circle.getRadius())
+            if (use_listener_range) {
+                modify_stream2(lr);
+            }
+            else {
+                modify_stream();
+            }
+        });
+
+        main_callback();
+    }
+
+    /**
+     * Add editable circle centered on listener pin that defines the listener_range
+     * every time circle is edited, a PATCH streams/ is sent with lat/lon and listener_range
+     */
+    function add_listener_range() {
+        var mapCenter = new google.maps.LatLng(config.project.latitude, config.project.longitude);
+        listener_circle = new google.maps.Circle({
+            strokeColor: '#000000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#000000',
+            fillOpacity: 0.35,
+            map: map,
+            center: mapCenter,
+            radius: config.project.recording_radius * 10,
+            editable: true,
+            draggable: false,
+            geodesic: true
+        });
+        map.setCenter(mapCenter);
+
+        google.maps.event.addListener(listener_circle, "radius_changed", function (event) {
+            var lr = Math.round(listener_circle.getRadius())
+            // if radius smaller than project.recording_radius, turn off listener_range filtering
+            if (lr < config.project.recording_radius) {
+                listener_circle.setOptions({
+                    fillColor: '#000000',
+                    strokeColor: '#000000'
+                });
+                use_listener_range = false;
+                console.log("use_listener_range = " + use_listener_range);
+                return;
+            }
+            modify_stream2(lr);
+            console.log(lr);
+            use_listener_range = true;
+            // change fill color to #FF0000 to indicate it is active
+            listener_circle.setOptions({
+                fillColor: '#FF0000',
+                strokeColor: '#FF0000'
+            });
+
         });
 
         main_callback();
@@ -819,6 +878,33 @@ Roundware.ListenMap = function (opts) {
             },
             error: function (data) {
                 console.log('stream modify failure');
+            }
+        });
+    }
+
+
+    /**
+     * PATCH api/2/streams/
+     */
+    function modify_stream2(lr)
+    {
+        var listener_location = listening_pin.getPosition();
+        data = {'listener_range_max': lr,
+                'latitude'  : listener_location.lat(),
+                'longitude' : listener_location.lng()
+               }
+        $.ajax({
+            url: 'http://localhost:8888/api/2/streams/' + config.session.session_id + '/',
+            data: data,
+            type: 'PATCH',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('Authorization', options.authorization);
+            },
+            error: function(data) {
+                logger.info("streams/ modification failed: "); console.log(data);
+            },
+            success: function(data) {
+                console.log("stream modified");
             }
         });
     }
