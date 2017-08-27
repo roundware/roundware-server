@@ -256,14 +256,23 @@ class RecordingCollection:
         if not self.s.geo_listen_enabled:
             return True
 
-        # check if asset.shape exists and if so, see if listener is within shape
-        # if no asset.shape, use default project radius
+        # lat/lon of listener must be passed in order to check distance
         if 'latitude' in request and 'longitude' in request:
-            if recording.shape:
+            # first, if listener_range_max parameter has been passed by user with value
+            if 'listener_range_max' in request and request['listener_range_max'] is not None:
+                distance = gpsmixer.distance_in_meters(
+                    request['latitude'], request['longitude'],
+                    recording.latitude, recording.longitude)
+                if (distance <= request['listener_range_max']):
+                    logger.info("asset %s within listener_range_max" % recording.id)
+                return distance <= request['listener_range_max']
+            # then, if asset.shape exists see if listener is within shape
+            elif recording.shape:
                 listener_location = Point(request['longitude'], request['latitude'], srid=recording.shape.srid)
                 inside = listener_location.intersects(recording.shape)
                 logger.info("listener within asset_id=%s geometry: %s", recording.id, inside)
                 return inside
+            # finally, if no listener_range_max or asset.shape, use default project radius
             else:
                 distance = gpsmixer.distance_in_meters(
                     request['latitude'], request['longitude'],
