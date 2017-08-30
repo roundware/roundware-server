@@ -40,7 +40,10 @@ Roundware.ListenMap = function (opts) {
     var is_listening = false;
 
     var listening_pin = null;
-    var listener_circle = null;
+    var listener_circle_max = null;
+    var listener_circle_min = null;
+    var lr_max = 0;
+    var lr_min = 0;
     var use_listener_range = false;
 
     // ordered lists of methods to be called in series
@@ -504,11 +507,10 @@ Roundware.ListenMap = function (opts) {
 
         google.maps.event.addListener(listening_pin, "dragend", function (event) {
             var listener_location = listening_pin.getPosition();
-            console.log("new listener lat: " + listener_location.lat());
-            listener_circle.setCenter(new google.maps.LatLng(listener_location.lat(),listener_location.lng()));
-            var lr = Math.round(listener_circle.getRadius())
+            listener_circle_max.setCenter(new google.maps.LatLng(listener_location.lat(),listener_location.lng()));
+            listener_circle_min.setCenter(new google.maps.LatLng(listener_location.lat(),listener_location.lng()));
             if (use_listener_range) {
-                modify_stream2(lr);
+                modify_stream2(lr_max, lr_min);
             }
             else {
                 modify_stream();
@@ -524,7 +526,7 @@ Roundware.ListenMap = function (opts) {
      */
     function add_listener_range() {
         var mapCenter = new google.maps.LatLng(config.project.latitude, config.project.longitude);
-        listener_circle = new google.maps.Circle({
+        listener_circle_max = new google.maps.Circle({
             strokeColor: '#000000',
             strokeOpacity: 0.8,
             strokeWeight: 2,
@@ -537,13 +539,31 @@ Roundware.ListenMap = function (opts) {
             draggable: false,
             geodesic: true
         });
+        listener_circle_min = new google.maps.Circle({
+            strokeColor: '#000000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#000000',
+            fillOpacity: 0.35,
+            map: map,
+            center: mapCenter,
+            radius: config.project.recording_radius,
+            editable: true,
+            draggable: false,
+            geodesic: true
+        });
         map.setCenter(mapCenter);
 
-        google.maps.event.addListener(listener_circle, "radius_changed", function (event) {
-            var lr = Math.round(listener_circle.getRadius())
+        google.maps.event.addListener(listener_circle_max, "radius_changed", function (event) {
+            lr_max = Math.round(listener_circle_max.getRadius());
+            // ensure listener_range_max isn't smaller than listener_range_min
+            if (lr_max < lr_min) {
+                listener_circle_max.setRadius(lr_min);
+                console.log("maximum range can't be smaller than minimum range!")
+            }
             // if radius smaller than project.recording_radius, turn off listener_range filtering
-            if (lr < config.project.recording_radius) {
-                listener_circle.setOptions({
+            if (lr_max < config.project.recording_radius) {
+                listener_circle_max.setOptions({
                     fillColor: '#000000',
                     strokeColor: '#000000'
                 });
@@ -551,15 +571,45 @@ Roundware.ListenMap = function (opts) {
                 console.log("use_listener_range = " + use_listener_range);
                 return;
             }
-            modify_stream2(lr);
-            console.log(lr);
+            modify_stream2(lr_max, lr_min);
+            console.log("max range = " + lr_max);
             use_listener_range = true;
             // change fill color to #FF0000 to indicate it is active
-            listener_circle.setOptions({
+            listener_circle_max.setOptions({
                 fillColor: '#FF0000',
                 strokeColor: '#FF0000'
             });
-
+        });
+        google.maps.event.addListener(listener_circle_min, "radius_changed", function (event) {
+            lr_min = Math.round(listener_circle_min.getRadius());
+            lr_max = Math.round(listener_circle_max.getRadius());
+            // ensure listener_range_min isn't larger than listener_range_max
+            if (lr_min > lr_max) {
+                listener_circle_min.setRadius(lr_max);
+                console.log("minimum range can't be bigger than maximum range!")
+            }
+            // if radius smaller than project.recording_radius, turn off listener_range filtering
+            if (lr_min < config.project.recording_radius) {
+                listener_circle_min.setOptions({
+                    fillColor: '#000000',
+                    strokeColor: '#000000'
+                });
+                use_listener_range = false;
+                console.log("use_listener_range = " + use_listener_range);
+                return;
+            }
+            modify_stream2(lr_max, lr_min);
+            console.log("min range = " + lr_min);
+            use_listener_range = true;
+            // change fill color to #FF0000 to indicate it is active
+            listener_circle_min.setOptions({
+                fillColor: '#FF0000',
+                strokeColor: '#FF0000'
+            });
+            listener_circle_max.setOptions({
+                fillColor: '#FF0000',
+                strokeColor: '#FF0000'
+            });
         });
 
         main_callback();
@@ -886,10 +936,11 @@ Roundware.ListenMap = function (opts) {
     /**
      * PATCH api/2/streams/
      */
-    function modify_stream2(lr)
+    function modify_stream2(lr_max, lr_min)
     {
         var listener_location = listening_pin.getPosition();
-        data = {'listener_range_max': lr,
+        data = {'listener_range_max': lr_max,
+                'listener_range_min': lr_min,
                 'latitude'  : listener_location.lat(),
                 'longitude' : listener_location.lng()
                }
