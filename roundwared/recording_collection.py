@@ -260,12 +260,17 @@ class RecordingCollection:
         if 'latitude' in request and 'longitude' in request:
             # first, if listener_range_max parameter has been passed by user with value
             if 'listener_range_max' in request and request['listener_range_max'] is not None:
+                # assume listener_range_min is 0 unless passed in request
+                if 'listener_range_min' in request and request['listener_range_min'] is not None:
+                    lr_min = request['listener_range_min']
+                else:
+                    lr_min = 0
                 distance = gpsmixer.distance_in_meters(
                     request['latitude'], request['longitude'],
                     recording.latitude, recording.longitude)
-                if (distance <= request['listener_range_max']):
-                    logger.info("asset %s within listener_range_max" % recording.id)
-                return distance <= request['listener_range_max']
+                # if (distance <= request['listener_range_max'] and distance >= lr_min):
+                    # logger.info("asset %s within listener_range" % recording.id)
+                return (distance <= request['listener_range_max'] and distance >= lr_min)
             # then, if asset.shape exists see if listener is within shape
             elif recording.shape:
                 listener_location = Point(request['longitude'], request['latitude'], srid=recording.shape.srid)

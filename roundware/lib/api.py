@@ -345,7 +345,7 @@ def form_to_request(form):
         else:
             request[p] = False
 
-    for p in ['listener_range_max']:
+    for p in ['listener_range_max', 'listener_range_min']:
         if p in form and form[p]:
             request[p] = int(form[p])
         else:
