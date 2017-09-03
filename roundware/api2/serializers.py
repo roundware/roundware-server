@@ -38,6 +38,29 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
 
     class Meta:
         model = Asset
+        fields = (
+            'id',
+            'description',
+            'latitude',
+            'longitude',
+            'shape',
+            'filename',
+            'file',
+            'volume',
+            'submitted',
+            'created',
+            'weight',
+            'loc_caption',
+            'language',
+            'loc_description',
+            'loc_alt_text',
+            'mediatype',
+            'audiolength_in_seconds',
+            'tags',
+            'session',
+            'project',
+            'envelope_set'
+        )
         localized_fields = ['loc_description', 'loc_alt_text']
 
     def to_representation(self, obj):
@@ -48,7 +71,6 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
 
         result["audio_length_in_seconds"] = result["audiolength_in_seconds"]
         del result["audiolength_in_seconds"]
-        del result["audiolength"]
 
         result["tag_ids"] = result["tags"]
         del result["tags"]
@@ -56,11 +78,25 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
         result["session_id"] = result["session"]
         del result["session"]
 
-        del result["initialenvelope"]
+        result["project_id"] = result["project"]
+        del result["project"]
+
+        result["envelope_ids"] = result["envelope_set"]
+        del result["envelope_set"]
+
+        result["description_loc_ids"] = result["loc_description"]
+        del result["loc_description"]
+
+        result["alt_text_loc_ids"] = result["loc_alt_text"]
+        del result["loc_alt_text"]
+
         # load string version of language
         if "language" in result and result["language"] is not None:
             lang = Language.objects.get(pk=result["language"])
             result["language"] = lang.language_code
+
+        result["caption_loc_ids"] = result["loc_caption"]
+        del result["loc_caption"]
 
         return result
 

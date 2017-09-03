@@ -92,6 +92,49 @@ class AssetViewSet(viewsets.ViewSet):
         serializer = serializers.AssetSerializer(asset)
         return Response(serializer.data)
 
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/assets/:id/ - Update existing Asset
+        """
+        try:
+            asset = Asset.objects.get(pk=pk)
+        except Asset.DoesNotExist:
+            raise Http404("Asset not found")
+        if 'tag_ids' in request.data:
+            request.data['tags'] = request.data['tag_ids']
+            del request.data['tag_ids']
+        if 'language_id' in request.data:
+            request.data['language'] = request.data['language_id']
+            del request.data['language_id']
+        if 'project_id' in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
+        if 'description_loc_ids' in request.data:
+            request.data['loc_description'] = request.data['description_loc_ids']
+            del request.data['description_loc_ids']
+        if 'alt_text_loc_ids' in request.data:
+            request.data['loc_alt_text'] = request.data['alt_text_loc_ids']
+            del request.data['alt_text_loc_ids']
+        if 'caption_loc_ids' in request.data:
+            request.data['loc_caption'] = request.data['caption_loc_ids']
+            del request.data['caption_loc_ids']
+        serializer = serializers.AssetSerializer(asset, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/assets/:id/ - Delete an Asset
+        """
+        try:
+            asset = Asset.objects.get(pk=pk)
+        except Asset.DoesNotExist:
+            raise Http404("Asset not found; cannot delete!")
+        asset.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @detail_route(methods=['post', 'get'])
     def votes(self, request, pk=None):
         """

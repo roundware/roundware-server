@@ -277,7 +277,7 @@ class TestServer(APITestCase):
         response = self.client.get(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[0]["project"], self.project1.id)
+        self.assertEqual(response.data[0]["project_id"], self.project1.id)
 
     def vote_assets_post(self):
         data = {"device_id": "12891038109281",
