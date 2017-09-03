@@ -29,7 +29,8 @@ TEST_POLYGONS = {
 
 class TestRecordingCollection(APITestCase):
 
-    """ Exercise methods and instances of RecordingCollection
+    """
+    Exercise methods and instances of RecordingCollection
     """
 
     def setUp(self):
@@ -171,7 +172,8 @@ class TestRecordingCollection(APITestCase):
         self.assertEquals([], rc.all)
 
     def test_update_nearby_recordings_by_random(self):
-        """ test that we don't get the same order more than 8 out of
+        """
+        Test that we don't get the same order more than 8 out of
         10 tests.... not that scientific but probably reasonable
         """
         req = self.req1
@@ -217,7 +219,7 @@ class TestRecordingCollection(APITestCase):
 
     def test_get_recording_until_none_repeatmode_stop(self):
         """
-        test that we get the next playlist_proximity nearby recording, until there
+        Test that we get the next playlist_proximity nearby recording, until there
         are none left. project in stop repeatmode should then not
         return any recordings.
         """
@@ -236,7 +238,8 @@ class TestRecordingCollection(APITestCase):
             self.assertIsNone(rc.get_recording())
 
     def test_get_recording_until_none_then_move(self):
-        """ test that we get the next playlist_proximity nearby recording, until there
+        """
+        Test that we get the next playlist_proximity nearby recording, until there
         are none left. Then move away and back again. Wait for the ban time out
         and they should be available.
         """
@@ -276,7 +279,7 @@ class TestRecordingCollection(APITestCase):
 
     def test_global_listen_add_and_re_add_to_playlist(self):
         """
-        test for global listen projects that all assets are added
+        Test for global listen projects that all assets are added
         to playlist initially and then re-added with tag filtering
         only after BANNED_TIMEOUT_LIMIT has passed
         """
@@ -312,7 +315,8 @@ class TestRecordingCollection(APITestCase):
         self.session1.save()
 
     def test_get_recording_until_none_repeatmode_continuous(self):
-        """ test that we get the next playlist_proximity nearby recording, until there
+        """
+        Test that we get the next playlist_proximity nearby recording, until there
         are none left.  project in continuous repeatmode should then the
         first played recording.
         """
@@ -392,7 +396,8 @@ class TestRecordingCollection(APITestCase):
         self.project1.save()
 
     def test_add_recording(self):
-        """ add a specific asset id and it should show up in
+        """
+        Add a specific asset id and it should show up in
         playlist_proximity
         """
         # Request #2 has no lat/long to test that code
@@ -410,7 +415,8 @@ class TestRecordingCollection(APITestCase):
                                self.asset2], rc.playlist_proximity)
 
     def test_limit_asset_by_tag(self):
-        """ test that only tag1 assets are returned when request["tags"] is specified.
+        """
+        Test that only tag1 assets are returned when request["tags"] is specified.
         """
         req = self.req1
         stream = RoundStream(self.session1.id, 'ogg', req)
@@ -434,8 +440,9 @@ class TestRecordingCollection(APITestCase):
             self.assertEquals(None, rc.get_recording())
 
     def test_get_recording_geo_listen(self):
-        """ Disable geo-listen and confirm all recordings are available.
-            Enable geo-listen and confirm no recordings are available.
+        """
+        Disable geo-listen and confirm all recordings are available.
+        Enable geo-listen and confirm no recordings are available.
         """
         self.session1.geo_listen_enabled = False
         self.session1.save()
@@ -455,8 +462,9 @@ class TestRecordingCollection(APITestCase):
         self.assertEquals(None, rc.get_recording())
 
     def test_timed_asset_priority_true(self):
-        """ Test that _get_recording returns a proximity asset instead of a
-            timed asset when project.timed_asset_priority=True.
+        """
+        Test that _get_recording returns a proximity asset instead of a
+        timed asset when project.timed_asset_priority=True.
         """
         stream = RoundStream(self.session3.id, 'ogg', self.req3)
         rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
@@ -469,8 +477,9 @@ class TestRecordingCollection(APITestCase):
         self.assertEquals(self.asset5, rc.get_recording())
 
     def test_timed_asset_priority_false(self):
-        """ Test that _get_recording returns a proximity asset instead of a
-            timed asset when project.timed_asset_priority=False.
+        """
+        Test that _get_recording returns a proximity asset instead of a
+        timed asset when project.timed_asset_priority=False.
         """
         self.project3.timed_asset_priority = False
         self.project3.save()
@@ -486,8 +495,9 @@ class TestRecordingCollection(APITestCase):
         self.assertEquals(self.asset4, rc.get_recording())
 
     def test_timed_assets_filtered_by_tags(self):
-        """ Setup stream with no location assets and two timed assets.
-            Make sure only timed asset with proper tag is returned.
+        """
+        Setup stream with no location assets and two timed assets.
+        Make sure only timed asset with proper tag is returned.
         """
         stream = RoundStream(self.session3.id, 'ogg', self.req3)
         rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
@@ -503,8 +513,9 @@ class TestRecordingCollection(APITestCase):
         self.assertEquals(None, rc.get_recording())
 
     def test_timed_asset_ordering_by_weight(self):
-        """ Test that timed assets are ordered per the project.ordering
-            parameter (in this case 'by_weight').
+        """
+        Test that timed assets are ordered per the project.ordering
+        parameter (in this case 'by_weight').
         """
         stream = RoundStream(self.session3.id, 'ogg', self.req3)
         rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
@@ -520,8 +531,9 @@ class TestRecordingCollection(APITestCase):
         self.assertEquals(None, rc.get_recording())
 
     def test_asset_blocking(self):
-        """ Test that blocking an asset prevents it from being added
-            to the playlist_proximity
+        """
+        Test that blocking an asset prevents it from being added
+        to the playlist_proximity
         """
         # first create a user to perform the blocking
         # this should eventually be done 'globally' for this set of tests
