@@ -581,6 +581,44 @@ class TestRecordingCollection(APITestCase):
         self.assertEquals(self.asset2, rc.get_recording())
         self.assertEquals(None, rc.get_recording())
 
+    def test_listener_range_max(self):
+        """
+        Test that adding listener_range_max param to request adds previously
+        out of range asset to playlist_proximity
+        """
+        stream = RoundStream(self.session3.id, 'ogg', self.req3)
+        rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
+        # add listener_range_max param to request
+        self.req3['listener_range_max'] = 1000000
+        rc.move_listener(self.req3)
+        # Update the list of nearby recordings
+        rc.update_request(self.req3)
+        # verify that all assets within listener_range_max are included in playlist
+        self.assertEquals(self.asset5, rc.get_recording())
+        self.assertEquals(self.asset7, rc.get_recording())
+        self.assertEquals(self.asset8, rc.get_recording())
+        self.assertEquals(self.asset4, rc.get_recording())
+        self.assertEquals(None, rc.get_recording())
+
+    def test_listener_range_min(self):
+        """
+        Test that adding listener_range_min param to request prevents previously
+        in range asset from being added to playlist_proximity
+        """
+        stream = RoundStream(self.session3.id, 'ogg', self.req3)
+        rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
+        # add listener_range_max param to request
+        self.req3['listener_range_max'] = 1000000
+        self.req3['listener_range_min'] = 10000
+        rc.move_listener(self.req3)
+        # Update the list of nearby recordings
+        rc.update_request(self.req3)
+        # verify that all assets within listener_range_max are included in playlist
+        self.assertEquals(self.asset7, rc.get_recording())
+        self.assertEquals(self.asset8, rc.get_recording())
+        self.assertEquals(self.asset4, rc.get_recording())
+        self.assertEquals(None, rc.get_recording())
+
     def test_asset_shape(self):
         """
         Test that asset with asset.shape field defined is added to playlist_proximity
