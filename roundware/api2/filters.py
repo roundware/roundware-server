@@ -180,6 +180,7 @@ class TagRelationshipFilterSet(django_filters.FilterSet):
 
 class TimedAssetFilterSet(django_filters.FilterSet):
     project_id = django_filters.NumberFilter()
+    asset_id = django_filters.NumberFilter()
     start__lte = django_filters.NumberFilter(name='start', lookup_type='lte')
     start__gte = django_filters.NumberFilter(name='start', lookup_type='gte')
     end__lte = django_filters.NumberFilter(name='end', lookup_type='lte')
@@ -188,6 +189,7 @@ class TimedAssetFilterSet(django_filters.FilterSet):
     class Meta:
         model = TimedAsset
         fields = ['project_id',
+                  'asset_id',
                   'start',
                   'end']
 
