@@ -485,6 +485,9 @@ class LocalizedStringViewSet(viewsets.ViewSet):
         """
         POST api/2/localizedstrings/ - Create a new LocalizedString
         """
+        if 'language_id' in request.data:
+            request.data['language'] = request.data['language_id']
+            del request.data['language_id']
         if 'text' in request.data:
             request.data['localized_string'] = request.data['text']
             del request.data['text']
@@ -500,6 +503,9 @@ class LocalizedStringViewSet(viewsets.ViewSet):
         PATCH api/2/localizedstrings/:id/ - Update existing LocalizedString
         """
         localizedstring = self.get_object(pk)
+        if 'language_id' in request.data:
+            request.data['language'] = request.data['language_id']
+            del request.data['language_id']
         if 'text' in request.data:
             request.data['localized_string'] = request.data['text']
             del request.data['text']

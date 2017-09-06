@@ -128,6 +128,7 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
 
 
 class LocalizedStringFilterSet(django_filters.FilterSet):
+    language_id = django_filters.NumberFilter()
     language = django_filters.CharFilter(name='language__language_code')
     localized_string = django_filters.CharFilter(lookup_type='icontains')
 

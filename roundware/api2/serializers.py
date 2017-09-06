@@ -81,6 +81,9 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
         result["project_id"] = result["project"]
         del result["project"]
 
+        result["language_id"] = result["language"]
+        del result["language"]
+
         result["envelope_ids"] = result["envelope_set"]
         del result["envelope_set"]
 
@@ -89,11 +92,6 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
 
         result["alt_text_loc_ids"] = result["loc_alt_text"]
         del result["loc_alt_text"]
-
-        # load string version of language
-        if "language" in result and result["language"] is not None:
-            lang = Language.objects.get(pk=result["language"])
-            result["language"] = lang.language_code
 
         result["caption_loc_ids"] = result["loc_caption"]
         del result["loc_caption"]
@@ -199,31 +197,17 @@ class ListenEventSerializer(serializers.ModelSerializer):
 
 
 class LocalizedStringSerializer(serializers.ModelSerializer):
-    language = serializers.CharField(source="language.language_code")
 
     class Meta:
         model = LocalizedString
-
-    def create(self, validated_data):
-        lang = Language.objects.get(language_code=validated_data['language']['language_code'])
-        ls = LocalizedString.objects.create(localized_string=validated_data['localized_string'],
-                                            language_id=lang.pk)
-        ls.save()
-        return ls
-
-    def update(self, instance, validated_data):
-        if 'language' in validated_data:
-            lang = Language.objects.get(language_code=validated_data['language']['language_code'])
-            instance.language_id = lang.pk
-        if 'localized_string' in validated_data:
-            instance.localized_string = validated_data['localized_string']
-        instance.save()
-        return instance
 
     def to_representation(self, obj):
         result = super(LocalizedStringSerializer, self).to_representation(obj)
         result["text"] = result["localized_string"]
         del result["localized_string"]
+        result["language_id"] = result["language"]
+        lang = Language.objects.get(pk=result["language_id"])
+        result["language"] = lang.language_code
         return result
 
 
