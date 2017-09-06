@@ -12,8 +12,9 @@ from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, Language, L
 from roundware.api2 import serializers
 from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EventFilterSet, LanguageFilterSet,
                                     ListeningHistoryItemFilterSet, LocalizedStringFilterSet, ProjectFilterSet,
-                                    SpeakerFilterSet, TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet,
-                                    TimedAssetFilterSet, UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
+                                    SessionFilterSet, SpeakerFilterSet, TagFilterSet, TagCategoryFilterSet,
+                                    TagRelationshipFilterSet, TimedAssetFilterSet, UIGroupFilterSet,
+                                    UIItemFilterSet, VoteFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -27,6 +28,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route, list_route
 import logging
 from random import sample
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -637,17 +639,55 @@ class SessionViewSet(viewsets.ViewSet):
     queryset = Session.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return Session.objects.get(pk=pk)
+        except UIItem.DoesNotExist:
+            raise Http404("Session not found")
+
+    def list(self, request):
+        """
+        GET api/2/sessions/ - Provides list of Sessions filtered by parameters
+        """
+        sessions = SessionFilterSet(request.query_params)
+        serializer = serializers.SessionSerializer(sessions, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/sessions/:id/ - Get Session by id
+        """
+        session = self.get_object(pk)
+        serializer = serializers.SessionSerializer(session)
+        return Response(serializer.data)
+
     def create(self, request):
         """
         POST api/2/sessions/ - Create a new Session
         """
+        if "project_id" in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
+        # set language properly based on either language or language_id param
+        # default to 1/"en" if none passed
+        if "language" in request.data:
+            lang = Language.objects.get(language_code=request.data['language'])
+            request.data['language'] = lang.pk
+        elif "language_id" in request.data:
+            request.data['language'] = request.data['language_id']
+        else:
+            request.data['language'] = 1
+        # dynamically set params not passed, but required in Session model
+        request.data['starttime'] = str(datetime.utcnow())
+        request.data['device_id'] = request.user.userprofile.device_id
+        request.data['client_type'] = request.user.userprofile.client_type
         # check if geo_listen_enabled is passed in request.data and if not,
         # add it with value from project.geo_listen_enabled
         # make request.data mutable to allow POST params to be sent as application/json
         # rather than requiring multipart/form-data
         rdm = request.data.copy()
         if 'geo_listen_enabled' not in rdm:
-            p = Project.objects.get(id=rdm['project_id'])
+            p = Project.objects.get(id=rdm['project'])
             rdm['geo_listen_enabled'] = p.geo_listen_enabled
             logger.info('geo_listen_enabled not passed! set to project value: %s' % rdm['geo_listen_enabled'])
         serializer = serializers.SessionSerializer(data=rdm, context={'request': request})

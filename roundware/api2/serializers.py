@@ -250,24 +250,16 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
         return result
 
 
-class SessionSerializer(serializers.Serializer):
-    client_system = serializers.CharField(max_length=128, required=True)
-    client_type = serializers.CharField(max_length=128, required=False)
-    demo_stream_enabled = serializers.BooleanField(required=False, default=False)
-    device_id = serializers.CharField(max_length=36, required=False)
-    geo_listen_enabled = serializers.BooleanField(required=False)
-    language = serializers.CharField(max_length=2, default="en")
-    project_id = serializers.IntegerField(required=True)
-    starttime = serializers.DateTimeField(required=False)
-    stoptime = serializers.DateTimeField(required=False)
-    timezone = serializers.CharField(default="0000")
+class SessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Session
 
     def validate_language(self, value):
         try:
-            Language.objects.get(language_code=value)
+            Language.objects.get(pk=self.initial_data['language'])
         except Language.DoesNotExist:
-            # raise ValidationError("Language Code %s not found" % value)
-            value = "en"
+            raise ValidationError("Language Code %s not found" % value)
+            value = 1
         return value
 
     def validate_timezone(self, value):
@@ -275,27 +267,12 @@ class SessionSerializer(serializers.Serializer):
             raise ValidationError("Timezone must be in RFC822 GMT format (e.g. '-0800')")
         return value
 
-    def create(self, validated_data):
-        lang = Language.objects.get(language_code=validated_data['language'])
-        session = Session.objects.create(device_id=self.context["request"].user.userprofile.device_id,
-                                         project_id=validated_data["project_id"],
-                                         starttime=datetime.utcnow(),
-                                         timezone=validated_data["timezone"],
-                                         language_id=lang.pk,
-                                         client_type=self.context["request"].user.userprofile.client_type,
-                                         client_system=validated_data["client_system"],
-                                         geo_listen_enabled=validated_data["geo_listen_enabled"],
-                                         demo_stream_enabled=validated_data["demo_stream_enabled"])
-        session.save()
-        self.context["session_id"] = session.pk
-        return session
-
     def to_representation(self, obj):
         result = super(SessionSerializer, self).to_representation(obj)
-        result.update({"language": self.validated_data["language"]})
-        result.update({"geo_listen_enabled": self.validated_data["geo_listen_enabled"]})
-        if "session_id" in self.context:
-            result["session_id"] = self.context["session_id"]
+        result['project_id'] = result['project']
+        del result['project']
+        result['language_id'] = result['language']
+        del result['language']
         return result
 
 

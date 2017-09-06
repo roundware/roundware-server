@@ -2,8 +2,8 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 from roundware.rw.models import (Asset, Audiotrack, Event, Language, ListeningHistoryItem,
-                                 LocalizedString, Project, Speaker, Tag, TagCategory, TagRelationship,
-                                 TimedAsset, UIItem, UIGroup, Vote)
+                                 LocalizedString, Project, Session, Speaker, Tag, TagCategory,
+                                 TagRelationship, TimedAsset, UIItem, UIGroup, Vote)
 from distutils.util import strtobool
 import django_filters
 
@@ -144,6 +144,17 @@ class ProjectFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Project
+
+
+class SessionFilterSet(django_filters.FilterSet):
+    project_id = django_filters.NumberFilter()
+    language_id = django_filters.NumberFilter()
+    language = django_filters.CharFilter(name='language__language_code')
+    geo_listen_enabled = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    demo_stream_enabled = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+
+    class Meta:
+        model = Session
 
 
 class SpeakerFilterSet(django_filters.FilterSet):
