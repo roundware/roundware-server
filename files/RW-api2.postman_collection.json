@@ -99,53 +99,107 @@
 							"mode": "formdata",
 							"formdata": [
 								{
-									"key": "session_id",
-									"value": "{{session_id}}",
-									"type": "text"
-								},
-								{
-									"key": "asset_id",
-									"value": "",
+									"key": "envelope_id",
+									"value": "1",
+									"description": "",
 									"type": "text"
 								},
 								{
 									"key": "file",
-									"type": "file",
-									"src": "badeau-site-11-au.wav"
+									"value": "",
+									"type": "file"
 								},
 								{
-									"key": "mediatype",
+									"key": "media_type",
 									"value": "audio",
 									"type": "text"
 								},
 								{
 									"key": "latitude",
-									"value": "2",
-									"type": "text"
+									"value": "1",
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "longitude",
-									"value": "2",
-									"type": "text"
+									"value": "1",
+									"type": "text",
+									"disabled": true
 								},
 								{
-									"key": "tags",
-									"value": "3,5",
-									"type": "text"
+									"key": "tag_ids",
+									"value": "3,4,8",
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "submitted",
-									"value": "true",
-									"type": "text"
+									"value": "false",
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "description",
-									"value": "",
-									"type": "text"
+									"value": "POST assets/ description",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "volume",
+									"value": ".5",
+									"description": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "weight",
+									"value": "86",
+									"description": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "description_loc_ids",
+									"value": "5,6",
+									"description": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "alt_text_loc_ids",
+									"value": "47,48",
+									"description": "",
+									"type": "text",
+									"disabled": true
 								}
 							]
 						},
 						"description": "Create new Asset.\n\nIf asset_id param is set, replace existing asset.\nBlank params are optional."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/assets/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/assets/24/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"latitude\": 2.789,\n\t\"longitude\": 2.1,\n    \"tag_ids\": [3,4,5],\n    \"submitted\": false,\n    \"description\": \"\",\n    \"description_loc_ids\": [5,7],\n    \"alt_text_loc_ids\": [7,9],\n    \"volume\": 0.543,\n    \"weight\": 89,\n    \"language_id\": 1,\n    \"project_id\": 1,\n    \"shape\": {\n      \"type\": \"MultiPolygon\",\n      \"coordinates\": [\n        [\n          [\n            [ 0, 0 ],\n            [ 0, 10 ],\n            [ 10, 20 ],\n            [ 10, 0 ],\n            [ 0, 0 ]\n          ]\n        ]\n      ]\n    }\n}"
+						},
+						"description": "Update Asset."
 					},
 					"response": []
 				},
@@ -207,6 +261,118 @@
 							"raw": "{\n  \"session_id\": 1,\n  \"vote_type\": \"rate\",\n  \"value\": 5\n}"
 						},
 						"description": "Create new Vote for specified Asset.\n\nRequired fields:\n- session_id\n- vote_type\n\nOptional fields:\n- voter_id\n- value\n\nData format: application/JSON"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/assets/random/",
+					"request": {
+						"url": {
+							"raw": "http://roundware.dyndns.org/api/2/assets/random/?limit=10&mediatype=audio&submitted=true&project_id=19&audiolength__lte=30&audiolength__gte=15",
+							"protocol": "http",
+							"host": [
+								"roundware",
+								"dyndns",
+								"org"
+							],
+							"path": [
+								"api",
+								"2",
+								"assets",
+								"random",
+								""
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "mediatype",
+									"value": "audio",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "submitted",
+									"value": "true",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "project_id",
+									"value": "19",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "audiolength__lte",
+									"value": "30",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "audiolength__gte",
+									"value": "15",
+									"equals": true,
+									"description": ""
+								}
+							],
+							"variable": []
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token 7da50488030ecdf43020d611687e2390c5f4e542",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "session_id",
+									"value": "2",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"value": "",
+									"type": "file"
+								},
+								{
+									"key": "tags",
+									"value": "3,5",
+									"type": "text"
+								}
+							]
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/assets/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/assets/1/",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": "Delete specific Asset."
 					},
 					"response": []
 				}
@@ -466,7 +632,7 @@
 				{
 					"name": "api/2/envelopes/:id/",
 					"request": {
-						"url": "{{host}}:{{api_port}}/api/2/envelopes/164/",
+						"url": "{{host}}:{{api_port}}/api/2/envelopes/1/",
 						"method": "PATCH",
 						"header": [
 							{
@@ -485,7 +651,7 @@
 							"formdata": [
 								{
 									"key": "session_id",
-									"value": "3",
+									"value": "1",
 									"type": "text",
 									"warning": ""
 								},
@@ -493,7 +659,7 @@
 									"key": "file",
 									"type": "file",
 									"warning": "",
-									"src": "badeau-sitep-17-au.wav"
+									"src": "landmarking2.jpg"
 								},
 								{
 									"key": "project_id",
@@ -513,8 +679,14 @@
 									"type": "text"
 								},
 								{
-									"key": "tags",
+									"key": "tag_ids",
 									"value": "3,4,5",
+									"description": "",
+									"type": "text"
+								},
+								{
+									"key": "media_type",
+									"value": "photo",
 									"description": "",
 									"type": "text"
 								}
@@ -949,7 +1121,41 @@
 				{
 					"name": "api/2/localizedstrings/",
 					"request": {
-						"url": "{{host}}:{{api_port}}/api/2/localizedstrings/?localized_string=roundware&language=en",
+						"url": {
+							"raw": "{{host}}:{{api_port}}/api/2/localizedstrings/?localized_string=roundware&language=en",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"api",
+								"2",
+								"localizedstrings",
+								""
+							],
+							"query": [
+								{
+									"key": "localized_string",
+									"value": "roundware",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "language",
+									"value": "en",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "language_id",
+									"value": "1",
+									"equals": true,
+									"description": "",
+									"disabled": true
+								}
+							],
+							"variable": []
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -1037,7 +1243,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"text\": \"new localized string\",\n  \"language\": \"es\"\n}"
+							"raw": "{\n  \"text\": \"new localized string\",\n  \"language_id\": 1\n}"
 						},
 						"description": "Create new LocalizedString\n\nRequired params:\n- text\n- language\n\nData format: application/JSON"
 					},
@@ -1046,7 +1252,7 @@
 				{
 					"name": "api/2/localizedstrings/:id/",
 					"request": {
-						"url": "{{host}}:{{api_port}}/api/2/localizedstrings/73/",
+						"url": "{{host}}:{{api_port}}/api/2/localizedstrings/71/",
 						"method": "PATCH",
 						"header": [
 							{
@@ -1062,7 +1268,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"text\": \"patched localized string\",\n  \"language\": \"es\"\n}"
+							"raw": "{\n  \"text\": \"patched localized string!\",\n  \"language_id\": 1\n}"
 						},
 						"description": "Update LocalizedString\n\nOptional params:\n- text (string)\n- language (2-character language shortcode of existing Language)\n\nData format: application/JSON\n\nPartial update allowed; params not included will leave field values unchanged."
 					},
@@ -1159,7 +1365,7 @@
 								}
 							]
 						},
-						"description": "Get Project info"
+						"description": "Get specific Project info"
 					},
 					"response": []
 				},
@@ -1483,6 +1689,92 @@
 				{
 					"name": "api/2/sessions/",
 					"request": {
+						"url": {
+							"raw": "{{host}}:{{api_port}}/api/2/sessions/?project_id=1&language_id=2&geo_listen_enabled=false&demo_stream_enabled=true",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"api",
+								"2",
+								"sessions",
+								""
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "language_id",
+									"value": "2",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "language",
+									"value": "en",
+									"equals": true,
+									"description": "",
+									"disabled": true
+								},
+								{
+									"key": "geo_listen_enabled",
+									"value": "false",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "demo_stream_enabled",
+									"value": "true",
+									"equals": true,
+									"description": ""
+								}
+							],
+							"variable": []
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"project_id\": 1,\n  \"client_system\": \"iOS 8.1\",\n  \"geo_listen_enabled\": true,\n  \"demo_stream_enabled\": false,\n  \"language\": \"fr\",\n  \"timezone\": \"-8000\"\n}"
+						},
+						"description": "Get list of sessions."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/sessions/:id/",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/sessions/1/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"project_id\": 1,\n  \"client_system\": \"iOS 8.1\",\n  \"geo_listen_enabled\": true,\n  \"demo_stream_enabled\": false,\n  \"language\": \"fr\",\n  \"timezone\": \"-8000\"\n}"
+						},
+						"description": "Get specific Session info."
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/sessions/",
+					"request": {
 						"url": "{{host}}:{{api_port}}/api/2/sessions/",
 						"method": "POST",
 						"header": [
@@ -1499,9 +1791,34 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"project_id\": 1,\n  \"client_system\": \"iOS 8.1\",\n  \"geo_listen_enabled\": true,\n  \"demo_stream_enabled\": false,\n  \"language\": \"fr\",\n  \"timezone\": \"-8000\"\n}"
+							"raw": "{\n  \"project_id\": 2,\n  \"client_system\": \"iOS 8.1\",\n  \"geo_listen_enabled\": false,\n  \"demo_stream_enabled\": true,\n  \"language\": \"es\",\n  \"timezone\": \"-0800\"\n}"
 						},
 						"description": "Create new session"
+					},
+					"response": []
+				},
+				{
+					"name": "api/2/sessions/:id/ HOLD",
+					"request": {
+						"url": "{{host}}:{{api_port}}/api/2/sessions/1/",
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "token {{token}}",
+								"description": ""
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"project_id\": 2,\n  \"client_system\": \"iOS 8.1\",\n  \"geo_listen_enabled\": false,\n  \"demo_stream_enabled\": true,\n  \"timezone\": \"-8000\"\n}"
+						},
+						"description": "Update specific Session info."
 					},
 					"response": []
 				}
@@ -1743,13 +2060,27 @@
 							"formdata": [
 								{
 									"key": "latitude",
-									"value": "1.1",
+									"value": "1",
 									"type": "text"
 								},
 								{
 									"key": "longitude",
 									"value": "1",
 									"type": "text"
+								},
+								{
+									"key": "listener_range_max",
+									"value": "50000",
+									"description": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "listener_range_min",
+									"value": "1000",
+									"description": "",
+									"type": "text",
+									"disabled": true
 								}
 							]
 						},
@@ -2348,7 +2679,34 @@
 				{
 					"name": "api/2/timedassets/",
 					"request": {
-						"url": "{{host}}:{{api_port}}/api/2/timedassets/?project_id=1",
+						"url": {
+							"raw": "{{host}}:{{api_port}}/api/2/timedassets/?project_id=1&asset_id=1",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"api",
+								"2",
+								"timedassets",
+								""
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"equals": true,
+									"description": ""
+								},
+								{
+									"key": "asset_id",
+									"value": "1",
+									"equals": true,
+									"description": ""
+								}
+							],
+							"variable": []
+						},
 						"method": "GET",
 						"header": [
 							{
