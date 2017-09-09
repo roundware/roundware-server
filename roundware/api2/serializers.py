@@ -93,7 +93,6 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
         result["alt_text_loc_ids"] = result["loc_alt_text"]
         del result["loc_alt_text"]
 
-        result["caption_loc_ids"] = result["loc_caption"]
         del result["loc_caption"]
 
         return result
@@ -142,8 +141,8 @@ class EnvelopeSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(EnvelopeSerializer, self).to_representation(obj)
-        result["envelope_id"] = result["id"]
-        del result["id"]
+        result["asset_ids"] = result["assets"]
+        del result["assets"]
         del result["session"]
         return result
 

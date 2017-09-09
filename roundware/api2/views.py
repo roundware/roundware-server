@@ -71,27 +71,14 @@ class AssetViewSet(viewsets.ViewSet):
         """
         POST api/2/assets/ - Create a new Asset
         """
-        if "session_id" not in request.data:
-            raise ParseError("session_id required")
-
+        if "file" not in request.data:
+            raise ParseError("Must supply file for asset content")
         try:
-            session_id = int(request.data["session_id"])
-            session = Session.objects.get(pk=session_id)
-        except Session.DoesNotExist:
-            raise Http404("Session not found")
-
-        if "asset_id" not in request.data and "file" not in request.data:
-            raise ParseError("Must supply either asset_id or file")
-
-        asset = None
-        if "asset_id" in request.data:
-            try:
-                asset_id = int(request.data["asset_id"])
-                asset = Asset.objects.get(pk=asset_id)
-            except ValueError, Asset.DoesNotExist:
-                raise Http404("Asset with id %s not found" % request.data["asset_id"])
-        asset = save_asset_from_request(request, session, asset)
-        serializer = serializers.AssetSerializer(asset)
+            result = add_asset_to_envelope(request, envelope_id=request.data["envelope_id"])
+        except Exception as e:
+            return Response({"detail": str(e)}, status.HTTP_400_BAD_REQUEST)
+        asset_obj = Asset.objects.get(pk=result['asset_id'])
+        serializer = serializers.AssetSerializer(asset_obj)
         return Response(serializer.data)
 
     def partial_update(self, request, pk):
@@ -117,9 +104,6 @@ class AssetViewSet(viewsets.ViewSet):
         if 'alt_text_loc_ids' in request.data:
             request.data['loc_alt_text'] = request.data['alt_text_loc_ids']
             del request.data['alt_text_loc_ids']
-        if 'caption_loc_ids' in request.data:
-            request.data['loc_caption'] = request.data['caption_loc_ids']
-            del request.data['caption_loc_ids']
         serializer = serializers.AssetSerializer(asset, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
