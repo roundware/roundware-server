@@ -345,6 +345,12 @@ def form_to_request(form):
         else:
             request[p] = False
 
+    for p in ['listener_heading', 'listener_width']:
+        if p in form and form[p]:
+            request[p] = float(form[p])
+        else:
+            request[p] = None
+
     for p in ['listener_range_max', 'listener_range_min']:
         if p in form and form[p]:
             request[p] = int(form[p])
@@ -363,11 +369,11 @@ def move_listener(request, context=None):
         # need to check for both until api/1 is deprecated
         form = request.GET or request.POST
     try:
-        if 'listener_range_max' in form:
-            logger.info("form listener_range_max = %s" % form['listener_range_max'])
+        if 'listener_heading' in form:
+            logger.info("form listener_heading = %s" % form['listener_heading'])
         request = form_to_request(form)
-        if 'listener_range_max' in request:
-            logger.info("request listener_range_max = %s" % request['listener_range_max'])
+        if 'listener_heading' in request:
+            logger.info("request listener_heading = %s" % request['listener_heading'])
         arg_hack = json.dumps(request)
         logger.info("arg_hack = %s" % arg_hack)
         log_event("move_listener", int(form['session_id']), form)

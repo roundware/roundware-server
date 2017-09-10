@@ -8,6 +8,7 @@ import logging
 import threading
 import os.path
 from time import time
+import math
 try:
     from profiling import profile
 except ImportError: # pragma: no cover
@@ -15,7 +16,8 @@ except ImportError: # pragma: no cover
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon
+from geopy.distance import VincentyDistance
 from roundwared import gpsmixer
 from roundware.rw.models import Asset, Project, TimedAsset, Session, Vote, UserProfile
 from roundwared import db
@@ -251,15 +253,67 @@ class RecordingCollection:
 
     def _is_nearby(self, request, recording):
         """
-        True if the request and recording are close enough to be heard.
+        True if the request and recording are close enough to be heard
+        per the active listening mode
         """
         if not self.s.geo_listen_enabled:
             return True
 
         # lat/lon of listener must be passed in order to check distance
         if 'latitude' in request and 'longitude' in request:
-            # first, if listener_range_max parameter has been passed by user with value
-            if 'listener_range_max' in request and request['listener_range_max'] is not None:
+            # first, if heading param is present, use directional listening mode
+            if 'listener_heading' in request and request['listener_heading'] is not None:
+                R = 6371000.0  # The radius of the Earth (m)
+                # convert to proper compass heading i.e. 0 is due North, 90 due East etc
+                lh = -(request['listener_heading']) + 90
+                # assume listener_width is 10 degrees unless passed in request
+                if 'listener_width' in request and request['listener_width'] is not None:
+                    lw = request['listener_width']
+                else:
+                    lw = 10
+                # assume listener_range_min is 0 unless passed in request
+                if 'listener_range_min' in request and request['listener_range_min'] is not None:
+                    lr_min = request['listener_range_min']
+                else:
+                    lr_min = 0
+                # assume listener_range_max is half the circumference of the earth unless passed in request
+                if 'listener_range_max' in request and request['listener_range_max'] is not None:
+                    lr_max = request['listener_range_max']
+                else:
+                    lr_max = math.pi * R
+                center = Point(float(request['longitude']), float(request['latitude']))
+                # calculate series of points to define outer arc
+                section_points = []
+                arc_precision = 10
+                a = lh - (lw/2)
+                # outer arc
+                for p in range(0, arc_precision+1):
+                    pnt = VincentyDistance(meters=lr_max).destination(center, a)
+                    section_points.append((pnt.latitude, pnt.longitude))
+                    a += (lw/arc_precision)
+                # inner arc, built in opposite direction to keep polygon ring ordered properly
+                # if no listener_range_min, don't calculate inner arc
+                if lr_min==0:
+                    section_points.append(center.coords)
+                else:
+                    a = lh + (lw/2)
+                    for p in range(0, arc_precision+1):
+                        pnt = VincentyDistance(meters=lr_min).destination(center, a)
+                        section_points.append((pnt.latitude, pnt.longitude))
+                        a -= (lw/arc_precision)
+                # close point array
+                section_points.append((section_points[0]))
+                # logger.info('section_points = %s' % section_points)
+                # polygon should be calculated only once, not for every asset? - calculate prior to calling _is_nearby()?
+                section = Polygon(section_points, srid=4326)
+                # determine if asset is within section
+                asset_location = Point(recording.longitude, recording.latitude)
+                inside = asset_location.intersects(section)
+                logger.info("asset_id=%s within listener's directional geometry: %s", recording.id, inside)
+                return inside
+
+            # then, if listener_range_max parameter has been passed by user with value
+            elif 'listener_range_max' in request and request['listener_range_max'] is not None:
                 # assume listener_range_min is 0 unless passed in request
                 if 'listener_range_min' in request and request['listener_range_min'] is not None:
                     lr_min = request['listener_range_min']
