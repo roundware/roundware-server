@@ -781,10 +781,10 @@ class StreamViewSet(viewsets.ViewSet):
     API V2: api/2/streams/
             api/2/streams/:id/heartbeat/
             api/2/streams/:id/playasset/
-            api/2/streams/:id/skip/
+            api/2/streams/:id/replayasset/
+            api/2/streams/:id/skipasset/
             api/2/streams/:id/pause/
             api/2/streams/:id/resume/
-            api/2/streams/:id/replayasset/
             api/2/streams/:id/isactive/
     """
     permission_classes = (IsAuthenticated,)
@@ -833,7 +833,19 @@ class StreamViewSet(viewsets.ViewSet):
                             status.HTTP_400_BAD_REQUEST)
 
     @detail_route(methods=['post'])
-    def skip(self, request, pk=None):
+    def replayasset(self, request, pk=None):
+        try:
+            result = get_currently_streaming_asset(request, session_id=pk)
+            return Response(play({
+                'session_id': pk,
+                'asset_id': str(result.get('asset_id'))
+            }))
+        except Exception as e:
+            return Response({"detail": str(e)},
+                            status.HTTP_400_BAD_REQUEST)
+
+    @detail_route(methods=['post'])
+    def skipasset(self, request, pk=None):
         try:
             return Response(skip_ahead(request, session_id=pk))
         except Exception as e:
@@ -852,18 +864,6 @@ class StreamViewSet(viewsets.ViewSet):
     def resume(self, request, pk=None):
         try:
             return Response(resume(request, session_id=pk))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def replayasset(self, request, pk=None):
-        try:
-            result = get_currently_streaming_asset(request, session_id=pk)
-            return Response(play({
-                'session_id': pk,
-                'asset_id': str(result.get('asset_id'))
-            }))
         except Exception as e:
             return Response({"detail": str(e)},
                             status.HTTP_400_BAD_REQUEST)
