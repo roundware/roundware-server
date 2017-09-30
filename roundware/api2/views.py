@@ -10,11 +10,11 @@ from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, Language, L
                                  LocalizedString, Project, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIGroup, UIItem, UserProfile, Vote)
 from roundware.api2 import serializers
-from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EventFilterSet, LanguageFilterSet,
-                                    ListeningHistoryItemFilterSet, LocalizedStringFilterSet, ProjectFilterSet,
-                                    SessionFilterSet, SpeakerFilterSet, TagFilterSet, TagCategoryFilterSet,
-                                    TagRelationshipFilterSet, TimedAssetFilterSet, UIGroupFilterSet,
-                                    UIItemFilterSet, VoteFilterSet)
+from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EnvelopeFilterSet, EventFilterSet,
+                                    LanguageFilterSet, ListeningHistoryItemFilterSet, LocalizedStringFilterSet,
+                                    ProjectFilterSet, SessionFilterSet, SpeakerFilterSet, TagFilterSet,
+                                    TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
+                                    UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -271,6 +271,25 @@ class EnvelopeViewSet(viewsets.ViewSet):
             api/2/envelopes/:id/
     """
     queryset = Envelope.objects.all()
+
+    def list(self, request):
+        """
+        GET api/2/envelopes/ - retrieve list of Envelopes
+        """
+        envelopes = EnvelopeFilterSet(request.query_params)
+        serializer = serializers.EnvelopeSerializer(envelopes, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/envelopes/:id/ - Get Envelope by id
+        """
+        try:
+            envelope = Envelope.objects.get(pk=pk)
+        except Envelope.DoesNotExist:
+            raise Http404("Envelope not found")
+        serializer = serializers.EnvelopeSerializer(envelope)
+        return Response(serializer.data)
 
     def create(self, request):
         """

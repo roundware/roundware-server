@@ -1,7 +1,7 @@
 # Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-from roundware.rw.models import (Asset, Audiotrack, Event, Language, ListeningHistoryItem,
+from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
                                  LocalizedString, Project, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIItem, UIGroup, Vote)
 from distutils.util import strtobool
@@ -83,6 +83,15 @@ class AudiotrackFilterSet(django_filters.FilterSet):
                   'maxduration',
                   'mindeadair',
                   'maxdeadair']
+
+
+class EnvelopeFilterSet(django_filters.FilterSet):
+    session_id = django_filters.NumberFilter()
+    project_id = django_filters.NumberFilter(name='session__project_id')
+    asset_id = django_filters.NumberFilter(name='assets')
+
+    class Meta:
+        model = Envelope
 
 
 class EventFilterSet(django_filters.FilterSet):
