@@ -744,10 +744,11 @@ class SpeakerViewSet(viewsets.ViewSet):
             request.data['project'] = request.data['project_id']
             del request.data['project_id']
         serializer = serializers.SpeakerSerializer(data=request.data)
-        # calculate attenuation_border
-        # logger.info('serializer = %s' % serializer)
         if serializer.is_valid():
-            serializer.save()
+            s = serializer.save()
+            # re-retrieve the Speaker data after build_attenuation_buffer_line has run
+            speaker = self.get_object(s.id)
+            serializer = serializers.SpeakerSerializer(speaker)
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -763,6 +764,9 @@ class SpeakerViewSet(viewsets.ViewSet):
         serializer = serializers.SpeakerSerializer(speaker, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            # re-retrieve the Speaker data after build_attenuation_buffer_line has run
+            speaker = self.get_object(pk)
+            serializer = serializers.SpeakerSerializer(speaker)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
