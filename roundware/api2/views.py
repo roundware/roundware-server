@@ -689,10 +689,11 @@ class SessionViewSet(viewsets.ViewSet):
             request.data['language'] = request.data['language_id']
         else:
             request.data['language'] = 1
-        # dynamically set params not passed, but required in Session model
+        # dynamically set params not passed, but required in Session model, as needed
         request.data['starttime'] = str(datetime.utcnow())
         request.data['device_id'] = request.user.userprofile.device_id
-        request.data['client_type'] = request.user.userprofile.client_type
+        if "client_type" not in request.data:
+            request.data['client_type'] = request.user.userprofile.client_type
         # check if geo_listen_enabled is passed in request.data and if not,
         # add it with value from project.geo_listen_enabled
         # make request.data mutable to allow POST params to be sent as application/json
