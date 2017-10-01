@@ -104,6 +104,9 @@ class AssetViewSet(viewsets.ViewSet):
         if 'alt_text_loc_ids' in request.data:
             request.data['loc_alt_text'] = request.data['alt_text_loc_ids']
             del request.data['alt_text_loc_ids']
+        if 'envelope_ids' in request.data:
+            request.data['envelope_set'] = request.data['envelope_ids']
+            del request.data['envelope_ids']
         serializer = serializers.AssetSerializer(asset, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
