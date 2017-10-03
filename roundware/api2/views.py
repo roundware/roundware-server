@@ -625,11 +625,16 @@ class ProjectViewSet(viewsets.ViewSet):
         GET api/2/projects/:id/uigroups/ - Get UIGroups for specific Project
         """
         params = request.query_params.copy()
+        if "session_id" in params:
+            try:
+                session = Session.objects.get(pk=params["session_id"])
+            except:
+                raise ParseError("Session not found")
         params["project_id"] = pk
         uigroups = UIGroupFilterSet(params)
         serializer = serializers.UIGroupSerializer(uigroups,
-                                                   context={"admin": "admin" in request.query_params},
-                                                   many=True)
+                                                   context={"admin": "admin" in request.query_params,
+                                                            "session": session}, many=True)
         return Response({"ui_groups": serializer.data})
 
     @detail_route(methods=['get'])
@@ -938,7 +943,14 @@ class TagViewSet(viewsets.ViewSet):
         GET api/2/tags/ - Provides list of Tags filtered by parameters
         """
         tags = TagFilterSet(request.query_params)
-        serializer = serializers.TagSerializer(tags, context={"admin": "admin" in request.query_params}, many=True)
+        session = None
+        if "session_id" in request.query_params:
+            try:
+                session = Session.objects.get(pk=request.query_params["session_id"])
+            except:
+                raise ParseError("Session not found")
+        serializer = serializers.TagSerializer(tags, context={"admin": "admin" in request.query_params,
+                                                              "session": session}, many=True)
         return Response({"tags": serializer.data})
 
     def retrieve(self, request, pk=None):
@@ -1238,9 +1250,15 @@ class UIGroupViewSet(viewsets.ViewSet):
         GET api/2/uigroups/ - Provides list of UIGroups filtered by parameters
         """
         uigroups = UIGroupFilterSet(request.query_params)
+        session = None
+        if "session_id" in request.query_params:
+            try:
+                session = Session.objects.get(pk=request.query_params["session_id"])
+            except:
+                raise ParseError("Session not found")
         serializer = serializers.UIGroupSerializer(uigroups,
-                                                   context={"admin": "admin" in request.query_params},
-                                                   many=True)
+                                                   context={"admin": "admin" in request.query_params,
+                                                            "session": session}, many=True)
         return Response({"ui_groups": serializer.data})
 
     def retrieve(self, request, pk=None):

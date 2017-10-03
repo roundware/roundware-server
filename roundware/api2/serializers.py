@@ -217,17 +217,17 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
                             'sharing_message_loc', 'out_of_range_message_loc']
 
     def to_representation(self, obj):
-        # must include only the related localizationStrings that match out session language
         result = super(ProjectSerializer, self).to_representation(obj)
-        # session should be passed in as context
+        # session, passed in context, is used to determine string localization
         session = None
-        if 'session' in self.context:
+        if "session" in self.context:
             session = self.context["session"]
-        # find the localizedString relation fields
-        for key in result.keys():
-            if key[-4:] == "_loc" and type(result[key]) is list:
-                result[key[:-4]] = _select_localized_string(result[key], session)
-                del result[key]
+        # localize strings per language associated with session
+        for field in ['demo_stream_message_loc', 'legal_agreement_loc',
+                      'sharing_message_loc', 'out_of_range_message_loc']:
+            result[field[:-4]] = _select_localized_string(result[field], session=session)
+            del result[field]
+
         result["language_ids"] = result["languages"]
         del result["languages"]
         return result
@@ -405,13 +405,12 @@ class UIConfigSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeri
         tc = TagCategory.objects.get(pk=result['tag_category'])
         result['group_short_name'] = tc.name.title()
         del result['tag_category']
-        # session_id param is used to determine string localization
+        # session, passed in context, is used to determine string localization
         session = None
-        logger.info("self.context = %s" % self.context)
         if "session" in self.context:
             session = self.context["session"]
 
-        # localize strings per language associated with session_id param
+        # localize strings per language associated with session
         for field in ["header_text_loc"]:
             result[field] = _select_localized_string(result[field], session=session)
 
@@ -437,7 +436,7 @@ class UIConfigItemSerializer(serializers.ModelSerializer):
         del result['tag']
         result['parent_id'] = result['parent']
         del result['parent']
-        # session_id param is used to determine string localization
+        # session, passed in context, is used to determine string localization
         session = None
         if "session" in self.context:
             session = self.context["session"]
