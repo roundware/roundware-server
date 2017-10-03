@@ -394,6 +394,62 @@ class TimedAssetSerializer(serializers.ModelSerializer):
         return result
 
 
+class UIConfigSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
+    class Meta:
+        model = UIGroup
+        exclude = ('active', 'index', 'name', 'project', 'ui_mode')
+
+    def to_representation(self, obj):
+        result = super(UIConfigSerializer, self).to_representation(obj)
+        # replace tag_category.id with capitalized tag_category.name
+        tc = TagCategory.objects.get(pk=result['tag_category'])
+        result['group_short_name'] = tc.name.title()
+        del result['tag_category']
+        # session_id param is used to determine string localization
+        session = None
+        logger.info("self.context = %s" % self.context)
+        if "session" in self.context:
+            session = self.context["session"]
+
+        # localize strings per language associated with session_id param
+        for field in ["header_text_loc"]:
+            result[field] = _select_localized_string(result[field], session=session)
+
+        result['header_display_text'] = result['header_text_loc']
+        del result['header_text_loc']
+
+        uiitems = UIItem.objects.filter(ui_group=result["id"])
+        serializer = UIConfigItemSerializer(uiitems, context={"session": session}, many=True)
+        result["display_items"] = serializer.data
+        del result['id']
+
+        return result
+
+
+class UIConfigItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UIItem
+        exclude = ('id', 'active', 'index', 'ui_group')
+
+    def to_representation(self, obj):
+        result = super(UIConfigItemSerializer, self).to_representation(obj)
+        result['tag_id'] = result['tag']
+        del result['tag']
+        result['parent_id'] = result['parent']
+        del result['parent']
+        # session_id param is used to determine string localization
+        session = None
+        if "session" in self.context:
+            session = self.context["session"]
+
+        # display localized tag text in addition to tag_id
+        tlm = Tag.objects.filter(pk=result['tag_id']).values_list('loc_msg__id', flat=True)
+        lm = _select_localized_string(tlm, session=session)
+        result['tag_display_text'] = lm
+
+        return result
+
+
 class UIGroupSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = UIGroup
@@ -484,7 +540,7 @@ def _select_localized_string(loc_str_ids, session=None):
     if session is not None:
         # find matching language
         try:
-            lang = Language.objects.get(language_code=session.language)
+            lang = Language.objects.get(pk=session.language_id)
         except Language.DoesNotExist:
             lang = Language.objects.get(language_code="en")
     else:

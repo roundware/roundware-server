@@ -215,6 +215,14 @@ class TimedAssetFilterSet(django_filters.FilterSet):
                   'end']
 
 
+class UIConfigFilterSet(django_filters.FilterSet):
+    project_id = django_filters.NumberFilter()
+    ui_mode = django_filters.TypedChoiceFilter(choices=UIGroup.UI_MODES)
+
+    class Meta:
+        model = UIGroup
+
+
 class UIGroupFilterSet(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_type='startswith')
     ui_mode = django_filters.TypedChoiceFilter(choices=UIGroup.UI_MODES)

@@ -14,7 +14,7 @@ from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, Envelop
                                     LanguageFilterSet, ListeningHistoryItemFilterSet, LocalizedStringFilterSet,
                                     ProjectFilterSet, SessionFilterSet, SpeakerFilterSet, TagFilterSet,
                                     TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
-                                    UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
+                                    UIConfigFilterSet, UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -535,6 +535,7 @@ class ProjectViewSet(viewsets.ViewSet):
     API V2: api/2/projects/:id/
             api/2/projects/:id/tags/
             api/2/projects/:id/uigroups/
+            api/2/projects/:id/uiconfig/
             api/2/projects/:id/assets/
     """
     queryset = Project.objects.all()
@@ -630,6 +631,33 @@ class ProjectViewSet(viewsets.ViewSet):
                                                    context={"admin": "admin" in request.query_params},
                                                    many=True)
         return Response({"ui_groups": serializer.data})
+
+    @detail_route(methods=['get'])
+    def uiconfig(self, request, pk=None):
+        """
+        GET api/2/projects/:id/uiconfig/ - Get UI config data for specific Project
+        """
+        params = request.query_params.copy()
+        if "session_id" in params:
+            try:
+                session = Session.objects.get(pk=params["session_id"])
+            except:
+                raise ParseError("Session not found")
+        params["project_id"] = pk
+        params['ui_mode'] = 'listen'
+        uigroups_listen = UIGroupFilterSet(params)
+        serializer_listen = serializers.UIConfigSerializer(uigroups_listen,
+                                                   context={"admin": "admin" in request.query_params,
+                                                            "session": session}, many=True)
+        sld = serializer_listen.data
+        params['ui_mode'] = 'speak'
+        uigroups_speak = UIGroupFilterSet(params)
+        serializer_speak = serializers.UIConfigSerializer(uigroups_speak,
+                                                   context={"admin": "admin" in request.query_params,
+                                                            "session": session}, many=True)
+        ssd = serializer_speak.data
+        return Response({ "listen" : sld,
+                          "speak"  : ssd })
 
     @detail_route(methods=['get'])
     def assets(self, request, pk=None):
