@@ -428,7 +428,7 @@ class UIConfigSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeri
 class UIConfigItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = UIItem
-        exclude = ('id', 'active', 'index', 'ui_group')
+        exclude = ('active', 'index', 'ui_group')
 
     def to_representation(self, obj):
         result = super(UIConfigItemSerializer, self).to_representation(obj)
