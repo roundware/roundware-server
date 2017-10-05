@@ -418,7 +418,20 @@ class UIConfigSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeri
         del result['header_text_loc']
 
         uiitems = UIItem.objects.filter(ui_group=result["id"])
-        serializer = UIConfigItemSerializer(uiitems, context={"session": session}, many=True)
+
+        # filter listen display_items to one per tag_id; speak returns all
+        if self.context["mode"] == "listen":
+            used_tag_ids = []
+            exclude_uiitem_ids = []
+            for uiitem in uiitems:
+                # if tag_id already iterated, exclude from queryset
+                if uiitem.tag_id in used_tag_ids:
+                    exclude_uiitem_ids.append(uiitem.id)
+                else:
+                    used_tag_ids.append(uiitem.tag_id)
+            uiitems = uiitems.exclude(pk__in=exclude_uiitem_ids)
+
+        serializer = UIConfigItemSerializer(uiitems, context={"session": session, "mode": self.context["mode"]}, many=True)
         result["display_items"] = serializer.data
         del result['id']
 
@@ -436,6 +449,8 @@ class UIConfigItemSerializer(serializers.ModelSerializer):
         del result['tag']
         result['parent_id'] = result['parent']
         del result['parent']
+        result['default_state'] = result['default']
+        del result['default']
         # session, passed in context, is used to determine string localization
         session = None
         if "session" in self.context:
@@ -445,6 +460,11 @@ class UIConfigItemSerializer(serializers.ModelSerializer):
         tlm = Tag.objects.filter(pk=result['tag_id']).values_list('loc_msg__id', flat=True)
         lm = _select_localized_string(tlm, session=session)
         result['tag_display_text'] = lm
+
+        # set all parent_ids to "null" for listen items to flatten response
+        if self.context["mode"] == "listen":
+            result['parent_id'] = None
+
 
         return result
 

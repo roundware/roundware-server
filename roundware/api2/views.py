@@ -653,13 +653,13 @@ class ProjectViewSet(viewsets.ViewSet):
         uigroups_listen = UIGroupFilterSet(params)
         serializer_listen = serializers.UIConfigSerializer(uigroups_listen,
                                                    context={"admin": "admin" in request.query_params,
-                                                            "session": session}, many=True)
+                                                            "session": session, "mode": "listen"}, many=True)
         sld = serializer_listen.data
         params['ui_mode'] = 'speak'
         uigroups_speak = UIGroupFilterSet(params)
         serializer_speak = serializers.UIConfigSerializer(uigroups_speak,
                                                    context={"admin": "admin" in request.query_params,
-                                                            "session": session}, many=True)
+                                                            "session": session, "mode": "speak"}, many=True)
         ssd = serializer_speak.data
         return Response({ "listen" : sld,
                           "speak"  : ssd })
