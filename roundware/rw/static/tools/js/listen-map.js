@@ -25,6 +25,7 @@ if (!Roundware) {
 Roundware.ListenMap = function (opts) {
     var options = $.extend({}, {
         url: 'http://roundware.dyndns.org/api/1/',
+        authorization : 'Token aed40ccd8bbc291bf04ccea20627cd8f83eee9ca'
     }, opts);
 
 
@@ -39,6 +40,11 @@ Roundware.ListenMap = function (opts) {
     var is_listening = false;
 
     var listening_pin = null;
+    var listener_circle_max = null;
+    var listener_circle_min = null;
+    var lr_max = 0;
+    var lr_min = 0;
+    var use_listener_range = false;
 
     // ordered lists of methods to be called in series
     var workflow = [
@@ -48,6 +54,7 @@ Roundware.ListenMap = function (opts) {
         map_assets,
         map_speakers,
         add_listening_pin,
+        add_listener_range,
         show_filters,
         show_listening_button
     ];
@@ -269,17 +276,22 @@ Roundware.ListenMap = function (opts) {
     /**
      * call RW's get_available_assets for the project
      */
-    function get_assets() {
+    function get_assets()
+    {
         $.ajax({
-            url: options.url,
-            data: {operation: "get_available_assets", project_id: project_id},
+            url: 'http://localhost:8888/api/2/assets/?media_type=audio&submitted=true&project_id=' + project_id,
             dataType: 'json',
-            success: function (data) {
-                assets = data.assets;
+            type: 'GET',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('Authorization', options.authorization);
+            },
+            success: function(data) {
+                assets = data;
+                console.log(assets);
                 main_callback();
             },
-            error: function (data) {
-                console.error('could not retrieve tags');
+            error: function(data) {
+                console.error('could not retrieve assets');
             }
         });
     }
@@ -346,8 +358,7 @@ Roundware.ListenMap = function (opts) {
      */
     function map_assets() {
         $.each(assets, function (i, item) {
-
-            if (!item.submitted || item.mediatype != 'audio') {
+            if (!item.submitted || item.media_type != 'audio') {
                 return;
             }
 
@@ -369,7 +380,7 @@ Roundware.ListenMap = function (opts) {
                 });
             });
 
-            var fnmp3 = item.asset_url.replace("wav", "mp3");
+            var fnmp3 = item.file.replace("wav", "mp3");
             var id = item.asset_id;
             var iw = create_info_window(item.asset_id, desc.join(' '), fnmp3, item.asset_url, id);
             var marker = create_marker(item, iw, 'blue');
@@ -377,17 +388,48 @@ Roundware.ListenMap = function (opts) {
             all_assets.push(marker);
 
 
-            var circle = {
-                strokeColor: '#6292CF',
-                strokeOpacity: 0.8,
-                strokeWeight: 1,
-                fillColor: '#6292CF',
-                fillOpacity: 0.25,
-                map: map,
-                center: new google.maps.LatLng(item.latitude, item.longitude),
-                radius: radius
-            };
-            marker.circle = new google.maps.Circle(circle);
+            if (item.shape) {
+                console.log("map the asset's shape");
+                map.data.addGeoJson({
+                    "type": "Feature",
+                    "geometry": item.shape,
+                    "properties": {
+                        "asset_id": item.id,
+                        "name": "range"
+                    }
+                });
+                console.log("shape mapped");
+                map.data.setStyle({
+                    fillColor: 'green',
+                    strokeWeight: 1
+                });
+                map.data.setStyle(function(feature) {
+                    console.log("setting style");
+                    if (feature.getProperty('name') == "range") {
+                        return {
+                            fillColor: '#6292CF',
+                            fillOpacity: .25,
+                            strokeWeight: 1,
+                            strokeOpacity: .8,
+                            strokeColor: '#6292CF'
+                        };
+                    }
+                });
+            }
+            else {
+                console.log("make the default circle");
+                var circle = {
+                    strokeColor: '#6292CF',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 1,
+                    fillColor: '#6292CF',
+                    fillOpacity: 0.25,
+                    map: map,
+                    center: new google.maps.LatLng(item.latitude, item.longitude),
+                    radius: radius
+                };
+                marker.circle = new google.maps.Circle(circle);
+            }
 
         });
 
@@ -464,7 +506,110 @@ Roundware.ListenMap = function (opts) {
         map.setCenter(mapCenter);
 
         google.maps.event.addListener(listening_pin, "dragend", function (event) {
-            modify_stream();
+            var listener_location = listening_pin.getPosition();
+            listener_circle_max.setCenter(new google.maps.LatLng(listener_location.lat(),listener_location.lng()));
+            listener_circle_min.setCenter(new google.maps.LatLng(listener_location.lat(),listener_location.lng()));
+            if (use_listener_range) {
+                modify_stream2(lr_max, lr_min);
+            }
+            else {
+                modify_stream();
+            }
+        });
+
+        main_callback();
+    }
+
+    /**
+     * Add editable circle centered on listener pin that defines the listener_range
+     * every time circle is edited, a PATCH streams/ is sent with lat/lon and listener_range
+     */
+    function add_listener_range() {
+        var mapCenter = new google.maps.LatLng(config.project.latitude, config.project.longitude);
+        listener_circle_max = new google.maps.Circle({
+            strokeColor: '#000000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#000000',
+            fillOpacity: 0.35,
+            map: map,
+            center: mapCenter,
+            radius: config.project.recording_radius * 10,
+            editable: true,
+            draggable: false,
+            geodesic: true
+        });
+        listener_circle_min = new google.maps.Circle({
+            strokeColor: '#000000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#000000',
+            fillOpacity: 0.35,
+            map: map,
+            center: mapCenter,
+            radius: config.project.recording_radius,
+            editable: true,
+            draggable: false,
+            geodesic: true
+        });
+        map.setCenter(mapCenter);
+
+        google.maps.event.addListener(listener_circle_max, "radius_changed", function (event) {
+            lr_max = Math.round(listener_circle_max.getRadius());
+            // ensure listener_range_max isn't smaller than listener_range_min
+            if (lr_max < lr_min) {
+                listener_circle_max.setRadius(lr_min);
+                console.log("maximum range can't be smaller than minimum range!")
+            }
+            // if radius smaller than project.recording_radius, turn off listener_range filtering
+            if (lr_max < config.project.recording_radius) {
+                listener_circle_max.setOptions({
+                    fillColor: '#000000',
+                    strokeColor: '#000000'
+                });
+                use_listener_range = false;
+                console.log("use_listener_range = " + use_listener_range);
+                return;
+            }
+            modify_stream2(lr_max, lr_min);
+            console.log("max range = " + lr_max);
+            use_listener_range = true;
+            // change fill color to #FF0000 to indicate it is active
+            listener_circle_max.setOptions({
+                fillColor: '#FF0000',
+                strokeColor: '#FF0000'
+            });
+        });
+        google.maps.event.addListener(listener_circle_min, "radius_changed", function (event) {
+            lr_min = Math.round(listener_circle_min.getRadius());
+            lr_max = Math.round(listener_circle_max.getRadius());
+            // ensure listener_range_min isn't larger than listener_range_max
+            if (lr_min > lr_max) {
+                listener_circle_min.setRadius(lr_max);
+                console.log("minimum range can't be bigger than maximum range!")
+            }
+            // if radius smaller than project.recording_radius, turn off listener_range filtering
+            if (lr_min < config.project.recording_radius) {
+                listener_circle_min.setOptions({
+                    fillColor: '#000000',
+                    strokeColor: '#000000'
+                });
+                use_listener_range = false;
+                console.log("use_listener_range = " + use_listener_range);
+                return;
+            }
+            modify_stream2(lr_max, lr_min);
+            console.log("min range = " + lr_min);
+            use_listener_range = true;
+            // change fill color to #FF0000 to indicate it is active
+            listener_circle_min.setOptions({
+                fillColor: '#FF0000',
+                strokeColor: '#FF0000'
+            });
+            listener_circle_max.setOptions({
+                fillColor: '#FF0000',
+                strokeColor: '#FF0000'
+            });
         });
 
         main_callback();
@@ -783,6 +928,34 @@ Roundware.ListenMap = function (opts) {
             },
             error: function (data) {
                 console.log('stream modify failure');
+            }
+        });
+    }
+
+
+    /**
+     * PATCH api/2/streams/
+     */
+    function modify_stream2(lr_max, lr_min)
+    {
+        var listener_location = listening_pin.getPosition();
+        data = {'listener_range_max': lr_max,
+                'listener_range_min': lr_min,
+                'latitude'  : listener_location.lat(),
+                'longitude' : listener_location.lng()
+               }
+        $.ajax({
+            url: 'http://localhost:8888/api/2/streams/' + config.session.session_id + '/',
+            data: data,
+            type: 'PATCH',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('Authorization', options.authorization);
+            },
+            error: function(data) {
+                logger.info("streams/ modification failed: "); console.log(data);
+            },
+            success: function(data) {
+                console.log("stream modified");
             }
         });
     }

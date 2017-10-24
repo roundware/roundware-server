@@ -1,5 +1,6 @@
 language: python
 group: deprecated-2017Q1
+dist: precise
 addons:
   postgresql: "9.3"
 python:

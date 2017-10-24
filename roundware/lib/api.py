@@ -344,6 +344,12 @@ def form_to_request(form):
             request[p] = float(form[p])
         else:
             request[p] = False
+
+    for p in ['listener_range_max', 'listener_range_min']:
+        if p in form and form[p]:
+            request[p] = int(form[p])
+        else:
+            request[p] = None
     return request
 
 
@@ -357,8 +363,13 @@ def move_listener(request, context=None):
         # need to check for both until api/1 is deprecated
         form = request.GET or request.POST
     try:
+        if 'listener_range_max' in form:
+            logger.info("form listener_range_max = %s" % form['listener_range_max'])
         request = form_to_request(form)
+        if 'listener_range_max' in request:
+            logger.info("request listener_range_max = %s" % request['listener_range_max'])
         arg_hack = json.dumps(request)
+        logger.info("arg_hack = %s" % arg_hack)
         log_event("move_listener", int(form['session_id']), form)
         dbus_send.emit_stream_signal(
             int(form['session_id']), "move_listener", arg_hack)
