@@ -22,6 +22,10 @@ from rest_framework.test import APITestCase
 
 settings.DEBUG = True
 
+TEST_POLYGONS = {
+    "asset8_shape": "MULTIPOLYGON(((10 10, 10 20, 20 20, 20 10, 10 10)))"
+}
+
 
 class TestRecordingCollection(APITestCase):
 
@@ -115,6 +119,12 @@ class TestRecordingCollection(APITestCase):
                                  tags=[self.tag2],
                                  audiolength=2000, weight=100,
                                  latitude=2.0, longitude=2.0)
+        self.asset8 = mommy.make(Asset, project=self.project3,
+                                 language=self.english,
+                                 tags=[self.tag2],
+                                 audiolength=2000, weight=90,
+                                 latitude=2.0, longitude=2.0,
+                                 shape=TEST_POLYGONS["asset8_shape"])
         self.uigroup1 = mommy.make(UIGroup, project=self.project1,
                                     ui_mode=UIGroup.LISTEN,
                                     tag_category=self.tagcat1)
@@ -557,4 +567,22 @@ class TestRecordingCollection(APITestCase):
         rc.update_request(req)
         self.assertEquals(self.asset3, rc.get_recording())
         self.assertEquals(self.asset2, rc.get_recording())
+        self.assertEquals(None, rc.get_recording())
+
+    def test_asset_shape(self):
+        """
+        Test that asset with asset.shape field defined is added to playlist_proximity
+        when listener is within shape even when not within project.recording_radius
+        """
+        stream = RoundStream(self.session3.id, 'ogg', self.req3)
+        rc = RecordingCollection(stream, self.req3, stream.radius, 'by_weight')
+        # move to location within asset.shape region
+        self.req3['latitude'] = 15
+        self.req3['longitude'] = 15
+        rc.move_listener(self.req3)
+        # Update the list of nearby recordings
+        rc.update_request(self.req3)
+        # verify that asset with shape containing lat/lon is returned
+        # even though asset's lat/lon are not within range
+        self.assertEquals(self.asset8, rc.get_recording())
         self.assertEquals(None, rc.get_recording())

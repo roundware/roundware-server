@@ -43,6 +43,7 @@ class Asset(models.Model):
         'Session', null=True, blank=True)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
+    shape = models.MultiPolygonField(geography=True, null=True, blank=True)
     filename = models.CharField(max_length=256, null=True, blank=True)
     file = ValidatedFileField(storage=FileSystemStorage(
         location=settings.MEDIA_ROOT,

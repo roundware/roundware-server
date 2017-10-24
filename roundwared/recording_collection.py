@@ -15,6 +15,7 @@ except ImportError: # pragma: no cover
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.gis.geos import Point
 from roundwared import gpsmixer
 from roundware.rw.models import Asset, Project, TimedAsset, Session, Vote, UserProfile
 from roundwared import db
@@ -255,12 +256,19 @@ class RecordingCollection:
         if not self.s.geo_listen_enabled:
             return True
 
+        # check if asset.shape exists and if so, see if listener is within shape
+        # if no asset.shape, use default project radius
         if 'latitude' in request and 'longitude' in request:
-            distance = gpsmixer.distance_in_meters(
-                request['latitude'], request['longitude'],
-                recording.latitude, recording.longitude)
-
-            return distance <= self.radius
+            if recording.shape:
+                listener_location = Point(request['longitude'], request['latitude'], srid=recording.shape.srid)
+                inside = listener_location.intersects(recording.shape)
+                logger.info("listener within asset_id=%s geometry: %s", recording.id, inside)
+                return inside
+            else:
+                distance = gpsmixer.distance_in_meters(
+                    request['latitude'], request['longitude'],
+                    recording.latitude, recording.longitude)
+                return distance <= self.radius
         else:
             return True
 
