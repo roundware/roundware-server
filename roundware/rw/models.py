@@ -686,6 +686,7 @@ class UIGroup(models.Model):
     class Meta:
         verbose_name = 'UI Group'
         verbose_name_plural = 'UI Groups'
+        ordering = ('index',)
 
 
 class UIItem(models.Model):
@@ -707,6 +708,7 @@ class UIItem(models.Model):
     class Meta:
         verbose_name = 'UI Item'
         verbose_name_plural = 'UI Items'
+        ordering = ('index',)
 
 
 class UserProfile(models.Model):
