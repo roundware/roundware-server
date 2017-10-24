@@ -491,7 +491,7 @@ class Speaker(models.Model):
     maxvolume = models.FloatField()
     minvolume = models.FloatField()
     uri = models.URLField()
-    backupuri = models.URLField()
+    backupuri = models.URLField(blank=True)
 
     shape = models.MultiPolygonField(geography=True, null=True)
     boundary = models.GeometryField(geography=True, null=True, editable=False)

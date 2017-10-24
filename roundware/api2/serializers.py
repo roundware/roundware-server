@@ -34,10 +34,33 @@ class AdminLocaleStringSerializerMixin(serializers.Serializer):
 
 class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     audiolength_in_seconds = serializers.FloatField(required=False)
-    description = serializers.CharField(max_length=2048, default="")
+    description = serializers.CharField(max_length=2048, default="", allow_blank=True)
 
     class Meta:
         model = Asset
+        fields = (
+            'id',
+            'description',
+            'latitude',
+            'longitude',
+            'shape',
+            'filename',
+            'file',
+            'volume',
+            'submitted',
+            'created',
+            'weight',
+            'loc_caption',
+            'language',
+            'loc_description',
+            'loc_alt_text',
+            'mediatype',
+            'audiolength_in_seconds',
+            'tags',
+            'session',
+            'project',
+            'envelope_set'
+        )
         localized_fields = ['loc_description', 'loc_alt_text']
 
     def to_representation(self, obj):
@@ -48,7 +71,6 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
 
         result["audio_length_in_seconds"] = result["audiolength_in_seconds"]
         del result["audiolength_in_seconds"]
-        del result["audiolength"]
 
         result["tag_ids"] = result["tags"]
         del result["tags"]
@@ -56,11 +78,22 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
         result["session_id"] = result["session"]
         del result["session"]
 
-        del result["initialenvelope"]
-        # load string version of language
-        if "language" in result and result["language"] is not None:
-            lang = Language.objects.get(pk=result["language"])
-            result["language"] = lang.language_code
+        result["project_id"] = result["project"]
+        del result["project"]
+
+        result["language_id"] = result["language"]
+        del result["language"]
+
+        result["envelope_ids"] = result["envelope_set"]
+        del result["envelope_set"]
+
+        result["description_loc_ids"] = result["loc_description"]
+        del result["loc_description"]
+
+        result["alt_text_loc_ids"] = result["loc_alt_text"]
+        del result["loc_alt_text"]
+
+        del result["loc_caption"]
 
         return result
 
@@ -108,8 +141,8 @@ class EnvelopeSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(EnvelopeSerializer, self).to_representation(obj)
-        result["envelope_id"] = result["id"]
-        del result["id"]
+        result["asset_ids"] = result["assets"]
+        del result["assets"]
         del result["session"]
         return result
 
@@ -163,31 +196,17 @@ class ListenEventSerializer(serializers.ModelSerializer):
 
 
 class LocalizedStringSerializer(serializers.ModelSerializer):
-    language = serializers.CharField(source="language.language_code")
 
     class Meta:
         model = LocalizedString
-
-    def create(self, validated_data):
-        lang = Language.objects.get(language_code=validated_data['language']['language_code'])
-        ls = LocalizedString.objects.create(localized_string=validated_data['localized_string'],
-                                            language_id=lang.pk)
-        ls.save()
-        return ls
-
-    def update(self, instance, validated_data):
-        if 'language' in validated_data:
-            lang = Language.objects.get(language_code=validated_data['language']['language_code'])
-            instance.language_id = lang.pk
-        if 'localized_string' in validated_data:
-            instance.localized_string = validated_data['localized_string']
-        instance.save()
-        return instance
 
     def to_representation(self, obj):
         result = super(LocalizedStringSerializer, self).to_representation(obj)
         result["text"] = result["localized_string"]
         del result["localized_string"]
+        result["language_id"] = result["language"]
+        lang = Language.objects.get(pk=result["language_id"])
+        result["language"] = lang.language_code
         return result
 
 
@@ -214,24 +233,16 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
         return result
 
 
-class SessionSerializer(serializers.Serializer):
-    client_system = serializers.CharField(max_length=128, required=True)
-    client_type = serializers.CharField(max_length=128, required=False)
-    demo_stream_enabled = serializers.BooleanField(required=False, default=False)
-    device_id = serializers.CharField(max_length=36, required=False)
-    geo_listen_enabled = serializers.BooleanField(required=False)
-    language = serializers.CharField(max_length=2, default="en")
-    project_id = serializers.IntegerField(required=True)
-    starttime = serializers.DateTimeField(required=False)
-    stoptime = serializers.DateTimeField(required=False)
-    timezone = serializers.CharField(default="0000")
+class SessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Session
 
     def validate_language(self, value):
         try:
-            Language.objects.get(language_code=value)
+            Language.objects.get(pk=self.initial_data['language'])
         except Language.DoesNotExist:
-            # raise ValidationError("Language Code %s not found" % value)
-            value = "en"
+            raise ValidationError("Language Code %s not found" % value)
+            value = 1
         return value
 
     def validate_timezone(self, value):
@@ -239,27 +250,12 @@ class SessionSerializer(serializers.Serializer):
             raise ValidationError("Timezone must be in RFC822 GMT format (e.g. '-0800')")
         return value
 
-    def create(self, validated_data):
-        lang = Language.objects.get(language_code=validated_data['language'])
-        session = Session.objects.create(device_id=self.context["request"].user.userprofile.device_id,
-                                         project_id=validated_data["project_id"],
-                                         starttime=datetime.utcnow(),
-                                         timezone=validated_data["timezone"],
-                                         language_id=lang.pk,
-                                         client_type=self.context["request"].user.userprofile.client_type,
-                                         client_system=validated_data["client_system"],
-                                         geo_listen_enabled=validated_data["geo_listen_enabled"],
-                                         demo_stream_enabled=validated_data["demo_stream_enabled"])
-        session.save()
-        self.context["session_id"] = session.pk
-        return session
-
     def to_representation(self, obj):
         result = super(SessionSerializer, self).to_representation(obj)
-        result.update({"language": self.validated_data["language"]})
-        result.update({"geo_listen_enabled": self.validated_data["geo_listen_enabled"]})
-        if "session_id" in self.context:
-            result["session_id"] = self.context["session_id"]
+        result['project_id'] = result['project']
+        del result['project']
+        result['language_id'] = result['language']
+        del result['language']
         return result
 
 

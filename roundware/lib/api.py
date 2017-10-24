@@ -622,6 +622,24 @@ def save_asset_from_request(request, session, asset=None):
             except:
                 raise RoundException("Could not decode tag list")
 
+        desc_locset = []
+        description_loc_ids = get_parameter_from_request(request, 'description_loc_ids')
+        if description_loc_ids is not None:
+            ids = description_loc_ids.rstrip(',').split(',')
+            try:
+                desc_locset = models.LocalizedString.objects.filter(id__in=ids)
+            except:
+                raise RoundException("Could not decode localized string list")
+
+        alt_locset = []
+        alt_text_loc_ids = get_parameter_from_request(request, 'alt_text_loc_ids')
+        if alt_text_loc_ids is not None:
+            ids = description_loc_ids.rstrip(',').split(',')
+            try:
+                alt_locset = models.LocalizedString.objects.filter(id__in=ids)
+            except:
+                raise RoundException("Could not decode localized string list")
+
         # get optional submitted parameter from request
         submitted = get_parameter_from_request(request, 'submitted')
         # set submitted variable to proper boolean value if it is
@@ -632,7 +650,7 @@ def save_asset_from_request(request, session, asset=None):
             submitted = True
         # if submitted isn't passed or blank string
         elif submitted is None or len(submitted) == 0:
-            # check if location parameters passed
+            # if lat/lon not passed, set to project lat/lon settings
             if not all([latitude, longitude]):
                 submitted = False
                 latitude = session.project.latitude
@@ -652,10 +670,16 @@ def save_asset_from_request(request, session, asset=None):
                 else:
                     submitted = False
 
-        # save description if provided, null is not allowed
+        # save description, volume and weight if provided, set to default if not
         description = get_parameter_from_request(request, 'description')
         if description is None:
             description = ""
+        volume = get_parameter_from_request(request, 'volume')
+        if volume is None:
+            volume = 1.0
+        weight = get_parameter_from_request(request, 'weight')
+        if weight is None:
+            weight = 50
 
         asset = models.Asset(latitude=latitude,
                              longitude=longitude,
@@ -664,13 +688,19 @@ def save_asset_from_request(request, session, asset=None):
                              submitted=submitted,
                              mediatype=mediatype,
                              description=description,
-                             volume=1.0,
+                             volume=volume,
+                             weight=weight,
                              language=session.language,
                              project=session.project)
         asset.file.name = dest_filename
         asset.save()
+        # m2m fields must be set after initial object is saved
         for tag in tagset:
             asset.tags.add(tag)
+        for desc_loc in desc_locset:
+            asset.loc_description.add(desc_loc)
+        for alt_loc in alt_locset:
+            asset.loc_alt_text.add(alt_loc)
 
     # get the audiolength of the file only if mediatype is audio and
     # update the Asset

@@ -230,16 +230,16 @@ class TestServer(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # language wasn't provided, so should be set default to "en"
-        self.assertEqual(response.data["language"], "en")
+        self.assertEqual(response.data["language_id"], 1)
         # geo_listen_enabled not provided, so set to project.geo_listen_enabled value
         self.assertEqual(response.data["geo_listen_enabled"], True)
         # check returned data matches data provided
         self.assertEqual(response.data["timezone"], data["timezone"])
         self.assertEqual(response.data["client_system"], data["client_system"])
         self.assertEqual(response.data["project_id"], data["project_id"])
-        self.assertIsNotNone(response.data["session_id"])
+        self.assertIsNotNone(response.data["id"])
         # save session_id for later requests
-        self.session_id = response.data["session_id"]
+        self.session_id = response.data["id"]
 
         # now pass geo_listen_enabled
         data = {"timezone": "-0500",
@@ -277,7 +277,7 @@ class TestServer(APITestCase):
         response = self.client.get(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[0]["project"], self.project1.id)
+        self.assertEqual(response.data[0]["project_id"], self.project1.id)
 
     def vote_assets_post(self):
         data = {"device_id": "12891038109281",

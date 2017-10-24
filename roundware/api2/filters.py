@@ -1,9 +1,9 @@
 # Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-from roundware.rw.models import (Asset, Audiotrack, Event, Language, ListeningHistoryItem,
-                                 LocalizedString, Project, Speaker, Tag, TagCategory, TagRelationship,
-                                 TimedAsset, UIItem, UIGroup, Vote)
+from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
+                                 LocalizedString, Project, Session, Speaker, Tag, TagCategory,
+                                 TagRelationship, TimedAsset, UIItem, UIGroup, Vote)
 from distutils.util import strtobool
 import django_filters
 
@@ -85,6 +85,15 @@ class AudiotrackFilterSet(django_filters.FilterSet):
                   'maxdeadair']
 
 
+class EnvelopeFilterSet(django_filters.FilterSet):
+    session_id = django_filters.NumberFilter()
+    project_id = django_filters.NumberFilter(name='session__project_id')
+    asset_id = django_filters.NumberFilter(name='assets')
+
+    class Meta:
+        model = Envelope
+
+
 class EventFilterSet(django_filters.FilterSet):
     event_type = django_filters.CharFilter(lookup_type='icontains')
     server_time = django_filters.DateTimeFilter(lookup_type='startswith')
@@ -128,6 +137,7 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
 
 
 class LocalizedStringFilterSet(django_filters.FilterSet):
+    language_id = django_filters.NumberFilter()
     language = django_filters.CharFilter(name='language__language_code')
     localized_string = django_filters.CharFilter(lookup_type='icontains')
 
@@ -144,6 +154,17 @@ class ProjectFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Project
+
+
+class SessionFilterSet(django_filters.FilterSet):
+    project_id = django_filters.NumberFilter()
+    language_id = django_filters.NumberFilter()
+    language = django_filters.CharFilter(name='language__language_code')
+    geo_listen_enabled = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    demo_stream_enabled = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+
+    class Meta:
+        model = Session
 
 
 class SpeakerFilterSet(django_filters.FilterSet):
@@ -180,6 +201,7 @@ class TagRelationshipFilterSet(django_filters.FilterSet):
 
 class TimedAssetFilterSet(django_filters.FilterSet):
     project_id = django_filters.NumberFilter()
+    asset_id = django_filters.NumberFilter()
     start__lte = django_filters.NumberFilter(name='start', lookup_type='lte')
     start__gte = django_filters.NumberFilter(name='start', lookup_type='gte')
     end__lte = django_filters.NumberFilter(name='end', lookup_type='lte')
@@ -188,6 +210,7 @@ class TimedAssetFilterSet(django_filters.FilterSet):
     class Meta:
         model = TimedAsset
         fields = ['project_id',
+                  'asset_id',
                   'start',
                   'end']
 

@@ -10,10 +10,11 @@ from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, Language, L
                                  LocalizedString, Project, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIGroup, UIItem, UserProfile, Vote)
 from roundware.api2 import serializers
-from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EventFilterSet, LanguageFilterSet,
-                                    ListeningHistoryItemFilterSet, LocalizedStringFilterSet, ProjectFilterSet,
-                                    SpeakerFilterSet, TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet,
-                                    TimedAssetFilterSet, UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
+from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EnvelopeFilterSet, EventFilterSet,
+                                    LanguageFilterSet, ListeningHistoryItemFilterSet, LocalizedStringFilterSet,
+                                    ProjectFilterSet, SessionFilterSet, SpeakerFilterSet, TagFilterSet,
+                                    TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
+                                    UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
@@ -27,6 +28,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route, list_route
 import logging
 from random import sample
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -69,28 +71,58 @@ class AssetViewSet(viewsets.ViewSet):
         """
         POST api/2/assets/ - Create a new Asset
         """
-        if "session_id" not in request.data:
-            raise ParseError("session_id required")
-
+        if "file" not in request.data:
+            raise ParseError("Must supply file for asset content")
         try:
-            session_id = int(request.data["session_id"])
-            session = Session.objects.get(pk=session_id)
-        except Session.DoesNotExist:
-            raise Http404("Session not found")
-
-        if "asset_id" not in request.data and "file" not in request.data:
-            raise ParseError("Must supply either asset_id or file")
-
-        asset = None
-        if "asset_id" in request.data:
-            try:
-                asset_id = int(request.data["asset_id"])
-                asset = Asset.objects.get(pk=asset_id)
-            except ValueError, Asset.DoesNotExist:
-                raise Http404("Asset with id %s not found" % request.data["asset_id"])
-        asset = save_asset_from_request(request, session, asset)
-        serializer = serializers.AssetSerializer(asset)
+            result = add_asset_to_envelope(request, envelope_id=request.data["envelope_id"])
+        except Exception as e:
+            return Response({"detail": str(e)}, status.HTTP_400_BAD_REQUEST)
+        asset_obj = Asset.objects.get(pk=result['asset_id'])
+        serializer = serializers.AssetSerializer(asset_obj)
         return Response(serializer.data)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/assets/:id/ - Update existing Asset
+        """
+        try:
+            asset = Asset.objects.get(pk=pk)
+        except Asset.DoesNotExist:
+            raise Http404("Asset not found")
+        if 'tag_ids' in request.data:
+            request.data['tags'] = request.data['tag_ids']
+            del request.data['tag_ids']
+        if 'language_id' in request.data:
+            request.data['language'] = request.data['language_id']
+            del request.data['language_id']
+        if 'project_id' in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
+        if 'description_loc_ids' in request.data:
+            request.data['loc_description'] = request.data['description_loc_ids']
+            del request.data['description_loc_ids']
+        if 'alt_text_loc_ids' in request.data:
+            request.data['loc_alt_text'] = request.data['alt_text_loc_ids']
+            del request.data['alt_text_loc_ids']
+        if 'envelope_ids' in request.data:
+            request.data['envelope_set'] = request.data['envelope_ids']
+            del request.data['envelope_ids']
+        serializer = serializers.AssetSerializer(asset, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/assets/:id/ - Delete an Asset
+        """
+        try:
+            asset = Asset.objects.get(pk=pk)
+        except Asset.DoesNotExist:
+            raise Http404("Asset not found; cannot delete!")
+        asset.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @detail_route(methods=['post', 'get'])
     def votes(self, request, pk=None):
@@ -242,6 +274,25 @@ class EnvelopeViewSet(viewsets.ViewSet):
             api/2/envelopes/:id/
     """
     queryset = Envelope.objects.all()
+
+    def list(self, request):
+        """
+        GET api/2/envelopes/ - retrieve list of Envelopes
+        """
+        envelopes = EnvelopeFilterSet(request.query_params)
+        serializer = serializers.EnvelopeSerializer(envelopes, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/envelopes/:id/ - Get Envelope by id
+        """
+        try:
+            envelope = Envelope.objects.get(pk=pk)
+        except Envelope.DoesNotExist:
+            raise Http404("Envelope not found")
+        serializer = serializers.EnvelopeSerializer(envelope)
+        return Response(serializer.data)
 
     def create(self, request):
         """
@@ -440,6 +491,9 @@ class LocalizedStringViewSet(viewsets.ViewSet):
         """
         POST api/2/localizedstrings/ - Create a new LocalizedString
         """
+        if 'language_id' in request.data:
+            request.data['language'] = request.data['language_id']
+            del request.data['language_id']
         if 'text' in request.data:
             request.data['localized_string'] = request.data['text']
             del request.data['text']
@@ -455,6 +509,9 @@ class LocalizedStringViewSet(viewsets.ViewSet):
         PATCH api/2/localizedstrings/:id/ - Update existing LocalizedString
         """
         localizedstring = self.get_object(pk)
+        if 'language_id' in request.data:
+            request.data['language'] = request.data['language_id']
+            del request.data['language_id']
         if 'text' in request.data:
             request.data['localized_string'] = request.data['text']
             del request.data['text']
@@ -594,17 +651,56 @@ class SessionViewSet(viewsets.ViewSet):
     queryset = Session.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return Session.objects.get(pk=pk)
+        except UIItem.DoesNotExist:
+            raise Http404("Session not found")
+
+    def list(self, request):
+        """
+        GET api/2/sessions/ - Provides list of Sessions filtered by parameters
+        """
+        sessions = SessionFilterSet(request.query_params)
+        serializer = serializers.SessionSerializer(sessions, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/sessions/:id/ - Get Session by id
+        """
+        session = self.get_object(pk)
+        serializer = serializers.SessionSerializer(session)
+        return Response(serializer.data)
+
     def create(self, request):
         """
         POST api/2/sessions/ - Create a new Session
         """
+        if "project_id" in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
+        # set language properly based on either language or language_id param
+        # default to 1/"en" if none passed
+        if "language" in request.data:
+            lang = Language.objects.get(language_code=request.data['language'])
+            request.data['language'] = lang.pk
+        elif "language_id" in request.data:
+            request.data['language'] = request.data['language_id']
+        else:
+            request.data['language'] = 1
+        # dynamically set params not passed, but required in Session model, as needed
+        request.data['starttime'] = str(datetime.utcnow())
+        request.data['device_id'] = request.user.userprofile.device_id
+        if "client_type" not in request.data:
+            request.data['client_type'] = request.user.userprofile.client_type
         # check if geo_listen_enabled is passed in request.data and if not,
         # add it with value from project.geo_listen_enabled
         # make request.data mutable to allow POST params to be sent as application/json
         # rather than requiring multipart/form-data
         rdm = request.data.copy()
         if 'geo_listen_enabled' not in rdm:
-            p = Project.objects.get(id=rdm['project_id'])
+            p = Project.objects.get(id=rdm['project'])
             rdm['geo_listen_enabled'] = p.geo_listen_enabled
             logger.info('geo_listen_enabled not passed! set to project value: %s' % rdm['geo_listen_enabled'])
         serializer = serializers.SessionSerializer(data=rdm, context={'request': request})
@@ -652,10 +748,11 @@ class SpeakerViewSet(viewsets.ViewSet):
             request.data['project'] = request.data['project_id']
             del request.data['project_id']
         serializer = serializers.SpeakerSerializer(data=request.data)
-        # calculate attenuation_border
-        # logger.info('serializer = %s' % serializer)
         if serializer.is_valid():
-            serializer.save()
+            s = serializer.save()
+            # re-retrieve the Speaker data after build_attenuation_buffer_line has run
+            speaker = self.get_object(s.id)
+            serializer = serializers.SpeakerSerializer(speaker)
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -671,6 +768,9 @@ class SpeakerViewSet(viewsets.ViewSet):
         serializer = serializers.SpeakerSerializer(speaker, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            # re-retrieve the Speaker data after build_attenuation_buffer_line has run
+            speaker = self.get_object(pk)
+            serializer = serializers.SpeakerSerializer(speaker)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -689,10 +789,10 @@ class StreamViewSet(viewsets.ViewSet):
     API V2: api/2/streams/
             api/2/streams/:id/heartbeat/
             api/2/streams/:id/playasset/
-            api/2/streams/:id/skip/
+            api/2/streams/:id/replayasset/
+            api/2/streams/:id/skipasset/
             api/2/streams/:id/pause/
             api/2/streams/:id/resume/
-            api/2/streams/:id/replayasset/
             api/2/streams/:id/isactive/
     """
     permission_classes = (IsAuthenticated,)
@@ -741,7 +841,19 @@ class StreamViewSet(viewsets.ViewSet):
                             status.HTTP_400_BAD_REQUEST)
 
     @detail_route(methods=['post'])
-    def skip(self, request, pk=None):
+    def replayasset(self, request, pk=None):
+        try:
+            result = get_currently_streaming_asset(request, session_id=pk)
+            return Response(play({
+                'session_id': pk,
+                'asset_id': str(result.get('asset_id'))
+            }))
+        except Exception as e:
+            return Response({"detail": str(e)},
+                            status.HTTP_400_BAD_REQUEST)
+
+    @detail_route(methods=['post'])
+    def skipasset(self, request, pk=None):
         try:
             return Response(skip_ahead(request, session_id=pk))
         except Exception as e:
@@ -760,18 +872,6 @@ class StreamViewSet(viewsets.ViewSet):
     def resume(self, request, pk=None):
         try:
             return Response(resume(request, session_id=pk))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def replayasset(self, request, pk=None):
-        try:
-            result = get_currently_streaming_asset(request, session_id=pk)
-            return Response(play({
-                'session_id': pk,
-                'asset_id': str(result.get('asset_id'))
-            }))
         except Exception as e:
             return Response({"detail": str(e)},
                             status.HTTP_400_BAD_REQUEST)
