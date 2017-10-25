@@ -668,7 +668,7 @@ class ProjectViewSet(viewsets.ViewSet):
         tags = get_project_tags(p=pk)
         serializer = serializers.TagSerializer(tags, context={"session": session,
                                                               "admin": "admin" in request.query_params}, many=True)
-        return Response({"tags": serializer.data})
+        return Response(serializer.data)
 
     @detail_route(methods=['get'])
     def uigroups(self, request, pk=None):
@@ -686,7 +686,7 @@ class ProjectViewSet(viewsets.ViewSet):
         serializer = serializers.UIGroupSerializer(uigroups,
                                                    context={"admin": "admin" in request.query_params,
                                                             "session": session}, many=True)
-        return Response({"ui_groups": serializer.data})
+        return Response(serializer.data)
 
     @detail_route(methods=['get'])
     def uiconfig(self, request, pk=None):
@@ -1017,7 +1017,7 @@ class TagViewSet(viewsets.ViewSet):
                 raise ParseError("Session not found")
         serializer = serializers.TagSerializer(tags, context={"admin": "admin" in request.query_params,
                                                               "session": session}, many=True)
-        return Response({"tags": serializer.data})
+        return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
         """
@@ -1325,7 +1325,7 @@ class UIGroupViewSet(viewsets.ViewSet):
         serializer = serializers.UIGroupSerializer(uigroups,
                                                    context={"admin": "admin" in request.query_params,
                                                             "session": session}, many=True)
-        return Response({"ui_groups": serializer.data})
+        return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
         """
