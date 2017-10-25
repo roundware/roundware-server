@@ -23,8 +23,7 @@ logger = logging.getLogger(__name__)
 # Used by recording_collection.py only
 @cached(30)
 def get_recordings(session_id, tags=None):
-
-    # If the session_is is a list, get the first value
+    # If the session_id is a list, get the first value
     # TODO: Remove check for a session_id list.
     # session_id is a list at stream.modify_stream() in roundwared.rwdbus_receive.add_stream_signal_receiver()
     # session_id is a list before it is sent out on dbus in roundware.rw.views.main()
@@ -44,10 +43,11 @@ def get_recordings(session_id, tags=None):
             # Assuming string, make an int list from the "string,string,string"
             tag_list = map(int, tags.split(","))
     else:
-        tag_list = get_default_tags_for_project(project)
-        logger.debug("Using project default tags")
+        tag_list = get_active_tags_for_project(project)
+        logger.info("Using all active Listen tags")
 
     recordings = []
+    logger.info("tag_list: %s", tag_list)
     if tag_list:
         recordings = filter_recs_for_tags(project, tag_list, session.language)
 
@@ -58,15 +58,22 @@ def get_recordings(session_id, tags=None):
 
 # @profile(stats=True)
 # Used by recording_collection.py only
-def get_default_tags_for_project(project):
-    m = UIGroup.objects.filter(project=project, active=True)
-    default = []
+def get_active_tags_for_project(project):
+    """
+    Return all tags for specified project associated with active UI Items
+    contained in any active Listen UI Groups
+    """
+    active_tags = []
+    # get all active Listen UI Groups
+    m = UIGroup.objects.filter(project=project, active=True, ui_mode="listen")
+    # get related tags for associated active UI Items
     for uigroup in m:
-        mappings = UIItem.objects.filter(ui_group=uigroup,
-                                            active=True, default=True)
+        mappings = UIItem.objects.filter(ui_group=uigroup, active=True)
         for mapping in mappings:
-            default.append(mapping.tag.id)
-    return default
+            if mapping.tag.id not in active_tags:
+                active_tags.append(mapping.tag.id)
+    logger.info("active_tags: %s", active_tags)
+    return active_tags
 
 
 # @profile(stats=True)
@@ -81,13 +88,13 @@ def filter_recs_for_tags(p, tagids_from_request, l):
     but not another.
     """
     # TODO: This function can be replaced with SQL.
-    logger.debug("Tags: %s", tagids_from_request)
+    logger.info("Tags: %s", tagids_from_request)
 
     recs = []
     tag_ids_per_cat_dict = {}
 
     project_cats = p.get_tag_cats_by_ui_mode(UIGroup.LISTEN)
-    logger.debug("Project tag categories: %s", project_cats)
+    logger.info("Project tag categories: %s", project_cats)
     for cat in project_cats:
         # for each tag category a list of all of the tags with that cat
         tag_ids_per_cat_dict[cat.id] = [
@@ -139,7 +146,7 @@ def filter_recs_for_tags(p, tagids_from_request, l):
 
         if not remove:
             recs.append(rec)
-    logger.debug(
+    logger.info(
         "filter_recs_for_tags returned %s Assets" % (len(recs)))
     return recs
 

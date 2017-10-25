@@ -8,7 +8,7 @@ from .common import RoundwaredTestCase
 from roundware.rw.models import (UIGroup, Session, Tag, Asset, TagCategory,
                                  UIItem, Project, ListeningHistoryItem)
 from roundwared.db import (filter_recs_for_tags,
-                           get_recordings, get_default_tags_for_project)
+                           get_recordings, get_active_tags_for_project)
 
 
 class TestGetRecordings(RoundwaredTestCase):
@@ -62,13 +62,13 @@ class TestGetRecordings(RoundwaredTestCase):
                                  audiolength=2000)
 
 
-    def test_get_default_tags_for_project(self):
-        """ Project1 has one default tag, Project2 has no default tags.
+    def test_get_active_tags_for_project(self):
+        """ Project1 has one active tag, Project2 has no active tags.
         """
-        default_tags = get_default_tags_for_project(self.project1)
-        self.assertEqual(default_tags, [self.tag1.id])
+        active_tags = get_active_tags_for_project(self.project1)
+        self.assertEqual(active_tags, [self.tag1.id])
 
-        default_tags = get_default_tags_for_project(self.project2)
+        default_tags = get_active_tags_for_project(self.project2)
         self.assertEqual(default_tags, [])
 
     def test_correct_assets_project_default_tags(self):
