@@ -26,17 +26,57 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.pagination import PageNumberPagination
 import logging
 from random import sample
 from datetime import datetime
+from distutils.util import strtobool
 
 logger = logging.getLogger(__name__)
 
 
 # Note: Keep this stuff in alphabetical order!
 
+class AssetPaginationMixin(object):
 
-class AssetViewSet(viewsets.ViewSet):
+    @property
+    def paginator(self):
+        """
+        The paginator instance associated with the view, or `None`.
+        """
+        if not hasattr(self, '_paginator'):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        return self._paginator
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination
+        is disabled.
+        """
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(
+            queryset, self.request, view=self)
+
+    def get_paginated_response(self, data):
+        """
+        Return a paginated style `Response` object for the given
+        output data.
+        """
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
+
+class AssetPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 10000
+
+
+class AssetViewSet(viewsets.ViewSet, AssetPaginationMixin):
     """
     API V2: api/2/assets/
             api/2/assets/:id/
@@ -47,12 +87,23 @@ class AssetViewSet(viewsets.ViewSet):
     # TODO: Implement DjangoObjectPermissions
     queryset = Asset.objects.all()
     permission_classes = (IsAuthenticated,)
+    pagination_class = AssetPagination
 
     def list(self, request):
         """
         GET api/2/assets/ - retrieve list of Assets filtered by parameters
         """
         assets = AssetFilterSet(request.query_params)
+        if "paginate" in request.query_params:
+            paginate = strtobool(request.query_params['paginate'])
+        else:
+            paginate = False
+
+        page = self.paginate_queryset(assets)
+        if page is not None and paginate:
+            serializer = serializers.AssetSerializer(page, context={"admin": "admin" in request.query_params}, many=True)
+            return self.get_paginated_response(serializer.data)
+
         serializer = serializers.AssetSerializer(assets, context={"admin": "admin" in request.query_params}, many=True)
         return Response(serializer.data)
 
