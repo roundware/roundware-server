@@ -125,7 +125,7 @@ class AssetViewSet(viewsets.ViewSet, AssetPaginationMixin):
         if "file" not in request.data:
             raise ParseError("Must supply file for asset content")
         try:
-            result = add_asset_to_envelope(request, envelope_id=request.data["envelope_id"])
+            result = add_asset_to_envelope(request, envelope_id=request.data["envelope_ids"])
         except Exception as e:
             return Response({"detail": str(e)}, status.HTTP_400_BAD_REQUEST)
         asset_obj = Asset.objects.get(pk=result['asset_id'])
