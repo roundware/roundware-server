@@ -124,6 +124,9 @@ class AssetViewSet(viewsets.ViewSet, AssetPaginationMixin):
         """
         if "file" not in request.data:
             raise ParseError("Must supply file for asset content")
+        if not request.data["envelope_ids"].isdigit():
+            raise ParseError("Must provide a single envelope_id in envelope_ids parameter for POST. "
+                             "You can add more envelope_ids in subsequent PATCH calls")
         try:
             result = add_asset_to_envelope(request, envelope_id=request.data["envelope_ids"])
         except Exception as e:
