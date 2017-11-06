@@ -649,6 +649,7 @@ class ProjectViewSet(viewsets.ViewSet):
             except:
                 raise ParseError("Session not found")
         params["project_id"] = pk
+        params['active'] = 'true'
         params['ui_mode'] = 'listen'
         uigroups_listen = UIGroupFilterSet(params)
         serializer_listen = serializers.UIConfigSerializer(uigroups_listen,

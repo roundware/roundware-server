@@ -218,6 +218,7 @@ class TimedAssetFilterSet(django_filters.FilterSet):
 class UIConfigFilterSet(django_filters.FilterSet):
     project_id = django_filters.NumberFilter()
     ui_mode = django_filters.TypedChoiceFilter(choices=UIGroup.UI_MODES)
+    active = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
 
     class Meta:
         model = UIGroup
