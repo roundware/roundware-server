@@ -417,7 +417,7 @@ class UIConfigSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeri
         result['header_display_text'] = result['header_text_loc']
         del result['header_text_loc']
 
-        uiitems = UIItem.objects.filter(ui_group=result["id"])
+        uiitems = UIItem.objects.filter(ui_group=result["id"], active=True)
 
         # filter listen display_items to one per tag_id; speak returns all
         if self.context["mode"] == "listen":
@@ -464,7 +464,6 @@ class UIConfigItemSerializer(serializers.ModelSerializer):
         # set all parent_ids to "null" for listen items to flatten response
         if self.context["mode"] == "listen":
             result['parent_id'] = None
-
 
         return result
 
