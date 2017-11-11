@@ -447,6 +447,23 @@ class Project(models.Model):
         permissions = (('access_project', 'Access Project'),)
 
 
+class ProjectGroup(models.Model):
+    """
+    Method for grouping projects for transformer client
+    """
+    name = models.CharField(max_length=50)
+    active = models.BooleanField(default=True)
+    description = models.TextField(max_length=2048, blank=True)
+    projects = models.ManyToManyField(Project, blank=True)
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Project Group'
+        verbose_name_plural = 'Project Groups'
+
+
 class Session(models.Model):
     """
     A client server connection established when the client is started

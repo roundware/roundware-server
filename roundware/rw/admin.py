@@ -34,6 +34,14 @@ class AssetTagsInline(admin.TabularInline):
     model = Asset.tags.through
 
 
+class ProjectGroupInline(admin.StackedInline):
+    model = ProjectGroup.projects.through
+    extra = 0
+    can_delete = True
+    verbose_name = "Related Project Group"
+    verbose_name_plural = "Related Project Groups"
+
+
 class SmarterModelAdmin(admin.ModelAdmin):
     valid_lookups = ()
 
@@ -303,6 +311,7 @@ class ProjectAdmin(ProjectModelAdmin):
     filter_vertical = ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',
                        'demo_stream_message_loc')
     filter_horizontal = ('languages',)
+    inlines = [ProjectGroupInline, ]
 
     fieldsets = (
         ('Basic Info', {
@@ -324,6 +333,14 @@ class ProjectAdmin(ProjectModelAdmin):
             'fields': ('listen_questions_dynamic', 'speak_questions_dynamic')
         }),
     )
+
+
+class ProjectGroupAdmin(admin.ModelAdmin):
+    list_display = ('id', 'active', 'name')
+    ordering = ['id']
+    list_editable = ('active',)
+    filter_horizontal = ('projects',)
+
 
 class SessionAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'project', 'starttime', 'device_id', 'language',
@@ -488,6 +505,7 @@ admin.site.register(TagRelationship, TagRelationshipAdmin)
 admin.site.register(UIGroup, UIGroupAdmin)
 admin.site.register(UIItem, UIItemAdmin)
 admin.site.register(Project, ProjectAdmin)
+admin.site.register(ProjectGroup, ProjectGroupAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Asset, AssetAdmin)
 admin.site.register(Speaker, SpeakerAdmin)
