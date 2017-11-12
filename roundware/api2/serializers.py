@@ -5,8 +5,8 @@
 from __future__ import unicode_literals
 
 from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
-                                 LocalizedString, Project, Session, Speaker, Tag, TagCategory,
-                                 TagRelationship, TimedAsset, UIGroup, UIItem, Vote)
+                                 LocalizedString, Project, ProjectGroup, Session, Speaker, Tag,
+                                 TagCategory, TagRelationship, TimedAsset, UIGroup, UIItem, Vote)
 from roundware.lib.api import request_stream, vote_count_by_asset
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
@@ -230,6 +230,17 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
 
         result["language_ids"] = result["languages"]
         del result["languages"]
+        return result
+
+
+class ProjectGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectGroup
+
+    def to_representation(self, obj):
+        result = super(ProjectGroupSerializer, self).to_representation(obj)
+        result["project_ids"] = result["projects"]
+        del result["projects"]
         return result
 
 

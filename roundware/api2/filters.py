@@ -2,7 +2,7 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
-                                 LocalizedString, Project, Session, Speaker, Tag, TagCategory,
+                                 LocalizedString, Project, ProjectGroup, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIItem, UIGroup, Vote)
 from distutils.util import strtobool
 import django_filters
@@ -154,6 +154,14 @@ class ProjectFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Project
+
+
+class ProjectGroupFilterSet(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_type='icontains')
+    active = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+
+    class Meta:
+        model = ProjectGroup
 
 
 class SessionFilterSet(django_filters.FilterSet):
