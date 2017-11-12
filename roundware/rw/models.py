@@ -386,6 +386,7 @@ class Project(models.Model):
     )
 
     name = models.CharField(max_length=50)
+    owner = models.CharField(max_length=128, blank=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
     pub_date = models.DateTimeField('date published')
@@ -401,6 +402,8 @@ class Project(models.Model):
         LocalizedString, related_name='sharing_msg_string', blank=True)
     out_of_range_message_loc = models.ManyToManyField(
         LocalizedString, related_name='out_of_range_msg_string', blank=True)
+    description_loc = models.ManyToManyField(
+        LocalizedString, related_name='description_string', blank=True)
     out_of_range_url = models.CharField(max_length=512)
     recording_radius = models.IntegerField(null=True)
     listen_enabled = models.BooleanField(default=False)

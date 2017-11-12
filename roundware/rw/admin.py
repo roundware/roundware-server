@@ -308,25 +308,25 @@ class ProjectAdmin(ProjectModelAdmin):
                     'max_recording_length', 'recording_radius')
     ordering = ['id']
     save_on_top = True
-    filter_vertical = ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',
-                       'demo_stream_message_loc')
+    filter_vertical = ('description_loc', 'sharing_message_loc', 'out_of_range_message_loc',
+                       'legal_agreement_loc', 'demo_stream_message_loc')
     filter_horizontal = ('languages',)
     inlines = [ProjectGroupInline, ]
 
     fieldsets = (
         ('Basic Info', {
-            'fields': ('name', 'latitude', 'longitude', 'pub_date', 'auto_submit', 'languages')
+            'fields': ('name', 'owner', 'latitude', 'longitude', 'pub_date', 'auto_submit', 'languages')
         }),
         ('Configuration', {
             'fields': ('listen_enabled', 'geo_listen_enabled', 'speak_enabled', 'geo_speak_enabled',
                        'demo_stream_enabled', 'reset_tag_defaults_on_startup', 'timed_asset_priority',
-                       'max_recording_length', 'recording_radius', 'out_of_range_distance', 'audio_stream_bitrate', 'sharing_url',
-                       'out_of_range_url', 'demo_stream_url', 'files_url', 'files_version', 'repeat_mode',
-                       'ordering', 'audio_format')
+                       'max_recording_length', 'recording_radius', 'out_of_range_distance',
+                       'audio_stream_bitrate', 'sharing_url', 'out_of_range_url', 'demo_stream_url',
+                       'files_url', 'files_version', 'repeat_mode', 'ordering', 'audio_format')
         }),
         ('Localized Strings', {
-            'fields': ('sharing_message_loc', 'out_of_range_message_loc', 'legal_agreement_loc',
-                       'demo_stream_message_loc')
+            'fields': ('description_loc', 'sharing_message_loc', 'out_of_range_message_loc',
+                       'legal_agreement_loc', 'demo_stream_message_loc')
         }),
         ('Other', {
             'classes': ('collapse',),

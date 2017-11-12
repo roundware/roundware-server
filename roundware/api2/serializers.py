@@ -223,7 +223,7 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
         if "session" in self.context:
             session = self.context["session"]
         # localize strings per language associated with session
-        for field in ['demo_stream_message_loc', 'legal_agreement_loc',
+        for field in ['demo_stream_message_loc', 'legal_agreement_loc', 'description_loc',
                       'sharing_message_loc', 'out_of_range_message_loc']:
             result[field[:-4]] = _select_localized_string(result[field], session=session)
             del result[field]
