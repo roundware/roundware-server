@@ -11,6 +11,7 @@ from roundware.lib.api import request_stream, vote_count_by_asset
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from django.contrib.auth.models import User
+from django.conf import settings
 from datetime import datetime
 import time
 import re
@@ -230,6 +231,43 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
 
         result["language_ids"] = result["languages"]
         del result["languages"]
+        return result
+
+
+class ProjectChooserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = (
+            'id',
+            'name',
+            'owner',
+            'description_loc'
+        )
+
+    def to_representation(self, obj):
+        result = super(ProjectChooserSerializer, self).to_representation(obj)
+        result["project_id"] = result["id"]
+        del result["id"]
+        language_code = None
+        if "language_code" in self.context:
+            language_code = self.context["language_code"]
+        try:
+            lang = Language.objects.get(language_code=language_code)
+        except Language.DoesNotExist:
+            lang = Language.objects.get(language_code="en")
+        loc_str_ids = result["description_loc"]
+        # if any localized strings exist for description_loc, return only the
+        # string associated with the passed language_code
+        if loc_str_ids:
+            for loc_str_id in loc_str_ids:
+                loc_str = LocalizedString.objects.get(pk=loc_str_id)
+                if loc_str.language_id == lang.id:
+                    result["description_loc"] = loc_str.localized_string
+        else:
+            result["description_loc"] = ""
+        thumb = settings.MEDIA_URL + "project" + str(result["project_id"]) + "-thumb.png"
+        result["thumbnail_url"] = thumb
+
         return result
 
 

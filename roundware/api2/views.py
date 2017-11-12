@@ -805,6 +805,38 @@ class ProjectGroupViewSet(viewsets.ViewSet):
         projectgroup = self.get_object(pk)
         projectgroup.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @detail_route(methods=['get'])
+    def projects(self, request, pk=None):
+        """
+        GET api/2/projectgroups/:id/projects/ - Get Projects for specific ProjectGroup.
+        This is the initial call the transforming app will make to see what projects are available.
+        """
+        projectgroup = self.get_object(pk)
+        # check if project group is active
+        if not projectgroup.active:
+            return Response({"detail": "Project Group inactive; please try another one."})
+        # language_code is optional with "en" as default
+        if "language_code" in request.query_params:
+            lc = request.query_params["language_code"]
+        else:
+            lc = "en"
+        # if lat or lon don't exist, throw error message
+        if "latitude" in request.query_params and "longitude" in request.query_params:
+            lat = request.query_params["latitude"]
+            lon = request.query_params["longitude"]
+        else:
+            return Response({"detail": "Both latitude and longitude parameters are required."})
+        # filter for Projects in specified ProjectGroup
+        projects = Project.objects.filter(projectgroup__in=pk)
+        # filter for Projects at specified location
+        projects_geo_filter = get_projects_by_location(projects, lat, lon)
+        serializer = serializers.ProjectChooserSerializer(projects_geo_filter,
+                                                          context={"language_code": lc},
+                                                          many=True)
+        return Response(serializer.data)
+
+
 class SessionViewSet(viewsets.ViewSet):
     """
     API V2: api/2/sessions/
