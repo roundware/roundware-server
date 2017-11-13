@@ -18,7 +18,7 @@ from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, Envelop
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active,
-                               vote_count_by_asset, log_event, play)
+                               vote_count_by_asset, log_event, play, kill)
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
@@ -828,6 +828,7 @@ class StreamViewSet(viewsets.ViewSet):
             api/2/streams/:id/pause/
             api/2/streams/:id/resume/
             api/2/streams/:id/isactive/
+            api/2/streams/:id/kill/
     """
     permission_classes = (IsAuthenticated,)
 
@@ -918,6 +919,19 @@ class StreamViewSet(viewsets.ViewSet):
             return Response({
                 'stream_id': stream_id,
                 'active': result
+            })
+        except Exception as e:
+            return Response({"detail": str(e)},
+                            status.HTTP_400_BAD_REQUEST)
+
+    @detail_route(methods=['post'])
+    def kill(self, request, pk=None):
+        try:
+            result = kill(pk, "mp3")
+            stream_id = int(pk)
+            return Response({
+                'stream_id': stream_id,
+                'success': result
             })
         except Exception as e:
             return Response({"detail": str(e)},

@@ -42,6 +42,14 @@ class Admin:
                 return True
         return False
 
+    def kill_source(self, mount):
+        result = self.process_xml(
+            "/admin/killsource?mount=" + mount, "//icestats/source/@mount")
+        if not self.stream_exists(mount):
+            return True
+        else:
+            return False
+
     def process_xml(self, url, xpath):
         # logger.debug("Request: %s, auth=%s", self.base_uri + url, self.auth)
         response = requests.get(self.base_uri + url, auth=self.auth)
