@@ -476,6 +476,10 @@ def check_is_active(session_id):
 
     return stream_exists(session_id, audio_format)
 
+def kill(session_id, audio_format):
+    admin = icecast2.Admin()
+    result = admin.kill_source(icecast2.mount_point(session_id, audio_format))
+    return result
 
 # create_envelope
 # args: (operation, session_id, [tags])
