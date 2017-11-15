@@ -8,14 +8,15 @@ from django.shortcuts import get_object_or_404
 from django.http import Http404
 from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, Language, ListeningHistoryItem,
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag, TagCategory,
-                                 TagRelationship, TimedAsset, UIElementName, UIGroup, UIItem, UserProfile, Vote)
+                                 TagRelationship, TimedAsset, UIElement, UIElementName, UIGroup,
+                                 UIItem, UserProfile, Vote)
 from roundware.api2 import serializers
 from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EnvelopeFilterSet, EventFilterSet,
                                     LanguageFilterSet, ListeningHistoryItemFilterSet, LocalizedStringFilterSet,
                                     ProjectFilterSet, ProjectGroupFilterSet, SessionFilterSet, SpeakerFilterSet,
                                     TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
-                                    UIConfigFilterSet, UIElementNameFilterSet, UIGroupFilterSet,
-                                    UIItemFilterSet, VoteFilterSet)
+                                    UIConfigFilterSet, UIElementFilterSet, UIElementNameFilterSet,
+                                    UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active, get_projects_by_location,
@@ -1403,6 +1404,85 @@ class TimedAssetViewSet(viewsets.ViewSet):
         """
         timedasset = self.get_object(pk)
         timedasset.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UIElementViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/uielements/
+            api/2/uielements/:id/
+    """
+    queryset = UIElement.objects.all()
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
+
+    def get_object(self, pk):
+        try:
+            return UIElement.objects.get(pk=pk)
+        except UIElement.DoesNotExist:
+            raise Http404("UIElement not found")
+
+    def list(self, request):
+        """
+        GET api/2/uielements/ - Provides list of UIElements filtered by parameters
+        """
+        uielements = UIElementFilterSet(request.query_params)
+        serializer = serializers.UIElementSerializer(uielements, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/uielements/:id/ - Get UIElement by id
+        """
+        uielement = self.get_object(pk)
+        serializer = serializers.UIElementSerializer(uielement)
+        return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/uielements/ - Create a new UIElement
+        """
+        if 'project_id' in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
+        if 'uielementname_id' in request.data:
+            request.data['uielementname'] = request.data['uielementname_id']
+            del request.data['uielementname_id']
+        if 'label_text_loc_ids' in request.data:
+            request.data['label_text_loc'] = request.data['label_text_loc_ids']
+            del request.data['label_text_loc_ids']
+        serializer = serializers.UIElementSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/uielements/:id/ - Update existing UIElement
+        """
+        uielement = self.get_object(pk)
+        if 'project_id' in request.data:
+            request.data['project'] = request.data['project_id']
+            del request.data['project_id']
+        if 'uielementname_id' in request.data:
+            request.data['uielementname'] = request.data['uielementname_id']
+            del request.data['uielementname_id']
+        if 'label_text_loc_ids' in request.data:
+            request.data['label_text_loc'] = request.data['label_text_loc_ids']
+            del request.data['label_text_loc_ids']
+        serializer = serializers.UIElementSerializer(uielement, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/uielements/:id/ - Delete a UIElement
+        """
+        uielement = self.get_object(pk)
+        uielement.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

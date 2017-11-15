@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag,
-                                 TagCategory, TagRelationship, TimedAsset, UIElementName,
+                                 TagCategory, TagRelationship, TimedAsset, UIElement, UIElementName,
                                  UIGroup, UIItem, Vote)
 from roundware.lib.api import request_stream, vote_count_by_asset
 from rest_framework import serializers
@@ -515,6 +515,21 @@ class UIConfigItemSerializer(serializers.ModelSerializer):
         if self.context["mode"] == "listen":
             result['parent_id'] = None
 
+        return result
+
+
+class UIElementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UIElement
+
+    def to_representation(self, obj):
+        result = super(UIElementSerializer, self).to_representation(obj)
+        result['label_text_loc_ids'] = result['label_text_loc']
+        del result['label_text_loc']
+        result['uielementname_id'] = result['uielementname']
+        del result['uielementname']
+        result['project_id'] = result['project']
+        del result['project']
         return result
 
 
