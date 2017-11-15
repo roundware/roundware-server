@@ -375,6 +375,26 @@ class UIItemAdmin(ProjectProtectedThroughUIModelAdmin):
     save_as = True
 
 
+class UIElementAdmin(ProjectProtectedModelAdmin):
+    list_display = ('id', 'uielementname', 'variant', 'file_extension', 'project')
+    list_filter = ('project',)
+    ordering = ['project']
+    list_editable = ('uielementname', 'variant', 'file_extension', 'project')
+    filter_horizontal = ('label_text_loc',)
+
+
+class UIElementNameAdmin(ProjectProtectedModelAdmin):
+    list_display = ('id', 'name', 'view', 'description')
+    list_filter = ('view',)
+    ordering = ['view']
+    list_editable = ('view',)
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'view', 'description',)
+        }),
+    )
+
+
 class AudiotrackAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'project', 'norm_minduration',
                     'norm_maxduration', 'norm_mindeadair', 'norm_maxdeadair')
@@ -504,6 +524,8 @@ admin.site.register(TagCategory, TagCategoryAdmin)
 admin.site.register(TagRelationship, TagRelationshipAdmin)
 admin.site.register(UIGroup, UIGroupAdmin)
 admin.site.register(UIItem, UIItemAdmin)
+admin.site.register(UIElement, UIElementAdmin)
+admin.site.register(UIElementName, UIElementNameAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(ProjectGroup, ProjectGroupAdmin)
 admin.site.register(Event, EventAdmin)
