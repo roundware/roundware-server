@@ -3,7 +3,7 @@
 
 from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag, TagCategory,
-                                 TagRelationship, TimedAsset, UIItem, UIGroup, Vote)
+                                 TagRelationship, TimedAsset, UIElementName, UIItem, UIGroup, Vote)
 from distutils.util import strtobool
 import django_filters
 
@@ -230,6 +230,14 @@ class UIConfigFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = UIGroup
+
+
+class UIElementNameFilterSet(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_type='contains')
+    view = django_filters.TypedChoiceFilter(choices=UIElementName.VIEWS)
+
+    class Meta:
+        model = UIElementName
 
 
 class UIGroupFilterSet(django_filters.FilterSet):
