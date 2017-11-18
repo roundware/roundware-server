@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.http import Http404
+from django.conf import settings
 from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, Language, ListeningHistoryItem,
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIElement, UIElementName, UIGroup,
@@ -34,6 +35,7 @@ import logging
 from random import sample
 from datetime import datetime
 from distutils.util import strtobool
+from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 
@@ -593,11 +595,13 @@ class LocalizedStringViewSet(viewsets.ViewSet):
 
 class ProjectViewSet(viewsets.ViewSet):
     """
-    API V2: api/2/projects/:id/
+    API V2: api/2/projects/
+            api/2/projects/:id/
             api/2/projects/:id/tags/
             api/2/projects/:id/uigroups/
             api/2/projects/:id/uiconfig/
             api/2/projects/:id/assets/
+            api/2/projects/:id/uielements/
     """
     queryset = Project.objects.all()
     permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
@@ -737,6 +741,49 @@ class ProjectViewSet(viewsets.ViewSet):
         # serialize and return
         serializer = serializers.AssetSerializer(assets, context={"admin": "admin" in request.query_params}, many=True)
         return Response(serializer.data)
+
+    @detail_route(methods=['get'])
+    def uielements(self, request, pk=None):
+        """
+        GET api/2/projects/:id/uielements/ - Get UIElements for specific Project
+        """
+        params = request.query_params.copy()
+        if "language_code" in params:
+            try:
+                lc = Language.objects.get(language_code=params["language_code"])
+            except:
+                raise ParseError("Language Code not found")
+        else:
+            lc = Language.objects.get(language_code="en")
+        if "variant" not in params:
+            raise ParseError("Variant param is required.")
+        params["project_id"] = pk
+        uielements = UIElementFilterSet(params)
+        r = {}
+        # build data structure for each view individually
+        for uielementview in UIElementName.VIEWS:
+            current_ids = []
+            for uielement in uielements:
+                if uielement.uielementname.view == str(uielementview[0]):
+                    current_ids.append(uielement.id)
+            currentview_uielements = UIElement.objects.filter(id__in=current_ids)
+            serializer = serializers.UIElementProjectSerializer(currentview_uielements,
+                                                                context={"lc": lc.language_code},
+                                                                many=True)
+            # convert from list of dictionaries to dictionary of nested dictionaries
+            s = {}
+            for element in serializer.data:
+                for key, value in element.items():
+                    s[key] = value
+            r[str(uielementview[0])] = s
+
+        # different graphic asset zip file for each variant for each project
+        zip_url = settings.MEDIA_URL + "project" + pk + "-uielements" + params['variant'] + ".zip"
+        # put config as first item for human readability
+        result = OrderedDict()
+        result['config'] = { "files_url": zip_url}
+        result['uielements'] = r
+        return Response(result)
 
 
 class ProjectGroupViewSet(viewsets.ViewSet):
