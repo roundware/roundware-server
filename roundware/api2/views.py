@@ -20,7 +20,7 @@ from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_
                                save_asset_from_request, vote_asset, check_is_active,
                                vote_count_by_asset, log_event, play, kill)
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
-from rest_framework import viewsets, status, mixins
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
@@ -77,30 +77,7 @@ class AssetPagination(PageNumberPagination):
     max_page_size = 10000
 
 
-class AssetListModelMixin(mixins.ListModelMixin):
-    # move list() over-ride to mixin in order to enable OrderingFilter
-    # to function properly in default manner
-    def list(self, request):
-        """
-        GET api/2/assets/ - retrieve list of Assets filtered by parameters,
-        with optional pagination and ordering
-        """
-        assets = self.filter_queryset(self.get_queryset())
-        if "paginate" in request.query_params:
-            paginate = strtobool(request.query_params['paginate'])
-        else:
-            paginate = False
-
-        page = self.paginate_queryset(assets)
-        if page is not None and paginate:
-            serializer = serializers.AssetSerializer(page, context={"admin": "admin" in request.query_params}, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(assets, context={"admin": "admin" in request.query_params}, many=True)
-        return Response(serializer.data)
-
-
-class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin, AssetListModelMixin,):
+class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
     """
     API V2: api/2/assets/
             api/2/assets/:id/
@@ -117,26 +94,23 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin, AssetListModel
     ordering_fields = ('id', 'session_id', 'audiolength', 'weight', 'volume')
     filter_class = AssetFilterSet
 
-    # def list(self, request):
-    #     """
-    #     GET api/2/assets/ - retrieve list of Assets filtered by parameters
-    #     """
-    #     # can I order the response from a filterset? manual ordering for a handful of fields wouldn't be too hard to do
-    #     assets = AssetFilterSet(request.query_params)
-    #     # logger.info("assets filterset: %s" % assets.data.order_by('-id'))
-    #     if "paginate" in request.query_params:
-    #         paginate = strtobool(request.query_params['paginate'])
-    #     else:
-    #         paginate = False
+    def list(self, request):
+        """
+        GET api/2/assets/ - retrieve list of Assets filtered by parameters
+        """
+        assets = self.filter_queryset(self.get_queryset())
+        if "paginate" in request.query_params:
+            paginate = strtobool(request.query_params['paginate'])
+        else:
+            paginate = False
 
-    #     page = self.paginate_queryset(assets)
-    #     if page is not None and paginate:
-    #         serializer = serializers.AssetSerializer(page, context={"admin": "admin" in request.query_params}, many=True)
-    #         return self.get_paginated_response(serializer.data)
+        page = self.paginate_queryset(assets)
+        if page is not None and paginate:
+            serializer = self.get_serializer(page, context={"admin": "admin" in request.query_params}, many=True)
+            return self.get_paginated_response(serializer.data)
 
-    #     serializer = serializers.AssetSerializer(assets, context={"admin": "admin" in request.query_params}, many=True)
-    #     # logger.info("assets serializer: %s" % serializer.data.order_by('-id'))
-    #     return Response(serializer.data)
+        serializer = self.get_serializer(assets, context={"admin": "admin" in request.query_params}, many=True)
+        return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
         """
