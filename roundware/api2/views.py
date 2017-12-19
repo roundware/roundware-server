@@ -27,7 +27,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.filters import OrderingFilter
+from rest_framework.filters import OrderingFilter, DjangoFilterBackend
 import logging
 from random import sample
 from datetime import datetime
@@ -90,7 +90,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
     permission_classes = (IsAuthenticated,)
     pagination_class = AssetPagination
     serializer_class = serializers.AssetSerializer
-    filter_backends = (OrderingFilter, )
+    filter_backends = (DjangoFilterBackend, OrderingFilter,)
     ordering_fields = ('id', 'session_id', 'audiolength', 'weight', 'volume')
     filter_class = AssetFilterSet
 
