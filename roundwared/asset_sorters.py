@@ -45,7 +45,7 @@ def order_assets_by_weight(assets):
 def order_assets_randomly(assets):
     # logger.debug("Ordering Assets Randomly. Input: %s" % (assets,))
     random.shuffle(assets)
-    logger.debug("Ordering Assets Randomly. Output: %s" % (assets,))
+    # logger.debug("Ordering Assets Randomly. Output: %s" % (assets,))
     return assets
 
 

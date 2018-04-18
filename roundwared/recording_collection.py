@@ -222,7 +222,7 @@ class RecordingCollection:
         """
         Order assets by ordering method set in project config
         """
-        logger.debug("Ordering assets by: %s" % self.ordering)
+        # logger.debug("Ordering assets by: %s" % self.ordering)
         if self.ordering == 'random':
             return order_assets_randomly(assets)
         elif self.ordering == 'by_like':
