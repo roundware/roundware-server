@@ -867,6 +867,303 @@
     }
 },
 {
+    "model": "rw.uielementname",
+    "pk": 1,
+    "fields": {
+        "name": "home-bg",
+        "description": "",
+        "view": "home"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 2,
+    "fields": {
+        "name": "home-speak-btn",
+        "description": "",
+        "view": "home"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 3,
+    "fields": {
+        "name": "home-listen-btn",
+        "description": "",
+        "view": "home"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 4,
+    "fields": {
+        "name": "home-info-btn",
+        "description": "",
+        "view": "home"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 5,
+    "fields": {
+        "name": "home-header",
+        "description": "",
+        "view": "home"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 6,
+    "fields": {
+        "name": "listen-bg",
+        "description": "",
+        "view": "listen"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 7,
+    "fields": {
+        "name": "listen-more-btn",
+        "description": "",
+        "view": "listen"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 8,
+    "fields": {
+        "name": "listen-speak-btn",
+        "description": "",
+        "view": "listen"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 9,
+    "fields": {
+        "name": "listen-play-btn",
+        "description": "",
+        "view": "listen"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 10,
+    "fields": {
+        "name": "listen-pause-btn",
+        "description": "",
+        "view": "listen"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 11,
+    "fields": {
+        "name": "listen-home-btn",
+        "description": "",
+        "view": "listen"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 12,
+    "fields": {
+        "name": "listen-instructions",
+        "description": "",
+        "view": "listen"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 13,
+    "fields": {
+        "name": "listen-header",
+        "description": "",
+        "view": "listen"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 14,
+    "fields": {
+        "name": "listentags-bg",
+        "description": "",
+        "view": "listentags"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 15,
+    "fields": {
+        "name": "listentags-selectall-btn",
+        "description": "",
+        "view": "listentags"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 16,
+    "fields": {
+        "name": "listentags-apply-btn",
+        "description": "",
+        "view": "listentags"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 17,
+    "fields": {
+        "name": "listentags-header",
+        "description": "",
+        "view": "listentags"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 18,
+    "fields": {
+        "name": "speaktags-bg",
+        "description": "",
+        "view": "speaktags"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 19,
+    "fields": {
+        "name": "speaktags-cancel-btn",
+        "description": "",
+        "view": "speaktags"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 20,
+    "fields": {
+        "name": "speaktags-header",
+        "description": "",
+        "view": "speaktags"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 21,
+    "fields": {
+        "name": "speak-bg",
+        "description": "",
+        "view": "speak"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 22,
+    "fields": {
+        "name": "speak-cancel-btn",
+        "description": "",
+        "view": "speak"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 23,
+    "fields": {
+        "name": "speak-rerecord-btn",
+        "description": "",
+        "view": "speak"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 24,
+    "fields": {
+        "name": "speak-upload-btn",
+        "description": "",
+        "view": "speak"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 25,
+    "fields": {
+        "name": "speak-play-btn",
+        "description": "",
+        "view": "speak"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 26,
+    "fields": {
+        "name": "speak-stop-btn",
+        "description": "",
+        "view": "speak"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 27,
+    "fields": {
+        "name": "speak-record-btn",
+        "description": "",
+        "view": "speak"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 28,
+    "fields": {
+        "name": "speak-instructions",
+        "description": "",
+        "view": "speak"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 29,
+    "fields": {
+        "name": "speak-header",
+        "description": "",
+        "view": "speak"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 30,
+    "fields": {
+        "name": "thankyou-listen-btn",
+        "description": "",
+        "view": "thankyou"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 31,
+    "fields": {
+        "name": "thankyou-speak-btn",
+        "description": "",
+        "view": "thankyou"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 32,
+    "fields": {
+        "name": "thankyou-share-btn",
+        "description": "",
+        "view": "thankyou"
+    }
+},
+{
+    "model": "rw.uielementname",
+    "pk": 33,
+    "fields": {
+        "name": "thankyou-header",
+        "description": "",
+        "view": "thankyou"
+    }
+},
+{
     "model": "rw.audiotrack",
     "pk": 1,
     "fields": {
@@ -896,7 +1193,7 @@
         "latitude": 1.0,
         "longitude": 1.0,
         "filename": "rw_test_audio1.wav",
-        "file": "",
+        "file": "rw_test_audio1.wav",
         "volume": 1.0,
         "submitted": true,
         "project": 1,
