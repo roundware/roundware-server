@@ -925,7 +925,11 @@ class SessionViewSet(viewsets.ViewSet):
         # set language properly based on either language or language_id param
         # default to 1/"en" if none passed
         if "language" in request.data:
-            lang = Language.objects.get(language_code=request.data['language'])
+            l = request.data['language']
+            # convert from long-form language code if necessary
+            if '-' in l:
+                l = l.split('-')[0]
+            lang = Language.objects.get(language_code=l)
             request.data['language'] = lang.pk
         elif "language_id" in request.data:
             request.data['language'] = request.data['language_id']
