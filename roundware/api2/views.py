@@ -26,17 +26,58 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import OrderingFilter, DjangoFilterBackend
 import logging
 from random import sample
 from datetime import datetime
+from distutils.util import strtobool
 
 logger = logging.getLogger(__name__)
 
 
 # Note: Keep this stuff in alphabetical order!
 
+class AssetPaginationMixin(object):
 
-class AssetViewSet(viewsets.ViewSet):
+    @property
+    def paginator(self):
+        """
+        The paginator instance associated with the view, or `None`.
+        """
+        if not hasattr(self, '_paginator'):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        return self._paginator
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination
+        is disabled.
+        """
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(
+            queryset, self.request, view=self)
+
+    def get_paginated_response(self, data):
+        """
+        Return a paginated style `Response` object for the given
+        output data.
+        """
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
+
+class AssetPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 10000
+
+
+class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
     """
     API V2: api/2/assets/
             api/2/assets/:id/
@@ -47,13 +88,28 @@ class AssetViewSet(viewsets.ViewSet):
     # TODO: Implement DjangoObjectPermissions
     queryset = Asset.objects.all()
     permission_classes = (IsAuthenticated,)
+    pagination_class = AssetPagination
+    serializer_class = serializers.AssetSerializer
+    filter_backends = (DjangoFilterBackend, OrderingFilter,)
+    ordering_fields = ('id', 'session_id', 'audiolength', 'weight', 'volume')
+    filter_class = AssetFilterSet
 
     def list(self, request):
         """
         GET api/2/assets/ - retrieve list of Assets filtered by parameters
         """
-        assets = AssetFilterSet(request.query_params)
-        serializer = serializers.AssetSerializer(assets, context={"admin": "admin" in request.query_params}, many=True)
+        assets = self.filter_queryset(self.get_queryset())
+        if "paginate" in request.query_params:
+            paginate = strtobool(request.query_params['paginate'])
+        else:
+            paginate = False
+
+        page = self.paginate_queryset(assets)
+        if page is not None and paginate:
+            serializer = self.get_serializer(page, context={"admin": "admin" in request.query_params}, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(assets, context={"admin": "admin" in request.query_params}, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -73,8 +129,11 @@ class AssetViewSet(viewsets.ViewSet):
         """
         if "file" not in request.data:
             raise ParseError("Must supply file for asset content")
+        if not request.data["envelope_ids"].isdigit():
+            raise ParseError("Must provide a single envelope_id in envelope_ids parameter for POST. "
+                             "You can add more envelope_ids in subsequent PATCH calls")
         try:
-            result = add_asset_to_envelope(request, envelope_id=request.data["envelope_id"])
+            result = add_asset_to_envelope(request, envelope_id=request.data["envelope_ids"])
         except Exception as e:
             return Response({"detail": str(e)}, status.HTTP_400_BAD_REQUEST)
         asset_obj = Asset.objects.get(pk=result['asset_id'])
@@ -617,7 +676,7 @@ class ProjectViewSet(viewsets.ViewSet):
         tags = get_project_tags(p=pk)
         serializer = serializers.TagSerializer(tags, context={"session": session,
                                                               "admin": "admin" in request.query_params}, many=True)
-        return Response({"tags": serializer.data})
+        return Response(serializer.data)
 
     @detail_route(methods=['get'])
     def uigroups(self, request, pk=None):
@@ -635,7 +694,7 @@ class ProjectViewSet(viewsets.ViewSet):
         serializer = serializers.UIGroupSerializer(uigroups,
                                                    context={"admin": "admin" in request.query_params,
                                                             "session": session}, many=True)
-        return Response({"ui_groups": serializer.data})
+        return Response(serializer.data)
 
     @detail_route(methods=['get'])
     def uiconfig(self, request, pk=None):
@@ -966,7 +1025,7 @@ class TagViewSet(viewsets.ViewSet):
                 raise ParseError("Session not found")
         serializer = serializers.TagSerializer(tags, context={"admin": "admin" in request.query_params,
                                                               "session": session}, many=True)
-        return Response({"tags": serializer.data})
+        return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
         """
@@ -1274,7 +1333,7 @@ class UIGroupViewSet(viewsets.ViewSet):
         serializer = serializers.UIGroupSerializer(uigroups,
                                                    context={"admin": "admin" in request.query_params,
                                                             "session": session}, many=True)
-        return Response({"ui_groups": serializer.data})
+        return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
         """

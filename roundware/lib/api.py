@@ -638,7 +638,7 @@ def save_asset_from_request(request, session, asset=None):
         alt_locset = []
         alt_text_loc_ids = get_parameter_from_request(request, 'alt_text_loc_ids')
         if alt_text_loc_ids is not None:
-            ids = description_loc_ids.rstrip(',').split(',')
+            ids = alt_text_loc_ids.rstrip(',').split(',')
             try:
                 alt_locset = models.LocalizedString.objects.filter(id__in=ids)
             except:
