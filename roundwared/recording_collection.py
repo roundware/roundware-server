@@ -8,6 +8,7 @@ import logging
 import threading
 import os.path
 from time import time
+import math
 try:
     from profiling import profile
 except ImportError: # pragma: no cover
@@ -15,8 +16,10 @@ except ImportError: # pragma: no cover
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon
+from geopy.distance import VincentyDistance
 from roundwared import gpsmixer
+from roundwared import gpsposn
 from roundware.rw.models import Asset, Project, TimedAsset, Session, Vote, UserProfile
 from roundwared import db
 from roundwared.asset_sorters import order_assets_randomly, order_assets_by_like, order_assets_by_weight
@@ -100,6 +103,19 @@ class RecordingCollection:
                       ))
         if lock:
             self.lock.release()
+
+
+    def bearing_to(self, posn_origin, posn_destination):
+        lat1 = math.radians(posn_origin.coords[1])
+        lat2 = math.radians(posn_destination.coords[1])
+        dLon = math.radians(posn_destination.coords[0] - posn_origin.coords[0])
+        y = math.sin(dLon) * math.cos(lat2)
+        x = math.cos(lat1) * math.sin(lat2) \
+            - math.sin(lat1) * math.cos(lat2) \
+            * math.cos(dLon)
+        brng = math.atan2(y, x)
+        return (math.degrees(brng) + 360) % 360
+
 
     # Gets a new recording to play.
     # @profile(stats=True)
@@ -251,15 +267,63 @@ class RecordingCollection:
 
     def _is_nearby(self, request, recording):
         """
-        True if the request and recording are close enough to be heard.
+        True if the request and recording are close enough to be heard
+        per the active listening mode
         """
         if not self.s.geo_listen_enabled:
             return True
 
         # lat/lon of listener must be passed in order to check distance
         if 'latitude' in request and 'longitude' in request:
-            # first, if listener_range_max parameter has been passed by user with value
-            if 'listener_range_max' in request and request['listener_range_max'] is not None:
+            # first, if heading param is present, use directional listening mode
+            if 'listener_heading' in request and request['listener_heading'] is not None:
+                R = 6371000.0  # The radius of the Earth (m)
+                lh = request['listener_heading']
+                # assume listener_width is 30 degrees unless passed in request
+                if 'listener_width' in request and request['listener_width'] is not None:
+                    lw = request['listener_width']
+                else:
+                    lw = 30
+                # assume listener_range_min is 0 unless passed in request
+                if 'listener_range_min' in request and request['listener_range_min'] is not None:
+                    lr_min = request['listener_range_min']
+                else:
+                    lr_min = 0
+                # assume listener_range_max is half the circumference of the earth unless passed in request
+                if 'listener_range_max' in request and request['listener_range_max'] is not None:
+                    lr_max = request['listener_range_max']
+                else:
+                    lr_max = math.pi * R
+                center = Point(float(request['longitude']), float(request['latitude']))
+                asset_location = Point(recording.longitude, recording.latitude)
+                # check if asset is within distance range and heading angle range
+                # first, calculate heading from listener to asset
+                asset_heading = self.bearing_to(center, asset_location)
+                logger.info('heading to asset %s = %s', recording.id, asset_heading)
+                # calculate distance between listener and asset
+                asset_distance = gpsmixer.distance_in_meters(
+                    request['latitude'], request['longitude'],
+                    recording.latitude, recording.longitude)
+                logger.info('distance to asset %s = %s', recording.id, asset_distance)
+                logger.info('lr_min / lr_max -  %s / %s', lr_min, lr_max)
+                # check if asset is within distance
+                if lr_min <= asset_distance <= lr_max:
+                    # if so, see if within heading range
+                    heading_min = lh - (lw/2)
+                    heading_max = lh + (lw/2)
+                    logger.info('heading_min / heading_max -  %s / %s', heading_min, heading_max)
+                    if heading_min <= asset_heading <= heading_max:
+                        logger.info("asset_id=%s within listener's directional ranges: true", recording.id)
+                        return True
+                    else:
+                        logger.info("asset_id=%s within listener's directional ranges: false", recording.id)
+                        return False
+                else:
+                    logger.info("asset_id=%s within listener's distance ranges: false", recording.id)
+                    return False
+
+            # then, if listener_range_max parameter has been passed by user with value
+            elif 'listener_range_max' in request and request['listener_range_max'] is not None:
                 # assume listener_range_min is 0 unless passed in request
                 if 'listener_range_min' in request and request['listener_range_min'] is not None:
                     lr_min = request['listener_range_min']
@@ -277,7 +341,7 @@ class RecordingCollection:
                 inside = listener_location.intersects(recording.shape)
                 logger.info("listener within asset_id=%s geometry: %s", recording.id, inside)
                 return inside
-            # finally, if no listener_range_max or asset.shape, use default project radius
+            # finally, if no listener_heading, listener_range_max or asset.shape, use default project radius
             else:
                 distance = gpsmixer.distance_in_meters(
                     request['latitude'], request['longitude'],
@@ -384,4 +448,3 @@ class RecordingCollection:
             # extend user_blocked_list without duplicates
             self.user_blocked_list.extend(x for x in blocked_user_assets if x not in self.user_blocked_list)
         logger.info("user_blocked_list = %s", self.user_blocked_list)
-
