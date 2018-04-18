@@ -12,12 +12,24 @@ BOOLEAN_CHOICES = (('false', False), ('true', True),
 
 
 class IntegerListFilter(django_filters.Filter):
+    # perform OR filter with list of integers
     def filter(self, qs, value):
         if value not in (None, ''):
             integers = [int(v) for v in value.split(',')]
             return qs.filter(**{'%s__%s' % (self.name, self.lookup_type): integers})
         return qs
 
+class IntegerListAndFilter(django_filters.Filter):
+    # perform AND filter with list of integers
+    def filter(self, qs, value):
+        if value not in (None, ''):
+            integers = [int(v) for v in value.split(',')]
+            # loop through each integer in list filtering each time to return only
+            # objects that contain ALL integers, not ANY integers;
+            # effectively, this creates a chain of .filters
+            for i in integers:
+                qs = qs.filter(**{'%s' % (self.name): i})
+        return qs
 
 class WordListFilter(django_filters.Filter):
     def filter(self, qs, value):
@@ -38,7 +50,9 @@ class NanoNumberFilter(django_filters.NumberFilter):
 class AssetFilterSet(django_filters.FilterSet):
     session_id = django_filters.NumberFilter()
     project_id = django_filters.NumberFilter()
-    tag_ids = IntegerListFilter(name='tags', lookup_type='in')
+    # TODO: allow param to choose between AND or OR filtering
+    # tag_ids = IntegerListFilter(name='tags', lookup_type='in') # performs OR filtering
+    tag_ids = IntegerListAndFilter(name='tags__id') # performs AND filtering
     media_type = django_filters.CharFilter(name='mediatype')
     language = django_filters.CharFilter(name='language__language_code')
     envelope_id = django_filters.NumberFilter()
