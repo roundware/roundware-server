@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 
 from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag,
-                                 TagCategory, TagRelationship, TimedAsset, UIGroup, UIItem, Vote)
+                                 TagCategory, TagRelationship, TimedAsset, UIElement, UIElementName,
+                                 UIGroup, UIItem, Vote)
 from roundware.lib.api import request_stream, vote_count_by_asset
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
@@ -517,6 +518,51 @@ class UIConfigItemSerializer(serializers.ModelSerializer):
         return result
 
 
+class UIElementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UIElement
+
+    def to_representation(self, obj):
+        result = super(UIElementSerializer, self).to_representation(obj)
+        result['label_text_loc_ids'] = result['label_text_loc']
+        del result['label_text_loc']
+        result['uielementname_id'] = result['uielementname']
+        del result['uielementname']
+        result['project_id'] = result['project']
+        del result['project']
+        return result
+
+
+class UIElementProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UIElement
+        exclude = ('id', 'project', 'variant', 'file_extension')
+
+    def to_representation(self, obj):
+        result = super(UIElementProjectSerializer, self).to_representation(obj)
+        uien = UIElementName.objects.filter(id=result['uielementname'])[0]
+
+        # concatenate full file name for client convenience
+        result['file_name'] = uien.name + obj.variant + "." + obj.file_extension
+
+        # display localized label text
+        lt = _select_localized_string_with_code(result['label_text_loc'], self.context["lc"])
+        result['label_text'] = lt
+
+        del result['uielementname']
+        del result['label_text_loc']
+        return {uien.name: result}
+
+
+class UIElementNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UIElementName
+
+    def to_representation(self, obj):
+        result = super(UIElementNameSerializer, self).to_representation(obj)
+        return result
+
+
 class UIGroupSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = UIGroup
@@ -618,3 +664,17 @@ def _select_localized_string(loc_str_ids, session=None):
             return loc_str.localized_string
     return None
 
+
+def _select_localized_string_with_code(loc_str_ids, language_code):
+    if language_code is not None:
+        try:
+            lang = Language.objects.get(language_code=language_code)
+        except Language.DoesNotExist:
+            lang = Language.objects.get(language_code="en")
+    else:
+        lang = Language.objects.get(language_code="en")
+    for loc_str_id in loc_str_ids:
+        loc_str = LocalizedString.objects.get(pk=loc_str_id)
+        if loc_str.language == lang:
+            return loc_str.localized_string
+    return None

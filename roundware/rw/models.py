@@ -652,6 +652,73 @@ class TimedAsset(models.Model):
         verbose_name_plural = 'Timed Assets'
 
 
+class UIElement(models.Model):
+    """
+    UI elements used to skin various versions of the transformer app
+    """
+    VARIANTS = (
+        ('@2x', '@2x'),
+        ('@3x', '@3x'),
+        ('-iPad@2x', 'iPad@2x'),
+        ('-iPad@3x', 'iPad@3x'),
+        ('-mdpi', 'mdpi'),
+        ('-hdpi', 'hdpi'),
+        ('-xhdpi', 'xhdpi'),
+        ('-xxhdpi', 'xxhdpi'),
+        ('-xxxhdpi', 'xxxhdpi')
+    )
+    FILE_EXTENSIONS = (
+        ('png', 'png'),
+        ('jpg', 'jpg'),
+    )
+    LABEL_POSITIONS = (
+        ('text_below', 'text below image'),
+        ('text_overlay', 'text overlaid on image'),
+    )
+    uielementname = models.ForeignKey('UIElementName', verbose_name="UI Element Name")
+    variant = models.CharField(max_length=15, choices=VARIANTS)
+    file_extension = models.CharField(max_length=10, choices=FILE_EXTENSIONS,
+                                      verbose_name="File Extension")
+    project = models.ForeignKey(Project)
+    label_text_loc = models.ManyToManyField(LocalizedString, related_name='label_text_string',
+                                            blank=True, verbose_name="Label Text")
+    label_text_color = models.CharField(max_length=10, blank=True, verbose_name="Label Text Color (hex)")
+    label_position = models.CharField(max_length=20, blank=True, verbose_name="Label Position",
+                                      choices=LABEL_POSITIONS)
+
+    def __unicode__(self):
+        return self.project.name + ":" + self.uielementname.name + self.variant + "." + self.file_extension
+
+    class Meta:
+        verbose_name = 'UI Element'
+        verbose_name_plural = 'UI Elements'
+
+
+class UIElementName(models.Model):
+    """
+    UI element names for graphic assets that are used in client UI
+    This is used for the transformer app
+    """
+    VIEWS = (
+        ('home', 'home'),
+        ('listen', 'listen'),
+        ('speak', 'speak'),
+        ('listentags', 'listen tags'),
+        ('speaktags', 'speak tags'),
+        ('thankyou', 'thank you'),
+    )
+    name = models.CharField(max_length=30)
+    description = models.TextField(null=True, blank=True)
+    view = models.CharField(max_length=20, choices=VIEWS)
+
+    def __unicode__(self):
+        return str(self.id) + ":" + self.view + ": " + self.name
+
+    class Meta:
+        verbose_name = 'UI Element Name'
+        verbose_name_plural = 'UI Element Names'
+
+
 class UIGroup(models.Model):
     """
     A representation of how Tags should be grouped in client UI
