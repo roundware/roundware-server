@@ -36,6 +36,10 @@ from random import sample
 from datetime import datetime
 from distutils.util import strtobool
 from collections import OrderedDict
+try:
+    from profiling import profile
+except ImportError: # pragma: no cover
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +94,8 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
     """
 
     # TODO: Implement DjangoObjectPermissions
-    queryset = Asset.objects.all()
+    queryset = Asset.objects.prefetch_related('tags', 'loc_description', 'loc_alt_text', 'envelope') \
+                            .select_related('session', 'project', 'language', 'initialenvelope').all()
     permission_classes = (IsAuthenticated,)
     pagination_class = AssetPagination
     serializer_class = serializers.AssetSerializer
@@ -98,6 +103,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
     ordering_fields = ('id', 'session_id', 'audiolength', 'weight', 'volume')
     filter_class = AssetFilterSet
 
+    # @profile(stats=True)
     def list(self, request):
         """
         GET api/2/assets/ - retrieve list of Assets filtered by parameters
