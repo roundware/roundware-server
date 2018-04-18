@@ -856,3 +856,25 @@ def vote_count_by_asset(asset_id):
             if count["type"] == "rate":
                 count["avg"] = avg["value__avg"]
     return counts
+
+def get_projects_by_location(projects, lat, lon):
+    """
+    Filters Projects by location, using active speaker ranges;
+    includes global listen projects.
+    """
+    available_projects = []
+    for project in projects:
+        # if global project, add to new available_projects list
+        if not project.geo_listen_enabled:
+            available_projects.append(project)
+        # if not global, get active speakers and see if lat/lon contained in any active speaker
+        else:
+            speakers = models.Speaker.objects.filter(project=project, activeyn=True)
+            for speaker in speakers:
+                user_location = Point(float(lat), float(lon), srid=speaker.shape.srid)
+                inside = user_location.intersects(speaker.shape)
+                # as soon as one speaker is contained, stop iterating and add project to available_projects
+                if inside:
+                    available_projects.append(project)
+                    break
+    return available_projects

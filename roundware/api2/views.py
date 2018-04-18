@@ -7,17 +7,17 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, Language, ListeningHistoryItem,
-                                 LocalizedString, Project, Session, Speaker, Tag, TagCategory,
+                                 LocalizedString, Project, ProjectGroup, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIGroup, UIItem, UserProfile, Vote)
 from roundware.api2 import serializers
 from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, EnvelopeFilterSet, EventFilterSet,
                                     LanguageFilterSet, ListeningHistoryItemFilterSet, LocalizedStringFilterSet,
-                                    ProjectFilterSet, SessionFilterSet, SpeakerFilterSet, TagFilterSet,
-                                    TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
+                                    ProjectFilterSet, ProjectGroupFilterSet, SessionFilterSet, SpeakerFilterSet,
+                                    TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
                                     UIConfigFilterSet, UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
-                               save_asset_from_request, vote_asset, check_is_active,
+                               save_asset_from_request, vote_asset, check_is_active, get_projects_by_location,
                                vote_count_by_asset, log_event, play, kill)
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from rest_framework import viewsets, status
@@ -737,6 +737,106 @@ class ProjectViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
+class ProjectGroupViewSet(viewsets.ViewSet):
+    """
+    API V2: api/2/projectgroups/
+            api/2/projectgroups/:id/
+            api/2/projectgroups/:id/projects/
+    """
+    queryset = ProjectGroup.objects.all()
+    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
+
+    def get_object(self, pk):
+        try:
+            return ProjectGroup.objects.get(pk=pk)
+        except ProjectGroup.DoesNotExist:
+            raise Http404("ProjectGroup not found")
+
+    def list(self, request):
+        """
+        GET api/2/projectgroups/ - Provides list of ProjectGroups filtered by parameters
+        """
+        projectgroups = ProjectGroupFilterSet(request.query_params)
+        logger.info('ProjectGroup = %s' % projectgroups)
+        serializer = serializers.ProjectGroupSerializer(projectgroups, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/projectgroups/:id/ - Get ProjectGroup by id
+        """
+        projectgroup = self.get_object(pk)
+        serializer = serializers.ProjectGroupSerializer(projectgroup)
+        return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/projectgroups/ - Create a new ProjectGroup
+        """
+        if "project_ids" in request.data:
+            request.data['projects'] = request.data['project_ids']
+            del request.data['project_ids']
+        serializer = serializers.ProjectGroupSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/projectgroups/:id/ - Update existing ProjectGroup
+        """
+        projectgroup = self.get_object(pk)
+        if "project_ids" in request.data:
+            request.data['projects'] = request.data['project_ids']
+            del request.data['project_ids']
+        serializer = serializers.ProjectGroupSerializer(projectgroup, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/projectgroups/:id/ - Delete a ProjectGroup
+        """
+        projectgroup = self.get_object(pk)
+        projectgroup.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @detail_route(methods=['get'])
+    def projects(self, request, pk=None):
+        """
+        GET api/2/projectgroups/:id/projects/ - Get Projects for specific ProjectGroup.
+        This is the initial call the transforming app will make to see what projects are available.
+        """
+        projectgroup = self.get_object(pk)
+        # check if project group is active
+        if not projectgroup.active:
+            return Response({"detail": "Project Group inactive; please try another one."})
+        # language_code is optional with "en" as default
+        if "language_code" in request.query_params:
+            lc = request.query_params["language_code"]
+        else:
+            lc = "en"
+        # if lat or lon don't exist, throw error message
+        if "latitude" in request.query_params and "longitude" in request.query_params:
+            lat = request.query_params["latitude"]
+            lon = request.query_params["longitude"]
+        else:
+            return Response({"detail": "Both latitude and longitude parameters are required."})
+        # filter for Projects in specified ProjectGroup
+        projects = Project.objects.filter(projectgroup__in=pk)
+        # filter for Projects at specified location
+        projects_geo_filter = get_projects_by_location(projects, lat, lon)
+        serializer = serializers.ProjectChooserSerializer(projects_geo_filter,
+                                                          context={"language_code": lc},
+                                                          many=True)
+        return Response(serializer.data)
+
+
 class SessionViewSet(viewsets.ViewSet):
     """
     API V2: api/2/sessions/
@@ -747,7 +847,7 @@ class SessionViewSet(viewsets.ViewSet):
     def get_object(self, pk):
         try:
             return Session.objects.get(pk=pk)
-        except UIItem.DoesNotExist:
+        except Session.DoesNotExist:
             raise Http404("Session not found")
 
     def list(self, request):
@@ -814,7 +914,7 @@ class SpeakerViewSet(viewsets.ViewSet):
     def get_object(self, pk):
         try:
             return Speaker.objects.get(pk=pk)
-        except UIItem.DoesNotExist:
+        except Speaker.DoesNotExist:
             raise Http404("Speaker not found")
 
     def list(self, request):
@@ -1522,7 +1622,7 @@ class VoteViewSet(viewsets.ViewSet):
     def get_object(self, pk):
         try:
             return Vote.objects.get(pk=pk)
-        except UIItem.DoesNotExist:
+        except Vote.DoesNotExist:
             raise Http404("Vote not found")
 
     def list(self, request):
