@@ -61,7 +61,7 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
             'tags',
             'session',
             'project',
-            'envelope_set'
+            'envelope'
         )
         localized_fields = ['loc_description', 'loc_alt_text']
 
@@ -86,8 +86,8 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
         result["language_id"] = result["language"]
         del result["language"]
 
-        result["envelope_ids"] = result["envelope_set"]
-        del result["envelope_set"]
+        result["envelope_ids"] = result["envelope"]
+        del result["envelope"]
 
         result["description_loc_ids"] = result["loc_description"]
         del result["loc_description"]

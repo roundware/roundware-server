@@ -290,7 +290,7 @@ class Envelope(models.Model):
     """
     session = models.ForeignKey('Session', blank=True)
     created = models.DateTimeField(default=datetime.now)
-    assets = models.ManyToManyField(Asset, blank=True)
+    assets = models.ManyToManyField(Asset, blank=True, related_name='envelope')
 
     def __unicode__(self):
         return str(self.id) + ": Session id: " + str(self.session.id)
