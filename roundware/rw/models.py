@@ -255,6 +255,7 @@ class Audiotrack(models.Model):
     minpanduration = models.FloatField()
     maxpanduration = models.FloatField()
     repeatrecordings = models.BooleanField(default=False)
+    tag_filters = models.ManyToManyField('Tag', blank=True)
 
     def norm_minduration(self):
         if self.minduration:
