@@ -401,6 +401,7 @@ class AudiotrackAdmin(ProjectProtectedModelAdmin):
     list_filter = ('project',)
     ordering = ['id']
     save_as = True
+    filter_horizontal = ('tag_filters',)
     fieldsets = (
         (None, {
             'fields': ('project', 'minvolume', 'maxvolume')
@@ -413,6 +414,9 @@ class AudiotrackAdmin(ProjectProtectedModelAdmin):
         }),
         ('Panning', {
             'fields': ('minpanpos', 'maxpanpos', 'minpanduration', 'maxpanduration')
+        }),
+        ('Filtering', {
+            'fields': ('tag_filters',)
         }),
     )
 
