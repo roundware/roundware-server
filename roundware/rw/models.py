@@ -256,6 +256,9 @@ class Audiotrack(models.Model):
     maxpanduration = models.FloatField()
     repeatrecordings = models.BooleanField(default=False)
     tag_filters = models.ManyToManyField('Tag', blank=True)
+    active = models.BooleanField(default=True)
+    start_with_silence = models.BooleanField(default=False, verbose_name='Start with Silence')
+    banned_duration = models.IntegerField(default=0, verbose_name='Banned Duration')
 
     def norm_minduration(self):
         if self.minduration:
