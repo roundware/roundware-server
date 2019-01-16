@@ -396,15 +396,17 @@ class UIElementNameAdmin(ProjectProtectedModelAdmin):
 
 
 class AudiotrackAdmin(ProjectProtectedModelAdmin):
-    list_display = ('id', 'project', 'norm_minduration',
+    list_display = ('id', 'active', 'project', 'norm_minduration',
                     'norm_maxduration', 'norm_mindeadair', 'norm_maxdeadair')
-    list_filter = ('project',)
+    list_filter = ('project', 'active')
+    list_editable = ('active',)
     ordering = ['id']
     save_as = True
     filter_horizontal = ('tag_filters',)
     fieldsets = (
         (None, {
-            'fields': ('project', 'minvolume', 'maxvolume')
+            'fields': ('active', 'project', 'minvolume', 'maxvolume',
+                       'start_with_silence', 'banned_duration', 'repeatrecordings')
         }),
         ('Chunks', {
             'fields': ('minduration', 'maxduration', 'mindeadair', 'maxdeadair')
@@ -412,11 +414,11 @@ class AudiotrackAdmin(ProjectProtectedModelAdmin):
         ('Fading', {
             'fields': ('minfadeintime', 'maxfadeintime', 'minfadeouttime', 'maxfadeouttime')
         }),
-        ('Panning', {
-            'fields': ('minpanpos', 'maxpanpos', 'minpanduration', 'maxpanduration')
-        }),
         ('Filtering', {
             'fields': ('tag_filters',)
+        }),
+        ('Panning', {
+            'fields': ('minpanpos', 'maxpanpos', 'minpanduration', 'maxpanduration')
         }),
     )
 
