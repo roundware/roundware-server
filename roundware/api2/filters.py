@@ -89,6 +89,9 @@ class AudiotrackFilterSet(django_filters.FilterSet):
     mindeadair__gte = NanoNumberFilter(name='mindeadair', lookup_type='gte')
     maxdeadair__lte = NanoNumberFilter(name='maxdeadair', lookup_type='lte')
     maxdeadair__gte = NanoNumberFilter(name='maxdeadair', lookup_type='gte')
+    active = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    repeatrecordings = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    start_with_silence = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
 
     class Meta:
         model = Audiotrack
