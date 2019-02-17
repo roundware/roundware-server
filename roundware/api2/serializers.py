@@ -58,6 +58,8 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
             'loc_alt_text',
             'mediatype',
             'audiolength_in_seconds',
+            'start_time',
+            'end_time',
             'tags',
             'session',
             'project',
