@@ -1199,6 +1199,8 @@
         "project": 1,
         "created": "2012-07-24T18:06:40",
         "audiolength": 30000000000,
+        "start_time": 0,
+        "end_time": 30.70847,
         "language": 1,
         "weight": 50,
         "mediatype": "audio",
