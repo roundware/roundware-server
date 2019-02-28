@@ -787,7 +787,8 @@ class ProjectViewSet(viewsets.ViewSet):
         zip_url = settings.MEDIA_URL + "project" + pk + "-uielements" + params['variant'] + ".zip"
         # put config as first item for human readability
         result = OrderedDict()
-        result['config'] = { "files_url": zip_url}
+        result['config'] = { "project_id": int(pk),
+                             "files_url": zip_url }
         result['uielements'] = r
         return Response(result)
 
