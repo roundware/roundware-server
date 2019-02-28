@@ -117,8 +117,10 @@ class AudioTrack:
             self.set_track_metadata()
             return
 
+        # use active region rather than entire audio file
+        self.current_active_region_length = int((self.current_recording.end_time - self.current_recording.start_time) * 1000000000)
         duration = min(
-            self.current_recording.audiolength,
+            self.current_active_region_length,
             random.randint(
                 # FIXME: I don't allow less than a second to
                 # play currently. Mostly because playing zero
@@ -129,8 +131,8 @@ class AudioTrack:
                     gst.SECOND)))
 
         start = random.randint(
-            0,
-            self.current_recording.audiolength - duration)
+            int((self.current_recording.start_time * 1000000000)),
+            int((self.current_recording.end_time * 1000000000)) - duration)
 
         fadein = random.randint(
             self.settings.minfadeintime,
