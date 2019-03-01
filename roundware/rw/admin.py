@@ -215,6 +215,8 @@ class AssetAdmin(ProjectProtectedModelAdmin):
                 'file',
                 'volume',
                 'audiolength',
+                'start_time',
+                'end_time',
                 'description',
                 'loc_description'
             )

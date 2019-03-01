@@ -57,6 +57,8 @@ class Asset(models.Model):
 
     created = models.DateTimeField(default=datetime.now)
     audiolength = models.BigIntegerField(null=True, blank=True)
+    start_time = models.FloatField(null=True, blank=True)
+    end_time = models.FloatField(null=True, blank=True)
     tags = models.ManyToManyField('Tag', blank=True)
     language = models.ForeignKey('Language', null=True)
     weight = models.IntegerField(

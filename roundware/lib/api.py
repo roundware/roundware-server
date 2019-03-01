@@ -712,11 +712,14 @@ def save_asset_from_request(request, session, asset=None):
         for alt_loc in alt_locset:
             asset.loc_alt_text.add(alt_loc)
 
-    # get the audiolength of the file only if mediatype is audio and
+    # get/set the audio properties of the file only if mediatype is audio and
     # update the Asset
     if mediatype == "audio":
         discover_audiolength.discover_and_set_audiolength(
             asset, newfilename)
+        # set start_time and end_time with initial values
+        asset.start_time = 0.0
+        asset.end_time = asset.audiolength / 1000000000.0
         asset.save()
 
     return asset
