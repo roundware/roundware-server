@@ -4,6 +4,7 @@
 # The Django REST Framework Views for the V2 API.
 from __future__ import unicode_literals
 from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.conf import settings
@@ -91,6 +92,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
             api/2/assets/:id/
             api/2/assets/:id/votes/
             api/2/assets/random/
+            api/2/assets/blocked/
     """
 
     # TODO: Implement DjangoObjectPermissions
@@ -225,6 +227,68 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         results = Asset.objects.filter(id__in=selected_ids)
         serializer = serializers.AssetSerializer(results, many=True)
         return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def blocked(self, request, pk=None):
+        """
+        GET api/2/assets/blocked/ - retrieve list of Assets blocked by
+        particular user as represented by session_id param
+        """
+        blocked_asset_ids = []
+        session_id = request.query_params.get('session_id')
+
+        # get user id from session_id
+        User = get_user_model()
+        device_id = Session.objects.filter(id=int(session_id))[0].device_id
+        try:
+            voter = User.objects.get(userprofile__device_id=device_id)
+        except:
+            # handle api/1 which will not have User and therefore no voter
+            voter = None
+            logger.info("no user associated with device_id")
+            pass
+        # filter votes for user_id and type='blocked_asset'
+        asset_votes = Vote.objects.filter(voter_id=voter.id, type='block_asset')
+        # extract asset_id from filtered votes and add to blocked_asset_ids
+        for asset_vote in asset_votes:
+            blocked_asset_ids.append(asset_vote.asset_id)
+
+        # generate list of assets associated with users that are blocked
+        assets_of_blocked_user = Vote.objects.filter(voter_id=voter.id, type='block_user') \
+                                             .values_list('asset_id', flat=True)
+        # generate list of sessions in which blocked assets were created
+        sessions_of_blocked_assets = Asset.objects.filter(id__in=assets_of_blocked_user) \
+                                                  .values_list('session_id', flat=True)
+        # get device_ids associated with list of sessions
+        devices_of_blocked_sessions = Session.objects.filter(id__in=sessions_of_blocked_assets) \
+                                                     .values_list('device_id', flat=True)
+        # get the users associated with device_ids
+        blocked_user_ids = User.objects.filter(userprofile__device_id__in=devices_of_blocked_sessions) \
+                                       .values_list('id', flat=True)
+        # find assets created by blocked users
+        for blocked_user_id in blocked_user_ids:
+            blocked_user_assets = self.assets_by_user(blocked_user_id)
+            # extend user_blocked_list without duplicates
+            blocked_asset_ids.extend(x for x in blocked_user_assets if x not in blocked_asset_ids)
+
+        result = OrderedDict()
+        result['device_id'] = device_id
+        result['blocked_asset_ids'] = set(blocked_asset_ids)
+        return Response(result)
+
+    def assets_by_user(self, user_id):
+        """
+        returns a list of asset_ids created by specified user_id
+        """
+        # get user's device_id
+        device_id = UserProfile.objects.filter(user__id=user_id).values('device_id')
+        # get sessions with that device_id
+        device_sessions = Session.objects.filter(device_id=device_id).values_list('id', flat=True)
+        # get asset_ids with that session_id
+        user_asset_ids = Asset.objects.filter(session_id__in=device_sessions).values_list('id', flat=True)
+
+        return user_asset_ids
+
 
 
 class AudiotrackViewSet(viewsets.ViewSet):
