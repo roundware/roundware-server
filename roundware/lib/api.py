@@ -866,6 +866,34 @@ def vote_count_by_asset(asset_id):
                 count["avg"] = avg["value__avg"]
     return counts
 
+def vote_summary_by_asset(asset_id, vote_type=None):
+    """
+    Provides a count of votes, by vote type, for a given asset
+    """
+    response = {}
+    counts = models.Vote.objects.all().filter(asset_id=asset_id)
+    if vote_type:
+        counts = counts.filter(type=vote_type)
+        # return vote count only unless type=rating, in which case include average value
+        if vote_type == "rate":
+            avg = models.Vote.objects.all().filter(asset_id=asset_id, type="rate").aggregate(Avg('value'))
+            response["average"] = avg["value__avg"]
+            response["count"] = counts.count()
+        else:
+            response = counts.count()
+    else:
+        counts = counts.values('type') \
+                       .annotate(total=Count('type')).order_by('total')
+        avg = models.Vote.objects.all().filter(asset_id=asset_id, type="rate").aggregate(Avg('value'))
+        if avg["value__avg"] is not None:
+            for count in counts:
+                if count["type"] == "rate":
+                    count["avg"] = avg["value__avg"]
+        response = counts
+
+    return response
+
+
 def get_projects_by_location(projects, lat, lon):
     """
     Filters Projects by location, using active speaker ranges;

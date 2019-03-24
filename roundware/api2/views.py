@@ -1879,6 +1879,7 @@ class VoteViewSet(viewsets.ViewSet):
     """
     API V2: api/2/votes/
             api/2/votes/:id/
+            api/2/votes/summary/
     """
     queryset = Vote.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -1952,3 +1953,23 @@ class VoteViewSet(viewsets.ViewSet):
         vote = self.get_object(pk)
         vote.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @list_route(methods=['get'])
+    def summary(self, request, pk=None):
+        """
+        GET api/2/votes/summary/ - Get summary of votes by type by asset
+        """
+        response = []
+        asset_ids = []
+        if "type" in request.query_params:
+            type = request.query_params["type"]
+        else:
+            type = None
+        votes = VoteFilterSet(request.query_params)
+        # serialize and return, deduped by asset_id
+        for vote in votes:
+            if vote.asset_id not in asset_ids:
+                serializer = serializers.VoteSummarySerializer(vote, context={"type": type})
+                asset_ids.append(vote.asset_id)
+                response.append(serializer.data)
+        return Response(response)
