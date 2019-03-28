@@ -294,6 +294,7 @@ class UIItemFilterSet(django_filters.FilterSet):
 class VoteFilterSet(django_filters.FilterSet):
     voter_id = django_filters.NumberFilter()
     session_id = django_filters.NumberFilter()
+    project_id = django_filters.NumberFilter(name='session_id__project_id')
     asset_id = django_filters.NumberFilter()
     type = django_filters.TypedChoiceFilter(choices=Vote.VOTE_TYPES)
     value = django_filters.NumberFilter()

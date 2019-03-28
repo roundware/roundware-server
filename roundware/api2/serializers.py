@@ -8,7 +8,7 @@ from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, L
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag,
                                  TagCategory, TagRelationship, TimedAsset, UIElement, UIElementName,
                                  UIGroup, UIItem, Vote)
-from roundware.lib.api import request_stream, vote_count_by_asset
+from roundware.lib.api import request_stream, vote_count_by_asset, vote_summary_by_asset
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from django.contrib.auth.models import User
@@ -648,6 +648,26 @@ class VoteSerializer(serializers.ModelSerializer):
         result["session_id"] = result["session"]
         del result["session"]
         result["asset_votes"] = vote_count_by_asset(result["asset_id"])
+        return result
+
+
+class VoteSummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vote
+
+    def to_representation(self, obj):
+        result = super(VoteSummarySerializer, self).to_representation(obj)
+        type = None
+        if "type" in self.context:
+            type = self.context["type"]
+        del result["voter"]
+        result["asset_id"] = result["asset"]
+        del result["asset"]
+        del result["session"]
+        del result["value"]
+        del result["id"]
+        del result["type"]
+        result["asset_votes"] = vote_summary_by_asset(result["asset_id"], type)
         return result
 
 
