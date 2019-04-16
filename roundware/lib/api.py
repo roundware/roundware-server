@@ -915,3 +915,31 @@ def get_projects_by_location(projects, lat, lon):
                     available_projects.append(project)
                     break
     return available_projects
+
+# save speaker audio from request and return external url to audio
+def save_speaker_from_request(request):
+    fileitem = request.FILES.get('file')
+    if fileitem is None or not fileitem.name:
+        raise RoundException("No file in request")
+
+    # copy the file to a unique name using current time and date
+    server_url = "http://" + request.get_host()
+    logger.info("Processing speaker audio:%s for project:%s", fileitem.name, request.data["project"])
+    (filename_prefix, filename_extension) = os.path.splitext(fileitem.name)
+
+    dest_file = "speaker-project" + str(request.data["project"]) + "-" + filename_prefix + "-" + time.strftime("%Y%m%d-%H%M%S")
+    dest_filename = dest_file + filename_extension
+    dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
+
+    fileout = open(dest_filepath, 'wb')
+    fileout.write(fileitem.file.read())
+    fileout.close()
+
+    # Do I need to delete the original file after copying to rwmedia/?
+
+    # Make sure speaker audio is available in both mp3 and wav to be comprehensive
+    newfilename = convertaudio.convert_uploaded_file(dest_filename)
+    if not newfilename:
+        raise RoundException("File not converted successfully: " + newfilename)
+
+    return server_url + settings.MEDIA_URL + dest_filename
