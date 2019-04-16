@@ -22,7 +22,7 @@ from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, Envelop
 from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
                                skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
                                save_asset_from_request, vote_asset, check_is_active, get_projects_by_location,
-                               vote_count_by_asset, log_event, play, kill)
+                               vote_count_by_asset, log_event, play, kill, save_speaker_from_request)
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
@@ -1072,6 +1072,16 @@ class SpeakerViewSet(viewsets.ViewSet):
         if "project_id" in request.data:
             request.data['project'] = request.data['project_id']
             del request.data['project_id']
+        # ensure one and only one of "file" and "uri" params are passed
+        if ("uri" in request.data and "file" in request.data) or \
+           ("uri" not in request.data and "file" not in request.data):
+            return Response({"detail": "Request must include either 'file' or 'uri', but not both."},
+                            status.HTTP_400_BAD_REQUEST)
+        # if request.file exists, process and add uri to request.data
+        elif "file" in request.data:
+            speaker_uri = save_speaker_from_request(request)
+            request.data["uri"] = speaker_uri
+
         serializer = serializers.SpeakerSerializer(data=request.data)
         if serializer.is_valid():
             s = serializer.save()
@@ -1090,6 +1100,15 @@ class SpeakerViewSet(viewsets.ViewSet):
         if "project_id" in request.data:
             request.data['project'] = request.data['project_id']
             del request.data['project_id']
+        # ensure one and only one of "file" and "uri" params are passed
+        if ("uri" in request.data and "file" in request.data):
+            return Response({"detail": "Request cannot include both 'file' and 'uri'."},
+                            status.HTTP_400_BAD_REQUEST)
+        # if request.file exists, process and add uri to request.data
+        elif "file" in request.data:
+            speaker_uri = save_speaker_from_request(request)
+            request.data["uri"] = speaker_uri
+
         serializer = serializers.SpeakerSerializer(speaker, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
