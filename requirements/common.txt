@@ -36,7 +36,7 @@ psycopg2
 # geographic distance calculator utilities
 geopy
 # cors support to remove php layer
-django-cors-headers
+django-cors-headers==2.4.1
 # fiona is a useful tool for processing geographic files (ETL)
 fiona
 # geographic extensions for djangorestframework-gis

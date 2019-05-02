@@ -248,33 +248,41 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
             logger.info("no user associated with device_id")
             pass
         # filter votes for user_id and type='blocked_asset'
-        asset_votes = Vote.objects.filter(voter_id=voter.id, type='block_asset')
-        # extract asset_id from filtered votes and add to blocked_asset_ids
-        for asset_vote in asset_votes:
-            blocked_asset_ids.append(asset_vote.asset_id)
+        try:
+            asset_votes = Vote.objects.filter(voter_id=voter.id, type='block_asset')
+        except:
+            asset_votes = []
+            logger.info("user hasn't blocked anything")
+            pass
+        if len(asset_votes) > 0:
+            # extract asset_id from filtered votes and add to blocked_asset_ids
+            for asset_vote in asset_votes:
+                blocked_asset_ids.append(asset_vote.asset_id)
 
-        # generate list of assets associated with users that are blocked
-        assets_of_blocked_user = Vote.objects.filter(voter_id=voter.id, type='block_user') \
-                                             .values_list('asset_id', flat=True)
-        # generate list of sessions in which blocked assets were created
-        sessions_of_blocked_assets = Asset.objects.filter(id__in=assets_of_blocked_user) \
-                                                  .values_list('session_id', flat=True)
-        # get device_ids associated with list of sessions
-        devices_of_blocked_sessions = Session.objects.filter(id__in=sessions_of_blocked_assets) \
-                                                     .values_list('device_id', flat=True)
-        # get the users associated with device_ids
-        blocked_user_ids = User.objects.filter(userprofile__device_id__in=devices_of_blocked_sessions) \
-                                       .values_list('id', flat=True)
-        # find assets created by blocked users
-        for blocked_user_id in blocked_user_ids:
-            blocked_user_assets = self.assets_by_user(blocked_user_id)
-            # extend user_blocked_list without duplicates
-            blocked_asset_ids.extend(x for x in blocked_user_assets if x not in blocked_asset_ids)
+            # generate list of assets associated with users that are blocked
+            assets_of_blocked_user = Vote.objects.filter(voter_id=voter.id, type='block_user') \
+                                                 .values_list('asset_id', flat=True)
+            # generate list of sessions in which blocked assets were created
+            sessions_of_blocked_assets = Asset.objects.filter(id__in=assets_of_blocked_user) \
+                                                      .values_list('session_id', flat=True)
+            # get device_ids associated with list of sessions
+            devices_of_blocked_sessions = Session.objects.filter(id__in=sessions_of_blocked_assets) \
+                                                         .values_list('device_id', flat=True)
+            # get the users associated with device_ids
+            blocked_user_ids = User.objects.filter(userprofile__device_id__in=devices_of_blocked_sessions) \
+                                           .values_list('id', flat=True)
+            # find assets created by blocked users
+            for blocked_user_id in blocked_user_ids:
+                blocked_user_assets = self.assets_by_user(blocked_user_id)
+                # extend user_blocked_list without duplicates
+                blocked_asset_ids.extend(x for x in blocked_user_assets if x not in blocked_asset_ids)
 
-        result = OrderedDict()
-        result['device_id'] = device_id
-        result['blocked_asset_ids'] = set(blocked_asset_ids)
-        return Response(result)
+            result = OrderedDict()
+            result['device_id'] = device_id
+            result['blocked_asset_ids'] = set(blocked_asset_ids)
+            return Response(result)
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     def assets_by_user(self, user_id):
         """
