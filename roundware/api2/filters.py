@@ -102,6 +102,7 @@ class AudiotrackFilterSet(django_filters.FilterSet):
     active = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
     repeatrecordings = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
     start_with_silence = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
+    fadeout_when_filtered = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
 
     class Meta:
         model = Audiotrack
