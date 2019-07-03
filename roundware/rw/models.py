@@ -261,6 +261,7 @@ class Audiotrack(models.Model):
     active = models.BooleanField(default=True)
     start_with_silence = models.BooleanField(default=False, verbose_name='Start with Silence')
     banned_duration = models.IntegerField(default=0, verbose_name='Banned Duration')
+    fadeout_when_filtered = models.BooleanField(default=False, verbose_name='Fade Out When Asset Filtered')
 
     def norm_minduration(self):
         if self.minduration:

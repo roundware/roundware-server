@@ -408,7 +408,8 @@ class AudiotrackAdmin(ProjectProtectedModelAdmin):
     fieldsets = (
         (None, {
             'fields': ('active', 'project', 'minvolume', 'maxvolume',
-                       'start_with_silence', 'banned_duration', 'repeatrecordings')
+                       'start_with_silence', 'banned_duration', 'repeatrecordings',
+                       'fadeout_when_filtered')
         }),
         ('Chunks', {
             'fields': ('minduration', 'maxduration', 'mindeadair', 'maxdeadair')
