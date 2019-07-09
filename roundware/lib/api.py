@@ -690,6 +690,12 @@ def save_asset_from_request(request, session, asset=None):
         weight = get_parameter_from_request(request, 'weight')
         if weight is None:
             weight = 50
+        User = get_user_model()
+        user_id = get_parameter_from_request(request, 'user_id')
+        try:
+            user = User.objects.get(pk=user_id)
+        except:
+            user = None
 
         asset = models.Asset(latitude=latitude,
                              longitude=longitude,
@@ -701,7 +707,8 @@ def save_asset_from_request(request, session, asset=None):
                              volume=volume,
                              weight=weight,
                              language=session.language,
-                             project=session.project)
+                             project=session.project,
+                             user=user)
         asset.file.name = dest_filename
         asset.save()
         # m2m fields must be set after initial object is saved

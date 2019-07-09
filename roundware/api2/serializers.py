@@ -620,6 +620,9 @@ class UserSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=255, required=False)
     device_id = serializers.CharField(max_length=255, required=False)
     client_type = serializers.CharField(max_length=255, required=False)
+    first_name = serializers.CharField(max_length=255, required=False)
+    last_name = serializers.CharField(max_length=255, required=False)
+    email = serializers.CharField(max_length=255, required=False)
 
     def validate(self, attrs):
         """
@@ -636,7 +639,21 @@ class UserSerializer(serializers.Serializer):
         """
         username = str(int(time.time())) + validated_data["device_id"][-4:]
         password = User.objects.make_random_password()
-        user = User.objects.create_user(username=username, password=password)
+        if "first_name" in validated_data:
+            first_name = validated_data["first_name"]
+        else:
+            first_name = ""
+        if "last_name" in validated_data:
+            last_name = validated_data["last_name"]
+        else:
+            last_name = ""
+        if "email" in validated_data:
+            email = validated_data["email"]
+        else:
+            email = ""
+        user = User.objects.create_user(username=username, password=password, \
+                                        first_name=first_name, last_name=last_name, \
+                                        email=email)
         user.userprofile.device_id = validated_data["device_id"][:254]
         user.userprofile.client_type = validated_data["client_type"][:254]
         user.userprofile.save()
