@@ -213,6 +213,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
                 'mediatype',
                 'media_display',
                 'file',
+                'user',
                 'volume',
                 'audiolength',
                 'start_time',
