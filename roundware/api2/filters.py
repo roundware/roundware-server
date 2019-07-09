@@ -4,9 +4,11 @@
 from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIElement, UIElementName, UIItem, UIGroup, Vote)
+from django.contrib.auth.models import User
 from distutils.util import strtobool
 from django.db.models import Q
 import django_filters
+from django.db.models import Q
 
 BOOLEAN_CHOICES = (('false', False), ('true', True),
                    (0, False), (1, True),)
@@ -54,6 +56,16 @@ class NanoNumberFilter(django_filters.NumberFilter):
         return super(NanoNumberFilter, self).filter(qs, value)
 
 
+class UserNameEmailFilter(django_filters.CharFilter):
+  def filter(self, qs, value):
+    if value:
+      return qs.filter(Q(**{'user__first_name__'+ self.lookup_expr: value}) |
+                       Q(**{'user__last_name__'+ self.lookup_expr: value}) |
+                       Q(**{'user__email__'+ self.lookup_expr: value}) |
+                       Q(**{'user__username__'+ self.lookup_expr: value}))
+    return qs
+
+
 class AssetFilterSet(django_filters.FilterSet):
     session_id = django_filters.NumberFilter()
     project_id = django_filters.NumberFilter()
@@ -73,6 +85,7 @@ class AssetFilterSet(django_filters.FilterSet):
     description = django_filters.CharFilter(lookup_type='icontains')
     filename = django_filters.CharFilter(lookup_type='icontains')
     text_filter = DescriptionFilenameAssetFilter(lookup_expr='icontains')
+    user_str = UserNameEmailFilter(lookup_expr='icontains')
 
     class Meta:
         model = Asset
