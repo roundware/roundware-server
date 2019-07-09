@@ -178,6 +178,9 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         if 'envelope_ids' in request.data:
             request.data['envelope_set'] = request.data['envelope_ids']
             del request.data['envelope_ids']
+        if 'user_id' in request.data:
+            request.data['user'] = request.data['user_id']
+            del request.data['user_id']
         serializer = serializers.AssetSerializer(asset, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -1899,7 +1902,15 @@ class UserViewSet(viewsets.ViewSet):
                 user = serializer.save()
                 # obtain token for this new user
                 token = Token.objects.create(user=user)
-        return Response({"username": user.username, "token": token.key})
+        return Response({"id"           : user.id,
+                         "username"     : user.username,
+                         "token"        : token.key,
+                         "first_name"   : user.first_name,
+                         "last_name"    : user.last_name,
+                         "email"        : user.email,
+                         "device_id"    : user.userprofile.device_id,
+                         "client_type"  : user.userprofile.client_type
+                        })
 
 
 class VoteViewSet(viewsets.ViewSet):

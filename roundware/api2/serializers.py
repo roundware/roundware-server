@@ -63,7 +63,8 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
             'tags',
             'session',
             'project',
-            'envelope'
+            'envelope',
+            'user'
         )
         localized_fields = ['loc_description', 'loc_alt_text']
 
@@ -98,6 +99,13 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
         del result["loc_alt_text"]
 
         del result["loc_caption"]
+
+        try:
+            user = User.objects.get(pk=result["user"])
+            serializer = UserInfoSerializer(user)
+            result["user"] = serializer.data
+        except User.DoesNotExist:
+            result["user"] = None
 
         return result
 
@@ -633,6 +641,20 @@ class UserSerializer(serializers.Serializer):
         user.userprofile.client_type = validated_data["client_type"][:254]
         user.userprofile.save()
         return user
+
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    device_id = serializers.CharField(source='userprofile.device_id')
+    client_type = serializers.CharField(source='userprofile.client_type')
+
+    class Meta:
+        model = User
+        fields = ('id','username','first_name','last_name','email',
+                  'device_id','client_type')
+
+    def to_representation(self, obj):
+        result = super(UserInfoSerializer, self).to_representation(obj)
+        return result
 
 
 class VoteSerializer(serializers.ModelSerializer):
