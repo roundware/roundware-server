@@ -5,6 +5,7 @@ from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, L
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIElement, UIElementName, UIItem, UIGroup, Vote)
 from distutils.util import strtobool
+from django.db.models import Q
 import django_filters
 
 BOOLEAN_CHOICES = (('false', False), ('true', True),
@@ -40,6 +41,12 @@ class WordListFilter(django_filters.Filter):
             return qs
         return qs
 
+class DescriptionFilenameAssetFilter(django_filters.CharFilter):
+  def filter(self, qs, value):
+    if value:
+      return qs.filter(Q(**{'description__'+ self.lookup_expr: value}) |
+                       Q(**{'filename__'+ self.lookup_expr: value}))
+    return qs
 
 class NanoNumberFilter(django_filters.NumberFilter):
     def filter(self, qs, value):
@@ -63,6 +70,9 @@ class AssetFilterSet(django_filters.FilterSet):
     audiolength__gte = NanoNumberFilter(name='audiolength', lookup_type='gte')
     created__lte = django_filters.DateTimeFilter(name='created', lookup_type='lte')
     created__gte = django_filters.DateTimeFilter(name='created', lookup_type='gte')
+    description = django_filters.CharFilter(lookup_type='icontains')
+    filename = django_filters.CharFilter(lookup_type='icontains')
+    text_filter = DescriptionFilenameAssetFilter(lookup_expr='icontains')
 
     class Meta:
         model = Asset
