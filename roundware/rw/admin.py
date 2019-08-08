@@ -372,7 +372,7 @@ class UIGroupAdmin(ProjectProtectedModelAdmin):
 # UIGroup.
 class UIItemAdmin(ProjectProtectedThroughUIModelAdmin):
     list_display = ('id', 'active', 'ui_group', 'index', 'tag', 'default')
-    list_filter = ('ui_group',)
+    list_filter = ('ui_group_id__project_id','ui_group_id__ui_mode','active','ui_group')
     list_editable = ('active', 'default', 'index')
     ordering = ['id']
     save_as = True

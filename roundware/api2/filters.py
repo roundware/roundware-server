@@ -70,7 +70,7 @@ class AssetFilterSet(django_filters.FilterSet):
     session_id = django_filters.NumberFilter()
     project_id = django_filters.NumberFilter()
     # TODO: allow param to choose between AND or OR filtering
-    # tag_ids = IntegerListFilter(name='tags', lookup_type='in') # performs OR filtering
+    tag_ids_or = IntegerListFilter(name='tags', lookup_type='in') # performs OR filtering
     tag_ids = IntegerListAndFilter(name='tags__id') # performs AND filtering
     media_type = django_filters.CharFilter(name='mediatype')
     language = django_filters.CharFilter(name='language__language_code')
@@ -311,6 +311,7 @@ class UIItemFilterSet(django_filters.FilterSet):
     default = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
     active = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
     parent_id = django_filters.NumberFilter()
+    project_id = django_filters.NumberFilter(name='ui_group_id__project_id')
 
     class Meta:
         model = UIItem
@@ -322,6 +323,7 @@ class VoteFilterSet(django_filters.FilterSet):
     asset_id = django_filters.NumberFilter()
     type = django_filters.TypedChoiceFilter(choices=Vote.VOTE_TYPES)
     value = django_filters.NumberFilter()
+    media_type = django_filters.CharFilter(name='asset_id__mediatype')
 
     class Meta:
         model = Vote
