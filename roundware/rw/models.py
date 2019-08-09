@@ -41,6 +41,7 @@ class Asset(models.Model):
 
     session = models.ForeignKey(
         'Session', null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
     shape = models.MultiPolygonField(geography=True, null=True, blank=True)

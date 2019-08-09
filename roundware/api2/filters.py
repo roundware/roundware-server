@@ -4,9 +4,11 @@
 from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIElement, UIElementName, UIItem, UIGroup, Vote)
+from django.contrib.auth.models import User
 from distutils.util import strtobool
 from django.db.models import Q
 import django_filters
+from django.db.models import Q
 
 BOOLEAN_CHOICES = (('false', False), ('true', True),
                    (0, False), (1, True),)
@@ -54,11 +56,21 @@ class NanoNumberFilter(django_filters.NumberFilter):
         return super(NanoNumberFilter, self).filter(qs, value)
 
 
+class UserNameEmailFilter(django_filters.CharFilter):
+  def filter(self, qs, value):
+    if value:
+      return qs.filter(Q(**{'user__first_name__'+ self.lookup_expr: value}) |
+                       Q(**{'user__last_name__'+ self.lookup_expr: value}) |
+                       Q(**{'user__email__'+ self.lookup_expr: value}) |
+                       Q(**{'user__username__'+ self.lookup_expr: value}))
+    return qs
+
+
 class AssetFilterSet(django_filters.FilterSet):
     session_id = django_filters.NumberFilter()
     project_id = django_filters.NumberFilter()
     # TODO: allow param to choose between AND or OR filtering
-    # tag_ids = IntegerListFilter(name='tags', lookup_type='in') # performs OR filtering
+    tag_ids_or = IntegerListFilter(name='tags', lookup_type='in') # performs OR filtering
     tag_ids = IntegerListAndFilter(name='tags__id') # performs AND filtering
     media_type = django_filters.CharFilter(name='mediatype')
     language = django_filters.CharFilter(name='language__language_code')
@@ -73,6 +85,7 @@ class AssetFilterSet(django_filters.FilterSet):
     description = django_filters.CharFilter(lookup_type='icontains')
     filename = django_filters.CharFilter(lookup_type='icontains')
     text_filter = DescriptionFilenameAssetFilter(lookup_expr='icontains')
+    user_str = UserNameEmailFilter(lookup_expr='icontains')
 
     class Meta:
         model = Asset
@@ -298,6 +311,7 @@ class UIItemFilterSet(django_filters.FilterSet):
     default = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
     active = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
     parent_id = django_filters.NumberFilter()
+    project_id = django_filters.NumberFilter(name='ui_group_id__project_id')
 
     class Meta:
         model = UIItem
@@ -309,6 +323,7 @@ class VoteFilterSet(django_filters.FilterSet):
     asset_id = django_filters.NumberFilter()
     type = django_filters.TypedChoiceFilter(choices=Vote.VOTE_TYPES)
     value = django_filters.NumberFilter()
+    media_type = django_filters.CharFilter(name='asset_id__mediatype')
 
     class Meta:
         model = Vote
