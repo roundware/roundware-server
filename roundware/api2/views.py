@@ -1011,7 +1011,10 @@ class SessionViewSet(viewsets.ViewSet):
             # convert from long-form language code if necessary
             if '-' in l:
                 l = l.split('-')[0]
-            lang = Language.objects.get(language_code=l)
+            try:
+                lang = Language.objects.get(language_code=l)
+            except Language.DoesNotExist:
+                lang = Language.objects.get(pk=1)
             request.data['language'] = lang.pk
         elif "language_id" in request.data:
             request.data['language'] = request.data['language_id']
