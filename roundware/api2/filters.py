@@ -82,6 +82,8 @@ class AssetFilterSet(django_filters.FilterSet):
     audiolength__gte = NanoNumberFilter(name='audiolength', lookup_type='gte')
     created__lte = django_filters.DateTimeFilter(name='created', lookup_type='lte')
     created__gte = django_filters.DateTimeFilter(name='created', lookup_type='gte')
+    updated__lte = django_filters.DateTimeFilter(name='updated', lookup_type='lte')
+    updated__gte = django_filters.DateTimeFilter(name='updated', lookup_type='gte')
     description = django_filters.CharFilter(lookup_type='icontains')
     filename = django_filters.CharFilter(lookup_type='icontains')
     text_filter = DescriptionFilenameAssetFilter(lookup_expr='icontains')

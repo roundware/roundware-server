@@ -57,6 +57,7 @@ class Asset(models.Model):
     project = models.ForeignKey('Project', null=True, blank=False)
 
     created = models.DateTimeField(default=datetime.now)
+    updated = models.DateTimeField(auto_now=True)
     audiolength = models.BigIntegerField(null=True, blank=True)
     start_time = models.FloatField(null=True, blank=True)
     end_time = models.FloatField(null=True, blank=True)
