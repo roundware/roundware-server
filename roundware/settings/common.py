@@ -53,7 +53,7 @@ DEMO_STREAM_CPU_LIMIT = 50.0
 
 ALLOWED_AUDIO_MIME_TYPES = ['audio/x-wav', 'audio/wav',
                             'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',
-                            'audio/mp3', 'video/quicktime']
+                            'audio/mp3', 'audio/mp4', 'video/quicktime']
 ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/pjpeg']
 ALLOWED_TEXT_MIME_TYPES = ['text/plain', 'text/html', 'application/xml']
 ALLOWED_VIDEO_MIME_TYPES = ['video/quicktime']

@@ -57,6 +57,7 @@ class Asset(models.Model):
     project = models.ForeignKey('Project', null=True, blank=False)
 
     created = models.DateTimeField(default=datetime.now)
+    updated = models.DateTimeField(auto_now=True)
     audiolength = models.BigIntegerField(null=True, blank=True)
     start_time = models.FloatField(null=True, blank=True)
     end_time = models.FloatField(null=True, blank=True)
@@ -242,6 +243,12 @@ class Audiotrack(models.Model):
     A linear assemblage of alternating audio Assets and silence
     that forms audio stream along with Speaker audio
     """
+
+    priority_choices = [('highest', 'highest'),
+                        ('normal', 'normal'),
+                        ('lowest', 'lowest'),
+                        ('discard', 'discard'),]
+
     project = models.ForeignKey('Project')
     minvolume = models.FloatField(verbose_name='Min Volume')
     maxvolume = models.FloatField(verbose_name='Max Volume')
@@ -263,6 +270,8 @@ class Audiotrack(models.Model):
     start_with_silence = models.BooleanField(default=False, verbose_name='Start with Silence')
     banned_duration = models.IntegerField(default=0, verbose_name='Banned Duration')
     fadeout_when_filtered = models.BooleanField(default=False, verbose_name='Fade Out When Asset Filtered')
+    timed_asset_priority = models.CharField(
+        max_length=10, choices=priority_choices, default='normal', verbose_name='Timed Asset Priority')
 
     def norm_minduration(self):
         if self.minduration:

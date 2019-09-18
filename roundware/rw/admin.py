@@ -197,8 +197,8 @@ class AssetAdmin(ProjectProtectedModelAdmin):
     ]
     #exclude = ('tags',)
     # , 'longitude', 'latitude')#, 'filename')
-    readonly_fields = ('location_map', 'audio_player',
-                       'media_display', 'audiolength', 'session', 'created')
+    readonly_fields = ('location_map', 'audio_player', 'media_display',
+                       'audiolength', 'session', 'created', 'updated')
     list_display = ('id', 'session', 'submitted', 'project', 'media_link_url', 'mediatype', 'audio_player', 'created',
                     'norm_audiolength', 'get_likes', 'get_flags', 'get_tags', 'weight', 'volume', )
     list_filter = ('project', 'submitted', 'mediatype', 'created', 'language',
@@ -228,6 +228,7 @@ class AssetAdmin(ProjectProtectedModelAdmin):
                 'language',
                 'session',
                 'created',
+                'updated',
                 'weight',
                 'submitted',
                 'tags'
@@ -400,9 +401,10 @@ class UIElementNameAdmin(ProjectProtectedModelAdmin):
 
 class AudiotrackAdmin(ProjectProtectedModelAdmin):
     list_display = ('id', 'active', 'project', 'norm_minduration',
-                    'norm_maxduration', 'norm_mindeadair', 'norm_maxdeadair')
+                    'norm_maxduration', 'norm_mindeadair', 'norm_maxdeadair',
+                    'fadeout_when_filtered','timed_asset_priority')
     list_filter = ('project', 'active')
-    list_editable = ('active',)
+    list_editable = ('active','fadeout_when_filtered','timed_asset_priority')
     ordering = ['id']
     save_as = True
     filter_horizontal = ('tag_filters',)
@@ -410,7 +412,7 @@ class AudiotrackAdmin(ProjectProtectedModelAdmin):
         (None, {
             'fields': ('active', 'project', 'minvolume', 'maxvolume',
                        'start_with_silence', 'banned_duration', 'repeatrecordings',
-                       'fadeout_when_filtered')
+                       'fadeout_when_filtered','timed_asset_priority')
         }),
         ('Chunks', {
             'fields': ('minduration', 'maxduration', 'mindeadair', 'maxdeadair')

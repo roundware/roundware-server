@@ -51,6 +51,7 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
             'volume',
             'submitted',
             'created',
+            'updated',
             'weight',
             'loc_caption',
             'language',
