@@ -74,7 +74,7 @@ class AssetFilterSet(django_filters.FilterSet):
     tag_ids = IntegerListAndFilter(name='tags__id') # performs AND filtering
     media_type = django_filters.CharFilter(name='mediatype')
     language = django_filters.CharFilter(name='language__language_code')
-    envelope_id = django_filters.NumberFilter()
+    envelope_id = IntegerListAndFilter(name='envelope__id')
     longitude = django_filters.NumberFilter(lookup_type='startswith')
     latitude = django_filters.NumberFilter(lookup_type='startswith')
     submitted = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
