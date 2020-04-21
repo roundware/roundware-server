@@ -1880,8 +1880,15 @@ class UIItemViewSet(viewsets.ViewSet):
 class UserViewSet(viewsets.ViewSet):
     """
     API V2: api/2/users/
+    API V2: api/2/users/:id/
     """
     queryset = User.objects.all()
+
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise Http404("User not found")
 
     def create(self, request):
         """
@@ -1914,6 +1921,17 @@ class UserViewSet(viewsets.ViewSet):
                          "device_id"    : user.userprofile.device_id,
                          "client_type"  : user.userprofile.client_type
                         })
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/users/:id/ - Update existing User
+        """
+        user = self.get_object(pk)
+        serializer = serializers.UserInfoSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class VoteViewSet(viewsets.ViewSet):
