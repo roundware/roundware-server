@@ -690,12 +690,22 @@ def save_asset_from_request(request, session, asset=None):
         weight = get_parameter_from_request(request, 'weight')
         if weight is None:
             weight = 50
+
+        # If user_id contained in request, use it, otherwise, use session_id to determine user_id
         User = get_user_model()
         user_id = get_parameter_from_request(request, 'user_id')
         try:
             user = User.objects.get(pk=user_id)
         except:
-            user = None
+            # determine User from provided session_id
+            session_id = get_parameter_from_request(request, 'session_id')
+            device_id = models.Session.objects.get(id=session_id).device_id
+            try:
+                user = User.objects.get(userprofile__device_id=device_id)
+            except:
+                # handle api/1 which will not have User
+                user = None
+                pass
 
         asset = models.Asset(latitude=latitude,
                              longitude=longitude,
