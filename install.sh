@@ -106,6 +106,7 @@ mkdir -p $STATIC_PATH
 
 # copy test audio file to media storage
 cp $SOURCE_PATH/files/rw_test_audio1.wav $MEDIA_PATH
+cp $SOURCE_PATH/files/rw_test_audio1.mp3 $MEDIA_PATH
 
 # Copy default production settings file
 mkdir -p $WWW_PATH/settings

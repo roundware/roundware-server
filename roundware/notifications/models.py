@@ -82,7 +82,7 @@ class ActionNotification(models.Model):
             # added.
             to=[user.email for user in self.who.all() if UserObjectPermission.objects.filter(user=user,
                                                                                              permission__codename="access_project",
-                                                                                             object_pk=self.notification.project.pk) or user.is_superuser],
+                                                                                             object_pk=self.notification.project.pk) or user.is_staff],
         )
         self.last_sent_time = datetime.datetime.now()
         self.last_sent_reference = ref
