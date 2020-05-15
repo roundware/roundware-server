@@ -32,24 +32,6 @@ ROUNDWARE_SERVER_ROOT = here("../..")
 # folder(s) we pass it starting at the roundware-server root
 root = lambda *x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
-# Roundwared & rwstreamd.py settings
-ICECAST_PORT = "8000"
-ICECAST_HOST = "localhost"
-ICECAST_USERNAME = "admin"
-ICECAST_PASSWORD = "roundice"
-ICECAST_SOURCE_USERNAME = "source"
-ICECAST_SOURCE_PASSWORD = "roundice"
-# Discrete steps
-NUM_PAN_STEPS = 200
-# In milliseconds
-STEREO_PAN_INTERVAL = 10
-# In milliseconds
-PING_INTERVAL = 10000
-MASTER_VOLUME = 3.0
-HEARTBEAT_TIMEOUT = 200
-# Radius in meters - default system wide setting
-RECORDING_RADIUS = 1
-DEMO_STREAM_CPU_LIMIT = 50.0
 
 ALLOWED_AUDIO_MIME_TYPES = ['audio/x-wav', 'audio/wav',
                             'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',
@@ -297,11 +279,6 @@ LOGGING = {
         },
         # The roundware system logger.
         'roundware': {
-            'level': 'DEBUG',
-            'handlers': ['file'],
-        },
-        # The roundwared stream manager logger.
-        'roundwared': {
             'level': 'DEBUG',
             'handlers': ['file'],
         },

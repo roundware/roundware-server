@@ -6,6 +6,8 @@ import logging
 import json
 import uuid
 import datetime
+
+import geopy as geopy
 import psutil
 import distutils
 try:
@@ -14,9 +16,7 @@ except ImportError:
     pass
 from django.conf import settings
 from roundware.rw import models
-from roundware.lib import dbus_send
 from roundware.lib.exception import RoundException
-from roundwared import gpsmixer
 from roundware.lib.api import (get_project_tags_old as get_project_tags, t, log_event, form_to_request,
                                check_for_single_audiotrack, get_parameter_from_request, play)
 
@@ -292,9 +292,10 @@ def get_available_assets(request):
                                          "passed to operation.")
             radius = float(radius)
             for asset in assets:
-                distance = gpsmixer.distance_in_meters(
-                    latitude, longitude,
-                    asset.latitude, asset.longitude)
+                distance = geopy.distance.distance(
+                    (latitude, longitude),
+                    (asset.latitude, asset.longitude)
+                ).meters
                 if distance > radius:
                     assets = assets.exclude(id=asset.id)
     else:

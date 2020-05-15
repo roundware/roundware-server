@@ -71,21 +71,10 @@ LOGGING['loggers'] = {
         'handlers': ['console'],
         'propagate': False,
     },
-    # The roundwared stream manager logger.
-    'roundwared': {
-        'level': 'DEBUG',
-        'handlers': ['console'],
-        'propagate': False,
-    },
     # The Roundware API2 logger.
     # 'roundware.api2': {
     #     'level': 'DEBUG',
     #     'handlers': ['console'],
-    # },
-    # Example logger for single file. Disable parent logger to use.
-    # 'roundwared.stream': {
-    #    'level': 'DEBUG',
-    #    'handlers': ['console'],
     # },
 }
 

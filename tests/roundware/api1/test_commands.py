@@ -15,17 +15,15 @@ from django.conf import settings
 from roundware.rw.models import (ListeningHistoryItem, Asset, Project,
                                  Audiotrack, Session, Vote, Envelope,
                                  Speaker, LocalizedString, UIGroup, UIItem)
-from tests.roundwared.common import (RoundwaredTestCase, FakeRequest,
-                                     mock_distance_in_meters_near,
-                                     mock_distance_in_meters_far)
+
 from roundware.lib.exception import RoundException
 from roundware.api1.commands import (check_for_single_audiotrack, get_asset_info,
                                      get_available_assets)
 from roundware.api1 import commands
 from roundware.lib import api
-from roundware.lib.api import (request_stream, get_project_tags_old as get_project_tags, get_currently_streaming_asset,
-                               _get_current_streaming_asset, vote_asset)
-from roundwared import gpsmixer
+from roundware.lib.api import ( get_project_tags_old as get_project_tags, get_currently_streaming_asset,
+                               _get_current_streaming_asset, )
+from tests.roundware.rw.common import FakeRequest
 
 TEST_LOCATIONS = {
     "point_far_away_from_speaker": dict(latitude='-0.1', longitude='0.1'),
