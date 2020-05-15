@@ -254,6 +254,59 @@ def create_envelope(request):
 
     return {"envelope_id": env.id}
 
+# add_asset_to_envelope (POST method)
+# args (operation, envelope_id, session_id, file, latitude, longitude, [tagids])
+# example: http://localhost/roundware/?operation=add_asset_to_envelope
+# OR
+# add_asset_to_envelope (GET method)
+# args (operation, envelope_id, asset_id) #asset_id must point to an Asset that exists in the database
+# returns success bool
+# {"success": true}
+# @profile(stats=True)
+def add_asset_to_envelope(request, envelope_id=None):
+    # get asset_id from the GET request
+    asset_id = get_parameter_from_request(request, 'asset_id')
+    asset = None
+    # grab the Asset from the database, if an asset_id has been passed in
+    if asset_id:
+        try:
+            asset = models.Asset.objects.get(pk=asset_id)
+        except models.Asset.DoesNotExist:
+            raise RoundException(
+                "Invalid Asset ID Provided. No Asset exists with ID %s" % asset_id)
+
+    if envelope_id is None:
+        envelope_id = get_parameter_from_request(request, 'envelope_id', True)
+    logger.debug("Found envelope_id: %s", envelope_id)
+
+    try:
+        envelope = models.Envelope.objects.select_related(
+            'session').get(id=envelope_id)
+    except models.Envelope.DoesNotExist:
+        raise RoundException(
+            "Invalid Envelope ID Provided. No Envelope exists with ID %s" % envelope_id)
+
+    session = envelope.session
+
+    asset = save_asset_from_request(request, session, asset=asset)
+
+    envelope.assets.add(asset)
+    envelope.save()
+    logger.info("Session %s - Asset %s created for file: %s",
+                session.id, asset.id, asset.file.name)
+
+    # Refresh recordings for ALL existing streams.
+    # dbus_send.emit_stream_signal(0, "refresh_recordings", "")
+
+    # Play newest asset in stream that created asset
+    # play({
+    #     'session_id': str(session.id),
+    #     'asset_id': str(asset.id)
+    # })
+
+    return {"success": True,
+            "asset_id": asset.id}
+
 
 
 def save_asset_from_request(request, session, asset=None):
@@ -479,6 +532,75 @@ def _get_current_streaming_asset(session_id):
         return l
     except IndexError:
         return None
+
+def vote_asset(request, asset_id=None):
+    if hasattr(request, 'data'):
+        form = request.data
+    else:
+        form = request.GET
+
+    if 'session_id' not in form:
+        raise RoundException("a session_id is required for this operation")
+    if 'asset_id' not in form and asset_id is None:
+        raise RoundException("an asset_id is required for this operation")
+    if 'vote_type' not in form:
+        raise RoundException("a vote_type is required for this operation")
+    # if not check_for_single_audiotrack(form.get('session_id')):
+    #     raise RoundException(
+    #         "VOTE: this operation is only valid for projects with 1 audiotrack")
+
+    # determine user/voter from provided session_id
+    User = get_user_model()
+    device_id = models.Session.objects.filter(id=int(form.get('session_id'))) \
+                                      .values_list('device_id', flat=True)
+    try:
+        voter = User.objects.get(userprofile__device_id=device_id)
+    except:
+        # handle api/1 which will not have User and therefore no voter
+        voter = None
+        pass
+    try:
+        log_event("vote_asset", int(form.get('session_id')), form)
+        session = models.Session.objects.get(id=int(form.get('session_id')))
+    except:
+        raise RoundException("Session not found.")
+    try:
+        if asset_id is None:
+            asset_id = int(form.get('asset_id'))
+        asset = models.Asset.objects.get(id=asset_id)
+    except:
+        raise RoundException("Asset not found.")
+
+    # try to find existing vote for this session and asset
+    existing = models.Vote.objects.filter(session=session, asset=asset, type=form.get('vote_type'))
+    if len(existing) > 0:
+        # if value not included - remove old vote (toggle)
+        if "value" not in form:
+            existing.delete()
+        # if value included - update value and resave
+        else:
+            existing.update(value=form.get('value'))
+        v = existing.first()
+    else:
+        if 'value' not in form:
+            v = models.Vote(
+                asset=asset, session=session, type=form.get('vote_type'), voter=voter)
+        else:
+            v = models.Vote(asset=asset, session=session, value=int(
+                form.get('value')), type=form.get('vote_type'), voter=voter)
+        v.save()
+
+    # send signal to stream process to have user_blocked_list updated
+    # if new vote is of block_* type
+    # if form.get('vote_type') in ('block_asset', 'block_user'):
+    #     dbus_send.emit_stream_signal(int(form.get('session_id')), "vote_asset", "")
+    #     logger.info("sending vote signal for session_id = %s", int(form.get('session_id')))
+
+    # different responses for api/1 vs. api/2
+    if 'operation' in form:
+        return {"success": True}
+    else:
+        return {"vote": v}
 
 
 
