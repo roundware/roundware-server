@@ -74,6 +74,8 @@ binutils libproj-dev gdal-bin libgdal-dev \
 postgresql-server-dev-9.3 postgresql-9.3-postgis-2.1
 
 # Install/upgrade virtualenv
+pip install -U pip
+pip install zipp
 pip install -U virtualenv
 
 # Create the virtual environment
