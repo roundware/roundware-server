@@ -19,10 +19,10 @@ from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, Envelop
                                     TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
                                     UIConfigFilterSet, UIElementFilterSet, UIElementNameFilterSet,
                                     UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
-from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
-                               skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
-                               save_asset_from_request, vote_asset, check_is_active, get_projects_by_location,
-                               vote_count_by_asset, log_event, play, kill, save_speaker_from_request)
+from roundware.lib.api import (get_project_tags_new as get_project_tags,
+                               add_asset_to_envelope,
+                               save_asset_from_request, vote_asset, get_projects_by_location,
+                               vote_count_by_asset, log_event, save_speaker_from_request)
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
@@ -1133,125 +1133,125 @@ class SpeakerViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class StreamViewSet(viewsets.ViewSet):
-    """
-    The primary communication channel for handling the Roundware audio stream.
-    API V2: api/2/streams/
-            api/2/streams/:id/heartbeat/
-            api/2/streams/:id/playasset/
-            api/2/streams/:id/replayasset/
-            api/2/streams/:id/skipasset/
-            api/2/streams/:id/pause/
-            api/2/streams/:id/resume/
-            api/2/streams/:id/isactive/
-            api/2/streams/:id/kill/
-    """
-    permission_classes = (IsAuthenticated,)
-
-    def create(self, request):
-        serializer = serializers.StreamSerializer(data=request.data, context={"request": request})
-        if not serializer.is_valid():
-            raise ParseError(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.save())
-
-    def partial_update(self, request, pk=None):
-        try:
-            if "tag_ids" in request.data:
-                success = modify_stream(request, context={"pk": pk})
-            elif "longitude" in request.data and "latitude" in request.data:
-                success = move_listener(request, context={"pk": pk})
-            else:
-                raise ParseError("must supply something to update")
-            if success["success"]:
-                return Response()
-            else:
-                return Response({"detail": success["error"]},
-                                status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"detail": "could not update stream: %s" % e},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def heartbeat(self, request, pk=None):
-        try:
-            heartbeat(request, session_id=pk)
-            return Response()
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def playasset(self, request, pk=None):
-        try:
-            return Response(play({
-                'session_id': pk,
-                'asset_id': request.POST.get('asset_id')
-            }))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def replayasset(self, request, pk=None):
-        try:
-            result = get_currently_streaming_asset(request, session_id=pk)
-            return Response(play({
-                'session_id': pk,
-                'asset_id': str(result.get('asset_id'))
-            }))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def skipasset(self, request, pk=None):
-        try:
-            return Response(skip_ahead(request, session_id=pk))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def pause(self, request, pk=None):
-        try:
-            return Response(pause(request, session_id=pk))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def resume(self, request, pk=None):
-        try:
-            return Response(resume(request, session_id=pk))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['get'])
-    def isactive(self, request, pk=None):
-        try:
-            result = check_is_active(pk)
-            stream_id = int(pk)
-            return Response({
-                'stream_id': stream_id,
-                'active': result
-            })
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def kill(self, request, pk=None):
-        try:
-            result = kill(pk, "mp3")
-            stream_id = int(pk)
-            return Response({
-                'stream_id': stream_id,
-                'success': result
-            })
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
+# class StreamViewSet(viewsets.ViewSet):
+#     """
+#     The primary communication channel for handling the Roundware audio stream.
+#     API V2: api/2/streams/
+#             api/2/streams/:id/heartbeat/
+#             api/2/streams/:id/playasset/
+#             api/2/streams/:id/replayasset/
+#             api/2/streams/:id/skipasset/
+#             api/2/streams/:id/pause/
+#             api/2/streams/:id/resume/
+#             api/2/streams/:id/isactive/
+#             api/2/streams/:id/kill/
+#     """
+#     permission_classes = (IsAuthenticated,)
+#
+#     def create(self, request):
+#         serializer = serializers.StreamSerializer(data=request.data, context={"request": request})
+#         if not serializer.is_valid():
+#             raise ParseError(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         return Response(serializer.save())
+#
+#     def partial_update(self, request, pk=None):
+#         try:
+#             if "tag_ids" in request.data:
+#                 success = modify_stream(request, context={"pk": pk})
+#             elif "longitude" in request.data and "latitude" in request.data:
+#                 success = move_listener(request, context={"pk": pk})
+#             else:
+#                 raise ParseError("must supply something to update")
+#             if success["success"]:
+#                 return Response()
+#             else:
+#                 return Response({"detail": success["error"]},
+#                                 status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({"detail": "could not update stream: %s" % e},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def heartbeat(self, request, pk=None):
+#         try:
+#             heartbeat(request, session_id=pk)
+#             return Response()
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def playasset(self, request, pk=None):
+#         try:
+#             return Response(play({
+#                 'session_id': pk,
+#                 'asset_id': request.POST.get('asset_id')
+#             }))
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def replayasset(self, request, pk=None):
+#         try:
+#             result = get_currently_streaming_asset(request, session_id=pk)
+#             return Response(play({
+#                 'session_id': pk,
+#                 'asset_id': str(result.get('asset_id'))
+#             }))
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def skipasset(self, request, pk=None):
+#         try:
+#             return Response(skip_ahead(request, session_id=pk))
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def pause(self, request, pk=None):
+#         try:
+#             return Response(pause(request, session_id=pk))
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def resume(self, request, pk=None):
+#         try:
+#             return Response(resume(request, session_id=pk))
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['get'])
+#     def isactive(self, request, pk=None):
+#         try:
+#             result = check_is_active(pk)
+#             stream_id = int(pk)
+#             return Response({
+#                 'stream_id': stream_id,
+#                 'active': result
+#             })
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def kill(self, request, pk=None):
+#         try:
+#             result = kill(pk, "mp3")
+#             stream_id = int(pk)
+#             return Response({
+#                 'stream_id': stream_id,
+#                 'success': result
+#             })
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
 
 
 class TagViewSet(viewsets.ViewSet):

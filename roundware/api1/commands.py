@@ -18,7 +18,7 @@ from django.conf import settings
 from roundware.rw import models
 from roundware.lib.exception import RoundException
 from roundware.lib.api import (get_project_tags_old as get_project_tags, t, log_event, form_to_request,
-                               check_for_single_audiotrack, get_parameter_from_request, play)
+                               check_for_single_audiotrack, get_parameter_from_request )
 
 logger = logging.getLogger(__name__)
 

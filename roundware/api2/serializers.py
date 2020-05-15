@@ -8,7 +8,7 @@ from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, L
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag,
                                  TagCategory, TagRelationship, TimedAsset, UIElement, UIElementName,
                                  UIGroup, UIItem, Vote)
-from roundware.lib.api import request_stream, vote_count_by_asset, vote_summary_by_asset
+from roundware.lib.api import vote_count_by_asset, vote_summary_by_asset
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from django.contrib.auth.models import User
@@ -331,51 +331,51 @@ class SpeakerSerializer(serializers.ModelSerializer):
         return result
 
 
-class StreamSerializer(serializers.Serializer):
-    session_id = serializers.IntegerField()
-    project_id = serializers.IntegerField(required=False)
-    tags = serializers.CharField(max_length=255, required=False)
-
-    latitude = serializers.FloatField(required=False)
-    longitude = serializers.FloatField(required=False)
-    url = serializers.URLField(required=False)
-
-    def validate_session_id(self, value):
-        """
-        Check the required session_id field.
-        """
-        if not Session.objects.filter(pk=value).exists():
-            raise ValidationError("session_id=%s does not exist." % value)
-        return value
-
-    def validate(self, attrs):
-        """
-        Validate additional Stream data.
-        """
-
-        session = Session.objects.get(pk=attrs['session_id'])
-        project = session.project
-
-        if 'project_id' in attrs and attrs['project_id'] != project.id:
-            raise ValidationError("project_id=%s does not match session.project=%s." %
-                                  (attrs['project_id'], project.id))
-
-        # if project is geo_listen_enabled, require a latitude and longitude
-        if session.geo_listen_enabled:
-            if 'latitude' not in attrs or 'longitude' not in attrs:
-                raise ValidationError("latitude and longitude required for geo_listen_enabled project")
-
-        # Set project_id to make sure it exists.
-        attrs['project_id'] = project.id
-
-        # TODO: Validate tags against available project tags
-        # if 'tags' in attrs:
-        return attrs
-
-    def create(self, vdata):
-        stream = request_stream(self.context['request'])
-        stream['stream_id'] = vdata['session_id']
-        return stream
+# class StreamSerializer(serializers.Serializer):
+#     session_id = serializers.IntegerField()
+#     project_id = serializers.IntegerField(required=False)
+#     tags = serializers.CharField(max_length=255, required=False)
+#
+#     latitude = serializers.FloatField(required=False)
+#     longitude = serializers.FloatField(required=False)
+#     url = serializers.URLField(required=False)
+#
+#     def validate_session_id(self, value):
+#         """
+#         Check the required session_id field.
+#         """
+#         if not Session.objects.filter(pk=value).exists():
+#             raise ValidationError("session_id=%s does not exist." % value)
+#         return value
+#
+#     def validate(self, attrs):
+#         """
+#         Validate additional Stream data.
+#         """
+#
+#         session = Session.objects.get(pk=attrs['session_id'])
+#         project = session.project
+#
+#         if 'project_id' in attrs and attrs['project_id'] != project.id:
+#             raise ValidationError("project_id=%s does not match session.project=%s." %
+#                                   (attrs['project_id'], project.id))
+#
+#         # if project is geo_listen_enabled, require a latitude and longitude
+#         if session.geo_listen_enabled:
+#             if 'latitude' not in attrs or 'longitude' not in attrs:
+#                 raise ValidationError("latitude and longitude required for geo_listen_enabled project")
+#
+#         # Set project_id to make sure it exists.
+#         attrs['project_id'] = project.id
+#
+#         # TODO: Validate tags against available project tags
+#         # if 'tags' in attrs:
+#         return attrs
+#
+#     def create(self, vdata):
+#         stream = request_stream(self.context['request'])
+#         stream['stream_id'] = vdata['session_id']
+#         return stream
 
 
 class TagSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
