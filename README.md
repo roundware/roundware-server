@@ -1,6 +1,6 @@
 # ROUNDWARE SERVER
 
-[![Build Status](https://travis-ci.org/roundware/roundware-server.svg?branch=develop)](https://travis-ci.org/roundware/roundware-server)
+![](https://github.com/probabble/roundware-server/workflows/test/badge.svg)
 
 ## Overview
 
