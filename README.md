@@ -1,6 +1,6 @@
 # ROUNDWARE SERVER
 
-![](https://github.com/probabble/roundware-server/workflows/test/badge.svg)
+![](https://github.com/probabble/roundware-server/workflows/test/badge.svg?branch=no-more-server-streaming)
 
 ## Overview
 
