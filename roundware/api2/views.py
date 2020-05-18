@@ -8,6 +8,8 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.conf import settings
+from rest_framework.decorators import action
+
 from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, Language, ListeningHistoryItem,
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIElement, UIElementName, UIGroup,
@@ -29,9 +31,10 @@ from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import detail_route, list_route
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.filters import OrderingFilter, DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 import logging
 from random import sample
 from datetime import datetime
@@ -198,7 +201,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         asset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @detail_route(methods=['post', 'get'])
+    @action(methods=['post', 'get'], detail=True)
     def votes(self, request, pk=None):
         """
         GET api/2/assets/votes/ - retrieve Votes for specified Asset
@@ -213,7 +216,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
             count = vote_count_by_asset(pk)
             return Response(count)
 
-    @list_route(methods=['get'])
+    @action(methods=['get'], detail=False)
     def random(self, request, pk=None):
         """
         GET api/2/assets/random/ - retrieve random list of Assets filtered by parameters
@@ -231,7 +234,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         serializer = serializers.AssetSerializer(results, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['get'])
+    @action(methods=['get'], detail=False)
     def blocked(self, request, pk=None):
         """
         GET api/2/assets/blocked/ - retrieve list of Assets blocked by
@@ -751,7 +754,7 @@ class ProjectViewSet(viewsets.ViewSet):
         project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def tags(self, request, pk=None):
         """
         GET api/2/projects/:id/tags/ - Get Tags for specific Project
@@ -765,7 +768,7 @@ class ProjectViewSet(viewsets.ViewSet):
                                                               "admin": "admin" in request.query_params}, many=True)
         return Response(serializer.data)
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def uigroups(self, request, pk=None):
         """
         GET api/2/projects/:id/uigroups/ - Get UIGroups for specific Project
@@ -783,7 +786,7 @@ class ProjectViewSet(viewsets.ViewSet):
                                                             "session": session}, many=True)
         return Response(serializer.data)
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def uiconfig(self, request, pk=None):
         """
         GET api/2/projects/:id/uiconfig/ - Get UI config data for specific Project
@@ -811,7 +814,7 @@ class ProjectViewSet(viewsets.ViewSet):
         return Response({ "listen" : sld,
                           "speak"  : ssd })
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def assets(self, request, pk=None):
         """
         GET api/2/projects/:id/assets/ - Get Assets for specific Project
@@ -820,10 +823,10 @@ class ProjectViewSet(viewsets.ViewSet):
         params["project_id"] = pk
         assets = AssetFilterSet(params)
         # serialize and return
-        serializer = serializers.AssetSerializer(assets, context={"admin": "admin" in request.query_params}, many=True)
-        return Response(serializer.data)
+        serializer = serializers.AssetSerializer(assets.qs, context={"admin": "admin" in request.query_params}, many=True)
+        return Response(data=serializer.data)
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def uielements(self, request, pk=None):
         """
         GET api/2/projects/:id/uielements/ - Get UIElements for specific Project
@@ -937,7 +940,7 @@ class ProjectGroupViewSet(viewsets.ViewSet):
         projectgroup.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def projects(self, request, pk=None):
         """
         GET api/2/projectgroups/:id/projects/ - Get Projects for specific ProjectGroup.
@@ -2013,7 +2016,7 @@ class VoteViewSet(viewsets.ViewSet):
         vote.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @list_route(methods=['get'])
+    @action(methods=['get'], detail=False)
     def summary(self, request, pk=None):
         """
         GET api/2/votes/summary/ - Get summary of votes by type by asset

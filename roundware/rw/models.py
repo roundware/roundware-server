@@ -15,7 +15,6 @@ from django.contrib.gis.db import models
 from validatedfile.fields import ValidatedFileField
 from django.conf import settings
 from datetime import datetime
-from cache_utils.decorators import cached
 from django.db.models.signals import post_save
 import logging
 from geopy.distance import vincenty
@@ -38,6 +37,7 @@ class Asset(models.Model):
 
     class Meta:
         ordering = ['id']
+        app_label = 'rw'
 
     session = models.ForeignKey(
         'Session', null=True, blank=True)
@@ -880,6 +880,6 @@ def calculate_volume(speaker, listener):
 
         logger.debug("new volume: {} (min: {}, max: {})".format(vol, speaker.minvolume, speaker.maxvolume))
         return vol
-    except Exception, e:
+    except Exception as e:
         logger.error(e)
         return 0

@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 import shutil
 import os
-from exception import RoundException
+from .exception import RoundException
 
 
 # Converts the given file to both wav and mp3 and stores the files in the audio directory.

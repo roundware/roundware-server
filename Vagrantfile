@@ -21,7 +21,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       v.customize ["modifyvm", :id, "--memory", "2048"]
     end
   config.vm.provision "shell",
-    inline: "cd /vagrant; ./install.sh"
+    inline: "export ROUNDWARE_DEV=true; cd /vagrant; ./install.sh"
 
   if Vagrant.has_plugin?("vagrant-cachier")
     # Configure cached packages to be shared between instances of the same base box.

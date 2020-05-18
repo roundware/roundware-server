@@ -1,0 +1,87 @@
+name: Roundware Server CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    container:
+      image: ubuntu:16.04
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.5]
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: mdillon/postgis:9.3
+        ports:
+          # will assign a random free host port
+          - 5432:5432
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: round
+          POSTGRES_USER: round
+          POSTGRES_DB: roundware
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: |
+          apt-get update
+          apt-get install -y python3-dev python3 python3-pip python-virtualenv python-pip ffmpeg mediainfo pacpl binutils libproj-dev gdal-bin libgdal-dev
+          python --version
+          python3 --version
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements/common.txt
+          python3 -m pip install -r requirements/dev.txt
+          echo "::set-env name=PYTHONPATH::$GITHUB_WORKSPACE:$PYTHONPATH"
+
+      - name: Run Tests
+        env:
+          ROUNDWARE_DB_USER: round
+          ROUNDWARE_DB_NAME: roundware
+          ROUNDWARE_DB_PASSWORD: round
+          ROUNDWARE_DB_HOST: postgres
+          ROUNDWARE_DB_PORT: ${{ job.services.postgres.ports[5432] }}
+        run: |
+          echo $PATH
+          echo $PYTHONPATH
+          pwd
+          ls -lhta roundware
+          which python
+          coverage run --source=roundware roundware/manage.py test --settings=roundware.settings.testing
+          coverage report -m > coverage-report.txt
+
+      - uses: actions/upload-artifact@2
+        with:
+          name: coverage-report
+          path: coverage-report.txt
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@master
+      #This Action Emits 2 Variables, IMAGE_SHA_NAME and IMAGE_URL
+      #which you can reference in subsequent steps
+    - name: Publish Docker Image to GPR
+      uses: machine-learning-apps/gpr-docker-publish@master
+      id: docker
+      with:
+        IMAGE_NAME: 'roundware'
+        DOCKERFILE_PATH: './Dockerfile'
+        BUILD_CONTEXT: '.'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+

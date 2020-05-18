@@ -23,6 +23,9 @@ logger = logging.getLogger(__name__)
 
 class AdminLocaleStringSerializerMixin(serializers.Serializer):
 
+    class Meta:
+        exclude = []
+
     def get_fields(self):
         fields = super(AdminLocaleStringSerializerMixin, self).get_fields()
 
@@ -114,6 +117,7 @@ class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeriali
 class AudiotrackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Audiotrack
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(AudiotrackSerializer, self).to_representation(obj)
@@ -139,6 +143,7 @@ class EnvelopeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Envelope
+        fields = "__all__"
 
     def validate_session_id(self, value):
         try:
@@ -163,6 +168,7 @@ class EnvelopeSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(EventSerializer, self).to_representation(obj)
@@ -176,6 +182,7 @@ class EventSerializer(serializers.ModelSerializer):
 class LanguageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Language
+        fields = "__all__"
 
     def validate_language_code(self, value):
         # ensure language_code is 2 characters and doesn't already exist in db
@@ -195,6 +202,7 @@ class ListenEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ListeningHistoryItem
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(ListenEventSerializer, self).to_representation(obj)
@@ -212,6 +220,7 @@ class LocalizedStringSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LocalizedString
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(LocalizedStringSerializer, self).to_representation(obj)
@@ -226,6 +235,7 @@ class LocalizedStringSerializer(serializers.ModelSerializer):
 class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Project
+        fields = "__all__"
         localized_fields = ['demo_stream_message_loc', 'legal_agreement_loc',
                             'sharing_message_loc', 'out_of_range_message_loc']
 
@@ -286,6 +296,7 @@ class ProjectChooserSerializer(serializers.ModelSerializer):
 class ProjectGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectGroup
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(ProjectGroupSerializer, self).to_representation(obj)
@@ -297,6 +308,7 @@ class ProjectGroupSerializer(serializers.ModelSerializer):
 class SessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
+        fields = "__all__"
 
     def validate_language(self, value):
         try:
@@ -381,6 +393,7 @@ class SpeakerSerializer(serializers.ModelSerializer):
 class TagSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Tag
+        fields = "__all__"
         localized_fields = ['loc_msg', 'loc_description']
 
     def to_representation(self, obj):
@@ -418,6 +431,7 @@ class TagSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerialize
 class TagCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = TagCategory
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(TagCategorySerializer, self).to_representation(obj)
@@ -427,6 +441,7 @@ class TagCategorySerializer(serializers.ModelSerializer):
 class TagRelationshipSerializer(serializers.ModelSerializer):
     class Meta:
         model = TagRelationship
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(TagRelationshipSerializer, self).to_representation(obj)
@@ -440,6 +455,7 @@ class TagRelationshipSerializer(serializers.ModelSerializer):
 class TimedAssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimedAsset
+        fields = "__all__"
 
     def validate(self, attrs):
         if attrs['end'] < attrs['start']:
@@ -532,6 +548,7 @@ class UIConfigItemSerializer(serializers.ModelSerializer):
 class UIElementSerializer(serializers.ModelSerializer):
     class Meta:
         model = UIElement
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(UIElementSerializer, self).to_representation(obj)
@@ -568,6 +585,7 @@ class UIElementProjectSerializer(serializers.ModelSerializer):
 class UIElementNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = UIElementName
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(UIElementNameSerializer, self).to_representation(obj)
@@ -578,6 +596,7 @@ class UIGroupSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
     class Meta:
         model = UIGroup
         localized_fields = ['header_text_loc']
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(UIGroupSerializer, self).to_representation(obj)
@@ -604,6 +623,7 @@ class UIGroupSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
 class UIItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = UIItem
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(UIItemSerializer, self).to_representation(obj)
@@ -678,6 +698,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
 class VoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vote
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(VoteSerializer, self).to_representation(obj)
@@ -694,6 +715,7 @@ class VoteSerializer(serializers.ModelSerializer):
 class VoteSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = Vote
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(VoteSummarySerializer, self).to_representation(obj)

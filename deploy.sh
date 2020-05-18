@@ -42,14 +42,18 @@ cp -R $SOURCE_PATH/. $CODE_PATH
 
 # Activate the environment
 source $VENV_PATH/bin/activate
+
 # Set python path to use production code
 export PYTHONPATH=$CODE_PATH
 
 # Install upgrade pip
-pip install -U pip
+python -m pip install -U pip wheel setuptools
 
 # Install Roundware requirements
-pip install -r $CODE_PATH/requirements.txt --upgrade
+python -m pip install -r $CODE_PATH/requirements.txt --upgrade
+if [ $ROUNDWARE_DEV ]; then
+  python -m pip install -r $CODE_PATH/requirements/dev.txt --upgrade
+fi
 
 # Set $USERNAME to own WWW_PATH files
 chown $USERNAME:$USERNAME -R $WWW_PATH

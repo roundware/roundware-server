@@ -2,28 +2,7 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 from __future__ import unicode_literals
-from collections import Counter
-import datetime
-from urllib import urlencode
-import json
 
-from model_mommy import mommy
-from mock import patch
-
-from django.test.client import Client
-from django.conf import settings
-from roundware.rw.models import (ListeningHistoryItem, Asset, Project,
-                                 Audiotrack, Session, Vote, Envelope,
-                                 Speaker, LocalizedString, UIGroup, UIItem)
-
-from roundware.lib.exception import RoundException
-from roundware.api1.commands import (check_for_single_audiotrack, get_asset_info,
-                                     get_available_assets)
-from roundware.api1 import commands
-from roundware.lib import api
-from roundware.lib.api import ( get_project_tags_old as get_project_tags,
-                              )
-from tests.roundware.rw.common import FakeRequest
 
 TEST_LOCATIONS = {
     "point_far_away_from_speaker": dict(latitude='-0.1', longitude='0.1'),

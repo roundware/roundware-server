@@ -2,6 +2,7 @@ from .common import *
 
 # Set Roundware API for internal calls to development environment
 API_URL = "http://127.0.0.1:8888/roundware/"
+
 # Change banned_timeout limit to better development testing value
 BANNED_TIMEOUT_LIMIT = 90
 
@@ -20,6 +21,7 @@ DEBUG_TOOLBAR_PATCH_SETTINGS = False
 CRISPY_FAIL_SILENTLY = not DEBUG
 
 
+
 MIDDLEWARE_CLASSES = (
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ) + MIDDLEWARE_CLASSES
@@ -33,7 +35,7 @@ class internal_list(list):
 INTERNAL_IPS = internal_list()
 
 # PROFILING using django-profiler
-PROFILING_SQL_QUERIES = True
+# PROFILING_SQL_QUERIES = True
 LOGGING['handlers'] = {
     # The console handler will display in the manage.py runserver output
     'console': {

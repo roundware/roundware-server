@@ -4,22 +4,17 @@
 from __future__ import unicode_literals
 from django.conf import settings
 from django.conf.urls import url
+from django.conf.urls import include
 
 # Loading static files for debug mode
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
-from django.conf.urls import include
 from django.contrib import admin
 
-from adminplus.sites import AdminSitePlus
-
 from roundware.rw import urls as rw_urls
-
 from roundware.rw import views as rw_views
 
-admin.site = AdminSitePlus()
-admin.sites.site = admin.site
 admin.autodiscover()
 
 urlpatterns = [
@@ -36,7 +31,7 @@ urlpatterns = [
     url(r'^accounts/login/$', auth_views.login,
         {'template_name': 'admin/login.html'}),
 
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
 
     url(r'^rw/', include(rw_urls)),
 

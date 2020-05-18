@@ -71,11 +71,11 @@ DATABASES = {
         # Or path to database file if using sqlite3.
 
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'roundware',
-        'USER': 'round',
-        'PASSWORD': 'round',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.getenv('ROUNDWARE_DB_NAME', 'roundware'),
+        'USER':  os.getenv('ROUNDWARE_DB_USER','round'),
+        'HOST': os.getenv('ROUNDWARE_DB_HOST', 'localhost'),
+        'PORT': os.getenv('ROUNDWARE_DB_PORT', '5432'),
+        'PASSWORD': os.getenv('ROUNDWARE_DB_PASSWORD', "round")
     }
 }
 
@@ -202,12 +202,10 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'django_admin_bootstrapped',
-    'django.contrib.admin.apps.SimpleAdminConfig',  # 5
+    'django.contrib.admin',
     'guardian',  # 3
     'chartit',
     'validatedfile',
-    'adminplus',
     'crispy_forms',
     'floppyforms',
     'djangoformsetjs',
@@ -215,20 +213,18 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework_gis',
     'rest_framework.authtoken',
+    'django_filters',
     'leaflet',
     'corsheaders',
-    'roundware.lib',
-    'roundware.rw',  # 4
+    'roundware.rw',
     'roundware.notifications',
-    'roundware.api1',
-    'roundware.api2',
 )
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_FILTER_BACKENDS': (
-        'rest_framework.filters.DjangoFilterBackend',
+        'django_filters.rest_framework.DjangoFilterBackend',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
