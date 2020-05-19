@@ -12,11 +12,8 @@ services:
     build: "."
     image: roundware:latest
     ports:
-      - "8000:8000"
-    command: bash -c "
-       python3 roundware/manage.py migrate &&
-       python3 roundware/manage.py runserver 0.0.0.0:8000
-      "
+      - "8888:8888"
+    command: python3 roundware/manage.py runserver 0.0.0.0:8888 -v 3
     environment:
       ROUNDWARE_DEBUG: "true"
       ROUNDWARE_DB_HOST: "roundware-db"

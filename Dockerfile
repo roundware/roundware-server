@@ -6,7 +6,7 @@ WORKDIR /code
 RUN apt-get update
 
 ADD requirements.apt .
-RUN xargs -a requirements.apt apt-get install -y
+RUN DEBIAN_FRONTEND=noninteractive xargs -a requirements.apt apt-get install -y
 RUN python3 -m pip install pip setuptools --upgrade
 RUN which python3 && python3 --version
 ADD requirements ./requirements
