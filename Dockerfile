@@ -1,4 +1,4 @@
-FROM ubuntu:16.04 as roundware
+FROM ubuntu:18.04 as roundware
 RUN mkdir /code
 ENV PATH=/code:$PATH
 ENV PYTHONPATH=/code

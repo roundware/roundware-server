@@ -5,8 +5,8 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  # Vagrant Cloud name for Ubuntu 16.04 LTS
-  config.vm.box = "ubuntu/xenial64"
+  # Vagrant Cloud name for Ubuntu 18.04 LTS
+  config.vm.box = "ubuntu/bionic64"
   config.vm.hostname = "roundware-server"
 
   # Configure Apache port 80 to forward to host 8080
