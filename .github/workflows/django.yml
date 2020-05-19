@@ -53,15 +53,9 @@ jobs:
           ROUNDWARE_DB_HOST: postgres
           ROUNDWARE_DB_PORT: ${{ job.services.postgres.ports[5432] }}
         run: |
-          echo $PATH
-          echo $PYTHONPATH
-          pwd
-          ls -lhta roundware
-          which python
           coverage run --source=roundware roundware/manage.py test --settings=roundware.settings.testing
           coverage report -m > coverage-report.txt
           cat coverage-report.txt
-
 #      - uses: actions/upload-artifact@v2
 #        with:
 #          path: coverage-report.txt
