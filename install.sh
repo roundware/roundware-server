@@ -62,16 +62,15 @@ cp $SOURCE_PATH/files/home-user-profile /home/$USERNAME/.profile
 ln -sfn $WWW_PATH /home/$USERNAME/www
 
 apt-get update
+# Install packages for running Roundware Server
+xargs -a requirements.apt sudo apt-get install -y
+# Install additional packages for running Postgres locally
+DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql postgis
+# Install additional packages for running apache
+DEBIAN_FRONTEND=noninteractive apt-get install -y apache2 libapache2-mod-wsgi
+
 # Create the virtual environment
-DEBIAN_FRONTEND=noninteractive apt-get install -y python3.5-dev python3.5 python3-pip python-virtualenv python-pip
 virtualenv $VENV_PATH -p /usr/bin/python3.5
-
-# Install required packages non-interactive
-DEBIAN_FRONTEND=noninteractive apt-get install -y \
-apache2 libapache2-mod-wsgi libav-tools mediainfo pacpl \
-binutils libproj-dev gdal-bin libgdal-dev \
-postgresql-server-dev-9.3 postgresql-9.3-postgis-2.1 \
-
 # Activate the environment
 source $VENV_PATH/bin/activate
 # Set python path to use production code

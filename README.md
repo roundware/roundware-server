@@ -4,7 +4,7 @@
 
 ## Overview
 
-Roundware is a client-server system. The server runs using Apache HTTP Server and mod_wsgi on Ubuntu Linux 14.04 LTS Trusty Tahr and clients are available for iOS, Android and HTML5 browsers. This document outlines the steps required to setup a basic Roundware server that can be accessed through any of these clients.
+Roundware is a client-server system. The server runs using Apache HTTP Server and mod_wsgi on Ubuntu Linux 16.04 LTS Xenial Xerus and clients are available for iOS, Android and HTML5 browsers. This document outlines the steps required to setup a basic Roundware server that can be accessed through any of these clients.
 
 For more information about Roundware functionalities and projects that use the platform, please check out: [roundware.org](http://roundware.org "Roundware")
 
