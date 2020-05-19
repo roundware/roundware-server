@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db import transaction
 from django.contrib.gis.db import models
-from validatedfile.fields import ValidatedFileField
+from rw.fields import ValidatedFileField
 from django.conf import settings
 from datetime import datetime
 from django.db.models.signals import post_save

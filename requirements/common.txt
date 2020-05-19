@@ -10,11 +10,11 @@ django-guardian<1.5
 # Used by roundware/api1/commands.py
 psutil==3.4.2
 # Used by roundware/rw/fields.py
-django-validated-file==2.0.1
+# django-validated-file==2.0.1
 # Used in roundware/rw/views.py
 django-braces==1.4.0
 # Loaded in roundware/urls.py
-django-adminplus==0.2.1
+# django-adminplus==0.2.1
 # Used in roundware/rw/forms.py
 django-crispy-forms==1.6.0
 # Used in roundware/rw/widgets.py
@@ -38,7 +38,7 @@ django-cors-headers==2.4.1
 # fiona is a useful tool for processing geographic files (ETL)
 fiona
 # geographic extensions for djangorestframework-gis
-djangorestframework-gis==0.10.1
+djangorestframework-gis<=0.16
 # leaflet map utilities for django admin
 django-leaflet<0.27
 # Bootstrap admin theme for Django 1.9

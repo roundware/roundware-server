@@ -40,7 +40,7 @@ class TestServer(APITestCase):
         self.maxDiff = None
 
         generator_dict = {
-            'validatedfile.fields.ValidatedFileField':
+            'rw.fields.ValidatedFileField':
             validated_file_field_gen
         }
         # can't set this directly in settings: db ENGINE not yet available

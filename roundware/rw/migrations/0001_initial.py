@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('latitude', models.FloatField(null=True)),
                 ('longitude', models.FloatField(null=True)),
                 ('filename', models.CharField(max_length=256, null=True, blank=True)),
-                ('file', validatedfile.fields.ValidatedFileField(help_text='Upload file', storage=django.core.files.storage.FileSystemStorage(base_url='/rwmedia/', location='/var/www/roundware/rwmedia/'), upload_to='.')),
+                ('file', roundware.rw.fields.ValidatedFileField(help_text='Upload file', storage=django.core.files.storage.FileSystemStorage(base_url='/rwmedia/', location='/var/www/roundware/rwmedia/'), upload_to='.')),
                 ('volume', models.FloatField(default=1.0, null=True, blank=True)),
                 ('submitted', models.BooleanField(default=True)),
                 ('created', models.DateTimeField(default=datetime.datetime.now)),

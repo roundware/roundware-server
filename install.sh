@@ -70,7 +70,8 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql postgis
 DEBIAN_FRONTEND=noninteractive apt-get install -y apache2 libapache2-mod-wsgi
 
 # Create the virtual environment
-virtualenv $VENV_PATH -p /usr/bin/python3
+python3 -m venv $VENV_PATH --upgrade
+
 # Activate the environment
 source $VENV_PATH/bin/activate
 # Set python path to use production code
