@@ -6,7 +6,7 @@ WORKDIR /code
 RUN apt-get update
 
 ADD requirements.apt .
-RUN xargs -a requirements.apt sudo apt-get install -y
+RUN xargs -a requirements.apt apt-get install -y
 RUN python -m pip install --upgrade pip setuptools
 
 ADD requirements ./requirements
