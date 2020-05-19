@@ -1,7 +1,7 @@
 version: "3"
 services:
   roundware-db:
-    image: mdillon/postgis:9.6
+    image: mdillon/postgis:10
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_USER: round
@@ -14,12 +14,13 @@ services:
     ports:
       - "8000:8000"
     command: bash -c "
-       python manage.py migrate &&
-       python manage.py runserver 0.0.0.0:8000
+       python3 roundware/manage.py migrate &&
+       python3 roundware/manage.py runserver 0.0.0.0:8000
       "
     environment:
       ROUNDWARE_DEBUG: "true"
       ROUNDWARE_DB_HOST: "roundware-db"
+      ROUNDWARE_DB_NAME: "round"
     volumes:
       - .:/code
       - logs:/roundware/logs

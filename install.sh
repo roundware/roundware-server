@@ -68,11 +68,15 @@ xargs -a requirements.apt sudo apt-get install -y
 DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql postgis
 # Install additional packages for running apache
 DEBIAN_FRONTEND=noninteractive apt-get install -y apache2 libapache2-mod-wsgi
+# Install virtualenv
+DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv
+python3 -m pip install pip --upgrade
 
 # Create the virtual environment
-python3 -m venv $VENV_PATH --upgrade
+python3 -m venv $VENV_PATH
 
 # Activate the environment
+# shellcheck disable=SC1090
 source $VENV_PATH/bin/activate
 # Set python path to use production code
 export PYTHONPATH=$CODE_PATH

@@ -11,6 +11,7 @@ django-guardian<1.5
 psutil==3.4.2
 # Used by roundware/rw/fields.py
 # django-validated-file==2.0.1
+python-magic==0.4.8
 # Used in roundware/rw/views.py
 django-braces==1.4.0
 # Loaded in roundware/urls.py
@@ -20,7 +21,7 @@ django-crispy-forms==1.6.0
 # Used in roundware/rw/widgets.py
 django-floppyforms==1.6.1
 # Used in roundware/rw/views.py:
-django-extra-views==0.6.5
+django-extra-views==0.7
 # Used in roundware/rw/fields.py and roundware/rw/widgets.py
 django-sortedm2m==0.8.1
 # Required for RDF Date parsing

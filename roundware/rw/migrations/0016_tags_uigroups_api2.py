@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import django.contrib.gis.db.models.fields
 from django.db import migrations, models
 import django.db.models.deletion
-import validatedfile.fields
+from roundware.rw.fields import ValidatedFileField
 
 
 class Migration(migrations.Migration):
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='loc_caption',
-            field=validatedfile.fields.ValidatedFileField(help_text='Upload captions', null=True, storage=django.core.files.storage.FileSystemStorage(base_url='/rwmedia/', location='/var/www/roundware/rwmedia/'), upload_to='.'),
+            field=ValidatedFileField(help_text='Upload captions', null=True, storage=django.core.files.storage.FileSystemStorage(base_url='/rwmedia/', location='/var/www/roundware/rwmedia/'), upload_to='.'),
         ),
         migrations.AddField(
             model_name='uiitem',

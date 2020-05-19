@@ -205,7 +205,6 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'guardian',  # 3
     'chartit',
-    'validatedfile',
     'crispy_forms',
     'floppyforms',
     'djangoformsetjs',
