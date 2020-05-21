@@ -13,11 +13,11 @@ psutil==3.4.2
 # django-validated-file==2.0.1
 python-magic==0.4.8
 # Used in roundware/rw/views.py
-django-braces==1.4.0
+django-braces==1.14.0
 # Loaded in roundware/urls.py
 # django-adminplus==0.2.1
 # Used in roundware/rw/forms.py
-django-crispy-forms==1.6.0
+django-crispy-forms==1.9.1
 # Used in roundware/rw/widgets.py
 django-floppyforms==1.6.1
 # Used in roundware/rw/views.py:
