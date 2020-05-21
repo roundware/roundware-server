@@ -44,3 +44,5 @@ djangorestframework-gis<=0.16
 django-leaflet<0.27
 # Bootstrap admin theme for Django 1.9
 # https://github.com/roundware/django-admin-bootstrapped/zipball/3.0.0
+# audio conversions
+ffmpeg-python==0.2.0
