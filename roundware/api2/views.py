@@ -323,7 +323,7 @@ class AudiotrackViewSet(viewsets.ViewSet):
         """
         GET api/2/audiotracks/ - Provides list of Audiotracks filtered by parameters
         """
-        audiotracks = AudiotrackFilterSet(request.query_params)
+        audiotracks = AudiotrackFilterSet(request.query_params).qs
         serializer = serializers.AudiotrackSerializer(audiotracks, many=True)
         return Response(serializer.data)
 
@@ -426,7 +426,7 @@ class EnvelopeViewSet(viewsets.ViewSet):
         """
         GET api/2/envelopes/ - retrieve list of Envelopes
         """
-        envelopes = EnvelopeFilterSet(request.query_params)
+        envelopes = EnvelopeFilterSet(request.query_params).qs
         serializer = serializers.EnvelopeSerializer(envelopes, many=True)
         return Response(serializer.data)
 
@@ -482,7 +482,7 @@ class EventViewSet(viewsets.ViewSet):
         """
         GET api/2/events/ - Provides list of Events filtered by parameters
         """
-        events = EventFilterSet(request.query_params)
+        events = EventFilterSet(request.query_params).qs
         serializer = serializers.EventSerializer(events, many=True)
         return Response(serializer.data)
 
@@ -531,7 +531,7 @@ class LanguageViewSet(viewsets.ViewSet):
         """
         GET api/2/Languages/ - Provides list of Languages filtered by parameters
         """
-        languages = LanguageFilterSet(request.query_params)
+        languages = LanguageFilterSet(request.query_params).qs
         serializer = serializers.LanguageSerializer(languages, many=True)
         return Response(serializer.data)
 
@@ -588,7 +588,7 @@ class ListenEventViewSet(viewsets.ViewSet):
         """
         GET api/2/listenevents/ - Get ListenEvents by filtering parameters
         """
-        events = ListeningHistoryItemFilterSet(request.query_params)
+        events = ListeningHistoryItemFilterSet(request.query_params).qs
         serializer = serializers.ListenEventSerializer(events, many=True)
         return Response(serializer.data)
 
@@ -622,7 +622,7 @@ class LocalizedStringViewSet(viewsets.ViewSet):
         """
         GET api/2/localizedstrings/ - Provides list of LocalizedStrings filtered by parameters
         """
-        localizedstrings = LocalizedStringFilterSet(request.query_params)
+        localizedstrings = LocalizedStringFilterSet(request.query_params).qs
         serializer = serializers.LocalizedStringSerializer(localizedstrings, many=True)
         return Response(serializer.data)
 
@@ -700,7 +700,7 @@ class ProjectViewSet(viewsets.ViewSet):
         """
         GET api/2/projects/ - Provides list of Projects filtered by parameters
         """
-        projects = ProjectFilterSet(request.query_params)
+        projects = ProjectFilterSet(request.query_params).qs
         serializer = serializers.ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
@@ -780,7 +780,7 @@ class ProjectViewSet(viewsets.ViewSet):
             except:
                 raise ParseError("Session not found")
         params["project_id"] = pk
-        uigroups = UIGroupFilterSet(params)
+        uigroups = UIGroupFilterSet(params).qs
         serializer = serializers.UIGroupSerializer(uigroups,
                                                    context={"admin": "admin" in request.query_params,
                                                             "session": session}, many=True)
@@ -800,13 +800,13 @@ class ProjectViewSet(viewsets.ViewSet):
         params["project_id"] = pk
         params['active'] = 'true'
         params['ui_mode'] = 'listen'
-        uigroups_listen = UIGroupFilterSet(params)
+        uigroups_listen = UIGroupFilterSet(params).qs
         serializer_listen = serializers.UIConfigSerializer(uigroups_listen,
                                                    context={"admin": "admin" in request.query_params,
                                                             "session": session, "mode": "listen"}, many=True)
         sld = serializer_listen.data
         params['ui_mode'] = 'speak'
-        uigroups_speak = UIGroupFilterSet(params)
+        uigroups_speak = UIGroupFilterSet(params).qs
         serializer_speak = serializers.UIConfigSerializer(uigroups_speak,
                                                    context={"admin": "admin" in request.query_params,
                                                             "session": session, "mode": "speak"}, many=True)
@@ -821,9 +821,9 @@ class ProjectViewSet(viewsets.ViewSet):
         """
         params = request.query_params.copy()
         params["project_id"] = pk
-        assets = AssetFilterSet(params)
+        assets = AssetFilterSet(params).qs
         # serialize and return
-        serializer = serializers.AssetSerializer(assets.qs, context={"admin": "admin" in request.query_params}, many=True)
+        serializer = serializers.AssetSerializer(assets, context={"admin": "admin" in request.query_params}, many=True)
         return Response(data=serializer.data)
 
     @action(methods=['get'], detail=True)
@@ -842,7 +842,7 @@ class ProjectViewSet(viewsets.ViewSet):
         if "variant" not in params:
             raise ParseError("Variant param is required.")
         params["project_id"] = pk
-        uielements = UIElementFilterSet(params)
+        uielements = UIElementFilterSet(params).qs
         r = {}
         # build data structure for each view individually
         for uielementview in UIElementName.VIEWS:
@@ -890,7 +890,7 @@ class ProjectGroupViewSet(viewsets.ViewSet):
         """
         GET api/2/projectgroups/ - Provides list of ProjectGroups filtered by parameters
         """
-        projectgroups = ProjectGroupFilterSet(request.query_params)
+        projectgroups = ProjectGroupFilterSet(request.query_params).qs
         logger.info('ProjectGroup = %s' % projectgroups)
         serializer = serializers.ProjectGroupSerializer(projectgroups, many=True)
         return Response(serializer.data)
@@ -988,7 +988,7 @@ class SessionViewSet(viewsets.ViewSet):
         """
         GET api/2/sessions/ - Provides list of Sessions filtered by parameters
         """
-        sessions = SessionFilterSet(request.query_params)
+        sessions = SessionFilterSet(request.query_params).qs
         serializer = serializers.SessionSerializer(sessions, many=True)
         return Response(serializer.data)
 
@@ -1062,7 +1062,7 @@ class SpeakerViewSet(viewsets.ViewSet):
         """
         GET api/2/speakers/ - Provides list of Speakers filtered by parameters
         """
-        speakers = SpeakerFilterSet(request.query_params)
+        speakers = SpeakerFilterSet(request.query_params).qs
         serializer = serializers.SpeakerSerializer(speakers, many=True)
         return Response(serializer.data)
 
@@ -1276,7 +1276,7 @@ class TagViewSet(viewsets.ViewSet):
         """
         GET api/2/tags/ - Provides list of Tags filtered by parameters
         """
-        tags = TagFilterSet(request.query_params)
+        tags = TagFilterSet(request.query_params).qs
         session = None
         if "session_id" in request.query_params:
             try:
@@ -1375,7 +1375,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
         """
         GET api/2/tagcategories/ - Provides list of TagCategories filtered by parameters
         """
-        tagcategories = TagCategoryFilterSet(request.query_params)
+        tagcategories = TagCategoryFilterSet(request.query_params).qs
         serializer = serializers.TagCategorySerializer(tagcategories, many=True)
         return Response(serializer.data)
 
@@ -1436,7 +1436,7 @@ class TagRelationshipViewSet(viewsets.ViewSet):
         """
         GET api/2/tagrelationships/ - Provides list of TagRelationship filtered by parameters
         """
-        tagrelationships = TagRelationshipFilterSet(request.query_params)
+        tagrelationships = TagRelationshipFilterSet(request.query_params).qs
         serializer = serializers.TagRelationshipSerializer(tagrelationships, many=True)
         return Response(serializer.data)
 
@@ -1510,7 +1510,7 @@ class TimedAssetViewSet(viewsets.ViewSet):
         """
         GET api/2/timedassets/ - Provides list of TimedAssets filtered by parameters
         """
-        timedassets = TimedAssetFilterSet(request.query_params)
+        timedassets = TimedAssetFilterSet(request.query_params).qs
         serializer = serializers.TimedAssetSerializer(timedassets, many=True)
         return Response(serializer.data)
 
@@ -1583,7 +1583,7 @@ class UIElementViewSet(viewsets.ViewSet):
         """
         GET api/2/uielements/ - Provides list of UIElements filtered by parameters
         """
-        uielements = UIElementFilterSet(request.query_params)
+        uielements = UIElementFilterSet(request.query_params).qs
         serializer = serializers.UIElementSerializer(uielements, many=True)
         return Response(serializer.data)
 
@@ -1662,7 +1662,7 @@ class UIElementNameViewSet(viewsets.ViewSet):
         """
         GET api/2/uielementnames/ - Provides list of UIElementNames filtered by parameters
         """
-        uielementnames = UIElementNameFilterSet(request.query_params)
+        uielementnames = UIElementNameFilterSet(request.query_params).qs
         serializer = serializers.UIElementNameSerializer(uielementnames, many=True)
         return Response(serializer.data)
 
@@ -1723,7 +1723,7 @@ class UIGroupViewSet(viewsets.ViewSet):
         """
         GET api/2/uigroups/ - Provides list of UIGroups filtered by parameters
         """
-        uigroups = UIGroupFilterSet(request.query_params)
+        uigroups = UIGroupFilterSet(request.query_params).qs
         session = None
         if "session_id" in request.query_params:
             try:
@@ -1818,7 +1818,7 @@ class UIItemViewSet(viewsets.ViewSet):
         """
         GET api/2/uiitems/ - Provides list of UIItems filtered by parameters
         """
-        uiitems = UIItemFilterSet(request.query_params)
+        uiitems = UIItemFilterSet(request.query_params).qs
         serializer = serializers.UIItemSerializer(uiitems, many=True)
         return Response(serializer.data)
 
@@ -1956,7 +1956,7 @@ class VoteViewSet(viewsets.ViewSet):
         """
         GET api/2/votes/ - Provides list of Votes filtered by parameters
         """
-        votes = VoteFilterSet(request.query_params)
+        votes = VoteFilterSet(request.query_params).qs
         serializer = serializers.VoteSerializer(votes, many=True)
         return Response(serializer.data)
 
@@ -2027,7 +2027,7 @@ class VoteViewSet(viewsets.ViewSet):
             type = request.query_params["type"]
         else:
             type = None
-        votes = VoteFilterSet(request.query_params)
+        votes = VoteFilterSet(request.query_params).qs
         # serialize and return, deduped by asset_id
         for vote in votes:
             if vote.asset_id not in asset_ids:

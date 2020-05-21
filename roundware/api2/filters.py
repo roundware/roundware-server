@@ -38,7 +38,7 @@ class WordListFilter(django_filters.Filter):
         if value not in (None, ''):
             words = [str(v) for v in value.split(',')]
             for word in words:
-                qs = qs.filter(**{'%s__%s' % (self.name, self.lookup_expr): word})
+                qs = qs.filter(**{'%s__%s' % (self.field_name, self.lookup_expr): word})
             return qs
         return qs
 
