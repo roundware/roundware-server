@@ -15,6 +15,7 @@ from rw.fields import ValidatedFileField
 from django.conf import settings
 from datetime import datetime
 from django.db.models.signals import post_save
+from django.db.models import Manager as GeoManager
 import logging
 from geopy.distance import vincenty
 
@@ -538,7 +539,7 @@ class Speaker(models.Model):
     attenuation_distance = models.IntegerField()
     attenuation_border = models.GeometryField(geography=True, null=True, editable=False)
 
-    objects = models.GeoManager()
+    objects = GeoManager()
 
     def __str__(self):
         return str(self.id) + ": " + " : " + self.uri
