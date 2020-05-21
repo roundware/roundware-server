@@ -1,9 +1,6 @@
 # Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-# The Django REST Framework object serializers for the V2 API.
-from __future__ import unicode_literals
-
 from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag,
                                  TagCategory, TagRelationship, TimedAsset, UIElement, UIElementName,
@@ -335,6 +332,7 @@ class SessionSerializer(serializers.ModelSerializer):
 class SpeakerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Speaker
+        fields = "__all__"
 
     def to_representation(self, obj):
         result = super(SpeakerSerializer, self).to_representation(obj)

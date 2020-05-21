@@ -2,7 +2,6 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 
-from __future__ import unicode_literals
 from django.contrib.gis.geos import Point
 from django.core.cache import cache
 
@@ -189,7 +188,7 @@ class Asset(models.Model):
     media_link_url.allow_tags = True
 
     def get_tags(self):
-        return "<br />".join(unicode(t) for t in self.tags.all())
+        return "<br />".join(str(t) for t in self.tags.all())
 
     get_tags.short_description = "Tags"
     get_tags.name = "Tags"
@@ -237,8 +236,8 @@ class Asset(models.Model):
         super(Asset, self).save(
             force_insert, force_update, using, *args, **kwargs)
 
-    def __unicode__(self):
-        return str(self.id) + ": " + self.mediatype + " at " + str(self.latitude) + "/" + str(self.longitude)
+    def str(self):
+        return __str__(self.id) + ": " + self.mediatype + " at " + str(self.latitude) + "/" + str(self.longitude)
 
 
 class Audiotrack(models.Model):
@@ -300,7 +299,7 @@ class Audiotrack(models.Model):
     norm_maxdeadair.short_description = "Max Silence"
     norm_maxdeadair.name = "Max Silence"
 
-    def __unicode__(self):
+    def __str__(self):
         return "Track " + str(self.id)
 
 
@@ -312,7 +311,7 @@ class Envelope(models.Model):
     created = models.DateTimeField(default=datetime.now)
     assets = models.ManyToManyField(Asset, blank=True, related_name='envelope')
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id) + ": Session id: " + str(self.session.id)
 
 
@@ -338,7 +337,7 @@ class Language(models.Model):
     name = models.CharField(max_length=20, blank=True)
     language_code = models.CharField(max_length=10)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id) + ": Language: " + self.name
 
 
@@ -361,7 +360,7 @@ class ListeningHistoryItem(models.Model):
     norm_duration.short_description = "Playback Duration"
     norm_duration.name = "Playback Duration"
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + " duration: " + str(self.duration)
 
     class Meta:
@@ -376,7 +375,7 @@ class LocalizedString(models.Model):
     localized_string = models.TextField()
     language = models.ForeignKey(Language, on_delete = models.CASCADE)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id) + ": Language: " + self.language.name + ", String: " + self.localized_string
 
     class Meta:
@@ -454,7 +453,7 @@ class Project(models.Model):
 
     out_of_range_distance = models.FloatField(default=1000)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_tag_cats_by_ui_mode(self, ui_mode):
@@ -479,7 +478,7 @@ class ProjectGroup(models.Model):
     description = models.TextField(max_length=2048, blank=True)
     projects = models.ManyToManyField(Project, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -505,7 +504,7 @@ class Session(models.Model):
     geo_listen_enabled = models.BooleanField(default=True)
     timezone = models.CharField(max_length=5, default="0000")
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id)
 
 
@@ -541,7 +540,7 @@ class Speaker(models.Model):
 
     objects = models.GeoManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id) + ": " + " : " + self.uri
 
     def save(self, *args, **kwargs):
@@ -607,7 +606,7 @@ class Tag(models.Model):
         'self', symmetrical=True, related_name='related_to', blank=True)
 
     def get_loc(self):
-        return "<br />".join(unicode(t) for t in self.loc_msg.all())
+        return "<br />".join(str(t) for t in self.loc_msg.all())
     get_loc.short_description = "Localized Names"
     get_loc.name = "Localized Names"
     get_loc.allow_tags = True
@@ -616,7 +615,7 @@ class Tag(models.Model):
     def get_relationships_old(self):
         return [rel['pk'] for rel in self.relationships_old.all().values('pk')]
 
-    def __unicode__(self):
+    def __str__(self):
         return self.tag_category.name + " : " + self.value
 
     class Meta:
@@ -630,7 +629,7 @@ class TagCategory(models.Model):
     name = models.CharField(max_length=50)
     data = models.TextField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id) + ":" + self.name
 
     class Meta:
@@ -645,7 +644,7 @@ class TagRelationship(models.Model):
     tag = models.ForeignKey(Tag, on_delete = models.CASCADE)
     parent = models.ForeignKey("self", null=True, blank=True, on_delete = models.CASCADE)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id) + self.tag.value + str(self.parent)
 
     class Meta:
@@ -664,7 +663,7 @@ class TimedAsset(models.Model):
     # Asset end time in seconds
     end = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: Asset id: %s: Start: %s: End: %s" % (self.id, self.asset.id, self.start, self.end)
 
     class Meta:
@@ -707,7 +706,7 @@ class UIElement(models.Model):
     label_position = models.CharField(max_length=20, blank=True, verbose_name="Label Position",
                                       choices=LABEL_POSITIONS)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.project.name + ":" + self.uielementname.name + self.variant + "." + self.file_extension
 
     class Meta:
@@ -732,7 +731,7 @@ class UIElementName(models.Model):
     description = models.TextField(null=True, blank=True)
     view = models.CharField(max_length=20, choices=VIEWS)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id) + ":" + self.view + ": " + self.name
 
     class Meta:
@@ -773,7 +772,7 @@ class UIGroup(models.Model):
     project = models.ForeignKey(Project, on_delete = models.CASCADE)
 
     def get_header_text_loc(self):
-        return "<br />".join(unicode(t) for t in self.header_text_loc.all())
+        return "<br />".join(str(t) for t in self.header_text_loc.all())
     get_header_text_loc.short_description = "Localized Header Text"
     get_header_text_loc.name = "Localized Header Text"
     get_header_text_loc.allow_tags = True
@@ -788,7 +787,7 @@ class UIGroup(models.Model):
     def save(self, *args, **kwargs):
         super(UIGroup, self).save(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id) + ":" + self.project.name + ":" + self.get_ui_mode_display() + ":" + self.name
 
     class Meta:
@@ -810,7 +809,7 @@ class UIItem(models.Model):
     # def toTagDictionary(self):
     # return {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id) + ":" + self.ui_group.name + ":" + self.tag.tag_category.name
 
     class Meta:
@@ -851,7 +850,7 @@ class Vote(models.Model):
     asset = models.ForeignKey(Asset, on_delete = models.CASCADE)
     type = models.CharField(max_length=16, choices=VOTE_TYPES)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id) + ": Session id: " + str(self.session.id) + ": Asset id: " + str(self.asset.id) + ": Type: " + str(self.type)
 
 
