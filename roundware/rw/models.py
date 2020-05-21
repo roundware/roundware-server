@@ -40,8 +40,9 @@ class Asset(models.Model):
         app_label = 'rw'
 
     session = models.ForeignKey(
-        'Session', null=True, blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+        'Session', null=True, blank=True, on_delete = models.SET_NULL)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete = models.SET_NULL)
     latitude = models.FloatField(null=True, blank=False)
     longitude = models.FloatField(null=True, blank=False)
     shape = models.MultiPolygonField(geography=True, null=True, blank=True)
@@ -54,7 +55,8 @@ class Asset(models.Model):
     volume = models.FloatField(null=True, blank=True, default=1.0)
 
     submitted = models.BooleanField(default=True)
-    project = models.ForeignKey('Project', null=True, blank=False)
+    project = models.ForeignKey(
+        'Project', null=True, blank=False, on_delete = models.SET_NULL)
 
     created = models.DateTimeField(default=datetime.now)
     updated = models.DateTimeField(auto_now=True)
@@ -62,7 +64,7 @@ class Asset(models.Model):
     start_time = models.FloatField(null=True, blank=True)
     end_time = models.FloatField(null=True, blank=True)
     tags = models.ManyToManyField('Tag', blank=True)
-    language = models.ForeignKey('Language', null=True)
+    language = models.ForeignKey('Language', null=True, on_delete = models.SET_NULL)
     weight = models.IntegerField(
         choices=[(i, i) for i in range(0, 100)], default=50)
     mediatype = models.CharField(
@@ -83,7 +85,8 @@ class Asset(models.Model):
     # enables inline adding/editing of Assets in Envelope Admin.
     # creates a relationship of an Asset to the Envelope, in which it was
     # initially added
-    initialenvelope = models.ForeignKey('Envelope', null=True)
+    initialenvelope = models.ForeignKey(
+        'Envelope', null=True, on_delete = models.SET_NULL)
 
     # no more FilterSpec in Django >= 1.4
     # tags.tag_category_filter = True
@@ -249,7 +252,7 @@ class Audiotrack(models.Model):
                         ('lowest', 'lowest'),
                         ('discard', 'discard'),]
 
-    project = models.ForeignKey('Project')
+    project = models.ForeignKey('Project', on_delete = models.CASCADE)
     minvolume = models.FloatField(verbose_name='Min Volume')
     maxvolume = models.FloatField(verbose_name='Max Volume')
     minduration = models.FloatField(verbose_name='Min Playback Duration')
@@ -305,7 +308,7 @@ class Envelope(models.Model):
     """
     Entity for bundling Assets together
     """
-    session = models.ForeignKey('Session', blank=True)
+    session = models.ForeignKey('Session', blank=True, on_delete = models.CASCADE)
     created = models.DateTimeField(default=datetime.now)
     assets = models.ManyToManyField(Asset, blank=True, related_name='envelope')
 
@@ -319,7 +322,7 @@ class Event(models.Model):
     """
     server_time = models.DateTimeField()
     client_time = models.CharField(max_length=50, null=True, blank=True)
-    session = models.ForeignKey('Session')
+    session = models.ForeignKey('Session', on_delete = models.CASCADE)
 
     event_type = models.CharField(max_length=50)
     data = models.TextField(null=True, blank=True)
@@ -343,8 +346,8 @@ class ListeningHistoryItem(models.Model):
     """
     Tracks what Assets are played when in each Session
     """
-    session = models.ForeignKey('Session')
-    asset = models.ForeignKey(Asset)
+    session = models.ForeignKey('Session', on_delete = models.CASCADE)
+    asset = models.ForeignKey(Asset, on_delete = models.CASCADE)
     starttime = models.DateTimeField()
     duration = models.BigIntegerField(null=True, blank=True)
 
@@ -371,7 +374,7 @@ class LocalizedString(models.Model):
     A string and corresponding language.
     """
     localized_string = models.TextField()
-    language = models.ForeignKey(Language)
+    language = models.ForeignKey(Language, on_delete = models.CASCADE)
 
     def __unicode__(self):
         return str(self.id) + ": Language: " + self.language.name + ", String: " + self.localized_string
@@ -494,8 +497,8 @@ class Session(models.Model):
     starttime = models.DateTimeField()
     stoptime = models.DateTimeField(null=True, blank=True)
 
-    project = models.ForeignKey(Project)
-    language = models.ForeignKey(Language, null=True)
+    project = models.ForeignKey(Project, on_delete = models.CASCADE)
+    language = models.ForeignKey(Language, null=True, on_delete = models.SET_NULL)
     client_type = models.CharField(max_length=128, null=True, blank=True)
     client_system = models.CharField(max_length=128, null=True, blank=True)
     demo_stream_enabled = models.BooleanField(default=False)
@@ -522,7 +525,7 @@ class Speaker(models.Model):
             if self.id and not self.attenuation_border:
                 self.build_attenuation_buffer_line()
 
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete = models.CASCADE)
     activeyn = models.BooleanField(default=False)
     code = models.CharField(max_length=10)
     maxvolume = models.FloatField()
@@ -587,8 +590,8 @@ class Tag(models.Model):
         ("_within_10km", "Assets within 10km."),
         ("_ten_most_recent_days", "Assets created within 10 days."),
     )
-    project = models.ForeignKey(Project, null=True, blank=False)
-    tag_category = models.ForeignKey('TagCategory')
+    project = models.ForeignKey(Project, null=True, blank=False, on_delete = models.SET_NULL)
+    tag_category = models.ForeignKey('TagCategory', null=True, on_delete = models.SET_NULL)
     value = models.TextField()
     description = models.TextField(null=True, blank=True)
     loc_description = models.ManyToManyField(
@@ -639,8 +642,8 @@ class TagRelationship(models.Model):
     """
     Allows Tags to be tiered for more complex filtering and interactions
     """
-    tag = models.ForeignKey(Tag)
-    parent = models.ForeignKey("self", null=True, blank=True)
+    tag = models.ForeignKey(Tag, on_delete = models.CASCADE)
+    parent = models.ForeignKey("self", null=True, blank=True, on_delete = models.CASCADE)
 
     def __unicode__(self):
         return str(self.id) + self.tag.value + str(self.parent)
@@ -654,8 +657,8 @@ class TimedAsset(models.Model):
     """
     Items to play at specific times of the stream duration.
     """
-    project = models.ForeignKey(Project)
-    asset = models.ForeignKey(Asset)
+    project = models.ForeignKey(Project, on_delete = models.CASCADE)
+    asset = models.ForeignKey(Asset, on_delete = models.CASCADE)
     # Asset start time in seconds
     start = models.FloatField()
     # Asset end time in seconds
@@ -692,11 +695,12 @@ class UIElement(models.Model):
         ('text_below', 'text below image'),
         ('text_overlay', 'text overlaid on image'),
     )
-    uielementname = models.ForeignKey('UIElementName', verbose_name="UI Element Name")
+    uielementname = models.ForeignKey(
+        'UIElementName', verbose_name="UI Element Name", on_delete = models.CASCADE)
     variant = models.CharField(max_length=15, choices=VARIANTS)
     file_extension = models.CharField(max_length=10, choices=FILE_EXTENSIONS,
                                       verbose_name="File Extension")
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete = models.CASCADE)
     label_text_loc = models.ManyToManyField(LocalizedString, related_name='label_text_string',
                                             blank=True, verbose_name="Label Text")
     label_text_color = models.CharField(max_length=10, blank=True, verbose_name="Label Text Color (hex)")
@@ -761,12 +765,12 @@ class UIGroup(models.Model):
         LocalizedString, blank=True)
     ui_mode = models.CharField(default=LISTEN, max_length=6, blank=False,
                                choices=UI_MODES)
-    tag_category = models.ForeignKey(TagCategory)
+    tag_category = models.ForeignKey(TagCategory, on_delete = models.CASCADE)
     select = models.CharField(default=SINGLE, max_length=7, blank=False,
                               choices=SELECT_METHODS)
     active = models.BooleanField(default=True)
     index = models.IntegerField()
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete = models.CASCADE)
 
     def get_header_text_loc(self):
         return "<br />".join(unicode(t) for t in self.header_text_loc.all())
@@ -797,12 +801,12 @@ class UIItem(models.Model):
     """
     A representation of how Tags should be displayed in client UI
     """
-    ui_group = models.ForeignKey(UIGroup)
+    ui_group = models.ForeignKey(UIGroup, on_delete = models.CASCADE)
     index = models.IntegerField()
-    tag = models.ForeignKey(Tag)
+    tag = models.ForeignKey(Tag, on_delete = models.CASCADE)
     default = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
-    parent = models.ForeignKey("self", null=True, blank=True)
+    parent = models.ForeignKey("self", null=True, blank=True, on_delete = models.CASCADE)
     # def toTagDictionary(self):
     # return {'tag_id':self.tag.id,'order':self.index,'value':self.tag.value}
 
@@ -819,7 +823,7 @@ class UserProfile(models.Model):
     """
     Extends built-in Django User functionality
     """
-    user = models.OneToOneField(settings.AUTH_USER_MODEL)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete = models.CASCADE)
     device_id = models.CharField(max_length=255, null=True)
     client_type = models.CharField(max_length=255, null=True)
 
@@ -840,10 +844,11 @@ class Vote(models.Model):
         (BLOCK_ASSET, 'block_asset'),
         (BLOCK_USER, 'block_user'),
     )
-    voter = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+    voter = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete = models.SET_NULL)
     value = models.IntegerField(null=True, blank=True)
-    session = models.ForeignKey(Session)
-    asset = models.ForeignKey(Asset)
+    session = models.ForeignKey(Session, on_delete = models.CASCADE)
+    asset = models.ForeignKey(Asset, on_delete = models.CASCADE)
     type = models.CharField(max_length=16, choices=VOTE_TYPES)
 
     def __unicode__(self):

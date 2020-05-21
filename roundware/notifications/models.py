@@ -28,7 +28,7 @@ class ModelNotification(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     model = models.IntegerField(choices=ENABLED_MODELS)
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete = models.CASCADE)
     active = models.BooleanField(default=True)
 
     def __unicode__(self):
@@ -45,7 +45,7 @@ class ActionNotification(models.Model):
     who = models.ManyToManyField(User, related_name="notifications")
     message = models.TextField()
     subject = models.CharField(max_length=255, blank=True)
-    notification = models.ForeignKey(ModelNotification)
+    notification = models.ForeignKey(ModelNotification, on_delete = models.CASCADE)
     # TODO: The default for last_sent_time is supposed to be:
     # datetime.datetime.now() - datetime.timedelta(hours=1)
     last_sent_time = models.DateTimeField(null=True)
