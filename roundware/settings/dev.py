@@ -22,9 +22,9 @@ CRISPY_FAIL_SILENTLY = not DEBUG
 
 
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'debug_toolbar.middleware.DebugToolbarMiddleware',
-) + MIDDLEWARE_CLASSES
+) + MIDDLEWARE
 
 
 # Bypass the INTERNAL_IPS check for Debug Toolbar

@@ -64,6 +64,6 @@ su - $USERNAME -c "$CODE_PATH/roundware/manage.py migrate --noinput"
 # Collect static files for production
 su - $USERNAME -c "$CODE_PATH/roundware/manage.py collectstatic --noinput"
 
-service apache2 restart
+systemctl restart apache2
 
 echo "Deploy Complete"

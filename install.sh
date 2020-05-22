@@ -66,11 +66,12 @@ apt-get update
 xargs -a requirements.apt sudo apt-get install -y
 # Install additional packages for running Postgres locally
 DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql postgis
-# Install additional packages for running apache
-DEBIAN_FRONTEND=noninteractive apt-get install -y apache2 libapache2-mod-wsgi
 # Install virtualenv
 DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv
 python3 -m pip install pip --upgrade
+# Install additional packages for running apache
+DEBIAN_FRONTEND=noninteractive apt-get install -y apache2 apache2-dev libapache2-mod-wsgi-py3
+python3 -m pip install mod_wsgi
 
 # Create the virtual environment
 python3 -m venv $VENV_PATH
@@ -92,10 +93,6 @@ fi
 
 su - postgres -c 'psql -c "grant all on database roundware to round"'
 su - postgres -c "psql -c \"alter user round password 'round'\""
-
-if ! su - postgres -c "psql roundware -t -A -c \"select count(*) from pg_extension where extname = 'postgis'\"" | grep -q 1; then
-  su - postgres -c "psql roundware -c 'create extension postgis'"
-fi
 
 # File/directory configurations
 mkdir -p $MEDIA_PATH
