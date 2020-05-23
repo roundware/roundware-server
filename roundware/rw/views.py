@@ -17,7 +17,6 @@ from guardian.mixins import PermissionRequiredMixin
 from braces.views import (LoginRequiredMixin, FormValidMessageMixin,
                           AjaxResponseMixin)
 from extra_views import InlineFormSet
-from extra_views.multi import MultiFormView, FormProvider
 
 from roundware.rw.models import Tag, UIGroup, UIItem, Project
 from roundware.rw.forms import (TagCreateForm, BatchTagFormset,
@@ -47,130 +46,6 @@ class SetupTagUIMixin(LoginRequiredMixin, PermissionRequiredMixin):
             return get_object_or_404(Project, uigroup=self.kwargs['pk'])
         except KeyError:
             return None
-
-
-class UIGroupMappingsOrganizationView(SetupTagUIMixin, AjaxResponseMixin,
-                                       MultiFormView):
-    success_url = '.'
-    template_name = 'setup_tag_ui_form.html'
-    forms = {
-        'ui_group_select': FormProvider(
-            UIGroupForSetupTagUISelectForm,
-            context_suffix='form',
-            init_args={'user': 'get_%s_user'}),
-
-        'ui_group_edit': MultiFormView.modelform(UIGroup,
-                                                  UIGroupForSetupTagUIEditForm),
-
-    }
-
-    def get_ui_group_select_user(self):
-        return self.request.user
-
-    def get_ui_group_edit_instance(self):
-        """ for calling with a primary key in the url. This is called magically
-            by MultiFormView to get the instance for ui_group_edit form
-        """
-        if self.kwargs.get('pk'):
-            return UIGroup.objects.filter(pk=self.kwargs['pk'])[0]
-        elif self.request.POST.get('ui_group_edit-id', None):
-            return UIGroup.objects.filter(
-                pk=self.request.POST['ui_group_edit-id'])[0]
-        else:
-            return UIGroup()
-
-    def post(self, request, *args, **kwargs):
-        """ create or update UIGroup instance
-        """
-        return super(UIGroupMappingsOrganizationView, self).post(request, *args, **kwargs)
-
-    def post_ajax(self, request, *args, **kwargs):
-        """ handle post made from selecting UIGroup in 'ui_group_select'
-            form. AJAX posts will only result from modelchoicefield select
-            for UIGroup changing.
-        """
-        edit_form_template = 'rw/setup_tags_ui_edit_form.html'
-        response_dic = {}
-
-        # if modelchoicefield not empty
-        if request.POST.get("ui_group_select-uigroup"):
-            id_to_update = request.POST["ui_group_select-uigroup"]
-            mui = UIGroup.objects.get(pk=id_to_update)
-            edit_form = UIGroupForSetupTagUIEditForm(instance=mui)
-            response_dic['mui_update_id'] = mui.id
-
-        else:
-            edit_form = UIGroupForSetupTagUIEditForm()
-
-        response_dic['ui_group_edit_form'] = edit_form
-
-        return HttpResponse(render_to_string(edit_form_template,
-                                             response_dic,
-                                             RequestContext(request)))
-
-    def update_ui_items(self, uiitems, formtags, defaults, indexes, mui):
-        uimaptags = []
-
-        default_tags = [df.startswith('t') and Tag.objects.filter(pk=df.replace('t', ''))[0] or
-                        UIItem.objects.filter(pk=df)[0].tag for df in defaults]
-        for uiitem in uiitems:
-            uimaptags.append(uiitem.tag)
-            if uiitem.tag not in formtags:
-                uiitem.delete()
-        for tag in formtags:
-            try:
-                index = indexes.index(str(tag.pk)) + 1
-            except ValueError:
-                index = 1
-            is_default = tag in default_tags
-            if tag not in uimaptags:
-                uiitem = UIItem(tag=tag, ui_group=mui, active=True,
-                                  index=index, default=is_default)
-                uiitem.save()
-            else:
-                uiitem = [uim for uim in uiitems if uim.tag == tag][0]
-                uiitem.index = index
-                uiitem.default = is_default
-                uiitem.save()
-
-    def valid_all(self, valid_forms):
-        """ handle case all forms valid
-        """
-        select = valid_forms['ui_group_select']  # don't save anything
-        select  # pyflakes
-        form = valid_forms['ui_group_edit']
-        mui_id = form.cleaned_data.get('id')
-        formtags = form.cleaned_data['ui_items_tags']
-
-        defaults = form.data['ui_group_edit-ui_items_tag_order'].split(',')
-        if form.cleaned_data['ui_items_tags_indexes']:
-            indexes = form.cleaned_data['ui_items_tags_indexes'].split(',')
-            indexes = [el.startswith('t') and el.replace('t', '') or
-                       UIItem.objects.select_related('tag').filter(
-                       pk=el)[0].tag.pk for el in indexes]
-        else:
-            indexes = []
-        if mui_id:
-            mui = UIGroup.objects.filter(pk=mui_id)[0]
-            uiitems = UIItem.objects.select_related(
-                'tag').filter(ui_group=mui)
-            # instance isn't constructed yet with data from form so we can't
-            # use form.save() but have to do the following with construct=True
-
-            save(form, mui, form._meta.fields, 'form changed', True,
-                 form._meta.exclude, True)
-
-            self.update_ui_items(uiitems, formtags, defaults, indexes, mui)
-
-        else:
-            mui = form.save()
-            self.update_ui_items([], formtags, defaults, indexes, mui)
-
-    def invalid_all(self, invalid_forms):
-        """ handle case all forms invalid
-        """
-        self.forms_invalid(invalid_forms)
-
 
 class UpdateTagUIOrder(TemplateView):
 
