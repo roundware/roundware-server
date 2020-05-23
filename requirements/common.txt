@@ -1,10 +1,10 @@
-Django==2.2
+Django==3.0
 # Creates REST APIs
 djangorestframework
 # Used for DRF filtering
 django-filter<2.3
 # Used in roundware/rw/admin.py, roundware/rw/forms.py, roundware/rw/views, and more.
-django-guardian<1.5
+django-guardian==2.2.0
 # Used by roundware/api1/commands.py
 psutil==3.4.2
 # Used by roundware/rw/fields.py
@@ -17,9 +17,9 @@ django-braces==1.14.0
 # Used in roundware/rw/forms.py
 django-crispy-forms==1.9.1
 # Used in roundware/rw/widgets.py
-django-floppyforms==1.6.1
+django-floppyforms==1.9.0
 # Used in roundware/rw/views.py:
-django-extra-views==0.7
+django-extra-views==0.13.0
 # Used in roundware/rw/fields.py and roundware/rw/widgets.py
 django-sortedm2m==0.8.1
 # Required for RDF Date parsing
@@ -33,7 +33,7 @@ psycopg2
 # geographic distance calculator utilities
 geopy
 # cors support to remove php layer
-django-cors-headers==2.4.1
+django-cors-headers==3.3.0
 # fiona is a useful tool for processing geographic files (ETL)
 fiona
 # geographic extensions for djangorestframework-gis
