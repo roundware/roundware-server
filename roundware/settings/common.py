@@ -240,10 +240,10 @@ REST_FRAMEWORK = {
     }
 }
 
-CORS_ORIGIN_WHITELIST = (
-    'localhost:8080',
-    'localhost:3000',
-)
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8080',
+    'http://localhost:3000',
+]
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

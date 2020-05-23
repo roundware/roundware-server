@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from django.template.context import RequestContext
 from django.views.generic.base import TemplateView
 from django.utils.safestring import mark_safe
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 
@@ -97,9 +97,8 @@ class UpdateTagUIOrder(TemplateView):
 
 @login_required
 def asset_map(request):
-    return render_to_response("tools/asset-map.html")
+    return render(None, "tools/asset-map.html")
 
 @login_required
 def listen_map(request):
-    return render_to_response("tools/listen-map.html")
-
+    return render(None, "tools/listen-map.html")

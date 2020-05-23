@@ -7,7 +7,7 @@ from itertools import chain
 from django.forms import Media, Widget, CheckboxInput
 from django.contrib.admin.widgets import (RelatedFieldWidgetWrapper,
                                           FilteredSelectMultiple)
-from django.contrib.admin.templatetags.admin_static import static
+from django.templatetags.static import static
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.utils.html import conditional_escape
@@ -194,13 +194,14 @@ class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
         return mark_safe(html)
 
     class Media:
-        js = (
+        js = [
+            'admin/js/jquery.init.js',
             # "admin/js/core.js",
             # "admin/js/jquery.init.js",
             # "/static/rw/js/setup_tag_ui.js",
             "/static/rw/js/sortedmulticheckbox_widget.js",
             "/static/sortedm2m/jquery-ui.js",
-        )
+        ]
         css = {'screen': (
             STATIC_URL + 'sortedm2m/widget.css',
         )}
