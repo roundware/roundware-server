@@ -18,7 +18,7 @@ class IntegerListFilter(django_filters.Filter):
     def filter(self, qs, value):
         if value not in (None, ''):
             integers = [int(v) for v in value.split(',')]
-            return qs.filter(**{'%s__%s' % (self.name, self.lookup_expr): integers})
+            return qs.filter(**{'%s__%s' % (self.field_name, self.lookup_expr): integers})
         return qs
 
 class IntegerListAndFilter(django_filters.Filter):
@@ -30,7 +30,7 @@ class IntegerListAndFilter(django_filters.Filter):
             # objects that contain ALL integers, not ANY integers;
             # effectively, this creates a chain of .filters
             for i in integers:
-                qs = qs.filter(**{'%s' % (self.name): i})
+                qs = qs.filter(**{'%s' % (self.field_name): i})
         return qs
 
 class WordListFilter(django_filters.Filter):
