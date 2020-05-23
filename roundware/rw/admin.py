@@ -252,14 +252,15 @@ class AssetAdmin(ProjectProtectedModelAdmin):
                 "rw/css/asset_admin.css"
             )
         }
-        js = (
+        js = [
+            'admin/js/jquery.init.js',
             'rw/js/jquery.jplayer.min.js',
             'rw/js/audio.js',
             'http://maps.google.com/maps/api/js?sensor=false',
             'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js',
             'rw/js/location_map.js',
             'rw/js/asset_admin.js',
-        )
+        ]
 
 
 class AssetInline(admin.StackedInline):
@@ -469,13 +470,14 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
             return formset.save()
 
     class Media:
-        js = (
+        js = [
+            'admin/js/jquery.init.js',
             'http://maps.google.com/maps/api/js?sensor=false',
             'http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js',
             'rw/js/location_map.js',
             'rw/js/asset_admin.js',
             'rw/js/envelope_admin.js',
-        )
+        ]
 
         css = {
             "all": (
@@ -512,7 +514,7 @@ class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
                 "rw/css/speaker_admin.css"
             )
         }
-        js = ()
+        js = []
 
 
 class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):

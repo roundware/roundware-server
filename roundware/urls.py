@@ -8,7 +8,7 @@ from django.conf.urls import include
 
 # Loading static files for debug mode
 from django.conf.urls.static import static
-from django.contrib.auth import views as auth_views
+from django.contrib.auth.views import LoginView
 
 from django.contrib import admin
 
@@ -28,7 +28,7 @@ urlpatterns = [
     url(r'^api/2/', include('roundware.api2.urls')),
 
     # Use Django Admin login as overall login
-    url(r'^accounts/login/$', auth_views.login,
+    url(r'^accounts/login/$', LoginView.as_view(),
         {'template_name': 'admin/login.html'}),
 
     url(r'^admin/', admin.site.urls),
