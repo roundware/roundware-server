@@ -9,6 +9,7 @@ cache # pyflakes, make sure it is imported, for patching in tests
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.utils.safestring import mark_safe
 from django.db import transaction
 from django.contrib.gis.db import models
 from rw.fields import ValidatedFileField
@@ -134,12 +135,14 @@ class Asset(models.Model):
     media_display.short_name = "media"
     media_display.allow_tags = True
 
+    @mark_safe
     def audio_player(self):
         if self.mediatype == 'audio':
             return """<div data-filename="%s" class="media-display audio-file"></div>""" % self.filename
     audio_player.short_name = "audio"
     audio_player.allow_tags = True
 
+    @mark_safe
     def image_display(self):
         image_src = "%s%s" % (settings.MEDIA_URL, self.filename)
         return """<div data-filename="%s" class="media-display image-file"><a href="%s" target="imagepop"
@@ -149,6 +152,7 @@ class Asset(models.Model):
     image_display.short_name = "image"
     image_display.allow_tags = True
 
+    @mark_safe
     def text_display(self):
         try:
             fileread = self.file.read()
@@ -164,6 +168,7 @@ class Asset(models.Model):
     text_display.short_name = "text"
     text_display.allow_tags = True
 
+    @mark_safe
     def location_map(self):
         html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
         <div id="map_instructions">To change or select location, type an address above and select from the available options;
@@ -184,10 +189,12 @@ class Asset(models.Model):
     norm_audiolength.name = "Audio Length"
     norm_audiolength.allow_tags = True
 
+    @mark_safe
     def media_link_url(self):
         return '<a href="%s%s" target="_new">%s</a>' % (settings.MEDIA_URL, self.filename, self.filename)
     media_link_url.allow_tags = True
 
+    @mark_safe
     def get_tags(self):
         return "<br />".join(str(t) for t in self.tags.all())
 
@@ -570,6 +577,7 @@ class Speaker(models.Model):
         """.format(table=self._meta.db_table, speaker_id=self.id)
         cursor.execute(raw_sql)
 
+    @mark_safe
     def location_map(self):
         html = """<input type="text" value="" id="searchbox" style=" width:700px;height:30px; font-size:15px;">
         <div id="map_instructions">To change or select location, type an address above and select from the available options;
@@ -606,6 +614,7 @@ class Tag(models.Model):
     relationships_old = models.ManyToManyField(
         'self', symmetrical=True, related_name='related_to', blank=True)
 
+    @mark_safe
     def get_loc(self):
         return "<br />".join(str(t) for t in self.loc_msg.all())
     get_loc.short_description = "Localized Names"
@@ -772,6 +781,7 @@ class UIGroup(models.Model):
     index = models.IntegerField()
     project = models.ForeignKey(Project, on_delete = models.CASCADE)
 
+    @mark_safe
     def get_header_text_loc(self):
         return "<br />".join(str(t) for t in self.header_text_loc.all())
     get_header_text_loc.short_description = "Localized Header Text"
