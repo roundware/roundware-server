@@ -19,72 +19,12 @@ from braces.views import (LoginRequiredMixin, FormValidMessageMixin,
 from extra_views import InlineFormSet
 from extra_views.multi import MultiFormView, FormProvider
 
-from roundware.rw.chart_functions import (assets_created_per_day,
-                                          sessions_created_per_day,
-                                          assets_by_question,
-                                          assets_by_section)
 from roundware.rw.models import Tag, UIGroup, UIItem, Project
 from roundware.rw.forms import (TagCreateForm, BatchTagFormset,
                                 UIGroupForSetupTagUIEditForm,
                                 UIGroupForSetupTagUISelectForm)
 from roundware.rw.widgets import SetupTagUISortedCheckboxSelectMultiple
 logger = logging.getLogger(__name__)
-
-
-@login_required
-def chart_views(request):
-
-    asset_created_per_day_chart = assets_created_per_day()
-# return render_to_response("chart_template.html", {'assetchart':
-# asset_created_per_day_chart})
-
-    session_created_per_day_chart = sessions_created_per_day()
-    assets_by_question_chart = assets_by_question()
-    assets_by_section_chart = assets_by_section()
-# return render_to_response("chart_template.html", {'sessionchart':
-# session_created_per_day_chart, 'assetchart':
-# asset_created_per_day_chart})
-    return render_to_response("chart_template.html", {'charts': [session_created_per_day_chart, asset_created_per_day_chart, assets_by_question_chart, assets_by_section_chart]})
-
-
-class MultiCreateTagsView(LoginRequiredMixin, FormValidMessageMixin, MultiFormView):
-    success_url = '/admin/rw/tag'
-    template_name = 'rw/tags_add_to_category_form.html'
-    form_valid_message = 'Tags created!'
-    forms = {'category': MultiFormView.modelform(Tag, TagCreateForm,
-                                                 **{'fields': ('tag_category',),
-                                                    'exclude': ('value', 'description', 'data',
-                                                                'loc_msg')}
-                                                 ),
-             'tag_formset': MultiFormView.modelformset(Tag,
-                                                       **{'extra': 2, 'form': TagCreateForm,
-                                                          'exclude': ['tag_category'],
-                                                          'fields': ['value', 'description', 'data', 'loc_msg'],
-                                                           'formset': BatchTagFormset}
-                                                       )
-             }
-
-    def get_category_instance(self):
-        return Tag()
-
-    def get_tag_formset_queryset(self):
-        return Tag.objects.none()
-
-    def valid_all(self, valid_forms):
-        """ handle case all forms valid
-        """
-        category = valid_forms['category']
-        formset = valid_forms['tag_formset']
-        for form in formset.forms:
-            tag = form.save(commit=False)  # doesn't save m2m yet
-            tag.tag_category = category.cleaned_data['tag_category']
-            tag.save()
-            form.save_m2m()
-
-    def invalid_all(self, invalid_forms):
-        """ handle case all forms invalid
-        """
-        self.forms_invalid(invalid_forms)
 
 
 class UIItemsInline(InlineFormSet):

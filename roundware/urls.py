@@ -20,7 +20,6 @@ admin.autodiscover()
 urlpatterns = [
     url(r'^tools/asset-map$', rw_views.asset_map),
     url(r'^tools/listen-map$', rw_views.listen_map),
-    url(r'^dashboard/$', rw_views.chart_views),
 
     # V1 DRF API
     url(r'^api/1/', include('roundware.api1.urls')),

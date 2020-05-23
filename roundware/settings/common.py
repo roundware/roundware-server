@@ -206,7 +206,6 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'django.contrib.admin',
     'guardian',  # 3
-    'chartit',
     'crispy_forms',
     'floppyforms',
     'djangoformsetjs',
