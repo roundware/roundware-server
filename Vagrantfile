@@ -5,8 +5,8 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  # Vagrant Cloud name for Ubuntu 18.04 LTS
-  config.vm.box = "ubuntu/bionic64"
+  # Vagrant Cloud name for Ubuntu 20.04 LTS
+  config.vm.box = "ubuntu/focal64"
   config.vm.hostname = "roundware-server"
 
   # Configure Apache port 80 to forward to host 8080
@@ -16,7 +16,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "forwarded_port", guest: 8888, host: 8888
   config.vm.network "forwarded_port", guest: 5432, host: 15432
     config.vm.provider "virtualbox" do |v|
-      v.customize ["modifyvm", :id, "--memory", "2048"]
+      v.customize ["modifyvm", :id, "--memory", "4048"]
     end
   config.vm.provision "shell",
     inline: "export ROUNDWARE_DEV=true; cd /vagrant; ./install.sh"
@@ -28,4 +28,3 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   end
 end
-
