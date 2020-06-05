@@ -1,4 +1,4 @@
-Django==1.9
+Django==1.11.29
 # Creates REST APIs
 djangorestframework==3.3.3
 # Used for DRF filtering
