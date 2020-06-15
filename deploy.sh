@@ -26,7 +26,7 @@ USERNAME="roundware"
 # Use vagrant username/directories used when available.
 if [ "$FOUND_VAGRANT" = true ]; then
   # Change the user to the vagrant default.
-  USERNAME="vagrant"
+  USERNAME="ubuntu"
 fi
 
 # Set paths/directories
