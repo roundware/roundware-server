@@ -18,7 +18,7 @@ from datetime import datetime
 from django.db.models.signals import post_save
 from django.db.models import Manager as GeoManager
 import logging
-from geopy.distance import vincenty
+from geopy.distance import distance
 
 logger = logging.getLogger(__name__)
 
@@ -237,7 +237,7 @@ class Asset(models.Model):
     def distance(self, listener):
         listener_location = (listener['latitude'], listener['longitude'])
         speaker_location = (self.latitude, self.longitude)
-        return vincenty(listener_location, speaker_location)
+        return distance(listener_location, speaker_location)
 
     @transaction.atomic
     def save(self, force_insert=False, force_update=False, using=None, *args, **kwargs):
