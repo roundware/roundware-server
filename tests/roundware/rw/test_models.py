@@ -106,3 +106,6 @@ class TestAsset(RWTestCase):
 
     def test_get_flags(self):
         self.assertEquals(1, self.asset1.get_flags())
+
+    def test_distance(self):
+        distance = self.asset1.distance({'latitude': 0, 'longitude': 0})
