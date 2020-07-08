@@ -3,11 +3,11 @@
 django-debug-toolbar==2.2
 
 #testing.
-coverage==4.0.3
-webtest==2.0.9
-django-webtest==1.7.9
-model_mommy==1.2.6
-mock==2.0.0
+coverage
+webtest
+django-webtest
+model_bakery
+mock
 
 #interactive interpreter for debugging
-ipython==4.0.3
+ipython

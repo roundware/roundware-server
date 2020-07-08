@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 #from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 
-from model_mommy.recipe import Recipe
+from model_bakery.recipe import Recipe
 
 from roundware.rw.models import Session
 from roundware.settings import DEFAULT_SESSION_ID

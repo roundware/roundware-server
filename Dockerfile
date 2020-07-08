@@ -17,5 +17,4 @@ RUN python3 -m pip install -r requirements.txt
 RUN python3 -m pip install -r requirements/dev.txt
 RUN python3 roundware/manage.py collectstatic
 
-FROM roundware as roundware_dev
 ADD .coveragerc .
