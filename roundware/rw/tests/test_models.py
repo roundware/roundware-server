@@ -1,14 +1,12 @@
 # Roundware Server is released under the GNU Affero General Public License v3.
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
-from __future__ import unicode_literals
-
-from model_mommy import mommy
+from model_bakery import baker
 
 from roundware.rw import models
 from roundware.settings import DEFAULT_SESSION_ID
 
-from .common import use_locmemcache, RWTestCase
+from rw.tests.common import use_locmemcache, RWTestCase
 
 
 class TestUIGroup(RWTestCase):
@@ -20,7 +18,7 @@ class TestUIGroup(RWTestCase):
 
         # make uigroup, makes our tagcategory, uimode, project,
         # selectionmethod
-        self.uigroup = mommy.make('rw.UIGroup')
+        self.uigroup = baker.make('rw.UIGroup')
         self.other_uimode = models.UIGroup.SPEAK
         self.project = self.uigroup.project
 
@@ -53,7 +51,7 @@ class TestProject(RWTestCase):
 
     def setUp(self):
         super(type(self), TestProject).setUp(self)
-        self.project = mommy.make('rw.Project')
+        self.project = baker.make('rw.Project')
         self.ui_mode = models.UIGroup.LISTEN
 
     def test_no_tag_cats_returned_new_project(self):
@@ -66,7 +64,7 @@ class TestProject(RWTestCase):
         """ test that we get correct tagcategories for our project once
             we add a UIGroup.
         """
-        uigroup = mommy.make('rw.UIGroup', project=self.project,
+        uigroup = baker.make('rw.UIGroup', project=self.project,
                               ui_mode=self.ui_mode)
         cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode)
         self.assertIn(uigroup.tag_category, cats)
@@ -75,7 +73,7 @@ class TestProject(RWTestCase):
         """ test no tag_categories returned if we specify a uimode that
             is not connected to project via a UIGroup
         """
-        other_ui_group = mommy.make('rw.UIGroup', project=self.project,
+        other_ui_group = baker.make('rw.UIGroup', project=self.project,
                                      ui_mode=models.UIGroup.SPEAK)
         cats = self.project.get_tag_cats_by_ui_mode(self.ui_mode)
         self.assertNotIn(other_ui_group.tag_category, cats)
@@ -86,18 +84,18 @@ class TestAsset(RWTestCase):
     def setUp(self):
         super(type(self), TestAsset).setUp(self)
 
-        self.session1 = mommy.make('rw.Session')
-        self.session2 = mommy.make('rw.Session')
-        self.project = mommy.make('rw.Project')
-        self.asset1 = mommy.make('rw.Asset')
-        self.asset2 = mommy.make('rw.Asset')
-        self.vote1 = mommy.make('rw.Vote', session=self.session1,
+        self.session1 = baker.make('rw.Session')
+        self.session2 = baker.make('rw.Session')
+        self.project = baker.make('rw.Project')
+        self.asset1 = baker.make('rw.Asset')
+        self.asset2 = baker.make('rw.Asset')
+        self.vote1 = baker.make('rw.Vote', session=self.session1,
                                 asset=self.asset1, type="like")
-        self.vote2 = mommy.make('rw.Vote', session=self.session2,
+        self.vote2 = baker.make('rw.Vote', session=self.session2,
                                 asset=self.asset1, type="like")
-        self.vote3 = mommy.make('rw.Vote', session=self.session1,
+        self.vote3 = baker.make('rw.Vote', session=self.session1,
                                 asset=self.asset2, type="like")
-        self.vote4 = mommy.make('rw.Vote', session=self.session1,
+        self.vote4 = baker.make('rw.Vote', session=self.session1,
                                 asset=self.asset1, type="flag")
 
     def test_get_likes(self):
@@ -106,3 +104,6 @@ class TestAsset(RWTestCase):
 
     def test_get_flags(self):
         self.assertEquals(1, self.asset1.get_flags())
+
+    def test_distance(self):
+        distance = self.asset1.distance({'latitude': 0, 'longitude': 0})

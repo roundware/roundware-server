@@ -7,18 +7,18 @@ on:
 jobs:
   test:
     container:
-      image: ubuntu:18.04
+      image: ubuntu:20.04
 
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.5]
+        python-version: [3.8]
     services:
       # Label used to access the service container
       postgres:
         # Docker Hub image
-        image: mdillon/postgis:9.3
+        image: postgis/postgis
         ports:
           # will assign a random free host port
           - 5432:5432
@@ -38,7 +38,7 @@ jobs:
       - name: Install Dependencies
         run: |
           apt-get update
-          xargs -a requirements.apt apt-get install -y
+          DEBIAN_FRONTEND=noninteractive xargs -a requirements.apt apt-get install -y --fix-missing
           python3 --version
           python3 -m pip install --upgrade pip setuptools
           python3 -m pip install -r requirements/common.txt
@@ -62,7 +62,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-
+    if: github.event_name != 'pull_request'
     steps:
     - uses: actions/checkout@master
       #This Action Emits 2 Variables, IMAGE_SHA_NAME and IMAGE_URL

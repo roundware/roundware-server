@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ParseError
 from roundware.rw import models
 from roundware.lib import  discover_audiolength, convertaudio
@@ -18,7 +19,7 @@ import time
 import logging
 
 logger = logging.getLogger(__name__)
-
+User = get_user_model()
 
 def t(msg, field, language):
     """
@@ -441,7 +442,6 @@ def save_asset_from_request(request, session, asset=None):
             weight = 50
 
         # If user_id contained in request, use it, otherwise, use session_id to determine user_id
-        User = get_user_model()
         user_id = get_parameter_from_request(request, 'user_id')
         try:
             user = User.objects.get(pk=user_id)
@@ -550,25 +550,25 @@ def vote_asset(request, asset_id=None):
     #         "VOTE: this operation is only valid for projects with 1 audiotrack")
 
     # determine user/voter from provided session_id
-    User = get_user_model()
-    device_id = models.Session.objects.filter(id=int(form.get('session_id'))) \
-                                      .values_list('device_id', flat=True)
     try:
-        voter = User.objects.get(userprofile__device_id=device_id)
-    except:
+        session_id = int(form.get('session_id'))
+        session = models.Session.objects.get(id=session_id)
+    except ObjectDoesNotExist:
+        raise RoundException("Session not found.")
+
+    try:
+        voter = User.objects.get(userprofile__device_id=session.device_id)
+        log_event("vote_asset", session_id, form)
+    except ObjectDoesNotExist:
         # handle api/1 which will not have User and therefore no voter
         voter = None
         pass
-    try:
-        log_event("vote_asset", int(form.get('session_id')), form)
-        session = models.Session.objects.get(id=int(form.get('session_id')))
-    except:
-        raise RoundException("Session not found.")
+
     try:
         if asset_id is None:
             asset_id = int(form.get('asset_id'))
         asset = models.Asset.objects.get(id=asset_id)
-    except:
+    except ObjectDoesNotExist:
         raise RoundException("Asset not found.")
 
     # try to find existing vote for this session and asset
