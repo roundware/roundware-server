@@ -62,7 +62,12 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-
+    on:
+      push:
+        branches:
+          - '*'
+        tags:
+          - '*'
     steps:
     - uses: actions/checkout@master
       #This Action Emits 2 Variables, IMAGE_SHA_NAME and IMAGE_URL
