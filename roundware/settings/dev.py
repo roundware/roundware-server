@@ -10,7 +10,7 @@ BANNED_TIMEOUT_LIMIT = 90
 DEMO_STREAM_CPU_LIMIT = 0.0
 
 INSTALLED_APPS += (
-    'debug_toolbar',
+    # 'debug_toolbar',
 )
 
 DEBUG = True
@@ -22,9 +22,9 @@ CRISPY_FAIL_SILENTLY = not DEBUG
 
 
 
-MIDDLEWARE = (
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
-) + MIDDLEWARE
+# MIDDLEWARE = (
+#     'debug_toolbar.middleware.DebugToolbarMiddleware',
+# ) + MIDDLEWARE
 
 
 # Bypass the INTERNAL_IPS check for Debug Toolbar
