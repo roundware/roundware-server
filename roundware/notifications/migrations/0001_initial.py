@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
                 ('modified', models.DateTimeField(auto_now=True)),
                 ('model', models.IntegerField(choices=[(0, 'Asset')])),
                 ('active', models.BooleanField(default=True)),
-                ('project', models.ForeignKey(to='rw.Project')),
+                ('project', models.ForeignKey(to='rw.Project', on_delete = models.CASCADE)),
             ],
             options={
             },
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='actionnotification',
             name='notification',
-            field=models.ForeignKey(to='notifications.ModelNotification'),
+            field=models.ForeignKey(to='notifications.ModelNotification', on_delete = models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(

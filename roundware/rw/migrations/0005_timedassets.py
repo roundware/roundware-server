@@ -17,8 +17,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('start', models.FloatField()),
                 ('end', models.FloatField()),
-                ('asset', models.ForeignKey(to='rw.Asset')),
-                ('project', models.ForeignKey(to='rw.Project')),
+                ('asset', models.ForeignKey(to='rw.Asset',  on_delete = models.CASCADE)),
+                ('project', models.ForeignKey(to='rw.Project',  on_delete = models.CASCADE)),
             ],
             options={
             },

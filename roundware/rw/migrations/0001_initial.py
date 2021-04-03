@@ -4,7 +4,8 @@ from __future__ import unicode_literals
 from django.db import models, migrations
 import datetime
 import django.core.files.storage
-import validatedfile.fields
+
+from roundware.rw.fields import ValidatedFileField
 
 
 class Migration(migrations.Migration):
@@ -20,7 +21,7 @@ class Migration(migrations.Migration):
                 ('latitude', models.FloatField(null=True)),
                 ('longitude', models.FloatField(null=True)),
                 ('filename', models.CharField(max_length=256, null=True, blank=True)),
-                ('file', validatedfile.fields.ValidatedFileField(help_text='Upload file', storage=django.core.files.storage.FileSystemStorage(base_url='/rwmedia/', location='/var/www/roundware/rwmedia/'), upload_to='.')),
+                ('file', ValidatedFileField(help_text='Upload file', storage=django.core.files.storage.FileSystemStorage(base_url='/rwmedia/', location='/var/www/roundware/rwmedia/'), upload_to='.')),
                 ('volume', models.FloatField(default=1.0, null=True, blank=True)),
                 ('submitted', models.BooleanField(default=True)),
                 ('created', models.DateTimeField(default=datetime.datetime.now)),
@@ -112,7 +113,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('starttime', models.DateTimeField()),
                 ('duration', models.BigIntegerField(null=True, blank=True)),
-                ('asset', models.ForeignKey(to='rw.Asset')),
+                ('asset', models.ForeignKey(to='rw.Asset', on_delete = models.CASCADE)),
             ],
             options={
             },
@@ -123,7 +124,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('localized_string', models.TextField()),
-                ('language', models.ForeignKey(to='rw.Language')),
+                ('language', models.ForeignKey(to='rw.Language', on_delete = models.CASCADE)),
             ],
             options={
             },
@@ -209,8 +210,8 @@ class Migration(migrations.Migration):
                 ('client_type', models.CharField(max_length=128, null=True, blank=True)),
                 ('client_system', models.CharField(max_length=128, null=True, blank=True)),
                 ('demo_stream_enabled', models.BooleanField(default=False)),
-                ('language', models.ForeignKey(to='rw.Language', null=True)),
-                ('project', models.ForeignKey(to='rw.Project')),
+                ('language', models.ForeignKey(to='rw.Language', null=True, on_delete = models.SET_NULL)),
+                ('project', models.ForeignKey(to='rw.Project', on_delete = models.CASCADE)),
             ],
             options={
             },
@@ -230,7 +231,7 @@ class Migration(migrations.Migration):
                 ('minvolume', models.FloatField()),
                 ('uri', models.URLField()),
                 ('backupuri', models.URLField()),
-                ('project', models.ForeignKey(to='rw.Project')),
+                ('project', models.ForeignKey(to='rw.Project', on_delete = models.CASCADE)),
             ],
             options={
             },
@@ -270,8 +271,8 @@ class Migration(migrations.Migration):
                 ('index', models.IntegerField()),
                 ('default', models.BooleanField(default=False)),
                 ('active', models.BooleanField(default=False)),
-                ('master_ui', models.ForeignKey(to='rw.MasterUI')),
-                ('tag', models.ForeignKey(to='rw.Tag')),
+                ('master_ui', models.ForeignKey(to='rw.MasterUI', on_delete = models.CASCADE)),
+                ('tag', models.ForeignKey(to='rw.Tag', on_delete = models.CASCADE)),
             ],
             options={
             },
@@ -294,8 +295,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('value', models.IntegerField(null=True, blank=True)),
                 ('type', models.CharField(max_length=16, choices=[('like', 'like'), ('flag', 'flag')])),
-                ('asset', models.ForeignKey(to='rw.Asset')),
-                ('session', models.ForeignKey(to='rw.Session')),
+                ('asset', models.ForeignKey(to='rw.Asset', on_delete = models.CASCADE)),
+                ('session', models.ForeignKey(to='rw.Session', on_delete = models.CASCADE)),
             ],
             options={
             },
@@ -304,13 +305,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tag',
             name='tag_category',
-            field=models.ForeignKey(to='rw.TagCategory'),
+            field=models.ForeignKey(to='rw.TagCategory', on_delete = models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='project',
             name='repeat_mode',
-            field=models.ForeignKey(to='rw.RepeatMode', null=True),
+            field=models.ForeignKey(to='rw.RepeatMode', null=True, on_delete = models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -322,61 +323,61 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='masterui',
             name='project',
-            field=models.ForeignKey(to='rw.Project'),
+            field=models.ForeignKey(to='rw.Project', on_delete = models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='masterui',
             name='select',
-            field=models.ForeignKey(to='rw.SelectionMethod'),
+            field=models.ForeignKey(to='rw.SelectionMethod', on_delete = models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='masterui',
             name='tag_category',
-            field=models.ForeignKey(to='rw.TagCategory'),
+            field=models.ForeignKey(to='rw.TagCategory', on_delete = models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='masterui',
             name='ui_mode',
-            field=models.ForeignKey(to='rw.UIMode'),
+            field=models.ForeignKey(to='rw.UIMode', on_delete = models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='listeninghistoryitem',
             name='session',
-            field=models.ForeignKey(to='rw.Session'),
+            field=models.ForeignKey(to='rw.Session', on_delete = models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='event',
             name='session',
-            field=models.ForeignKey(to='rw.Session'),
+            field=models.ForeignKey(to='rw.Session', on_delete = models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='envelope',
             name='session',
-            field=models.ForeignKey(to='rw.Session', blank=True),
+            field=models.ForeignKey(to='rw.Session', blank=True, on_delete = models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='audiotrack',
             name='project',
-            field=models.ForeignKey(to='rw.Project'),
+            field=models.ForeignKey(to='rw.Project', on_delete = models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='asset',
             name='initialenvelope',
-            field=models.ForeignKey(to='rw.Envelope', null=True),
+            field=models.ForeignKey(to='rw.Envelope', null=True, on_delete = models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='asset',
             name='language',
-            field=models.ForeignKey(to='rw.Language', null=True),
+            field=models.ForeignKey(to='rw.Language', null=True, on_delete = models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -388,13 +389,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='project',
-            field=models.ForeignKey(to='rw.Project', null=True),
+            field=models.ForeignKey(to='rw.Project', null=True, on_delete = models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='asset',
             name='session',
-            field=models.ForeignKey(blank=True, to='rw.Session', null=True),
+            field=models.ForeignKey(blank=True, to='rw.Session', null=True, on_delete = models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(

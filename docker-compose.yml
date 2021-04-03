@@ -1,0 +1,27 @@
+version: "3"
+services:
+  roundware-db:
+    image: postgis/postgis
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: round
+      POSTGRES_PASSWORD: round
+    ports:
+      - "5432"
+  roundware:
+    build: "."
+    image: roundware:latest
+    ports:
+      - "8888:8888"
+    command: python3 roundware/manage.py runserver 0.0.0.0:8888
+    environment:
+      ROUNDWARE_DEBUG: "true"
+      ROUNDWARE_DB_HOST: "roundware-db"
+      ROUNDWARE_DB_NAME: "round"
+    volumes:
+      - logs:/roundware/logs
+    depends_on:
+      - roundware-db
+
+volumes:
+  logs:

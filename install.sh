@@ -3,7 +3,7 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 # Installer for Roundware Server (http://www.roundware.org/)
-# Tested with Ubuntu 14.04 LTS 64 bit
+# Tested with Ubuntu 18.04 LTS 64 bit
 
 # Enable exit on error
 set -e
@@ -39,7 +39,6 @@ CODE_PATH="$WWW_PATH/source"
 STATIC_PATH="$WWW_PATH/static"
 MEDIA_PATH="$WWW_PATH/rwmedia"
 VENV_PATH="$WWW_PATH"
-SITE_PACKAGES_PATH="$VENV_PATH/lib/python2.7/site-packages"
 
 # If not vagrant, create user and copy files.
 if [ ! "$FOUND_VAGRANT" = true ]; then
@@ -63,23 +62,22 @@ cp $SOURCE_PATH/files/home-user-profile /home/$USERNAME/.profile
 ln -sfn $WWW_PATH /home/$USERNAME/www
 
 apt-get update
-
-# Install required packages non-interactive
-DEBIAN_FRONTEND=noninteractive apt-get install -y \
-apache2 libapache2-mod-wsgi libav-tools mediainfo pacpl icecast2 \
-python-dev python-pip  python-dbus python-gst0.10 \
-gstreamer0.10-plugins-good gstreamer0.10-plugins-bad \
-gstreamer0.10-plugins-ugly gstreamer0.10-tools \
-binutils libproj-dev gdal-bin libgdal-dev \
-postgresql-server-dev-9.3 postgresql-9.3-postgis-2.1
-
-# Install/upgrade virtualenv
-pip install -U virtualenv
+# Install packages for running Roundware Server
+xargs -a requirements.apt sudo apt-get install -y
+# Install additional packages for running Postgres locally
+DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql postgis
+# Install virtualenv
+DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv
+python3 -m pip install pip --upgrade
+# Install additional packages for running apache
+DEBIAN_FRONTEND=noninteractive apt-get install -y apache2 apache2-dev libapache2-mod-wsgi-py3
+python3 -m pip install mod_wsgi
 
 # Create the virtual environment
-virtualenv --system-site-packages $VENV_PATH
+python3 -m venv $VENV_PATH
 
 # Activate the environment
+# shellcheck disable=SC1090
 source $VENV_PATH/bin/activate
 # Set python path to use production code
 export PYTHONPATH=$CODE_PATH
@@ -95,10 +93,6 @@ fi
 
 su - postgres -c 'psql -c "grant all on database roundware to round"'
 su - postgres -c "psql -c \"alter user round password 'round'\""
-
-if ! su - postgres -c "psql roundware -t -A -c \"select count(*) from pg_extension where extname = 'postgis'\"" | grep -q 1; then
-  su - postgres -c "psql roundware -c 'create extension postgis'"
-fi
 
 # File/directory configurations
 mkdir -p $MEDIA_PATH
@@ -132,10 +126,6 @@ a2ensite roundware
 # Setup logrotate
 sed s/USERNAME/$USERNAME/g $CODE_PATH/files/etc-logrotate-d-roundware > /etc/logrotate.d/roundware
 
-# Install correct shout2send gstreamer plugin
-mv /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so.old
-cp $CODE_PATH/files/64-bit/libgstshout2.so /usr/lib/x86_64-linux-gnu/gstreamer-0.10/libgstshout2.so
-
 # Set $USERNAME to own home files
 chown $USERNAME:$USERNAME -R $HOME_PATH
 
@@ -146,10 +136,5 @@ su - $USERNAME -c "$CODE_PATH/roundware/manage.py loaddata default_auth.json"
 su - $USERNAME -c "$CODE_PATH/roundware/manage.py loaddata sample_project.json"
 
 service apache2 restart
-
-# Setup icecast
-cp $CODE_PATH/files/etc-default-icecast2 /etc/default/icecast2
-cp $CODE_PATH/files/etc-icecast2-icecast.xml /etc/icecast2/icecast.xml
-service icecast2 restart
 
 echo "Install Complete"

@@ -32,24 +32,6 @@ ROUNDWARE_SERVER_ROOT = here("../..")
 # folder(s) we pass it starting at the roundware-server root
 root = lambda *x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
-# Roundwared & rwstreamd.py settings
-ICECAST_PORT = "8000"
-ICECAST_HOST = "localhost"
-ICECAST_USERNAME = "admin"
-ICECAST_PASSWORD = "roundice"
-ICECAST_SOURCE_USERNAME = "source"
-ICECAST_SOURCE_PASSWORD = "roundice"
-# Discrete steps
-NUM_PAN_STEPS = 200
-# In milliseconds
-STEREO_PAN_INTERVAL = 10
-# In milliseconds
-PING_INTERVAL = 10000
-MASTER_VOLUME = 3.0
-HEARTBEAT_TIMEOUT = 200
-# Radius in meters - default system wide setting
-RECORDING_RADIUS = 1
-DEMO_STREAM_CPU_LIMIT = 50.0
 
 ALLOWED_AUDIO_MIME_TYPES = ['audio/x-wav', 'audio/wav',
                             'audio/mpeg', 'audio/mp4a-latm', 'audio/x-caf',
@@ -89,11 +71,11 @@ DATABASES = {
         # Or path to database file if using sqlite3.
 
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'roundware',
-        'USER': 'round',
-        'PASSWORD': 'round',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.getenv('ROUNDWARE_DB_NAME', 'roundware'),
+        'USER':  os.getenv('ROUNDWARE_DB_USER','round'),
+        'HOST': os.getenv('ROUNDWARE_DB_HOST', 'localhost'),
+        'PORT': os.getenv('ROUNDWARE_DB_PORT', '5432'),
+        'PASSWORD': os.getenv('ROUNDWARE_DB_PASSWORD', "round")
     }
 }
 
@@ -153,12 +135,14 @@ STATIC_URL = '/static/'
 ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Additional locations of static files
-STATICFILES_DIRS = (
-    os.path.join(STATIC_ROOT, '..', 'source', 'files', 'test-audio'),
+CUSTOM_STATIC_PATH = os.path.join(STATIC_ROOT, '..', 'source', 'files', 'test-audio')
+if os.path.exists(CUSTOM_STATIC_PATH):
+    STATICFILES_DIRS = ( CUSTOM_STATIC_PATH,
+    # ,
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-)
+    )
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -198,7 +182,7 @@ TEMPLATES = [
     }
 ]
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -220,12 +204,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'django_admin_bootstrapped',
-    'django.contrib.admin.apps.SimpleAdminConfig',  # 5
+    'django.contrib.admin',
     'guardian',  # 3
-    'chartit',
-    'validatedfile',
-    'adminplus',
     'crispy_forms',
     'floppyforms',
     'djangoformsetjs',
@@ -233,20 +213,18 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework_gis',
     'rest_framework.authtoken',
+    'django_filters',
     'leaflet',
     'corsheaders',
-    'roundware.lib',
-    'roundware.rw',  # 4
+    'roundware.rw',
     'roundware.notifications',
-    'roundware.api1',
-    'roundware.api2',
 )
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_FILTER_BACKENDS': (
-        'rest_framework.filters.DjangoFilterBackend',
+        'django_filters.rest_framework.DjangoFilterBackend',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
@@ -262,10 +240,10 @@ REST_FRAMEWORK = {
     }
 }
 
-CORS_ORIGIN_WHITELIST = (
-    'localhost:8080',
-    'localhost:3000',
-)
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8080',
+    'http://localhost:3000',
+]
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -297,11 +275,6 @@ LOGGING = {
         },
         # The roundware system logger.
         'roundware': {
-            'level': 'DEBUG',
-            'handlers': ['file'],
-        },
-        # The roundwared stream manager logger.
-        'roundwared': {
             'level': 'DEBUG',
             'handlers': ['file'],
         },

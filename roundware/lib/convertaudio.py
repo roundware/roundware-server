@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 from django.conf import settings
 import shutil
 import os
-from exception import RoundException
+import ffmpeg
+from .exception import RoundException
 
 
 # Converts the given file to both wav and mp3 and stores the files in the audio directory.
@@ -34,5 +35,5 @@ def convert_audio_file(upload_dir, filename_prefix, filename_extension, dst_type
                 filepath,
                 os.path.join(settings.MEDIA_ROOT, filename_prefix + filename_extension))
     else:
-        os.system("/usr/bin/avconv -y -i " + filepath + " " + os.path.join(settings.MEDIA_ROOT,
-                  filename_prefix + "." + dst_type) + " >/dev/null 2>/dev/null")
+        output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
+        ffmpeg.input(filepath).output(output_filepath).run()
