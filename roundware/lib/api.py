@@ -2,12 +2,11 @@ from __future__ import unicode_literals
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ParseError
 from roundware.rw import models
-from roundware.lib import dbus_send, discover_audiolength, convertaudio
+from roundware.lib import  discover_audiolength, convertaudio
 from roundware.lib.exception import RoundException
-from roundwared import gpsmixer
-from roundwared import icecast2
 from django.conf import settings
 from django.db.models import Count, Avg
 from django.http import Http404
@@ -20,7 +19,7 @@ import time
 import logging
 
 logger = logging.getLogger(__name__)
-
+User = get_user_model()
 
 def t(msg, field, language):
     """
@@ -101,82 +100,6 @@ def get_project_tags_new(p=None, s=None):
     return tags
 
 
-# @profile(stats=True)
-def request_stream(request):
-    if not hasattr(request, 'data'):
-        if request.method == 'POST':
-            data = request.POST
-        else:
-            data = request.GET
-    else:
-        data = request.data
-    session_id = data.get('session_id', None)
-    if session_id is None and hasattr(request, 'data'):
-        session_id = data.get('session_id', None)
-    if not session_id:
-        raise RoundException("Must supply session_id.")
-
-    log_event("request_stream", int(session_id), data)
-
-    session = models.Session.objects.select_related('project').get(id=session_id)
-    project = session.project
-
-    # Get the value 'example.com' from the host 'example.com:8888'
-    http_host = request.get_host().split(':')[0]
-
-    if session.demo_stream_enabled:
-        msg = t("demo_stream_message", project.demo_stream_message_loc,
-                session.language)
-
-        if project.demo_stream_url:
-            url = project.demo_stream_url
-        else:
-            url = "http://%s:%s/demo_stream.mp3" % (http_host,
-                                                    settings.ICECAST_PORT)
-        return {
-            'stream_url': url,
-            'demo_stream_message': msg
-        }
-
-    elif is_listener_in_range_of_stream(data, project):
-        # TODO: audio_format.upper() should be handled when the project is saved.
-        audio_format = project.audio_format.upper()
-
-        # Make the audio stream if it doesn't exist.
-        if not stream_exists(session.id, audio_format):
-            command = [settings.PROJECT_ROOT + '/roundwared/rwstreamd.py',
-                       '--session_id', str(session.id), '--project_id', str(project.id)]
-            for p in ['latitude', 'longitude', 'audio_format']:
-                if p in data and data[p]:
-                    command.extend(['--' + p, data[p].replace("\t", ",")])
-            if 'audio_stream_bitrate' in data:
-                command.extend(
-                    ['--audio_stream_bitrate', str(data['audio_stream_bitrate'])])
-
-            apache_safe_daemon_subprocess(command)
-            wait_for_stream(session.id, audio_format)
-
-        move_listener(request)
-
-        return {
-            "stream_url": "http://%s:%s%s" % (http_host, settings.ICECAST_PORT,
-                                              icecast2.mount_point(session.id, audio_format))
-        }
-    else:
-        msg = t("This application is designed to be used in specific geographic"
-                " locations. Apparently your phone thinks you are not at one of"
-                " those locations, so you will hear a sample audio stream"
-                " instead of the real deal. If you think your phone is"
-                " incorrect, please restart Roundware and it will probably work."
-                " Thanks for checking it out!",
-                project.out_of_range_message_loc, session.language)
-
-        return {
-            'stream_url': project.out_of_range_url,
-            'user_message': msg
-        }
-
-
 # Used by server.py many times and stream.py once!
 def log_event(event_type, session_id, form=None):
     """
@@ -240,11 +163,6 @@ def is_listener_in_range_of_stream(form, proj):
     return in_range
 
 
-def stream_exists(sessionid, audio_format):
-    admin = icecast2.Admin()
-    return admin.stream_exists(icecast2.mount_point(sessionid, audio_format))
-
-
 def apache_safe_daemon_subprocess(command):
     logger.debug(str(command))
     env = os.environ.copy()
@@ -262,67 +180,6 @@ def apache_safe_daemon_subprocess(command):
     # logger.debug("subprocess_stdout: " + stdout)
     # logger.debug("subprocess_stdout: " + stderr)
 
-
-def wait_for_stream(sessionid, audio_format):
-    """
-    Loops until the give stream is present and ready to be listened to.
-    """
-    # Number of retries
-    retries_left = 15
-
-    logger.debug("Checking for existence of stream %s%s on %s:%s", sessionid,
-                 audio_format, settings.ICECAST_HOST, settings.ICECAST_PORT)
-    while not stream_exists(sessionid, audio_format):
-        time.sleep(1)
-        retries_left -= 1
-        if retries_left < 0:
-            raise RoundException("Stream timeout on creation")
-
-
-def modify_stream(request, context=None):
-    success = False
-    msg = ""
-    # api v2
-    if context is not None and "pk" in context:
-        form = request.data.copy()
-        form["session_id"] = context["pk"]
-    # api v1
-    else:
-        form = request.GET
-    request = form_to_request(form)
-    arg_hack = json.dumps(request)
-    log_event("modify_stream", int(form['session_id']), form)
-    logger.debug(request)
-
-    if 'session_id' in form:
-        session = models.Session.objects.select_related(
-            'project').get(id=form['session_id'])
-        project = session.project
-        if 'language' in form:
-            try:
-                logger.debug("modify_stream: language: " + form['language'])
-                l = models.Language.objects.filter(
-                    language_code=form['language'])[0]
-                session.language = l
-                session.save()
-            except:
-                raise RoundException("language not supported")
-
-        audio_format = project.audio_format.upper()
-        if stream_exists(int(form['session_id']), audio_format):
-            dbus_send.emit_stream_signal(
-                int(form['session_id']), "modify_stream", arg_hack)
-            success = True
-        else:
-            msg = "no stream available for session: " + form['session_id']
-    else:
-        msg = "a session_id is required for this operation"
-
-    if success:
-        return {"success": success}
-    else:
-        return {"success": False,
-                "error": msg}
 
 
 def form_to_request(form):
@@ -359,113 +216,6 @@ def form_to_request(form):
     return request
 
 
-def move_listener(request, context=None):
-    logger.info("moving listener")
-    if context is not None and "pk" in context:
-        form = request.data.copy()
-        form['session_id'] = context["pk"]
-    else:
-        # api/1 uses GET and api/2 uses POST
-        # need to check for both until api/1 is deprecated
-        form = request.GET or request.POST
-    try:
-        if 'listener_heading' in form:
-            logger.info("form listener_heading = %s" % form['listener_heading'])
-        request = form_to_request(form)
-        if 'listener_heading' in request:
-            logger.info("request listener_heading = %s" % request['listener_heading'])
-        arg_hack = json.dumps(request)
-        logger.info("arg_hack = %s" % arg_hack)
-        log_event("move_listener", int(form['session_id']), form)
-        dbus_send.emit_stream_signal(
-            int(form['session_id']), "move_listener", arg_hack)
-        return {"success": True}
-    except Exception as e:
-        return {"success": False,
-                "error": "could not move listener: %s" % e}
-
-
-def heartbeat(request, session_id=None):
-    if session_id is None:
-        session_id = request.GET['session_id']
-    dbus_send.emit_stream_signal(int(session_id), "heartbeat", "")
-    log_event("heartbeat", int(session_id), request.GET)
-    return {"success": True}
-
-
-def skip_ahead(request, session_id=None):
-    """
-    fade out currently playing asset(s) and immediately play next asset in playlist
-    """
-    if session_id is None:
-        session_id = request.GET.get('session_id', None)
-    if session_id is None:
-        raise RoundException("a session_id is required for this operation")
-
-    log_event("skip_ahead", int(session_id))
-
-    # send signal to specified stream if it exists exists
-    if check_is_active(session_id):
-        dbus_send.emit_stream_signal(int(session_id), "skip_ahead", "")
-        return {"success": True}
-    else:
-        return{"success": False,
-               "message": "Specified stream not active; can't skip asset on non-existent stream!"}
-
-
-def play(form):
-    """
-    fade out currently playing asset(s) and immediately play specified asset in stream
-    in next available audiotrack
-    """
-    session_id = int(form['session_id'])
-    request = form_to_request(form)
-    arg_hack = json.dumps(request)
-
-    log_event("play_asset_in_stream", session_id, form)
-
-    if 'session_id' not in form:
-        raise RoundException("a session_id is required for this operation")
-    if 'asset_id' not in form:
-        raise RoundException("an asset_id is required for this operation")
-
-    # Check if asset exists
-    if not models.Asset.objects.filter(id=form['asset_id']).exists():
-        raise RoundException("no asset found with this asset_id")
-
-    # send signal to specified stream if it exists exists
-    if check_is_active(session_id):
-        dbus_send.emit_stream_signal(session_id, "play_asset", arg_hack)
-        return {"success": True}
-    else:
-        return{"success": False,
-               "message": "Specified stream not active; can't add new asset to non-existent stream!"}
-
-
-def pause(request, session_id=None):
-    if session_id is None:
-        session_id = request.GET.get('session_id', None)
-    if session_id is None:
-        raise RoundException("a session_id is required for this operation")
-
-    logger.debug("pausing")
-    log_event("pause", int(session_id))
-
-    dbus_send.emit_stream_signal(int(session_id), "pause", "")
-    return {"success": True}
-
-
-def resume(request, session_id=None):
-    if session_id is None:
-        session_id = request.GET.get('session_id', None)
-    if session_id is None:
-        raise RoundException("a session_id is required for this operation")
-
-    logger.debug("resuming")
-    log_event("resume", int(session_id))
-
-    dbus_send.emit_stream_signal(int(session_id), "resume", "")
-    return {"success": True}
 
 def check_for_single_audiotrack(session_id):
     ret = False
@@ -476,16 +226,16 @@ def check_for_single_audiotrack(session_id):
         ret = True
     return ret
 
-def check_is_active(session_id):
-    session = models.Session.objects.select_related('project').get(id=session_id)
-    audio_format = session.project.audio_format.upper()
-
-    return stream_exists(session_id, audio_format)
-
-def kill(session_id, audio_format):
-    admin = icecast2.Admin()
-    result = admin.kill_source(icecast2.mount_point(session_id, audio_format))
-    return result
+# def check_is_active(session_id):
+#     session = models.Session.objects.select_related('project').get(id=session_id)
+#     audio_format = session.project.audio_format.upper()
+#
+#     return stream_exists(session_id, audio_format)
+#
+# def kill(session_id, audio_format):
+#     admin = icecast2.Admin()
+#     result = admin.kill_source(icecast2.mount_point(session_id, audio_format))
+#     return result
 
 # create_envelope
 # args: (operation, session_id, [tags])
@@ -504,7 +254,6 @@ def create_envelope(request):
     env.save()
 
     return {"envelope_id": env.id}
-
 
 # add_asset_to_envelope (POST method)
 # args (operation, envelope_id, session_id, file, latitude, longitude, [tagids])
@@ -548,16 +297,17 @@ def add_asset_to_envelope(request, envelope_id=None):
                 session.id, asset.id, asset.file.name)
 
     # Refresh recordings for ALL existing streams.
-    dbus_send.emit_stream_signal(0, "refresh_recordings", "")
+    # dbus_send.emit_stream_signal(0, "refresh_recordings", "")
 
     # Play newest asset in stream that created asset
-    play({
-        'session_id': str(session.id),
-        'asset_id': str(asset.id)
-    })
+    # play({
+    #     'session_id': str(session.id),
+    #     'asset_id': str(asset.id)
+    # })
 
     return {"success": True,
             "asset_id": asset.id}
+
 
 
 def save_asset_from_request(request, session, asset=None):
@@ -692,7 +442,6 @@ def save_asset_from_request(request, session, asset=None):
             weight = 50
 
         # If user_id contained in request, use it, otherwise, use session_id to determine user_id
-        User = get_user_model()
         user_id = get_parameter_from_request(request, 'user_id')
         try:
             user = User.objects.get(pk=user_id)
@@ -784,7 +533,6 @@ def _get_current_streaming_asset(session_id):
     except IndexError:
         return None
 
-
 def vote_asset(request, asset_id=None):
     if hasattr(request, 'data'):
         form = request.data
@@ -802,25 +550,25 @@ def vote_asset(request, asset_id=None):
     #         "VOTE: this operation is only valid for projects with 1 audiotrack")
 
     # determine user/voter from provided session_id
-    User = get_user_model()
-    device_id = models.Session.objects.filter(id=int(form.get('session_id'))) \
-                                      .values_list('device_id', flat=True)
     try:
-        voter = User.objects.get(userprofile__device_id=device_id)
-    except:
+        session_id = int(form.get('session_id'))
+        session = models.Session.objects.get(id=session_id)
+    except ObjectDoesNotExist:
+        raise RoundException("Session not found.")
+
+    try:
+        voter = User.objects.get(userprofile__device_id=session.device_id)
+        log_event("vote_asset", session_id, form)
+    except ObjectDoesNotExist:
         # handle api/1 which will not have User and therefore no voter
         voter = None
         pass
-    try:
-        log_event("vote_asset", int(form.get('session_id')), form)
-        session = models.Session.objects.get(id=int(form.get('session_id')))
-    except:
-        raise RoundException("Session not found.")
+
     try:
         if asset_id is None:
             asset_id = int(form.get('asset_id'))
         asset = models.Asset.objects.get(id=asset_id)
-    except:
+    except ObjectDoesNotExist:
         raise RoundException("Asset not found.")
 
     # try to find existing vote for this session and asset
@@ -844,15 +592,16 @@ def vote_asset(request, asset_id=None):
 
     # send signal to stream process to have user_blocked_list updated
     # if new vote is of block_* type
-    if form.get('vote_type') in ('block_asset', 'block_user'):
-        dbus_send.emit_stream_signal(int(form.get('session_id')), "vote_asset", "")
-        logger.info("sending vote signal for session_id = %s", int(form.get('session_id')))
+    # if form.get('vote_type') in ('block_asset', 'block_user'):
+    #     dbus_send.emit_stream_signal(int(form.get('session_id')), "vote_asset", "")
+    #     logger.info("sending vote signal for session_id = %s", int(form.get('session_id')))
 
     # different responses for api/1 vs. api/2
     if 'operation' in form:
         return {"success": True}
     else:
         return {"vote": v}
+
 
 
 ###################################

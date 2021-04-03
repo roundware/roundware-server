@@ -8,6 +8,8 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.conf import settings
+from rest_framework.decorators import action
+
 from roundware.rw.models import (Asset, Audiotrack, Event, Envelope, Language, ListeningHistoryItem,
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIElement, UIElementName, UIGroup,
@@ -19,19 +21,20 @@ from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, Envelop
                                     TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
                                     UIConfigFilterSet, UIElementFilterSet, UIElementNameFilterSet,
                                     UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
-from roundware.lib.api import (get_project_tags_new as get_project_tags, modify_stream, move_listener, heartbeat,
-                               skip_ahead, pause, resume, add_asset_to_envelope, get_currently_streaming_asset,
-                               save_asset_from_request, vote_asset, check_is_active, get_projects_by_location,
-                               vote_count_by_asset, log_event, play, kill, save_speaker_from_request)
+from roundware.lib.api import (get_project_tags_new as get_project_tags,
+                               add_asset_to_envelope,
+                               save_asset_from_request, vote_asset, get_projects_by_location,
+                               vote_count_by_asset, log_event, save_speaker_from_request)
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import detail_route, list_route
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.filters import OrderingFilter, DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 import logging
 from random import sample
 from datetime import datetime
@@ -198,7 +201,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         asset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @detail_route(methods=['post', 'get'])
+    @action(methods=['post', 'get'], detail=True)
     def votes(self, request, pk=None):
         """
         GET api/2/assets/votes/ - retrieve Votes for specified Asset
@@ -213,7 +216,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
             count = vote_count_by_asset(pk)
             return Response(count)
 
-    @list_route(methods=['get'])
+    @action(methods=['get'], detail=False)
     def random(self, request, pk=None):
         """
         GET api/2/assets/random/ - retrieve random list of Assets filtered by parameters
@@ -231,7 +234,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         serializer = serializers.AssetSerializer(results, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['get'])
+    @action(methods=['get'], detail=False)
     def blocked(self, request, pk=None):
         """
         GET api/2/assets/blocked/ - retrieve list of Assets blocked by
@@ -320,7 +323,7 @@ class AudiotrackViewSet(viewsets.ViewSet):
         """
         GET api/2/audiotracks/ - Provides list of Audiotracks filtered by parameters
         """
-        audiotracks = AudiotrackFilterSet(request.query_params)
+        audiotracks = AudiotrackFilterSet(request.query_params).qs
         serializer = serializers.AudiotrackSerializer(audiotracks, many=True)
         return Response(serializer.data)
 
@@ -423,7 +426,7 @@ class EnvelopeViewSet(viewsets.ViewSet):
         """
         GET api/2/envelopes/ - retrieve list of Envelopes
         """
-        envelopes = EnvelopeFilterSet(request.query_params)
+        envelopes = EnvelopeFilterSet(request.query_params).qs
         serializer = serializers.EnvelopeSerializer(envelopes, many=True)
         return Response(serializer.data)
 
@@ -479,7 +482,7 @@ class EventViewSet(viewsets.ViewSet):
         """
         GET api/2/events/ - Provides list of Events filtered by parameters
         """
-        events = EventFilterSet(request.query_params)
+        events = EventFilterSet(request.query_params).qs
         serializer = serializers.EventSerializer(events, many=True)
         return Response(serializer.data)
 
@@ -528,7 +531,7 @@ class LanguageViewSet(viewsets.ViewSet):
         """
         GET api/2/Languages/ - Provides list of Languages filtered by parameters
         """
-        languages = LanguageFilterSet(request.query_params)
+        languages = LanguageFilterSet(request.query_params).qs
         serializer = serializers.LanguageSerializer(languages, many=True)
         return Response(serializer.data)
 
@@ -585,7 +588,7 @@ class ListenEventViewSet(viewsets.ViewSet):
         """
         GET api/2/listenevents/ - Get ListenEvents by filtering parameters
         """
-        events = ListeningHistoryItemFilterSet(request.query_params)
+        events = ListeningHistoryItemFilterSet(request.query_params).qs
         serializer = serializers.ListenEventSerializer(events, many=True)
         return Response(serializer.data)
 
@@ -619,7 +622,7 @@ class LocalizedStringViewSet(viewsets.ViewSet):
         """
         GET api/2/localizedstrings/ - Provides list of LocalizedStrings filtered by parameters
         """
-        localizedstrings = LocalizedStringFilterSet(request.query_params)
+        localizedstrings = LocalizedStringFilterSet(request.query_params).qs
         serializer = serializers.LocalizedStringSerializer(localizedstrings, many=True)
         return Response(serializer.data)
 
@@ -697,7 +700,7 @@ class ProjectViewSet(viewsets.ViewSet):
         """
         GET api/2/projects/ - Provides list of Projects filtered by parameters
         """
-        projects = ProjectFilterSet(request.query_params)
+        projects = ProjectFilterSet(request.query_params).qs
         serializer = serializers.ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
@@ -751,7 +754,7 @@ class ProjectViewSet(viewsets.ViewSet):
         project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def tags(self, request, pk=None):
         """
         GET api/2/projects/:id/tags/ - Get Tags for specific Project
@@ -765,7 +768,7 @@ class ProjectViewSet(viewsets.ViewSet):
                                                               "admin": "admin" in request.query_params}, many=True)
         return Response(serializer.data)
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def uigroups(self, request, pk=None):
         """
         GET api/2/projects/:id/uigroups/ - Get UIGroups for specific Project
@@ -777,13 +780,13 @@ class ProjectViewSet(viewsets.ViewSet):
             except:
                 raise ParseError("Session not found")
         params["project_id"] = pk
-        uigroups = UIGroupFilterSet(params)
+        uigroups = UIGroupFilterSet(params).qs
         serializer = serializers.UIGroupSerializer(uigroups,
                                                    context={"admin": "admin" in request.query_params,
                                                             "session": session}, many=True)
         return Response(serializer.data)
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def uiconfig(self, request, pk=None):
         """
         GET api/2/projects/:id/uiconfig/ - Get UI config data for specific Project
@@ -797,13 +800,13 @@ class ProjectViewSet(viewsets.ViewSet):
         params["project_id"] = pk
         params['active'] = 'true'
         params['ui_mode'] = 'listen'
-        uigroups_listen = UIGroupFilterSet(params)
+        uigroups_listen = UIGroupFilterSet(params).qs
         serializer_listen = serializers.UIConfigSerializer(uigroups_listen,
                                                    context={"admin": "admin" in request.query_params,
                                                             "session": session, "mode": "listen"}, many=True)
         sld = serializer_listen.data
         params['ui_mode'] = 'speak'
-        uigroups_speak = UIGroupFilterSet(params)
+        uigroups_speak = UIGroupFilterSet(params).qs
         serializer_speak = serializers.UIConfigSerializer(uigroups_speak,
                                                    context={"admin": "admin" in request.query_params,
                                                             "session": session, "mode": "speak"}, many=True)
@@ -811,19 +814,19 @@ class ProjectViewSet(viewsets.ViewSet):
         return Response({ "listen" : sld,
                           "speak"  : ssd })
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def assets(self, request, pk=None):
         """
         GET api/2/projects/:id/assets/ - Get Assets for specific Project
         """
         params = request.query_params.copy()
         params["project_id"] = pk
-        assets = AssetFilterSet(params)
+        assets = AssetFilterSet(params).qs
         # serialize and return
         serializer = serializers.AssetSerializer(assets, context={"admin": "admin" in request.query_params}, many=True)
-        return Response(serializer.data)
+        return Response(data=serializer.data)
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def uielements(self, request, pk=None):
         """
         GET api/2/projects/:id/uielements/ - Get UIElements for specific Project
@@ -839,7 +842,7 @@ class ProjectViewSet(viewsets.ViewSet):
         if "variant" not in params:
             raise ParseError("Variant param is required.")
         params["project_id"] = pk
-        uielements = UIElementFilterSet(params)
+        uielements = UIElementFilterSet(params).qs
         r = {}
         # build data structure for each view individually
         for uielementview in UIElementName.VIEWS:
@@ -887,7 +890,7 @@ class ProjectGroupViewSet(viewsets.ViewSet):
         """
         GET api/2/projectgroups/ - Provides list of ProjectGroups filtered by parameters
         """
-        projectgroups = ProjectGroupFilterSet(request.query_params)
+        projectgroups = ProjectGroupFilterSet(request.query_params).qs
         logger.info('ProjectGroup = %s' % projectgroups)
         serializer = serializers.ProjectGroupSerializer(projectgroups, many=True)
         return Response(serializer.data)
@@ -937,7 +940,7 @@ class ProjectGroupViewSet(viewsets.ViewSet):
         projectgroup.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @detail_route(methods=['get'])
+    @action(methods=['get'], detail=True)
     def projects(self, request, pk=None):
         """
         GET api/2/projectgroups/:id/projects/ - Get Projects for specific ProjectGroup.
@@ -985,7 +988,7 @@ class SessionViewSet(viewsets.ViewSet):
         """
         GET api/2/sessions/ - Provides list of Sessions filtered by parameters
         """
-        sessions = SessionFilterSet(request.query_params)
+        sessions = SessionFilterSet(request.query_params).qs
         serializer = serializers.SessionSerializer(sessions, many=True)
         return Response(serializer.data)
 
@@ -1059,7 +1062,7 @@ class SpeakerViewSet(viewsets.ViewSet):
         """
         GET api/2/speakers/ - Provides list of Speakers filtered by parameters
         """
-        speakers = SpeakerFilterSet(request.query_params)
+        speakers = SpeakerFilterSet(request.query_params).qs
         serializer = serializers.SpeakerSerializer(speakers, many=True)
         return Response(serializer.data)
 
@@ -1133,125 +1136,125 @@ class SpeakerViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class StreamViewSet(viewsets.ViewSet):
-    """
-    The primary communication channel for handling the Roundware audio stream.
-    API V2: api/2/streams/
-            api/2/streams/:id/heartbeat/
-            api/2/streams/:id/playasset/
-            api/2/streams/:id/replayasset/
-            api/2/streams/:id/skipasset/
-            api/2/streams/:id/pause/
-            api/2/streams/:id/resume/
-            api/2/streams/:id/isactive/
-            api/2/streams/:id/kill/
-    """
-    permission_classes = (IsAuthenticated,)
-
-    def create(self, request):
-        serializer = serializers.StreamSerializer(data=request.data, context={"request": request})
-        if not serializer.is_valid():
-            raise ParseError(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.save())
-
-    def partial_update(self, request, pk=None):
-        try:
-            if "tag_ids" in request.data:
-                success = modify_stream(request, context={"pk": pk})
-            elif "longitude" in request.data and "latitude" in request.data:
-                success = move_listener(request, context={"pk": pk})
-            else:
-                raise ParseError("must supply something to update")
-            if success["success"]:
-                return Response()
-            else:
-                return Response({"detail": success["error"]},
-                                status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"detail": "could not update stream: %s" % e},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def heartbeat(self, request, pk=None):
-        try:
-            heartbeat(request, session_id=pk)
-            return Response()
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def playasset(self, request, pk=None):
-        try:
-            return Response(play({
-                'session_id': pk,
-                'asset_id': request.POST.get('asset_id')
-            }))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def replayasset(self, request, pk=None):
-        try:
-            result = get_currently_streaming_asset(request, session_id=pk)
-            return Response(play({
-                'session_id': pk,
-                'asset_id': str(result.get('asset_id'))
-            }))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def skipasset(self, request, pk=None):
-        try:
-            return Response(skip_ahead(request, session_id=pk))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def pause(self, request, pk=None):
-        try:
-            return Response(pause(request, session_id=pk))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def resume(self, request, pk=None):
-        try:
-            return Response(resume(request, session_id=pk))
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['get'])
-    def isactive(self, request, pk=None):
-        try:
-            result = check_is_active(pk)
-            stream_id = int(pk)
-            return Response({
-                'stream_id': stream_id,
-                'active': result
-            })
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
-
-    @detail_route(methods=['post'])
-    def kill(self, request, pk=None):
-        try:
-            result = kill(pk, "mp3")
-            stream_id = int(pk)
-            return Response({
-                'stream_id': stream_id,
-                'success': result
-            })
-        except Exception as e:
-            return Response({"detail": str(e)},
-                            status.HTTP_400_BAD_REQUEST)
+# class StreamViewSet(viewsets.ViewSet):
+#     """
+#     The primary communication channel for handling the Roundware audio stream.
+#     API V2: api/2/streams/
+#             api/2/streams/:id/heartbeat/
+#             api/2/streams/:id/playasset/
+#             api/2/streams/:id/replayasset/
+#             api/2/streams/:id/skipasset/
+#             api/2/streams/:id/pause/
+#             api/2/streams/:id/resume/
+#             api/2/streams/:id/isactive/
+#             api/2/streams/:id/kill/
+#     """
+#     permission_classes = (IsAuthenticated,)
+#
+#     def create(self, request):
+#         serializer = serializers.StreamSerializer(data=request.data, context={"request": request})
+#         if not serializer.is_valid():
+#             raise ParseError(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         return Response(serializer.save())
+#
+#     def partial_update(self, request, pk=None):
+#         try:
+#             if "tag_ids" in request.data:
+#                 success = modify_stream(request, context={"pk": pk})
+#             elif "longitude" in request.data and "latitude" in request.data:
+#                 success = move_listener(request, context={"pk": pk})
+#             else:
+#                 raise ParseError("must supply something to update")
+#             if success["success"]:
+#                 return Response()
+#             else:
+#                 return Response({"detail": success["error"]},
+#                                 status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({"detail": "could not update stream: %s" % e},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def heartbeat(self, request, pk=None):
+#         try:
+#             heartbeat(request, session_id=pk)
+#             return Response()
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def playasset(self, request, pk=None):
+#         try:
+#             return Response(play({
+#                 'session_id': pk,
+#                 'asset_id': request.POST.get('asset_id')
+#             }))
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def replayasset(self, request, pk=None):
+#         try:
+#             result = get_currently_streaming_asset(request, session_id=pk)
+#             return Response(play({
+#                 'session_id': pk,
+#                 'asset_id': str(result.get('asset_id'))
+#             }))
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def skipasset(self, request, pk=None):
+#         try:
+#             return Response(skip_ahead(request, session_id=pk))
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def pause(self, request, pk=None):
+#         try:
+#             return Response(pause(request, session_id=pk))
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def resume(self, request, pk=None):
+#         try:
+#             return Response(resume(request, session_id=pk))
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['get'])
+#     def isactive(self, request, pk=None):
+#         try:
+#             result = check_is_active(pk)
+#             stream_id = int(pk)
+#             return Response({
+#                 'stream_id': stream_id,
+#                 'active': result
+#             })
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
+#
+#     @detail_route(methods=['post'])
+#     def kill(self, request, pk=None):
+#         try:
+#             result = kill(pk, "mp3")
+#             stream_id = int(pk)
+#             return Response({
+#                 'stream_id': stream_id,
+#                 'success': result
+#             })
+#         except Exception as e:
+#             return Response({"detail": str(e)},
+#                             status.HTTP_400_BAD_REQUEST)
 
 
 class TagViewSet(viewsets.ViewSet):
@@ -1273,7 +1276,7 @@ class TagViewSet(viewsets.ViewSet):
         """
         GET api/2/tags/ - Provides list of Tags filtered by parameters
         """
-        tags = TagFilterSet(request.query_params)
+        tags = TagFilterSet(request.query_params).qs
         session = None
         if "session_id" in request.query_params:
             try:
@@ -1372,7 +1375,7 @@ class TagCategoryViewSet(viewsets.ViewSet):
         """
         GET api/2/tagcategories/ - Provides list of TagCategories filtered by parameters
         """
-        tagcategories = TagCategoryFilterSet(request.query_params)
+        tagcategories = TagCategoryFilterSet(request.query_params).qs
         serializer = serializers.TagCategorySerializer(tagcategories, many=True)
         return Response(serializer.data)
 
@@ -1433,7 +1436,7 @@ class TagRelationshipViewSet(viewsets.ViewSet):
         """
         GET api/2/tagrelationships/ - Provides list of TagRelationship filtered by parameters
         """
-        tagrelationships = TagRelationshipFilterSet(request.query_params)
+        tagrelationships = TagRelationshipFilterSet(request.query_params).qs
         serializer = serializers.TagRelationshipSerializer(tagrelationships, many=True)
         return Response(serializer.data)
 
@@ -1507,7 +1510,7 @@ class TimedAssetViewSet(viewsets.ViewSet):
         """
         GET api/2/timedassets/ - Provides list of TimedAssets filtered by parameters
         """
-        timedassets = TimedAssetFilterSet(request.query_params)
+        timedassets = TimedAssetFilterSet(request.query_params).qs
         serializer = serializers.TimedAssetSerializer(timedassets, many=True)
         return Response(serializer.data)
 
@@ -1580,7 +1583,7 @@ class UIElementViewSet(viewsets.ViewSet):
         """
         GET api/2/uielements/ - Provides list of UIElements filtered by parameters
         """
-        uielements = UIElementFilterSet(request.query_params)
+        uielements = UIElementFilterSet(request.query_params).qs
         serializer = serializers.UIElementSerializer(uielements, many=True)
         return Response(serializer.data)
 
@@ -1659,7 +1662,7 @@ class UIElementNameViewSet(viewsets.ViewSet):
         """
         GET api/2/uielementnames/ - Provides list of UIElementNames filtered by parameters
         """
-        uielementnames = UIElementNameFilterSet(request.query_params)
+        uielementnames = UIElementNameFilterSet(request.query_params).qs
         serializer = serializers.UIElementNameSerializer(uielementnames, many=True)
         return Response(serializer.data)
 
@@ -1720,7 +1723,7 @@ class UIGroupViewSet(viewsets.ViewSet):
         """
         GET api/2/uigroups/ - Provides list of UIGroups filtered by parameters
         """
-        uigroups = UIGroupFilterSet(request.query_params)
+        uigroups = UIGroupFilterSet(request.query_params).qs
         session = None
         if "session_id" in request.query_params:
             try:
@@ -1815,7 +1818,7 @@ class UIItemViewSet(viewsets.ViewSet):
         """
         GET api/2/uiitems/ - Provides list of UIItems filtered by parameters
         """
-        uiitems = UIItemFilterSet(request.query_params)
+        uiitems = UIItemFilterSet(request.query_params).qs
         serializer = serializers.UIItemSerializer(uiitems, many=True)
         return Response(serializer.data)
 
@@ -1953,7 +1956,7 @@ class VoteViewSet(viewsets.ViewSet):
         """
         GET api/2/votes/ - Provides list of Votes filtered by parameters
         """
-        votes = VoteFilterSet(request.query_params)
+        votes = VoteFilterSet(request.query_params).qs
         serializer = serializers.VoteSerializer(votes, many=True)
         return Response(serializer.data)
 
@@ -2013,7 +2016,7 @@ class VoteViewSet(viewsets.ViewSet):
         vote.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @list_route(methods=['get'])
+    @action(methods=['get'], detail=False)
     def summary(self, request, pk=None):
         """
         GET api/2/votes/summary/ - Get summary of votes by type by asset
@@ -2024,7 +2027,7 @@ class VoteViewSet(viewsets.ViewSet):
             type = request.query_params["type"]
         else:
             type = None
-        votes = VoteFilterSet(request.query_params)
+        votes = VoteFilterSet(request.query_params).qs
         # serialize and return, deduped by asset_id
         for vote in votes:
             if vote.asset_id not in asset_ids:

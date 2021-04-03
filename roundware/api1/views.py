@@ -117,16 +117,16 @@ class APIRootView(APIView):
 
 
 class AssetFilter(django_filters.FilterSet):
-    mediatype__contains = django_filters.CharFilter(name='mediatype', lookup_type='startswith')
+    mediatype__contains = django_filters.CharFilter(field_name='mediatype', lookup_expr='startswith')
     submitted = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
-    created__gte = django_filters.DateTimeFilter(name='created', lookup_type='gte')
-    created__lte = django_filters.DateTimeFilter(name='created', lookup_type='lte')
-    created__range = django_filters.DateRangeFilter(name='created')
-    audiolength__lte = django_filters.NumberFilter('audiolength', lookup_type='lte')
-    audiolength__gte = django_filters.NumberFilter('audiolength', lookup_type='gte')
+    created__gte = django_filters.DateTimeFilter(field_name='created', lookup_expr='gte')
+    created__lte = django_filters.DateTimeFilter(field_name='created', lookup_expr='lte')
+    created__range = django_filters.DateRangeFilter(field_name='created')
+    audiolength__lte = django_filters.NumberFilter('audiolength', lookup_expr='lte')
+    audiolength__gte = django_filters.NumberFilter('audiolength', lookup_expr='gte')
     id = django_filters.NumberFilter()
-    id__lte = django_filters.NumberFilter('id', lookup_type='lte')
-    id__gte = django_filters.NumberFilter('id', lookup_type='gte')
+    id__lte = django_filters.NumberFilter('id', lookup_expr='lte')
+    id__gte = django_filters.NumberFilter('id', lookup_expr='gte')
 
     class Meta:
         model = Asset
@@ -166,10 +166,10 @@ class ProjectList(generics.ListAPIView):
     serializer_class = ProjectSerializer
 
 class EventFilter(django_filters.FilterSet):
-    event_type__startswith = django_filters.CharFilter(name='event_type', lookup_type='startswith')
-    server_time__gte = django_filters.DateTimeFilter(name='server_time', lookup_type='gte')
-    server_time__lte = django_filters.DateTimeFilter(name='server_time', lookup_type='lte')
-    server_time__range = django_filters.DateRangeFilter(name='server_time')
+    event_type__startswith = django_filters.CharFilter(field_name='event_type', lookup_expr='startswith')
+    server_time__gte = django_filters.DateTimeFilter(field_name='server_time', lookup_expr='gte')
+    server_time__lte = django_filters.DateTimeFilter(field_name='server_time', lookup_expr='lte')
+    server_time__range = django_filters.DateRangeFilter(field_name='server_time')
     class Meta:
         model = Event
         fields = ['event_type',
@@ -185,12 +185,12 @@ class EventList(generics.ListAPIView):
 
 
 class SessionFilter(django_filters.FilterSet):
-    client_type__contains = django_filters.CharFilter(name='client_type', lookup_type='contains')
-    client_system__contains = django_filters.CharFilter(name='client_system', lookup_type='contains')
+    client_type__contains = django_filters.CharFilter(field_name='client_type', lookup_expr='contains')
+    client_system__contains = django_filters.CharFilter(field_name='client_system', lookup_expr='contains')
 
-    starttime__gte = django_filters.DateTimeFilter(name='starttime', lookup_type='gte')
-    starttime__lte = django_filters.DateTimeFilter(name='starttime', lookup_type='lte')
-    starttime__range = django_filters.DateRangeFilter(name='starttime')
+    starttime__gte = django_filters.DateTimeFilter(field_name='starttime', lookup_expr='gte')
+    starttime__lte = django_filters.DateTimeFilter(field_name='starttime', lookup_expr='lte')
+    starttime__range = django_filters.DateRangeFilter(field_name='starttime')
     class Meta:
         model = Session
         fields = ['client_type',
@@ -209,12 +209,12 @@ class SessionList(generics.ListAPIView):
 
 
 class ListeningHistoryItemFilter(django_filters.FilterSet):
-    duration__lte = django_filters.NumberFilter('duration', lookup_type='lte')
-    duration__gte = django_filters.NumberFilter('duration', lookup_type='gte')
+    duration__lte = django_filters.NumberFilter('duration', lookup_expr='lte')
+    duration__gte = django_filters.NumberFilter('duration', lookup_expr='gte')
 
-    starttime__gte = django_filters.DateTimeFilter(name='starttime', lookup_type='gte')
-    starttime__lte = django_filters.DateTimeFilter(name='starttime', lookup_type='lte')
-    starttime__range = django_filters.DateRangeFilter(name='starttime')
+    starttime__gte = django_filters.DateTimeFilter(field_name='starttime', lookup_expr='gte')
+    starttime__lte = django_filters.DateTimeFilter(field_name='starttime', lookup_expr='lte')
+    starttime__range = django_filters.DateRangeFilter(field_name='starttime')
     class Meta:
         model = ListeningHistoryItem
         fields = ['starttime',

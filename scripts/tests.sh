@@ -12,7 +12,7 @@ fi
 
 # runs Django test_coverage script on rw app and roundware-server tests with appropriate settings
 cd ..
-coverage run --source=roundware,roundwared roundware/manage.py test --settings=roundware.settings.testing $TESTS
+coverage run --source=roundware roundware/manage.py test --settings=roundware.settings.testing $TESTS
 
 # Only display coverage results on full tests
 if [ "$TESTS" == "tests" ]; then

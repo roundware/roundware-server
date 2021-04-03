@@ -3,7 +3,7 @@ import datetime
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
-from django.core import urlresolvers
+from django.urls import reverse
 from django.core.mail import EmailMultiAlternatives
 from django.db import models
 from guardian.models import UserObjectPermission
@@ -28,14 +28,14 @@ class ModelNotification(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     model = models.IntegerField(choices=ENABLED_MODELS)
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete = models.CASCADE)
     active = models.BooleanField(default=True)
 
     def __unicode__(self):
         return "%(model)s (%(project)s)" % {'model': ENABLED_MODELS[self.model][1], 'project': self.project}
 
     def get_absolute_url(self):
-        return urlresolvers.reverse("admin:%s_%s_change" % (self._meta.app_label, self._meta.model_name), args=(self.id,))
+        return reverse("admin:%s_%s_change" % (self._meta.app_label, self._meta.model_name), args=(self.id,))
 
 
 class ActionNotification(models.Model):
@@ -45,7 +45,7 @@ class ActionNotification(models.Model):
     who = models.ManyToManyField(User, related_name="notifications")
     message = models.TextField()
     subject = models.CharField(max_length=255, blank=True)
-    notification = models.ForeignKey(ModelNotification)
+    notification = models.ForeignKey(ModelNotification, on_delete = models.CASCADE)
     # TODO: The default for last_sent_time is supposed to be:
     # datetime.datetime.now() - datetime.timedelta(hours=1)
     last_sent_time = models.DateTimeField(null=True)
@@ -68,7 +68,7 @@ class ActionNotification(models.Model):
         # edited
         if self.action in [0, 1]:
             link = "http://%(domain)s%(abs)s" % {'domain': Site.objects.get_current().domain,
-                                                 'abs': urlresolvers.reverse("admin:%s_%s_change" % ("rw", ENABLED_MODELS[self.notification.model][1].lower()), args=(ref,))}
+                                                 'abs': reverse("admin:%s_%s_change" % ("rw", ENABLED_MODELS[self.notification.model][1].lower()), args=(ref,))}
             message = "%s\n%s" % (self.message, link)
 
         # create the email object

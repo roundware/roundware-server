@@ -14,7 +14,7 @@ class AuthenticatedReadAdminWrite(BasePermission):
     """
 
     def has_permission(self, request, view):
-        if (request.user and request.user.is_authenticated()):
+        if (request.user and request.user.is_authenticated):
             # Return true for GET, OPTIONS, HEAD.
             if request.method in SAFE_METHODS:
                 return True

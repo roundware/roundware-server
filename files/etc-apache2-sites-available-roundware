@@ -33,7 +33,7 @@
 
   CustomLog /var/log/apache2/access.log combined
 
-  WSGIDaemonProcess roundware user=USERNAME group=USERNAME umask=002
+  WSGIDaemonProcess roundware user=USERNAME group=USERNAME umask=002 python-home=/var/www/roundware
   WSGIApplicationGroup %{GLOBAL}
   WSGIProcessGroup roundware
   WSGIScriptAlias / /var/www/roundware/source/roundware/wsgi.py

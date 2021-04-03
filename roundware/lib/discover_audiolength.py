@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 import os
 import subprocess
-from exception import RoundException
+from .exception import RoundException
 
 
 def discover_and_set_audiolength(recording, filename):

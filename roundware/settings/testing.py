@@ -1,15 +1,13 @@
 from .dev import *
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': ':memory:',
-#         'USER': '',
-#         'PASSWORD': '',
-#         'HOST': '',
-#         'PORT': '',
-#     }
-# }
+LOGGING['handlers'] = {
+    # The console handler will display in the manage.py runserver output
+    'console': {
+        'level': 'DEBUG',
+        'class': 'logging.StreamHandler',
+        'formatter': 'simple'
+    }
+}
 
 CACHES = {
     'default': {
