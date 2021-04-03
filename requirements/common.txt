@@ -6,7 +6,7 @@ django-filter<2.3
 # Used in roundware/rw/admin.py, roundware/rw/forms.py, roundware/rw/views, and more.
 django-guardian==2.2.0
 # Used by roundware/api1/commands.py
-psutil==3.4.2
+psutil==5.6.6
 # Used by roundware/rw/fields.py
 # django-validated-file==2.0.1
 python-magic==0.4.8
