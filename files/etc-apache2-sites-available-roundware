@@ -41,8 +41,7 @@
 
   # allow CORS for listen map, session map, random audio player, web recorder etc
   Header set Access-Control-Allow-Origin "*"
-  Header set Access-Control-Allow-Headers "accept, authorization"
+  Header set Access-Control-Allow-Headers "accept, Content-Type, authorization"
   Header set Access-Control-Allow-Methods "GET,POST,HEAD,OPTIONS,PUT,DELETE,PATCH"
 
 </VirtualHost>
-
