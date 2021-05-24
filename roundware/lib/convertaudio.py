@@ -36,4 +36,4 @@ def convert_audio_file(upload_dir, filename_prefix, filename_extension, dst_type
                 os.path.join(settings.MEDIA_ROOT, filename_prefix + filename_extension))
     else:
         output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
-        ffmpeg.input(filepath).output(output_filepath).run()
+        ffmpeg.input(filepath).output(output_filepath, acodec='libmp3lame').run()
