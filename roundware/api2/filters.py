@@ -167,7 +167,6 @@ class LanguageFilterSet(django_filters.FilterSet):
         exclude = []
 
 
-
 class ListeningHistoryItemFilterSet(django_filters.FilterSet):
     duration__lte = django_filters.NumberFilter('duration', lookup_expr='lte')
     duration__gte = django_filters.NumberFilter('duration', lookup_expr='gte')
@@ -179,7 +178,8 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
         model = ListeningHistoryItem
         fields = ['starttime',
                   'session',
-                  'asset']
+                  'asset',
+                  'duration_in_seconds']
 
 
 class LocalizedStringFilterSet(django_filters.FilterSet):

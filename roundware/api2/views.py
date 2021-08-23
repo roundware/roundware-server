@@ -223,7 +223,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         """
         assets = AssetFilterSet(request.query_params).qs.values_list('id', flat=True)
         asset_count = len(assets)
-        if asset_count is 0:
+        if asset_count == 0:
             return Response([])
         # ensure limit isn't greater than asset_count which causes sample to fail
         limit = min(int(request.query_params.get('limit', 1)), asset_count)
@@ -584,6 +584,12 @@ class ListenEventViewSet(viewsets.ViewSet):
     queryset = ListeningHistoryItem.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return ListeningHistoryItem.objects.get(pk=pk)
+        except ListeningHistoryItem.DoesNotExist:
+            raise Http404("ListenEvent not found")
+
     def list(self, request):
         """
         GET api/2/listenevents/ - Get ListenEvents by filtering parameters
@@ -602,6 +608,41 @@ class ListenEventViewSet(viewsets.ViewSet):
             raise Http404("ListenEvent not found")
         serializer = serializers.ListenEventSerializer(event)
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/listenevents/ - Create a new ListenEvent
+        """
+        # convert from seconds to nanoseconds
+        if 'duration_in_seconds' in request.data:
+            request.data['duration'] = float(request.data['duration_in_seconds']) * float(1000000000)
+            del request.data['duration_in_seconds']
+
+        serializer = serializers.ListenEventSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/listenevents/:id/ - Update existing ListenEvent
+        """
+        listen_event = self.get_object(pk)
+        serializer = serializers.ListenEventSerializer(listen_event, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/listenevents/:id/ - Delete a ListenEvent
+        """
+        listen_event = self.get_object(pk)
+        listen_event.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class LocalizedStringViewSet(viewsets.ViewSet):
