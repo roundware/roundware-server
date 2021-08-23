@@ -180,7 +180,7 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
         fields = ['starttime',
                   'session',
                   'asset',
-                  'duration_in_seconds']
+                  'duration']
 
 
 class LocalizedStringFilterSet(django_filters.FilterSet):
