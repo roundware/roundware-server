@@ -20,7 +20,7 @@ from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, Envelop
                                     ProjectFilterSet, ProjectGroupFilterSet, SessionFilterSet, SpeakerFilterSet,
                                     TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
                                     UIConfigFilterSet, UIElementFilterSet, UIElementNameFilterSet,
-                                    UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
+                                    UIGroupFilterSet, UIItemFilterSet, UserFilterSet, VoteFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags,
                                add_asset_to_envelope,
                                save_asset_from_request, vote_asset, get_projects_by_location,
@@ -1934,9 +1934,25 @@ class UserViewSet(viewsets.ViewSet):
         except User.DoesNotExist:
             raise Http404("User not found")
 
+    def list(self, request):
+        """
+        GET api/2/users/ - Provides list of Users filtered by parameters
+        """
+        users = UserFilterSet(request.query_params).qs
+        serializer = serializers.UserInfoSerializer(users, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/users/:id/ - Get User by id
+        """
+        user = self.get_object(pk)
+        serializer = serializers.UserInfoSerializer(user)
+        return Response(serializer.data)
+
     def create(self, request):
         """
-        POST api/2/user/ - Creates new User based on either device_id or username/pass. Returns token.
+        POST api/2/users/ - Creates new User based on either device_id or username/pass. Returns token.
         """
         serializer = serializers.UserSerializer(data=request.data)
         if serializer.is_valid():
