@@ -20,7 +20,7 @@ from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, Envelop
                                     ProjectFilterSet, ProjectGroupFilterSet, SessionFilterSet, SpeakerFilterSet,
                                     TagFilterSet, TagCategoryFilterSet, TagRelationshipFilterSet, TimedAssetFilterSet,
                                     UIConfigFilterSet, UIElementFilterSet, UIElementNameFilterSet,
-                                    UIGroupFilterSet, UIItemFilterSet, VoteFilterSet)
+                                    UIGroupFilterSet, UIItemFilterSet, UserFilterSet, VoteFilterSet)
 from roundware.lib.api import (get_project_tags_new as get_project_tags,
                                add_asset_to_envelope,
                                save_asset_from_request, vote_asset, get_projects_by_location,
@@ -223,7 +223,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         """
         assets = AssetFilterSet(request.query_params).qs.values_list('id', flat=True)
         asset_count = len(assets)
-        if asset_count is 0:
+        if asset_count == 0:
             return Response([])
         # ensure limit isn't greater than asset_count which causes sample to fail
         limit = min(int(request.query_params.get('limit', 1)), asset_count)
@@ -584,6 +584,12 @@ class ListenEventViewSet(viewsets.ViewSet):
     queryset = ListeningHistoryItem.objects.all()
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return ListeningHistoryItem.objects.get(pk=pk)
+        except ListeningHistoryItem.DoesNotExist:
+            raise Http404("ListenEvent not found")
+
     def list(self, request):
         """
         GET api/2/listenevents/ - Get ListenEvents by filtering parameters
@@ -602,6 +608,41 @@ class ListenEventViewSet(viewsets.ViewSet):
             raise Http404("ListenEvent not found")
         serializer = serializers.ListenEventSerializer(event)
         return Response(serializer.data)
+
+    def create(self, request):
+        """
+        POST api/2/listenevents/ - Create a new ListenEvent
+        """
+        # convert from seconds to nanoseconds
+        if 'duration_in_seconds' in request.data:
+            request.data['duration'] = float(request.data['duration_in_seconds']) * float(1000000000)
+            del request.data['duration_in_seconds']
+
+        serializer = serializers.ListenEventSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def partial_update(self, request, pk):
+        """
+        PATCH api/2/listenevents/:id/ - Update existing ListenEvent
+        """
+        listen_event = self.get_object(pk)
+        serializer = serializers.ListenEventSerializer(listen_event, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        DELETE api/2/listenevents/:id/ - Delete a ListenEvent
+        """
+        listen_event = self.get_object(pk)
+        listen_event.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class LocalizedStringViewSet(viewsets.ViewSet):
@@ -1893,9 +1934,25 @@ class UserViewSet(viewsets.ViewSet):
         except User.DoesNotExist:
             raise Http404("User not found")
 
+    def list(self, request):
+        """
+        GET api/2/users/ - Provides list of Users filtered by parameters
+        """
+        users = UserFilterSet(request.query_params).qs
+        serializer = serializers.UserInfoSerializer(users, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        GET api/2/users/:id/ - Get User by id
+        """
+        user = self.get_object(pk)
+        serializer = serializers.UserInfoSerializer(user)
+        return Response(serializer.data)
+
     def create(self, request):
         """
-        POST api/2/user/ - Creates new User based on either device_id or username/pass. Returns token.
+        POST api/2/users/ - Creates new User based on either device_id or username/pass. Returns token.
         """
         serializer = serializers.UserSerializer(data=request.data)
         if serializer.is_valid():

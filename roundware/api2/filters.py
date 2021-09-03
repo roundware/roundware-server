@@ -2,6 +2,7 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 import numbers
 
+from django.contrib.auth.models import User
 from roundware.rw.models import (Asset, Audiotrack, Envelope, Event, Language, ListeningHistoryItem,
                                  LocalizedString, Project, ProjectGroup, Session, Speaker, Tag, TagCategory,
                                  TagRelationship, TimedAsset, UIElement, UIElementName, UIItem, UIGroup, Vote)
@@ -167,7 +168,6 @@ class LanguageFilterSet(django_filters.FilterSet):
         exclude = []
 
 
-
 class ListeningHistoryItemFilterSet(django_filters.FilterSet):
     duration__lte = django_filters.NumberFilter('duration', lookup_expr='lte')
     duration__gte = django_filters.NumberFilter('duration', lookup_expr='gte')
@@ -179,7 +179,8 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
         model = ListeningHistoryItem
         fields = ['starttime',
                   'session',
-                  'asset']
+                  'asset',
+                  'duration']
 
 
 class LocalizedStringFilterSet(django_filters.FilterSet):
@@ -333,6 +334,15 @@ class UIItemFilterSet(django_filters.FilterSet):
         model = UIItem
         exclude = []
 
+class UserFilterSet(django_filters.FilterSet):
+    username = django_filters.CharFilter(lookup_expr='icontains')
+    first_name = django_filters.CharFilter(lookup_expr='icontains')
+    last_name = django_filters.CharFilter(lookup_expr='icontains')
+    email = django_filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = User
+        exclude = []
 
 class VoteFilterSet(django_filters.FilterSet):
     voter_id = django_filters.NumberFilter()
