@@ -340,8 +340,8 @@ def save_asset_from_request(request, session, asset=None):
             filename_extension = ".txt"
 
     # if audio file uploaded as m4a, use mp3 in database
-    if filename_extension == ".m4a":
-        filename_extension = ".mp3"
+    # if filename_extension == ".m4a":
+    #     filename_extension = ".mp3"
 
     dest_file = time.strftime("%Y%m%d-%H%M%S-") + str(session.id)
     dest_filename = dest_file + filename_extension
