@@ -629,6 +629,11 @@ class ListenEventViewSet(viewsets.ViewSet):
         """
         PATCH api/2/listenevents/:id/ - Update existing ListenEvent
         """
+        # convert from seconds to nanoseconds
+        if 'duration_in_seconds' in request.data:
+            request.data['duration'] = float(request.data['duration_in_seconds']) * float(1000000000)
+            del request.data['duration_in_seconds']
+        
         listen_event = self.get_object(pk)
         serializer = serializers.ListenEventSerializer(listen_event, data=request.data, partial=True)
         if serializer.is_valid():
