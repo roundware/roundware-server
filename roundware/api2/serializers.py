@@ -203,6 +203,7 @@ class ListenEventSerializer(serializers.ModelSerializer):
 
     def to_representation(self, obj):
         result = super(ListenEventSerializer, self).to_representation(obj)
+        session = Session.objects.get(pk=result["session"])
         result["start_time"] = result["starttime"]
         del result["starttime"]
         result["session_id"] = result["session"]
@@ -210,6 +211,7 @@ class ListenEventSerializer(serializers.ModelSerializer):
         result["asset_id"] = result["asset"]
         del result["asset"]
         del result["duration"]
+        result["project_id"] = session.project_id
         return result
 
 
