@@ -184,6 +184,9 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         if 'user_id' in request.data:
             request.data['user'] = request.data['user_id']
             del request.data['user_id']
+        if 'media_type' in request.data:
+            request.data['mediatype'] = request.data['media_type']
+            del request.data['media_type']
         serializer = serializers.AssetSerializer(asset, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
