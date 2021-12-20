@@ -453,6 +453,14 @@ def save_asset_from_request(request, session, asset=None):
         if weight is None:
             weight = 50
 
+        # Use project_id if passed in request, otherwise determine
+        # project_id using session data
+        project_id = get_parameter_from_request(request, 'project_id')
+        if project_id is None:
+            project=session.project
+        else:
+            project = models.Project.objects.get(id=project_id)
+
         # If user_id contained in request, use it, otherwise, use session_id to determine user_id
         user_id = get_parameter_from_request(request, 'user_id')
         try:
@@ -478,7 +486,7 @@ def save_asset_from_request(request, session, asset=None):
                              volume=volume,
                              weight=weight,
                              language=session.language,
-                             project=session.project,
+                             project=project,
                              user=user)
         asset.file.name = dest_filename
         asset.save()
