@@ -501,11 +501,17 @@ def save_asset_from_request(request, session, asset=None):
     # get/set the audio properties of the file only if mediatype is audio and
     # update the Asset
     if mediatype == "audio":
-        discover_audiolength.discover_and_set_audiolength(
-            asset, newfilename)
-        # set start_time and end_time with initial values
-        asset.start_time = 0.0
-        asset.end_time = asset.audiolength / 1000000000.0
+        audiolength = get_parameter_from_request(request, 'audiolength')
+        if audiolength is None:
+            discover_audiolength.discover_and_set_audiolength(
+                asset, newfilename)
+        start_time = get_parameter_from_request(request, 'start_time')
+        end_time = get_parameter_from_request(request, 'end_time')
+        # set start_time and end_time with initial values if not provided
+        if start_time is None:
+            asset.start_time = 0.0
+        if end_time is None:
+            asset.end_time = asset.audiolength / 1000000000.0
         asset.save()
 
     return asset
