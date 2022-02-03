@@ -171,8 +171,12 @@ class EventSerializer(serializers.ModelSerializer):
         result = super(EventSerializer, self).to_representation(obj)
         result["session_id"] = result["session"]
         del result["session"]
-        result["tag_ids"] = result["tags"]
+        result["tag_ids"] = result["tags"].split(",")
         del result["tags"]
+        for i in range(0, len(result["tag_ids"])):
+            result["tag_ids"][i] = int(result["tag_ids"][i])
+        result["latitude"] = float(result["latitude"])
+        result["longitude"] = float(result["longitude"])
         return result
 
 
