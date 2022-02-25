@@ -723,6 +723,8 @@ def save_speaker_from_request(request):
 
     # copy the file to a unique name using current time and date
     server_url = "http://" + request.get_host()
+    if "localhost" not in server_url:
+        server_url = ""
     logger.info("Processing speaker audio:%s for project:%s", fileitem.name, request.data["project"])
     (filename_prefix, filename_extension) = os.path.splitext(fileitem.name)
 
