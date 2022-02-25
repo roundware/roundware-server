@@ -13,6 +13,7 @@ from django.http import Http404
 import datetime
 import json
 import os
+from pathlib import Path
 import subprocess
 import sys
 import time
@@ -738,9 +739,11 @@ def save_speaker_from_request(request):
 
     # Do I need to delete the original file after copying to rwmedia/?
 
-    # Make sure speaker audio is available in both mp3 and wav to be comprehensive
+    # Make sure speaker audio is available in both mp3 and m4a (for iOS) to be comprehensive
     newfilename = convertaudio.convert_uploaded_file(dest_filename)
     if not newfilename:
         raise RoundException("File not converted successfully: " + newfilename)
 
-    return server_url + settings.MEDIA_URL + dest_filename
+    # save mp3 version in database
+    dest_filename_mp3 = str(Path(dest_filename).with_suffix('.mp3'))
+    return server_url + settings.MEDIA_URL + dest_filename_mp3
