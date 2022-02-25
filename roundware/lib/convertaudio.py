@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 import shutil
 import os
+from pathlib import Path
 import ffmpeg
 from .exception import RoundException
 
@@ -20,10 +21,16 @@ def convert_uploaded_file(filename):
             "Uploaded file not found: " + filepath)
     else:
         convert_audio_file(
-            upload_dir, filename_prefix, filename_extension, 'wav')
+            upload_dir, filename_prefix, filename_extension, 'm4a')
         convert_audio_file(
             upload_dir, filename_prefix, filename_extension, 'mp3')
-        return filename_prefix + '.wav'
+        filename_path = Path(filepath)
+        filename_wav = filename_path.with_suffix('.wav')
+        if os.path.exists(filename_wav):
+            os.remove(filename_wav)
+        else:
+            print("wav version of file does not exist for deletion")
+        return filename_prefix + '.mp3'
 
 
 # Converts the file to the given type, or copies it if it is the correct type.
@@ -35,5 +42,12 @@ def convert_audio_file(upload_dir, filename_prefix, filename_extension, dst_type
                 filepath,
                 os.path.join(settings.MEDIA_ROOT, filename_prefix + filename_extension))
     else:
-        output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
-        ffmpeg.input(filepath).output(output_filepath, acodec='libmp3lame').run()
+        if dst_type == "wav":
+            output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
+            ffmpeg.input(filepath).output(output_filepath).run()
+        elif dst_type == "mp3":
+            output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
+            ffmpeg.input(filepath).output(output_filepath, acodec='libmp3lame').run()
+        elif dst_type == "m4a":
+            output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
+            ffmpeg.input(filepath).output(output_filepath, acodec='aac').run()
