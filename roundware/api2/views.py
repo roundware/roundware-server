@@ -508,6 +508,9 @@ class EventViewSet(viewsets.ViewSet):
             raise ParseError("a session_id is required for this operation")
         if 'event_type' not in request.data:
             raise ParseError("an event_type is required for this operation")
+        if isinstance(request.data['tag_ids'], list):
+            string_list = [str(i) for i in request.data['tag_ids']]
+            request.data['tag_ids'] = ",".join(string_list)
         try:
             e = log_event(request.data['event_type'], request.data['session_id'], request.data)
         except Exception as e:
