@@ -124,9 +124,9 @@ def log_event(event_type, session_id, form=None):
         client_time = form.get("client_time", None)
         latitude = form.get("latitude", None)
         longitude = form.get("longitude", None)
-        tags = form.get("tags", None)
-        if tags is None:
-            tags = form.get("tag_ids", None)
+        tag_ids = form.get("tags", None)
+        if tag_ids is None:
+            tag_ids = form.get("tag_ids", None)
         data = form.get("data", None)
 
     e = models.Event(session=s,
@@ -135,7 +135,7 @@ def log_event(event_type, session_id, form=None):
                      client_time=client_time,
                      latitude=latitude,
                      longitude=longitude,
-                     tags=tags,
+                     tags=tag_ids,
                      data=data)
     e.save()
     return e
