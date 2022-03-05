@@ -623,6 +623,12 @@ class ListenEventViewSet(viewsets.ViewSet):
         if 'duration_in_seconds' in request.data:
             request.data['duration'] = float(request.data['duration_in_seconds']) * float(1000000000)
             del request.data['duration_in_seconds']
+        if 'session_id' in request.data:
+            request.data['session'] = request.data['session_id']
+            del request.data['session_id']
+        if 'asset_id' in request.data:
+            request.data['asset'] = request.data['asset_id']
+            del request.data['asset_id']
 
         serializer = serializers.ListenEventSerializer(data=request.data)
         if serializer.is_valid():
@@ -639,7 +645,13 @@ class ListenEventViewSet(viewsets.ViewSet):
         if 'duration_in_seconds' in request.data:
             request.data['duration'] = float(request.data['duration_in_seconds']) * float(1000000000)
             del request.data['duration_in_seconds']
-        
+        if 'session_id' in request.data:
+            request.data['session'] = request.data['session_id']
+            del request.data['session_id']
+        if 'asset_id' in request.data:
+            request.data['asset'] = request.data['asset_id']
+            del request.data['asset_id']
+
         listen_event = self.get_object(pk)
         serializer = serializers.ListenEventSerializer(listen_event, data=request.data, partial=True)
         if serializer.is_valid():
