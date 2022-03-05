@@ -33,21 +33,20 @@ def convert_uploaded_file(filename):
         return filename_prefix + '.mp3'
 
 
-# Converts the file to the given type, or copies it if it is the correct type.
+# Converts the file to the given type even if same type (e.g. mp3->mp3) in order
+# to ensure proper sample rate of 48KHz which is required by iOS Safari
 def convert_audio_file(upload_dir, filename_prefix, filename_extension, dst_type):
     filepath = os.path.join(upload_dir, filename_prefix + filename_extension)
-    if filename_extension == "." + dst_type:
-        if not settings.MEDIA_ROOT == upload_dir:
-            shutil.copyfile(
-                filepath,
-                os.path.join(settings.MEDIA_ROOT, filename_prefix + filename_extension))
-    else:
-        if dst_type == "wav":
-            output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
-            ffmpeg.input(filepath).output(output_filepath).run()
-        elif dst_type == "mp3":
-            output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
-            ffmpeg.input(filepath).output(output_filepath, acodec='libmp3lame').run()
-        elif dst_type == "m4a":
-            output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
-            ffmpeg.input(filepath).output(output_filepath, acodec='aac').run()
+    if dst_type == "wav":
+        output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
+        ffmpeg.input(filepath).output(output_filepath).run()
+    elif dst_type == "mp3":
+        output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
+        output_filepath_temp = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}-temp.{dst_type}")
+        ffmpeg.input(filepath).output(output_filepath_temp, acodec='libmp3lame', ar=48000).run()
+        os.rename(output_filepath_temp, output_filepath)
+    elif dst_type == "m4a":
+        output_filepath = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}.{dst_type}")
+        output_filepath_temp = os.path.join(settings.MEDIA_ROOT, f"{filename_prefix}-temp.{dst_type}")
+        ffmpeg.input(filepath).output(output_filepath_temp, acodec='aac', ar=48000).run()
+        os.rename(output_filepath_temp, output_filepath)
