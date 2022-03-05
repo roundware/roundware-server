@@ -175,12 +175,15 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
     start_time__lte = django_filters.DateTimeFilter(field_name='starttime', lookup_expr='lte')
     start_time__range = django_filters.DateRangeFilter(field_name='starttime')
     project_id = django_filters.NumberFilter(field_name='session_id__project_id')
+    asset_id = django_filters.NumberFilter()
+    session_id = django_filters.NumberFilter()
 
     class Meta:
         model = ListeningHistoryItem
         fields = ['starttime',
-                  'session',
-                  'asset',
+                  'session_id',
+                  'asset_id',
+                  'project_id',
                   'duration']
 
 
