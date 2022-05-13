@@ -719,6 +719,7 @@ def get_projects_by_location(projects, lat, lon):
 # save speaker audio from request and return external url to audio
 def save_speaker_from_request(request):
     fileitem = request.FILES.get('file')
+    fileitem.name = fileitem.name.replace(" ", "_")
     if fileitem is None or not fileitem.name:
         raise RoundException("No file in request")
 
