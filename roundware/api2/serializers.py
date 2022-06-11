@@ -243,7 +243,8 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
         model = Project
         fields = "__all__"
         localized_fields = ['demo_stream_message_loc', 'legal_agreement_loc',
-                            'sharing_message_loc', 'out_of_range_message_loc']
+                            'sharing_message_loc', 'out_of_range_message_loc',
+                            'description_loc']
 
     def to_representation(self, obj):
         result = super(ProjectSerializer, self).to_representation(obj)
