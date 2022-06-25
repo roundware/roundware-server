@@ -142,8 +142,11 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         """
         POST api/2/assets/ - Create a new Asset
         """
-        if "file" not in request.data:
-            raise ParseError("Must supply file for asset content")
+        # ensure one and only one of "file" and "filename" params are passed
+        if ("filename" in request.data and "file" in request.data) or \
+           ("filename" not in request.data and "file" not in request.data):
+            return Response({"detail": "Request must include either 'file' or 'filename', but not both."},
+                            status.HTTP_400_BAD_REQUEST)
         if not request.data["envelope_ids"].isdigit():
             raise ParseError("Must provide a single envelope_id in envelope_ids parameter for POST. "
                              "You can add more envelope_ids in subsequent PATCH calls")

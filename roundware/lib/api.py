@@ -313,9 +313,10 @@ def add_asset_to_envelope(request, envelope_id=None):
 
 def save_asset_from_request(request, session, asset=None):
     log_event("start_upload", session.id, request.GET)
-    fileitem = asset.file if asset else request.FILES.get('file')
-    if fileitem is None or not fileitem.name:
-        raise RoundException("No file in request")
+    if "file" in request.data:
+        fileitem = asset.file if asset else request.FILES.get('file')
+        if fileitem is None or not fileitem.name:
+            raise RoundException("No file in request")
 
     # get mediatype from the GET request
     mediatype = get_parameter_from_request(
@@ -328,49 +329,63 @@ def save_asset_from_request(request, session, asset=None):
     if mediatype is None:
         mediatype = "audio"
 
-    # copy the file to a unique name (current time and date)
-    logger.debug("Session %s - Processing:%s", session.id, fileitem.name)
-    (filename_prefix, filename_extension) = os.path.splitext(fileitem.name)
-    # if files have no file extension, assign the default per mediatype
-    if not filename_extension:
-        if mediatype == "audio":
-            filename_extension = ".mp3"
-        elif mediatype == "photo":
-            filename_extension = ".jpg"
-        elif mediatype == "text":
-            filename_extension = ".txt"
+# if file binary included in request
+    if "file" in request.data:
+        # copy the file to a unique name (current time and date)
+        logger.debug("Session %s - Processing:%s", session.id, fileitem.name)
+        (filename_prefix, filename_extension) = os.path.splitext(fileitem.name)
+        # if files have no file extension, assign the default per mediatype
+        if not filename_extension:
+            if mediatype == "audio":
+                filename_extension = ".mp3"
+            elif mediatype == "photo":
+                filename_extension = ".jpg"
+            elif mediatype == "text":
+                filename_extension = ".txt"
 
-    # if audio file uploaded as m4a, use mp3 in database
-    # if filename_extension == ".m4a":
-    #     filename_extension = ".mp3"
+        # if audio file uploaded as m4a, use mp3 in database
+        # if filename_extension == ".m4a":
+        #     filename_extension = ".mp3"
 
-    dest_file = time.strftime("%Y%m%d-%H%M%S-") + str(session.id)
-    dest_filename = dest_file + filename_extension
-    dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
-    count = 0
-    # If the file exists add underscore and a number until it doesn't.`
-    while (os.path.isfile(dest_filepath)):
-        dest_filename = "%s_%d%s" % (dest_file, count, filename_extension)
+        dest_file = time.strftime("%Y%m%d-%H%M%S-") + str(session.id)
+        dest_filename = dest_file + filename_extension
         dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
-        count += 1
+        count = 0
+        # If the file exists add underscore and a number until it doesn't.`
+        while (os.path.isfile(dest_filepath)):
+            dest_filename = "%s_%d%s" % (dest_file, count, filename_extension)
+            dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
+            count += 1
 
-    fileout = open(dest_filepath, 'wb')
-    fileout.write(fileitem.file.read())
-    fileout.close()
+        fileout = open(dest_filepath, 'wb')
+        fileout.write(fileitem.file.read())
+        fileout.close()
 
-    # Delete the uploaded original after the copy has been made.
-    if asset:
-        asset.file.delete()
-        asset.file.name = dest_filename
-        asset.filename = dest_filename
-        asset.save()
-    # Make sure everything is in wav form only if media type is audio.
-    if mediatype == "audio":
-        newfilename = convertaudio.convert_uploaded_file(dest_filename)
-    else:
-        newfilename = dest_filename
-    if not newfilename:
-        raise RoundException("File not converted successfully: " + newfilename)
+        # Delete the uploaded original after the copy has been made.
+        if asset:
+            asset.file.delete()
+            asset.file.name = dest_filename
+            asset.filename = dest_filename
+            asset.save()
+        # Make sure everything is in wav form only if media type is audio.
+        if mediatype == "audio":
+            newfilename = convertaudio.convert_uploaded_file(dest_filename)
+        else:
+            newfilename = dest_filename
+        if not newfilename:
+            raise RoundException("File not converted successfully: " + newfilename)
+
+    # if filename included, not file binary - used mainly for React Admin 'asset copy' function
+    elif "filename" in request.data:
+        # check to see if file exists already on server
+        fn = get_parameter_from_request(request, 'filename')
+        filepath = os.path.join(settings.MEDIA_ROOT, fn)
+        if not os.path.exists(filepath):
+            raise RoundException("filename specified doesn't exist on server")
+        else:
+            fn = get_parameter_from_request(request, 'filename')
+            newfilename = fn
+            dest_filename = fn
 
     # if the request comes from the django admin interface
     # update the Asset with the right information
