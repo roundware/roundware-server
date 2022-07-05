@@ -174,6 +174,8 @@ class EventSerializer(serializers.ModelSerializer):
         if result["tags"]:
             result["tag_ids"] = result["tags"].split(",")
             del result["tags"]
+            newList = [i for i in result["tag_ids"] if i.isnumeric()]
+            result["tag_ids"] = newList
             for i in range(0, len(result["tag_ids"])):
                 result["tag_ids"][i] = int(result["tag_ids"][i])
         if result["latitude"]:
