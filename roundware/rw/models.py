@@ -756,7 +756,7 @@ class UIGroup(models.Model):
     SINGLE = 'single'
     MULTI = 'multi'
     MULTI_MIN_ONE = 'min_one'
-    SELECT_METHODS = (
+    SELECT_OPTIONS = (
         (SINGLE, 'single'),
         (MULTI, 'multi'),
         (MULTI_MIN_ONE, 'multi_at_least_one'),
@@ -769,6 +769,14 @@ class UIGroup(models.Model):
         (SPEAK, 'speak'),
         (BROWSE, 'browse')
     )
+    USER = 'user'
+    RANDOM_SINGLE = 'random_single'
+    RANDOM_DOUBLE = 'random_double'
+    SELECTION_METHODS = (
+        (USER, 'user'),
+        (RANDOM_SINGLE, 'random_single'),
+        (RANDOM_DOUBLE, 'random_double'),
+    )
     name = models.CharField(max_length=50)
     header_text_loc = models.ManyToManyField(
         LocalizedString, blank=True)
@@ -776,10 +784,12 @@ class UIGroup(models.Model):
                                choices=UI_MODES)
     tag_category = models.ForeignKey(TagCategory, on_delete = models.CASCADE)
     select = models.CharField(default=SINGLE, max_length=7, blank=False,
-                              choices=SELECT_METHODS)
+                              choices=SELECT_OPTIONS)
     active = models.BooleanField(default=True)
     index = models.IntegerField()
     project = models.ForeignKey(Project, on_delete = models.CASCADE)
+    selection_method = models.CharField(default=USER, max_length=50,
+                               choices=SELECTION_METHODS)
 
     @mark_safe
     def get_header_text_loc(self):

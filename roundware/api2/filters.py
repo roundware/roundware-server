@@ -315,7 +315,7 @@ class UIGroupFilterSet(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='startswith')
     ui_mode = django_filters.TypedChoiceFilter(choices=UIGroup.UI_MODES)
     tag_category_id = django_filters.NumberFilter()
-    select = django_filters.TypedChoiceFilter(choices=UIGroup.SELECT_METHODS)
+    select = django_filters.TypedChoiceFilter(choices=UIGroup.SELECT_OPTIONS)
     active = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
     index = django_filters.NumberFilter()
     project_id = django_filters.NumberFilter()
