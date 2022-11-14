@@ -70,7 +70,7 @@ class Asset(models.Model):
         choices=[(i, i) for i in range(0, 100)], default=50)
     mediatype = models.CharField(
         max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
-    description = models.TextField(max_length=2048, blank=True)
+    description = models.TextField(max_length=8192, blank=True)
     loc_description = models.ManyToManyField(
         'LocalizedString', blank=True)
     loc_alt_text = models.ManyToManyField(
