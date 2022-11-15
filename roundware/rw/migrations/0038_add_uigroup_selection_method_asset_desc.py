@@ -15,15 +15,15 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='uigroup',
-            name='selection_method',
-            field=models.CharField(choices=[('user', 'user'), ('random_single', 'random_single'), ('random_double', 'random_double')], default='user', max_length=50),
+            name='uiitem_filter',
+            field=models.CharField(choices=[('none', 'none'), ('random-1', 'random-1'), ('random-1', 'random-1')], default='none', max_length=50),
         ),
         migrations.AlterField(
             model_name='asset',
             name='description',
             field=models.TextField(blank=True, max_length=8192),
         ),
-        # these are generated automatically based on a Django upgrade, not a 
+        # these are generated automatically based on a Django upgrade, not a
         # change in models.py
         migrations.AlterField(
             model_name='asset',

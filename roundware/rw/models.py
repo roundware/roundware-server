@@ -769,13 +769,13 @@ class UIGroup(models.Model):
         (SPEAK, 'speak'),
         (BROWSE, 'browse')
     )
-    USER = 'user'
-    RANDOM_SINGLE = 'random_single'
-    RANDOM_DOUBLE = 'random_double'
-    SELECTION_METHODS = (
-        (USER, 'user'),
-        (RANDOM_SINGLE, 'random_single'),
-        (RANDOM_DOUBLE, 'random_double'),
+    NONE = 'none'
+    RANDOM_1 = 'random-1'
+    RANDOM_2 = 'random-2'
+    UIITEM_FILTER = (
+        (NONE, 'none'),
+        (RANDOM_1, 'random-1'),
+        (RANDOM_2, 'random-2'),
     )
     name = models.CharField(max_length=50)
     header_text_loc = models.ManyToManyField(
@@ -788,8 +788,8 @@ class UIGroup(models.Model):
     active = models.BooleanField(default=True)
     index = models.IntegerField()
     project = models.ForeignKey(Project, on_delete = models.CASCADE)
-    selection_method = models.CharField(default=USER, max_length=50,
-                               choices=SELECTION_METHODS)
+    uiitem_filter = models.CharField(default=NONE, max_length=50,
+                               choices=UIITEM_FILTER)
 
     @mark_safe
     def get_header_text_loc(self):
