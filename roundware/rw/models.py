@@ -769,14 +769,6 @@ class UIGroup(models.Model):
         (SPEAK, 'speak'),
         (BROWSE, 'browse')
     )
-    NONE = 'none'
-    RANDOM_1 = 'random-1'
-    RANDOM_2 = 'random-2'
-    UIITEM_FILTER = (
-        (NONE, 'none'),
-        (RANDOM_1, 'random-1'),
-        (RANDOM_2, 'random-2'),
-    )
     name = models.CharField(max_length=50)
     header_text_loc = models.ManyToManyField(
         LocalizedString, blank=True)
@@ -788,8 +780,7 @@ class UIGroup(models.Model):
     active = models.BooleanField(default=True)
     index = models.IntegerField()
     project = models.ForeignKey(Project, on_delete = models.CASCADE)
-    uiitem_filter = models.CharField(default=NONE, max_length=50,
-                               choices=UIITEM_FILTER)
+    uiitem_filter = models.CharField(default='none', max_length=50)
 
     @mark_safe
     def get_header_text_loc(self):
