@@ -182,7 +182,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
             request.data['loc_alt_text'] = request.data['alt_text_loc_ids']
             del request.data['alt_text_loc_ids']
         if 'envelope_ids' in request.data:
-            request.data['envelope_set'] = request.data['envelope_ids']
+            request.data['envelope'] = request.data['envelope_ids']
             del request.data['envelope_ids']
         if 'user_id' in request.data:
             request.data['user'] = request.data['user_id']
