@@ -1207,6 +1207,13 @@ class SpeakerViewSet(viewsets.ViewSet):
         """
         speaker = self.get_object(pk)
         speaker.delete()
+        if ('delete_binary' in request.query_params and request.query_params.get('delete_binary')=='true'):
+            speaker_binary_filename = speaker.uri.split("rwmedia/",1)[1]
+            delete_binary_from_server(speaker_binary_filename)
+        elif ('delete_binary' not in request.query_params or request.query_params.get('delete_binary')=='false'):
+            raise ParseError("Speaker deleted but binary deletion not requested, so binary file will remain on server.")
+        else:
+            raise ParseError("No binary associated with specified Speaker found so binary not deleted!")
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
