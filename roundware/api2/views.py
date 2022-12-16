@@ -24,7 +24,8 @@ from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, Envelop
 from roundware.lib.api import (get_project_tags_new as get_project_tags,
                                add_asset_to_envelope,
                                save_asset_from_request, vote_asset, get_projects_by_location,
-                               vote_count_by_asset, log_event, save_speaker_from_request)
+                               vote_count_by_asset, log_event, save_speaker_from_request,
+                               delete_binary_from_server)
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
@@ -205,6 +206,12 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         except Asset.DoesNotExist:
             raise Http404("Asset not found; cannot delete!")
         asset.delete()
+        if ('delete_binary' in request.query_params and request.query_params.get('delete_binary')=='true'):
+            delete_binary_from_server(asset.filename)
+        elif ('delete_binary' not in request.query_params or request.query_params.get('delete_binary')=='false'):
+            raise ParseError("Asset deleted but binary deletion not requested, so binary file will remain on server.")
+        else:
+            raise ParseError("No binary associated with specified asset found so binary not deleted!")
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['post', 'get'], detail=True)

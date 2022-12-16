@@ -540,6 +540,18 @@ def save_asset_from_request(request, session, asset=None):
     return asset
 
 
+def delete_binary_from_server(filename):
+    media_dir = settings.MEDIA_ROOT
+    filepath = os.path.join(media_dir, filename)
+    if not os.path.exists(filepath):
+        raise ParseError(
+            "Binary associated with object not found: " + filepath)
+    else:
+        os.remove(filepath)
+
+    return None
+
+
 def get_parameter_from_request(request, name, required=False):
     ret = None
     try:
