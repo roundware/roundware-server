@@ -36,7 +36,7 @@ class AdminLocaleStringSerializerMixin(serializers.Serializer):
 
 class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     audiolength_in_seconds = serializers.FloatField(required=False)
-    description = serializers.CharField(max_length=2048, default="", allow_blank=True)
+    description = serializers.CharField(max_length=8192, default="", allow_blank=True)
 
     class Meta:
         model = Asset
