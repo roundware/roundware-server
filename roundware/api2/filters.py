@@ -66,6 +66,15 @@ class UserNameEmailFilter(django_filters.CharFilter):
                        Q(**{'user__username__'+ self.lookup_expr: value}))
     return qs
 
+class NameEmailUserFilter(django_filters.CharFilter):
+  def filter(self, qs, value):
+    if value:
+      return qs.filter(Q(**{'first_name__'+ self.lookup_expr: value}) |
+                       Q(**{'last_name__'+ self.lookup_expr: value}) |
+                       Q(**{'email__'+ self.lookup_expr: value}) |
+                       Q(**{'username__'+ self.lookup_expr: value}))
+    return qs
+
 
 class AssetFilterSet(django_filters.FilterSet):
     session_id = django_filters.NumberFilter()
@@ -343,6 +352,7 @@ class UserFilterSet(django_filters.FilterSet):
     first_name = django_filters.CharFilter(lookup_expr='icontains')
     last_name = django_filters.CharFilter(lookup_expr='icontains')
     email = django_filters.CharFilter(lookup_expr='icontains')
+    search_str = NameEmailUserFilter(lookup_expr='icontains')
 
     class Meta:
         model = User
