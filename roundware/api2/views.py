@@ -209,9 +209,11 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         if ('delete_binary' in request.query_params and request.query_params.get('delete_binary')=='true'):
             delete_binary_from_server(asset.filename)
         elif ('delete_binary' not in request.query_params or request.query_params.get('delete_binary')=='false'):
-            raise ParseError("Asset deleted but binary deletion not requested, so binary file will remain on server.")
+            return Response({"detail": "Asset deleted but binary deletion not requested, so binary file will remain on server."},
+                      status.HTTP_204_NO_CONTENT)
         else:
-            raise ParseError("No binary associated with specified asset found so binary not deleted!")
+            return Response({"detail": "No binary associated with specified asset found so binary not deleted!"},
+                      status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['post', 'get'], detail=True)
@@ -1211,9 +1213,11 @@ class SpeakerViewSet(viewsets.ViewSet):
             speaker_binary_filename = speaker.uri.split("rwmedia/",1)[1]
             delete_binary_from_server(speaker_binary_filename)
         elif ('delete_binary' not in request.query_params or request.query_params.get('delete_binary')=='false'):
-            raise ParseError("Speaker deleted but binary deletion not requested, so binary file will remain on server.")
+            return Response({"detail": "Speaker deleted but binary deletion not requested, so binary file will remain on server."},
+                      status.HTTP_204_NO_CONTENT)
         else:
-            raise ParseError("No binary associated with specified Speaker found so binary not deleted!")
+            return Response({"detail": "No binary associated with specified Speaker found so binary not deleted!"},
+                      status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
