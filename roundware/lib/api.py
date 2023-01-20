@@ -12,7 +12,7 @@ from django.db.models import Count, Avg
 from django.http import Http404
 import datetime
 import json
-import os
+import os, glob
 from pathlib import Path
 import subprocess
 import sys
@@ -542,12 +542,18 @@ def save_asset_from_request(request, session, asset=None):
 
 def delete_binary_from_server(filename):
     media_dir = settings.MEDIA_ROOT
-    filepath = os.path.join(media_dir, filename)
-    if not os.path.exists(filepath):
+    (filename_prefix, filename_extension) = os.path.splitext(filename)
+    filelist = glob.glob(media_dir + filename_prefix + '*')
+    if len(filelist) == 0:
         raise ParseError(
-            "Binary associated with object not found: " + filepath)
+            "No binary files associated with object-specified filename: " + filename)
     else:
-        os.remove(filepath)
+        for filepath in filelist:
+            try:
+                os.remove(filepath)
+            except:
+                raise ParseError(
+                    "Binary associated with object not found: " + filepath)
 
     return None
 
