@@ -318,6 +318,17 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
 
         return user_asset_ids
 
+    @action(methods=['get'], detail=False)
+    def count(self, request, pk=None):
+        """
+        GET api/2/assets/count/ - retrieve count of Assets filtered by parameters
+        """
+        assets = AssetFilterSet(request.query_params).qs.values_list('id', flat=True)
+        asset_count = len(assets)
+
+        result = OrderedDict()
+        result['count'] = asset_count
+        return Response(result)
 
 
 class AudiotrackViewSet(viewsets.ViewSet):
