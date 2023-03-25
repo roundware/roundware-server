@@ -604,7 +604,46 @@ class LanguageViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ListenEventViewSet(viewsets.ViewSet):
+class ListenEventPaginationMixin(object):
+
+    @property
+    def paginator(self):
+        """
+        The paginator instance associated with the view, or `None`.
+        """
+        if not hasattr(self, '_paginator'):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        return self._paginator
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination
+        is disabled.
+        """
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(
+            queryset, self.request, view=self)
+
+    def get_paginated_response(self, data):
+        """
+        Return a paginated style `Response` object for the given
+        output data.
+        """
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
+
+class ListenEventPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 10000
+
+
+class ListenEventViewSet(viewsets.ViewSet, ListenEventPaginationMixin,):
     """
     API V2: api/2/listenevents/
             api/2/listenevents/:id/
@@ -614,6 +653,7 @@ class ListenEventViewSet(viewsets.ViewSet):
     # TODO: Rename ListeningHistoryItem model to ListenEvent.
     queryset = ListeningHistoryItem.objects.all()
     permission_classes = (IsAuthenticated,)
+    pagination_class = ListenEventPagination
 
     def get_object(self, pk):
         try:
@@ -626,7 +666,19 @@ class ListenEventViewSet(viewsets.ViewSet):
         GET api/2/listenevents/ - Get ListenEvents by filtering parameters
         """
         events = ListeningHistoryItemFilterSet(request.query_params).qs
+        if "paginate" in request.query_params:
+            paginate = strtobool(request.query_params['paginate'])
+        else:
+            paginate = False
+
+        page = self.paginate_queryset(events)
+        if page is not None and paginate:
+            # serializer = self.get_serializer(page, context={"admin": "admin" in request.query_params}, many=True)
+            serializer = serializers.ListenEventSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
         serializer = serializers.ListenEventSerializer(events, many=True)
+        # serializer = self.get_serializer(events, context={"admin": "admin" in request.query_params}, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
