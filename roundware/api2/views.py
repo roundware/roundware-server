@@ -97,6 +97,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
             api/2/assets/:id/votes/
             api/2/assets/random/
             api/2/assets/blocked/
+            api/2/assets/count/
     """
 
     # TODO: Implement DjangoObjectPermissions
@@ -607,6 +608,7 @@ class ListenEventViewSet(viewsets.ViewSet):
     """
     API V2: api/2/listenevents/
             api/2/listenevents/:id/
+            api/2/listenevents/count/
     """
 
     # TODO: Rename ListeningHistoryItem model to ListenEvent.
@@ -689,6 +691,18 @@ class ListenEventViewSet(viewsets.ViewSet):
         listen_event = self.get_object(pk)
         listen_event.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=['get'], detail=False)
+    def count(self, request, pk=None):
+        """
+        GET api/2/listenevents/count/ - retrieve count of Listen Events filtered by parameters
+        """
+        listen_events = ListeningHistoryItemFilterSet(request.query_params).qs.values_list('id', flat=True)
+        listen_event_count = len(listen_events)
+
+        result = OrderedDict()
+        result['count'] = listen_event_count
+        return Response(result)
 
 
 class LocalizedStringViewSet(viewsets.ViewSet):
@@ -1061,6 +1075,7 @@ class ProjectGroupViewSet(viewsets.ViewSet):
 class SessionViewSet(viewsets.ViewSet):
     """
     API V2: api/2/sessions/
+            api/2/sessions/count/
     """
     queryset = Session.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -1129,6 +1144,18 @@ class SessionViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['get'], detail=False)
+    def count(self, request, pk=None):
+        """
+        GET api/2/sessions/count/ - retrieve count of Sessions filtered by parameters
+        """
+        sessions = SessionFilterSet(request.query_params).qs.values_list('id', flat=True)
+        session_count = len(sessions)
+
+        result = OrderedDict()
+        result['count'] = session_count
+        return Response(result)
 
 
 class SpeakerViewSet(viewsets.ViewSet):
