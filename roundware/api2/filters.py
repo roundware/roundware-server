@@ -66,6 +66,15 @@ class UserNameEmailFilter(django_filters.CharFilter):
                        Q(**{'user__username__'+ self.lookup_expr: value}))
     return qs
 
+class NameEmailUserFilter(django_filters.CharFilter):
+  def filter(self, qs, value):
+    if value:
+      return qs.filter(Q(**{'first_name__'+ self.lookup_expr: value}) |
+                       Q(**{'last_name__'+ self.lookup_expr: value}) |
+                       Q(**{'email__'+ self.lookup_expr: value}) |
+                       Q(**{'username__'+ self.lookup_expr: value}))
+    return qs
+
 
 class AssetFilterSet(django_filters.FilterSet):
     session_id = django_filters.NumberFilter()
@@ -175,12 +184,15 @@ class ListeningHistoryItemFilterSet(django_filters.FilterSet):
     start_time__lte = django_filters.DateTimeFilter(field_name='starttime', lookup_expr='lte')
     start_time__range = django_filters.DateRangeFilter(field_name='starttime')
     project_id = django_filters.NumberFilter(field_name='session_id__project_id')
+    asset_id = django_filters.NumberFilter()
+    session_id = django_filters.NumberFilter()
 
     class Meta:
         model = ListeningHistoryItem
         fields = ['starttime',
-                  'session',
-                  'asset',
+                  'session_id',
+                  'asset_id',
+                  'project_id',
                   'duration']
 
 
@@ -312,7 +324,7 @@ class UIGroupFilterSet(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='startswith')
     ui_mode = django_filters.TypedChoiceFilter(choices=UIGroup.UI_MODES)
     tag_category_id = django_filters.NumberFilter()
-    select = django_filters.TypedChoiceFilter(choices=UIGroup.SELECT_METHODS)
+    select = django_filters.TypedChoiceFilter(choices=UIGroup.SELECT_OPTIONS)
     active = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
     index = django_filters.NumberFilter()
     project_id = django_filters.NumberFilter()
@@ -340,6 +352,7 @@ class UserFilterSet(django_filters.FilterSet):
     first_name = django_filters.CharFilter(lookup_expr='icontains')
     last_name = django_filters.CharFilter(lookup_expr='icontains')
     email = django_filters.CharFilter(lookup_expr='icontains')
+    search_str = NameEmailUserFilter(lookup_expr='icontains')
 
     class Meta:
         model = User

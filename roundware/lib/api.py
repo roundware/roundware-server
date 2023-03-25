@@ -12,7 +12,8 @@ from django.db.models import Count, Avg
 from django.http import Http404
 import datetime
 import json
-import os
+import os, glob
+from pathlib import Path
 import subprocess
 import sys
 import time
@@ -312,9 +313,10 @@ def add_asset_to_envelope(request, envelope_id=None):
 
 def save_asset_from_request(request, session, asset=None):
     log_event("start_upload", session.id, request.GET)
-    fileitem = asset.file if asset else request.FILES.get('file')
-    if fileitem is None or not fileitem.name:
-        raise RoundException("No file in request")
+    if "file" in request.data:
+        fileitem = asset.file if asset else request.FILES.get('file')
+        if fileitem is None or not fileitem.name:
+            raise RoundException("No file in request")
 
     # get mediatype from the GET request
     mediatype = get_parameter_from_request(
@@ -327,49 +329,63 @@ def save_asset_from_request(request, session, asset=None):
     if mediatype is None:
         mediatype = "audio"
 
-    # copy the file to a unique name (current time and date)
-    logger.debug("Session %s - Processing:%s", session.id, fileitem.name)
-    (filename_prefix, filename_extension) = os.path.splitext(fileitem.name)
-    # if files have no file extension, assign the default per mediatype
-    if not filename_extension:
-        if mediatype == "audio":
-            filename_extension = ".mp3"
-        elif mediatype == "photo":
-            filename_extension = ".jpg"
-        elif mediatype == "text":
-            filename_extension = ".txt"
+# if file binary included in request
+    if "file" in request.data:
+        # copy the file to a unique name (current time and date)
+        logger.debug("Session %s - Processing:%s", session.id, fileitem.name)
+        (filename_prefix, filename_extension) = os.path.splitext(fileitem.name)
+        # if files have no file extension, assign the default per mediatype
+        if not filename_extension:
+            if mediatype == "audio":
+                filename_extension = ".mp3"
+            elif mediatype == "photo":
+                filename_extension = ".jpg"
+            elif mediatype == "text":
+                filename_extension = ".txt"
 
-    # if audio file uploaded as m4a, use mp3 in database
-    # if filename_extension == ".m4a":
-    #     filename_extension = ".mp3"
+        # if audio file uploaded as m4a, use mp3 in database
+        # if filename_extension == ".m4a":
+        #     filename_extension = ".mp3"
 
-    dest_file = time.strftime("%Y%m%d-%H%M%S-") + str(session.id)
-    dest_filename = dest_file + filename_extension
-    dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
-    count = 0
-    # If the file exists add underscore and a number until it doesn't.`
-    while (os.path.isfile(dest_filepath)):
-        dest_filename = "%s_%d%s" % (dest_file, count, filename_extension)
+        dest_file = time.strftime("%Y%m%d-%H%M%S-") + str(session.id)
+        dest_filename = dest_file + filename_extension
         dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
-        count += 1
+        count = 0
+        # If the file exists add underscore and a number until it doesn't.`
+        while (os.path.isfile(dest_filepath)):
+            dest_filename = "%s_%d%s" % (dest_file, count, filename_extension)
+            dest_filepath = os.path.join(settings.MEDIA_ROOT, dest_filename)
+            count += 1
 
-    fileout = open(dest_filepath, 'wb')
-    fileout.write(fileitem.file.read())
-    fileout.close()
+        fileout = open(dest_filepath, 'wb')
+        fileout.write(fileitem.file.read())
+        fileout.close()
 
-    # Delete the uploaded original after the copy has been made.
-    if asset:
-        asset.file.delete()
-        asset.file.name = dest_filename
-        asset.filename = dest_filename
-        asset.save()
-    # Make sure everything is in wav form only if media type is audio.
-    if mediatype == "audio":
-        newfilename = convertaudio.convert_uploaded_file(dest_filename)
-    else:
-        newfilename = dest_filename
-    if not newfilename:
-        raise RoundException("File not converted successfully: " + newfilename)
+        # Delete the uploaded original after the copy has been made.
+        if asset:
+            asset.file.delete()
+            asset.file.name = dest_filename
+            asset.filename = dest_filename
+            asset.save()
+        # Make sure everything is in wav form only if media type is audio.
+        if mediatype == "audio":
+            newfilename = convertaudio.convert_uploaded_file(dest_filename)
+        else:
+            newfilename = dest_filename
+        if not newfilename:
+            raise RoundException("File not converted successfully: " + newfilename)
+
+    # if filename included, not file binary - used mainly for React Admin 'asset copy' function
+    elif "filename" in request.data:
+        # check to see if file exists already on server
+        fn = get_parameter_from_request(request, 'filename')
+        filepath = os.path.join(settings.MEDIA_ROOT, fn)
+        if not os.path.exists(filepath):
+            raise RoundException("filename specified doesn't exist on server")
+        else:
+            fn = get_parameter_from_request(request, 'filename')
+            newfilename = fn
+            dest_filename = fn
 
     # if the request comes from the django admin interface
     # update the Asset with the right information
@@ -453,6 +469,14 @@ def save_asset_from_request(request, session, asset=None):
         if weight is None:
             weight = 50
 
+        # Use project_id if passed in request, otherwise determine
+        # project_id using session data
+        project_id = get_parameter_from_request(request, 'project_id')
+        if project_id is None:
+            project=session.project
+        else:
+            project = models.Project.objects.get(id=project_id)
+
         # If user_id contained in request, use it, otherwise, use session_id to determine user_id
         user_id = get_parameter_from_request(request, 'user_id')
         try:
@@ -478,7 +502,7 @@ def save_asset_from_request(request, session, asset=None):
                              volume=volume,
                              weight=weight,
                              language=session.language,
-                             project=session.project,
+                             project=project,
                              user=user)
         asset.file.name = dest_filename
         asset.save()
@@ -493,14 +517,45 @@ def save_asset_from_request(request, session, asset=None):
     # get/set the audio properties of the file only if mediatype is audio and
     # update the Asset
     if mediatype == "audio":
-        discover_audiolength.discover_and_set_audiolength(
-            asset, newfilename)
-        # set start_time and end_time with initial values
-        asset.start_time = 0.0
-        asset.end_time = asset.audiolength / 1000000000.0
+        audiolength = get_parameter_from_request(request, 'audio_length_in_seconds')
+        if audiolength is None:
+            discover_audiolength.discover_and_set_audiolength(
+                asset, newfilename)
+        else:
+            audiolength = float(audiolength)
+            asset.audiolength = audiolength * 1000000000.0
+        start_time = get_parameter_from_request(request, 'start_time')
+        end_time = get_parameter_from_request(request, 'end_time')
+        # set start_time and end_time with initial values if not provided
+        if start_time is None:
+            asset.start_time = 0.0
+        else:
+            asset.start_time = start_time
+        if end_time is None:
+            asset.end_time = asset.audiolength / 1000000000.0
+        else:
+            asset.end_time = end_time
         asset.save()
 
     return asset
+
+
+def delete_binary_from_server(filename):
+    media_dir = settings.MEDIA_ROOT
+    (filename_prefix, filename_extension) = os.path.splitext(filename)
+    filelist = glob.glob(media_dir + filename_prefix + '*')
+    if len(filelist) == 0:
+        raise ParseError(
+            "No binary files associated with object-specified filename: " + filename)
+    else:
+        for filepath in filelist:
+            try:
+                os.remove(filepath)
+            except:
+                raise ParseError(
+                    "Binary associated with object not found: " + filepath)
+
+    return None
 
 
 def get_parameter_from_request(request, name, required=False):
@@ -697,11 +752,14 @@ def get_projects_by_location(projects, lat, lon):
 # save speaker audio from request and return external url to audio
 def save_speaker_from_request(request):
     fileitem = request.FILES.get('file')
+    fileitem.name = fileitem.name.replace(" ", "_")
     if fileitem is None or not fileitem.name:
         raise RoundException("No file in request")
 
     # copy the file to a unique name using current time and date
     server_url = "http://" + request.get_host()
+    if "localhost" not in server_url:
+        server_url = ""
     logger.info("Processing speaker audio:%s for project:%s", fileitem.name, request.data["project"])
     (filename_prefix, filename_extension) = os.path.splitext(fileitem.name)
 
@@ -715,9 +773,11 @@ def save_speaker_from_request(request):
 
     # Do I need to delete the original file after copying to rwmedia/?
 
-    # Make sure speaker audio is available in both mp3 and wav to be comprehensive
+    # Make sure speaker audio is available in both mp3 and m4a (for iOS) to be comprehensive
     newfilename = convertaudio.convert_uploaded_file(dest_filename)
     if not newfilename:
         raise RoundException("File not converted successfully: " + newfilename)
 
-    return server_url + settings.MEDIA_URL + dest_filename
+    # save mp3 version in database
+    dest_filename_mp3 = str(Path(dest_filename).with_suffix('.mp3'))
+    return server_url + settings.MEDIA_URL + dest_filename_mp3

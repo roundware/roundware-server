@@ -70,7 +70,7 @@ class Asset(models.Model):
         choices=[(i, i) for i in range(0, 100)], default=50)
     mediatype = models.CharField(
         max_length=16, choices=ASSET_MEDIA_TYPES, default='audio')
-    description = models.TextField(max_length=2048, blank=True)
+    description = models.TextField(max_length=8192, blank=True)
     loc_description = models.ManyToManyField(
         'LocalizedString', blank=True)
     loc_alt_text = models.ManyToManyField(
@@ -756,7 +756,7 @@ class UIGroup(models.Model):
     SINGLE = 'single'
     MULTI = 'multi'
     MULTI_MIN_ONE = 'min_one'
-    SELECT_METHODS = (
+    SELECT_OPTIONS = (
         (SINGLE, 'single'),
         (MULTI, 'multi'),
         (MULTI_MIN_ONE, 'multi_at_least_one'),
@@ -776,10 +776,11 @@ class UIGroup(models.Model):
                                choices=UI_MODES)
     tag_category = models.ForeignKey(TagCategory, on_delete = models.CASCADE)
     select = models.CharField(default=SINGLE, max_length=7, blank=False,
-                              choices=SELECT_METHODS)
+                              choices=SELECT_OPTIONS)
     active = models.BooleanField(default=True)
     index = models.IntegerField()
     project = models.ForeignKey(Project, on_delete = models.CASCADE)
+    uiitem_filter = models.CharField(default='none', max_length=50)
 
     @mark_safe
     def get_header_text_loc(self):

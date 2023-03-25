@@ -24,7 +24,8 @@ from roundware.api2.filters import (AssetFilterSet, AudiotrackFilterSet, Envelop
 from roundware.lib.api import (get_project_tags_new as get_project_tags,
                                add_asset_to_envelope,
                                save_asset_from_request, vote_asset, get_projects_by_location,
-                               vote_count_by_asset, log_event, save_speaker_from_request)
+                               vote_count_by_asset, log_event, save_speaker_from_request,
+                               delete_binary_from_server)
 from roundware.api2.permissions import AuthenticatedReadAdminWrite
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, DjangoObjectPermissions
@@ -96,6 +97,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
             api/2/assets/:id/votes/
             api/2/assets/random/
             api/2/assets/blocked/
+            api/2/assets/count/
     """
 
     # TODO: Implement DjangoObjectPermissions
@@ -142,8 +144,11 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         """
         POST api/2/assets/ - Create a new Asset
         """
-        if "file" not in request.data:
-            raise ParseError("Must supply file for asset content")
+        # ensure one and only one of "file" and "filename" params are passed
+        if ("filename" in request.data and "file" in request.data) or \
+           ("filename" not in request.data and "file" not in request.data):
+            return Response({"detail": "Request must include either 'file' or 'filename', but not both."},
+                            status.HTTP_400_BAD_REQUEST)
         if not request.data["envelope_ids"].isdigit():
             raise ParseError("Must provide a single envelope_id in envelope_ids parameter for POST. "
                              "You can add more envelope_ids in subsequent PATCH calls")
@@ -179,7 +184,7 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
             request.data['loc_alt_text'] = request.data['alt_text_loc_ids']
             del request.data['alt_text_loc_ids']
         if 'envelope_ids' in request.data:
-            request.data['envelope_set'] = request.data['envelope_ids']
+            request.data['envelope'] = request.data['envelope_ids']
             del request.data['envelope_ids']
         if 'user_id' in request.data:
             request.data['user'] = request.data['user_id']
@@ -202,6 +207,14 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
         except Asset.DoesNotExist:
             raise Http404("Asset not found; cannot delete!")
         asset.delete()
+        if ('delete_binary' in request.query_params and request.query_params.get('delete_binary')=='true'):
+            delete_binary_from_server(asset.filename)
+        elif ('delete_binary' not in request.query_params or request.query_params.get('delete_binary')=='false'):
+            return Response({"detail": "Asset deleted but binary deletion not requested, so binary file will remain on server."},
+                      status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"detail": "No binary associated with specified asset found so binary not deleted!"},
+                      status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['post', 'get'], detail=True)
@@ -306,6 +319,17 @@ class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
 
         return user_asset_ids
 
+    @action(methods=['get'], detail=False)
+    def count(self, request, pk=None):
+        """
+        GET api/2/assets/count/ - retrieve count of Assets filtered by parameters
+        """
+        assets = AssetFilterSet(request.query_params).qs.values_list('id', flat=True)
+        asset_count = len(assets)
+
+        result = OrderedDict()
+        result['count'] = asset_count
+        return Response(result)
 
 
 class AudiotrackViewSet(viewsets.ViewSet):
@@ -508,6 +532,9 @@ class EventViewSet(viewsets.ViewSet):
             raise ParseError("a session_id is required for this operation")
         if 'event_type' not in request.data:
             raise ParseError("an event_type is required for this operation")
+        if ('tag_ids' in request.data and isinstance(request.data['tag_ids'], list)):
+            string_list = [str(i) for i in request.data['tag_ids']]
+            request.data['tag_ids'] = ",".join(string_list)
         try:
             e = log_event(request.data['event_type'], request.data['session_id'], request.data)
         except Exception as e:
@@ -577,15 +604,56 @@ class LanguageViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ListenEventViewSet(viewsets.ViewSet):
+class ListenEventPaginationMixin(object):
+
+    @property
+    def paginator(self):
+        """
+        The paginator instance associated with the view, or `None`.
+        """
+        if not hasattr(self, '_paginator'):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        return self._paginator
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination
+        is disabled.
+        """
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(
+            queryset, self.request, view=self)
+
+    def get_paginated_response(self, data):
+        """
+        Return a paginated style `Response` object for the given
+        output data.
+        """
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
+
+class ListenEventPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 10000
+
+
+class ListenEventViewSet(viewsets.ViewSet, ListenEventPaginationMixin,):
     """
     API V2: api/2/listenevents/
             api/2/listenevents/:id/
+            api/2/listenevents/count/
     """
 
     # TODO: Rename ListeningHistoryItem model to ListenEvent.
     queryset = ListeningHistoryItem.objects.all()
     permission_classes = (IsAuthenticated,)
+    pagination_class = ListenEventPagination
 
     def get_object(self, pk):
         try:
@@ -598,7 +666,19 @@ class ListenEventViewSet(viewsets.ViewSet):
         GET api/2/listenevents/ - Get ListenEvents by filtering parameters
         """
         events = ListeningHistoryItemFilterSet(request.query_params).qs
+        if "paginate" in request.query_params:
+            paginate = strtobool(request.query_params['paginate'])
+        else:
+            paginate = False
+
+        page = self.paginate_queryset(events)
+        if page is not None and paginate:
+            # serializer = self.get_serializer(page, context={"admin": "admin" in request.query_params}, many=True)
+            serializer = serializers.ListenEventSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
         serializer = serializers.ListenEventSerializer(events, many=True)
+        # serializer = self.get_serializer(events, context={"admin": "admin" in request.query_params}, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -620,6 +700,12 @@ class ListenEventViewSet(viewsets.ViewSet):
         if 'duration_in_seconds' in request.data:
             request.data['duration'] = float(request.data['duration_in_seconds']) * float(1000000000)
             del request.data['duration_in_seconds']
+        if 'session_id' in request.data:
+            request.data['session'] = request.data['session_id']
+            del request.data['session_id']
+        if 'asset_id' in request.data:
+            request.data['asset'] = request.data['asset_id']
+            del request.data['asset_id']
 
         serializer = serializers.ListenEventSerializer(data=request.data)
         if serializer.is_valid():
@@ -636,7 +722,13 @@ class ListenEventViewSet(viewsets.ViewSet):
         if 'duration_in_seconds' in request.data:
             request.data['duration'] = float(request.data['duration_in_seconds']) * float(1000000000)
             del request.data['duration_in_seconds']
-        
+        if 'session_id' in request.data:
+            request.data['session'] = request.data['session_id']
+            del request.data['session_id']
+        if 'asset_id' in request.data:
+            request.data['asset'] = request.data['asset_id']
+            del request.data['asset_id']
+
         listen_event = self.get_object(pk)
         serializer = serializers.ListenEventSerializer(listen_event, data=request.data, partial=True)
         if serializer.is_valid():
@@ -651,6 +743,18 @@ class ListenEventViewSet(viewsets.ViewSet):
         listen_event = self.get_object(pk)
         listen_event.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=['get'], detail=False)
+    def count(self, request, pk=None):
+        """
+        GET api/2/listenevents/count/ - retrieve count of Listen Events filtered by parameters
+        """
+        listen_events = ListeningHistoryItemFilterSet(request.query_params).qs.values_list('id', flat=True)
+        listen_event_count = len(listen_events)
+
+        result = OrderedDict()
+        result['count'] = listen_event_count
+        return Response(result)
 
 
 class LocalizedStringViewSet(viewsets.ViewSet):
@@ -1023,6 +1127,7 @@ class ProjectGroupViewSet(viewsets.ViewSet):
 class SessionViewSet(viewsets.ViewSet):
     """
     API V2: api/2/sessions/
+            api/2/sessions/count/
     """
     queryset = Session.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -1091,6 +1196,18 @@ class SessionViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['get'], detail=False)
+    def count(self, request, pk=None):
+        """
+        GET api/2/sessions/count/ - retrieve count of Sessions filtered by parameters
+        """
+        sessions = SessionFilterSet(request.query_params).qs.values_list('id', flat=True)
+        session_count = len(sessions)
+
+        result = OrderedDict()
+        result['count'] = session_count
+        return Response(result)
 
 
 class SpeakerViewSet(viewsets.ViewSet):
@@ -1182,6 +1299,15 @@ class SpeakerViewSet(viewsets.ViewSet):
         """
         speaker = self.get_object(pk)
         speaker.delete()
+        if ('delete_binary' in request.query_params and request.query_params.get('delete_binary')=='true'):
+            speaker_binary_filename = speaker.uri.split("rwmedia/",1)[1]
+            delete_binary_from_server(speaker_binary_filename)
+        elif ('delete_binary' not in request.query_params or request.query_params.get('delete_binary')=='false'):
+            return Response({"detail": "Speaker deleted but binary deletion not requested, so binary file will remain on server."},
+                      status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"detail": "No binary associated with specified Speaker found so binary not deleted!"},
+                      status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
