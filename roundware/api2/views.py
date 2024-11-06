@@ -1216,7 +1216,7 @@ class SpeakerViewSet(viewsets.ViewSet):
             api/2/speakers/:id/
     """
     queryset = Speaker.objects.all()
-    permission_classes = (IsAuthenticated, AuthenticatedReadAdminWrite)
+    permission_classes = (IsAuthenticated,)
 
     def get_object(self, pk):
         try:
