@@ -1,0 +1,95 @@
+# pyproject.toml for installing instrument-data-collector
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "roundware"
+description = "Roundware Server"
+license = {text = "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)"}
+dynamic = ['version']
+authors = [
+    {"name" = "Halsey Burgund", "email" = "halsey@halseyburgund.com"},
+    {"name" = "Mike MacHenry"},
+    {"name" = "Ben McAllister"},
+    {"name" = "Jule Slootbeek"},
+    {"name" = "Bryan Wilson"},
+    {"name" = "Brad Erickson", "email" = "eosrei@gmail.com" },
+    {"name" = "Evan Babb", "email" = "11@probabble.com"},
+]
+
+maintainers = [
+    {"name" = "Halsey Burgund", "email" = "halsey@halseyburgund.com"},
+    {"name" = "Evan Babb", "email" = "11@probabble.com"},
+]
+
+requires-python = ">=3.11"
+
+dependencies = [
+    "Django==3.0",
+    # Creates REST APIs
+    "djangorestframework",
+    # locks down access to api endpoints
+    "django-dry-rest-permissions",
+    # Used for DRF filtering
+    "django-filter<2.3",
+    # Used in roundware/rw/admin.py, roundware/rw/forms.py, roundware/rw/views, and more.
+    "django-guardian==2.2.0",
+    # Used by roundware/api1/commands.py
+    "psutil==3.4.2",
+    # Used by roundware/rw/fields.py
+    # django-validated-file==2.0.1
+    "python-magic==0.4.8",
+    # Used in roundware/rw/views.py
+    "django-braces==1.14.0",
+    # Loaded in roundware/urls.py
+    # django-adminplus==0.2.1
+    # Used in roundware/rw/forms.py
+    "django-crispy-forms==1.9.1",
+    # Used in roundware/rw/widgets.py
+    "django-floppyforms==1.9.0",
+    # Used in roundware/rw/views.py:
+    "django-extra-views==0.13.0",
+    # Used in roundware/rw/fields.py and roundware/rw/widgets.py
+    "django-sortedm2m==3.1.1",
+    # Required for RDF Date parsing
+    "python-dateutil==2.2",
+    # Used in roundwared/icecast2.py
+    "requests<2.5",
+    # Used in admin, including Batch Tag Add
+    "django-formset-js==0.4.0",
+    # database adapter for PostgreSQL
+    "psycopg2",
+    # geographic distance calculator utilities
+    "geopy",
+    # cors support to remove php layer
+    "django-cors-headers==3.3.0",
+    # fiona is a useful tool for processing geographic files (ETL)
+    "fiona",
+    # geographic extensions for djangorestframework-gis
+    "djangorestframework-gis<=0.16",
+    # leaflet map utilities for django admin
+    "django-leaflet",
+    # Bootstrap admin theme for Django 1.9
+    # https://github.com/roundware/django-admin-bootstrapped/zipball/3.0.0
+    # audio conversions
+    "ffmpeg-python==0.2.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "ipython",
+]
+test = [
+    "coverage",
+    "webtest",
+    "django-webtest",
+    "model_bakery",
+    "mock",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "roundware.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]

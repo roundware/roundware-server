@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import django.core.files.storage
 from django.db import migrations
-import rw.fields
+import roundware.rw.fields
 
 
 class Migration(migrations.Migration):
@@ -17,11 +17,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='asset',
             name='file',
-            field=rw.fields.ValidatedFileField(help_text='Upload file', storage=django.core.files.storage.FileSystemStorage(base_url='/rwmedia/', location='/var/www/roundware/rwmedia/'), upload_to='.'),
+            field=roundware.rw.fields.ValidatedFileField(help_text='Upload file', storage=django.core.files.storage.FileSystemStorage(base_url='/rwmedia/', location='/var/www/roundware/rwmedia/'), upload_to='.'),
         ),
         migrations.AlterField(
             model_name='asset',
             name='loc_caption',
-            field=rw.fields.ValidatedFileField(help_text='Upload captions', null=True, storage=django.core.files.storage.FileSystemStorage(base_url='/rwmedia/', location='/var/www/roundware/rwmedia/'), upload_to='.'),
+            field=roundware.rw.fields.ValidatedFileField(help_text='Upload captions', null=True, storage=django.core.files.storage.FileSystemStorage(base_url='/rwmedia/', location='/var/www/roundware/rwmedia/'), upload_to='.'),
         ),
     ]

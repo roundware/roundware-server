@@ -13,7 +13,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.8]
+        python-version: [3.12]
     services:
       # Label used to access the service container
       postgres:
@@ -41,8 +41,7 @@ jobs:
           DEBIAN_FRONTEND=noninteractive xargs -a requirements.apt apt-get install -y --fix-missing
           python3 --version
           python3 -m pip install --upgrade pip setuptools
-          python3 -m pip install -r requirements/common.txt
-          python3 -m pip install -r requirements/dev.txt
+          python3 -m pip install .[test]
           echo "PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH" >> $GITHUB_ENV
 
       - name: Run Tests
