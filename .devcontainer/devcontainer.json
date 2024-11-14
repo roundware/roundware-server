@@ -1,15 +1,13 @@
 {
-  "name": "[Optional] Your project name here",
+  "name": "roundware",
   "dockerComposeFile": "docker-compose.yml",
   "service": "roundware-dev",
   "remoteUser": "root",
   "runServices": ["roundware-db"],
   "shutdownAction": "stopCompose",
   "containerEnv": {
-    "DJANGO_SETTINGS_MODULE": "roundware.settings.testing",
+    "DJANGO_SETTINGS_MODULE": "roundware.settings.testing"
   },
   "workspaceFolder": "/code",
-  "postCreateCommand": [
-    "./.devcontainer/postCreate.sh"
-  ]
+  "postCreateCommand": ["./.devcontainer/postCreate.sh"]
 }
