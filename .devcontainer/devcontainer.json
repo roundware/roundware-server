@@ -6,8 +6,29 @@
   "runServices": ["roundware-db"],
   "shutdownAction": "stopCompose",
   "containerEnv": {
-    "DJANGO_SETTINGS_MODULE": "roundware.settings.testing"
+    "DJANGO_SETTINGS_MODULE": "roundware.settings.testing",
+    "MANAGE_PY_PATH": "/code/roundware/manage.py"
   },
   "workspaceFolder": "/code",
-  "postCreateCommand": ["./.devcontainer/postCreate.sh"]
+  "postCreateCommand": ["./.devcontainer/postCreate.sh"],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.debugpy",
+        "Pachwenko.django-test-runner"
+      ],
+      "settings": {
+        "python.terminal.activateEnvInCurrentTerminal": true,
+        "python.defaultInterpreterPath": "/pythonenv/roundware-venv/bin/python",
+        "python.experiments.optInto": ["pythonTestAdapter"],
+        "python.testing.unittestArgs": [
+            "test",
+            "--noinput"
+        ],
+        "python.djangoTestRunner.manageProgram": "python3 -m roundware.manage test",
+        // "python.djangoTestRunner.rootPackageName": "roundware"
+      }
+    }
+  }
 }
