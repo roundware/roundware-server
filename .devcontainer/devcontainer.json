@@ -16,18 +16,18 @@
       "extensions": [
         "ms-python.python",
         "ms-python.debugpy",
-        "Pachwenko.django-test-runner"
+        // "Pachwenko.django-test-runner"
       ],
       "settings": {
         "python.terminal.activateEnvInCurrentTerminal": true,
         "python.defaultInterpreterPath": "/pythonenv/roundware-venv/bin/python",
         "python.experiments.optInto": ["pythonTestAdapter"],
+        "python.testing.unittestEnabled": true,
+        "python.testing.pytestEnabled": false,
         "python.testing.unittestArgs": [
-            "test",
-            "--noinput"
+            "-p", "*test*.py"
         ],
-        "python.djangoTestRunner.manageProgram": "python3 -m roundware.manage test",
-        // "python.djangoTestRunner.rootPackageName": "roundware"
+        // "python.djangoTestRunner.manageProgram": "python3 -m roundware.manage test",
       }
     }
   }
