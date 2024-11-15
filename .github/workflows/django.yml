@@ -39,11 +39,13 @@ jobs:
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive xargs -a requirements.apt apt-get install -y --fix-missing
+          python3 -m venv .venv
+          
           python3 --version
           python3 -m pip install --upgrade pip setuptools
           python3 -m pip install .[test]
           echo "PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH" >> $GITHUB_ENV
-
+          echo PATH=${GITHUB_WORKSPACE}/.venv/bin:$PATH >> $GITHUB_ENV
       - name: Run Tests
         env:
           ROUNDWARE_DB_USER: round
