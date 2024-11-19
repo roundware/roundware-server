@@ -546,6 +546,8 @@ class Speaker(models.Model):
     attenuation_distance = models.IntegerField()
     attenuation_border = models.GeometryField(geography=True, null=True, editable=False)
 
+    parents = models.ManyToManyField('Speaker', related_name='children', symmetrical=False, blank=True)
+
     objects = GeoManager()
 
     def __str__(self):
