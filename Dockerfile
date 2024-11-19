@@ -1,21 +1,31 @@
-FROM ubuntu:20.04 as roundware
+FROM ubuntu:24.04
 RUN mkdir /code
 ENV PATH=/code:$PATH
 ENV PYTHONPATH=/code
-WORKDIR /code
-RUN apt-get update
 
+WORKDIR /code
 ADD requirements.apt .
-RUN apt-get update
-RUN DEBIAN_FRONTEND=noninteractive xargs -a requirements.apt apt-get install -y --fix-missing
-RUN python3 -m pip install pip setuptools --upgrade
-RUN which python3 && python3 --version
-ADD requirements ./requirements
-ADD requirements.txt .
-ADD scripts ./scripts
-ADD roundware ./roundware
-RUN python3 -m pip install -r requirements.txt
-RUN python3 -m pip install -r requirements/dev.txt
-RUN python3 roundware/manage.py collectstatic
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -y && \
+    xargs -a requirements.apt apt-get install -y --fix-missing && \
+    apt-get upgrade -y gdal-bin \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV VIRTUAL_ENV=/pythonenv/roundware-venv
+RUN mkdir /pythonenv/
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+RUN python3 -m pip install pip setuptools --upgrade &&  \
+    which python3  \
+    && python3 --version
+
+ADD pyproject.toml .
+ADD scripts/ ./scripts
+ADD roundware/ ./roundware
+
+RUN python3 -m pip install .
+RUN python3 -m roundware.manage collectstatic
 
 ADD .coveragerc .

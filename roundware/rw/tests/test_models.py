@@ -6,7 +6,7 @@ from model_bakery import baker
 from roundware.rw import models
 from roundware.settings import DEFAULT_SESSION_ID
 
-from rw.tests.common import use_locmemcache, RWTestCase
+from roundware.rw.tests.common import use_locmemcache, RWTestCase
 
 
 class TestUIGroup(RWTestCase):
@@ -14,7 +14,7 @@ class TestUIGroup(RWTestCase):
     """ exercise UIGroup model class """
 
     def setUp(self):
-        super(type(self), TestUIGroup).setUp(self)
+        super().setUp()
 
         # make uigroup, makes our tagcategory, uimode, project,
         # selectionmethod
@@ -50,7 +50,7 @@ class TestUIGroup(RWTestCase):
 class TestProject(RWTestCase):
 
     def setUp(self):
-        super(type(self), TestProject).setUp(self)
+        super().setUp()
         self.project = baker.make('rw.Project')
         self.ui_mode = models.UIGroup.LISTEN
 
@@ -82,7 +82,7 @@ class TestProject(RWTestCase):
 class TestAsset(RWTestCase):
 
     def setUp(self):
-        super(type(self), TestAsset).setUp(self)
+        super().setUp()
 
         self.session1 = baker.make('rw.Session')
         self.session2 = baker.make('rw.Session')
@@ -99,11 +99,11 @@ class TestAsset(RWTestCase):
                                 asset=self.asset1, type="flag")
 
     def test_get_likes(self):
-        self.assertEquals(2, self.asset1.get_likes())
-        self.assertEquals(1, self.asset2.get_likes())
+        self.assertEqual(2, self.asset1.get_likes())
+        self.assertEqual(1, self.asset2.get_likes())
 
     def test_get_flags(self):
-        self.assertEquals(1, self.asset1.get_flags())
+        self.assertEqual(1, self.asset1.get_flags())
 
     def test_distance(self):
         distance = self.asset1.distance({'latitude': 0, 'longitude': 0})
