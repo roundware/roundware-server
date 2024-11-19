@@ -29,7 +29,8 @@ source /var/www/roundware/bin/activate
 RWPATH=`readlink ~/roundware-server`
 if [ -n "$RWPATH" ]; then
   # If ~/roundware-server is a symbolic link, set it to the dereferenced path.
-  export PYTHONPATH=$RWPATH
+  export DJANGO_SETTINGS_MODULE=roundware_production
+  export PYTHONPATH="$RWPATH:/var/www/roundware/source/roundware:/var/www/roundware/settings"
 else
   # If ~/roundware-server is not a symbolic link, set it.
   export PYTHONPATH=~/roundware-server

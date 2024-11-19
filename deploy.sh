@@ -29,6 +29,8 @@ if [ "$FOUND_VAGRANT" = true ]; then
   USERNAME="vagrant"
 fi
 
+cp $SOURCE_PATH/files/home-user-profile /home/$USERNAME/.profile
+
 # Set paths/directories
 WWW_PATH="/var/www/roundware"
 CODE_PATH="$WWW_PATH/source"

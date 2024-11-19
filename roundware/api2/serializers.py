@@ -36,7 +36,7 @@ class AdminLocaleStringSerializerMixin(serializers.Serializer):
 
 class AssetSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSerializer):
     audiolength_in_seconds = serializers.FloatField(required=False)
-    description = serializers.CharField(max_length=2048, default="", allow_blank=True)
+    description = serializers.CharField(max_length=8192, default="", allow_blank=True)
 
     class Meta:
         model = Asset
@@ -171,8 +171,17 @@ class EventSerializer(serializers.ModelSerializer):
         result = super(EventSerializer, self).to_representation(obj)
         result["session_id"] = result["session"]
         del result["session"]
-        result["tag_ids"] = result["tags"]
-        del result["tags"]
+        if result["tags"]:
+            result["tag_ids"] = result["tags"].split(",")
+            del result["tags"]
+            newList = [i for i in result["tag_ids"] if i.isnumeric()]
+            result["tag_ids"] = newList
+            for i in range(0, len(result["tag_ids"])):
+                result["tag_ids"][i] = int(result["tag_ids"][i])
+        if result["latitude"]:
+            result["latitude"] = float(result["latitude"])
+        if result["longitude"]:
+            result["longitude"] = float(result["longitude"])
         return result
 
 
@@ -236,7 +245,8 @@ class ProjectSerializer(AdminLocaleStringSerializerMixin, serializers.ModelSeria
         model = Project
         fields = "__all__"
         localized_fields = ['demo_stream_message_loc', 'legal_agreement_loc',
-                            'sharing_message_loc', 'out_of_range_message_loc']
+                            'sharing_message_loc', 'out_of_range_message_loc',
+                            'description_loc']
 
     def to_representation(self, obj):
         result = super(ProjectSerializer, self).to_representation(obj)
