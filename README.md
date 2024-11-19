@@ -5,7 +5,7 @@
 ## Overview
 
 Roundware is a client-server system. The server runs using Apache HTTP Server
-and mod_wsgi on Ubuntu Linux 20.04 LTS Focal Fossa and clients are available
+and mod_wsgi on Ubuntu Linux 24.04 LTS Noble Numbat and clients are available
 for [iOS](https://github.com/roundware/roundware-ios-framework-v2) and
 [HTML5 browsers](https://gitlab.com/probabble/roundware-web-template)
 (mobile and desktop). There is an old Android client as well, but it is not
@@ -40,28 +40,12 @@ settings in `/var/www/roundware/source/roundware/settings/common.py` can be
 overridden there. Do not modify any file within the `/var/www/roundware/source`
 directory unless you intend to maintain your own fork of Roundware Server.
 
-## Vagrant
+## Local Development Environment
 
-A VagrantFile is included for local development and testing with
-[Vagrant](http://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/).
-Usage:
+Roundware is now containerized for local development using devcontainers. We have not yet containerized for production, though that is on the roadmap. We have optimized for VSCode, but any IDE that integrates devcontainers should work.
 
-    user@local-machine:~ $ git clone https://github.com/roundware/roundware-server.git
-    user@local-machine:~ $ cd roundware-server
-    user@local-machine:~/roundware-server $ vagrant up
-    user@local-machine:~/roundware-server $ vagrant ssh
-    (roundware)vagrant@roundware-server:~$ cd roundware-server/scripts
-    (roundware)vagrant@roundware-server:~$ ./runserver.sh
+[Dev Containers](https://containers.dev/ "Dev Containers")
 
-Notes:
-
- * The installation process uses the default *vagrant* user as project owner.
- * The install script relies on the Vagrant default file share of
-   host:~/roundware-server to vm:/vagrant for installation and development.
- * There are multiple port forwards from the host to the VM:
-   * VM:80->host:8080 for Apache hosting the demo "live" environment available at http://127.0.0.1:8080/
-   * VM:8888->host:8888 for the manage.py runserver development webserver available at http://127.0.0.1:8888/
- * Edit the development environment code on your local machine, then refresh to see the changes reflected in the virtual machine.
 
 ## Code Upgrades
 

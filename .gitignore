@@ -9,3 +9,6 @@ static
 local_settings.py
 .coverage
 .idea/*
+
+roundware.egg-info/**/*
+.DS_Store

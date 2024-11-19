@@ -27,4 +27,4 @@ before_script:
   - sudo mkdir /var/www
   - sudo chmod 777 /var/www
   - export PYTHONPATH=.:/usr/lib/python2.7/dist-packages/
-script: python roundware/manage.py test --settings=roundware.settings.testing
+script: python src/roundware/manage.py test --settings=roundware.settings.testing
