@@ -242,10 +242,14 @@ class SessionFilterSet(django_filters.FilterSet):
 class SpeakerFilterSet(django_filters.FilterSet):
     activeyn = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES, coerce=strtobool)
     project_id = django_filters.NumberFilter()
+    parent_ids_or = IntegerListFilter(field_name='parents', lookup_expr='in') # performs OR filtering
+    parent_ids = IntegerListAndFilter(field_name='parents__id') # performs AND filtering
+    children_ids_or = IntegerListFilter(field_name='children', lookup_expr='in') # performs OR filtering
+    children_ids = IntegerListAndFilter(field_name='children__id') # performs AND filtering 
 
     class Meta:
         model = Speaker
-        fields = ["activeyn", "project_id"]
+        fields = ["activeyn", "project_id", "parents", "children"]
 
 
 class TagFilterSet(django_filters.FilterSet):
