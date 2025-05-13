@@ -83,12 +83,23 @@ def test_listen_event_serializer_to_representation():
 @pytest.mark.django_db
 def test_localized_string_serializer_to_representation():
     lang = baker.make(models.Language, language_code='en')
-    loc = baker.make(models.LocalizedString, language=lang)
+    loc = baker.make(models.LocalizedString, language=lang, localized_string='Test String')
     serializer = serializers.LocalizedStringSerializer(loc)
     data = serializer.data
     assert 'text' in data
     assert 'language_id' in data
     assert 'language' in data
+    assert 'localized_string' not in data  # original field should be removed
+    assert data['text'] == 'Test String'  # verify text is preserved
+    assert data['language_id'] == lang.id  # verify language ID is preserved
+    assert data['language'] == 'en'  # verify language code is set
+    
+    # Verify complete result structure
+    expected_fields = {'id', 'text', 'language_id', 'language'}
+    assert set(data.keys()) == expected_fields  # verify only expected fields are present
+    assert len(data) == 4  # verify exact number of fields
+    
+    return data
 
 @pytest.mark.django_db
 def test_project_serializer_to_representation():
@@ -194,6 +205,10 @@ def test_uiconfig_serializer_to_representation():
     serializer = serializers.UIConfigSerializer(group, context={'mode': 'listen'})
     data = serializer.data
     assert 'display_items' in data
+    assert 'group_short_name' in data
+    assert 'header_display_text' in data
+    assert 'id' not in data
+    return data
 
 @pytest.mark.django_db
 def test_uiconfig_item_serializer_to_representation():
@@ -204,13 +219,34 @@ def test_uiconfig_item_serializer_to_representation():
     tag = baker.make(models.Tag)
     tag.loc_msg.set([loc])
     tag.save()
-    item = baker.make(models.UIItem, tag=tag)
+    parent_item = baker.make(models.UIItem, tag=tag)
+    item = baker.make(models.UIItem, tag=tag, parent=parent_item)
+    
+    # Test listen mode
     serializer = serializers.UIConfigItemSerializer(item, context={'mode': 'listen'})
     data = serializer.data
     assert 'tag_id' in data
     assert 'parent_id' in data
     assert 'default_state' in data
     assert 'tag_display_text' in data
+    assert data['tag_display_text'] == loc.localized_string
+    assert data['parent_id'] is None  # parent_id should be None in listen mode
+    
+    # Test speak mode
+    serializer = serializers.UIConfigItemSerializer(item, context={'mode': 'speak'})
+    data = serializer.data
+    assert data['parent_id'] == parent_item.id  # parent_id should be preserved in speak mode
+    
+    # Verify all expected fields are present in the result
+    expected_fields = {'id', 'tag_id', 'parent_id', 'default_state', 'tag_display_text'}
+    assert set(data.keys()) == expected_fields
+    
+    # Verify no unexpected fields are present
+    assert 'tag' not in data
+    assert 'parent' not in data
+    assert 'default' not in data
+    
+    return data
 
 @pytest.mark.django_db
 def test_uielement_serializer_to_representation():
@@ -220,6 +256,11 @@ def test_uielement_serializer_to_representation():
     assert 'label_text_loc_ids' in data
     assert 'uielementname_id' in data
     assert 'project_id' in data
+    assert 'label_text_loc' not in data  # original field should be removed
+    assert data['label_text_loc_ids'] == list(element.label_text_loc.values_list('id', flat=True))  # verify IDs are preserved
+    assert 'uielementname' not in data  # original field should be removed
+    assert data['uielementname_id'] == element.uielementname.id  # verify ID is preserved
+    return data
 
 @pytest.mark.django_db
 def test_uielement_name_serializer_to_representation():
@@ -416,13 +457,20 @@ def test_tag_serializer_to_representation_with_session():
 
 @pytest.mark.django_db
 def test_asset_serializer_to_representation_user_does_not_exist():
-    # Covers lines 106-107: User.DoesNotExist
+    # Create a user and asset, then delete the user to simulate a missing user
     user = baker.make(User)
     asset = baker.make(models.Asset, user=user)
-    user.delete()
+    user_id = user.id
+    user.delete()  # Delete the user after creating the asset
+    
+    # Test serialization
     serializer = serializers.AssetSerializer(asset)
     data = serializer.data
+    
+    # Verify user field is None when user doesn't exist
     assert data['user'] is None
+    
+    return data
 
 @pytest.mark.django_db
 def test_event_serializer_to_representation_no_tags():
@@ -1267,3 +1315,184 @@ def test_select_localized_string_with_code_with_all_cases():
     # Test fallback to English when no matching language is found
     result = serializers._select_localized_string_with_code([loc_en.id, loc_fr.id], language_code='de')
     assert result == 'English Text'  # Should fall back to English
+
+@pytest.mark.django_db
+def test_project_serializer_meta_configuration():
+    # Test Meta class configuration
+    serializer = serializers.ProjectSerializer()
+    assert serializer.Meta.model == models.Project
+    assert serializer.Meta.fields == "__all__"
+    expected_localized_fields = [
+        'demo_stream_message_loc',
+        'legal_agreement_loc',
+        'sharing_message_loc',
+        'out_of_range_message_loc',
+        'description_loc'
+    ]
+    assert serializer.Meta.localized_fields == expected_localized_fields
+
+@pytest.mark.django_db
+def test_project_serializer_to_representation():
+    baker.make(models.Language, language_code='en')
+    project = baker.make(models.Project)
+    serializer = serializers.ProjectSerializer(project, context={})
+    data = serializer.data
+    assert 'language_ids' in data
+
+@pytest.mark.django_db
+def test_asset_serializer_to_representation_with_existing_user():
+    # Create a user with profile data
+    user = baker.make(User,
+        first_name='Test',
+        last_name='User',
+        email='test@example.com'
+    )
+    user.userprofile.device_id = 'test-device-123'
+    user.userprofile.client_type = 'test-client'
+    user.userprofile.save()
+    
+    # Create an asset with the user
+    asset = baker.make(models.Asset, user=user)
+    
+    # Test serialization
+    serializer = serializers.AssetSerializer(asset)
+    data = serializer.data
+    
+    # Verify user data is properly serialized
+    assert data['user'] is not None
+    assert data['user']['id'] == user.id
+    assert data['user']['username'] == user.username
+    assert data['user']['first_name'] == 'Test'
+    assert data['user']['last_name'] == 'User'
+    assert data['user']['email'] == 'test@example.com'
+    assert data['user']['device_id'] == 'test-device-123'
+    assert data['user']['client_type'] == 'test-client'
+    
+    # Verify the user lookup and serialization path was taken
+    assert isinstance(data['user'], dict)  # UserInfoSerializer returns a dict
+    assert 'id' in data['user']  # UserInfoSerializer includes id field
+    assert 'device_id' in data['user']  # UserInfoSerializer includes profile fields
+    
+    return data
+
+@pytest.mark.django_db
+def test_uielement_project_serializer_label_text_localization():
+    # Create a language and a localized string
+    language = baker.make(models.Language, language_code="en")
+    loc = baker.make(models.LocalizedString, language=language, localized_string="Localized Label")
+    uien = baker.make(models.UIElementName, name="test_element")
+    element = baker.make(models.UIElement, uielementname=uien, variant="_v", file_extension="png")
+    element.label_text_loc.add(loc)
+    element.save()
+
+    # Pass the correct language code in context
+    serializer = serializers.UIElementProjectSerializer(element, context={"lc": "en"})
+    result = serializer.to_representation(element)
+    # The result is a dict with the element name as key
+    element_data = result["test_element"]
+    assert element_data["label_text"] == "Localized Label"
+
+@pytest.mark.django_db
+def test_uielement_project_serializer_data_property():
+    # Create a language and a localized string
+    language = baker.make(models.Language, language_code="en")
+    loc = baker.make(models.LocalizedString, language=language, localized_string="Localized Label")
+    uien = baker.make(models.UIElementName, name="test_element")
+    element = baker.make(models.UIElement, uielementname=uien, variant="_v", file_extension="png")
+    element.label_text_loc.add(loc)
+    element.save()
+
+    # Use the .data property to trigger the full serialization pipeline
+    serializer = serializers.UIElementProjectSerializer(element, context={"lc": "en"})
+    data = serializer.data
+    assert "test_element" in data
+    element_data = data["test_element"]
+    assert element_data["label_text"] == "Localized Label"
+    assert element_data["file_name"] == "test_element_v.png"
+
+@pytest.mark.django_db
+def test_uielement_project_serializer_label_text_localization_with_code():
+    # Create multiple languages and localized strings
+    lang_en = baker.make(models.Language, language_code="en")
+    lang_fr = baker.make(models.Language, language_code="fr")
+    
+    # Create localized strings for both languages
+    loc_en = baker.make(models.LocalizedString, language=lang_en, localized_string="English Label")
+    loc_fr = baker.make(models.LocalizedString, language=lang_fr, localized_string="French Label")
+    
+    # Create UIElement with both localized strings
+    uien = baker.make(models.UIElementName, name="test_element")
+    element = baker.make(models.UIElement, uielementname=uien, variant="_v", file_extension="png")
+    element.label_text_loc.add(loc_en, loc_fr)
+    element.save()
+    
+    # Test English localization
+    serializer = serializers.UIElementProjectSerializer(element, context={"lc": "en"})
+    data = serializer.data
+    assert data["test_element"]["label_text"] == "English Label"
+    
+    # Test French localization
+    serializer = serializers.UIElementProjectSerializer(element, context={"lc": "fr"})
+    data = serializer.data
+    assert data["test_element"]["label_text"] == "French Label"
+    
+    # Test fallback to English when language not found
+    serializer = serializers.UIElementProjectSerializer(element, context={"lc": "de"})
+    data = serializer.data
+    assert data["test_element"]["label_text"] == "English Label"
+
+@pytest.mark.django_db
+def test_uielement_project_serializer_select_localized_string():
+    # Create a language and a localized string
+    lang = baker.make(models.Language, language_code="en")
+    loc = baker.make(models.LocalizedString, language=lang, localized_string="Test Label")
+    
+    # Create UIElement with the localized string
+    uien = baker.make(models.UIElementName, name="test_element")
+    element = baker.make(models.UIElement, uielementname=uien, variant="_v", file_extension="png")
+    element.label_text_loc.add(loc)
+    element.save()
+    
+    # Create serializer with context
+    serializer = serializers.UIElementProjectSerializer(element, context={"lc": "en"})
+    
+    # Call to_representation directly to ensure we hit the specific lines
+    result = serializer.to_representation(element)
+    
+    # Verify the result structure and content
+    assert "test_element" in result
+    element_data = result["test_element"]
+    assert element_data["label_text"] == "Test Label"
+    assert element_data["file_name"] == "test_element_v.png"
+    
+    # Verify the original fields are removed
+    assert "label_text_loc" not in element_data
+    assert "uielementname" not in element_data
+
+@pytest.mark.django_db
+def test_uielement_project_serializer_missing_language_code():
+    # Create a language and a localized string
+    lang = baker.make(models.Language, language_code="en")
+    loc = baker.make(models.LocalizedString, language=lang, localized_string="Test Label")
+    
+    # Create UIElement with the localized string
+    uien = baker.make(models.UIElementName, name="test_element")
+    element = baker.make(models.UIElement, uielementname=uien, variant="_v", file_extension="png")
+    element.label_text_loc.add(loc)
+    element.save()
+    
+    # Create serializer with empty context - should fallback to English
+    serializer = serializers.UIElementProjectSerializer(element, context={"lc": None})
+    
+    # Call to_representation directly to ensure we hit the specific lines
+    result = serializer.to_representation(element)
+    
+    # Verify the result structure and content
+    assert "test_element" in result
+    element_data = result["test_element"]
+    assert element_data["label_text"] == "Test Label"  # Should fallback to English
+    assert element_data["file_name"] == "test_element_v.png"
+    
+    # Verify the original fields are removed
+    assert "label_text_loc" not in element_data
+    assert "uielementname" not in element_data
