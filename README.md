@@ -146,6 +146,28 @@ To run tests and get a report of test coverage:
 
     (roundware)user@machine:~/roundware-server$ ./test.sh
 
+## Smoke Testing (Roundware API 2) 
+
+For quick smoke testing of the API 2, you can use these commands:
+
+1. Run Tests:
+    ```bash
+    # General syntax
+    pytest <path_to_test_file> -v
+
+    # Example
+    pytest roundware/api2/tests/test_views.py -v
+    ```
+
+2. Generate Coverage Report:
+    ```bash
+    # General syntax
+    pytest --cov=<module_name> --cov-report=html <path_to_test_file>
+
+    # Example
+    pytest --cov=roundware.api2 --cov-report=html roundware/api2/tests/test_views.py
+    ```
+
 ## Upgrading notes
 
 During significant server upgrades the Python VirtualEnv may need to be rebuilt. Enter the
