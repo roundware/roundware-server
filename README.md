@@ -167,6 +167,16 @@ For quick smoke testing of the API 2, you can use these commands:
     # Example
     pytest --cov=roundware.api2 --cov-report=html roundware/api2/tests/test_views.py
     ```
+3. Run All Test Cases:
+    It will run all the tests under the roundware/api2/tests/ directory.
+
+    ```bash
+    # Run all API 2 tests
+    python run_tests.py
+
+    # Run to check coverage report
+    python run_tests.py -c
+    ```
 
 ## Upgrading notes
 
