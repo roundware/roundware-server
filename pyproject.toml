@@ -86,6 +86,8 @@ test = [
     "django-webtest",
     "model_bakery",
     "mock",
+    "pytest",
+    "pytest-django",
 ]
 
 [tool.setuptools.dynamic]
