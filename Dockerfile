@@ -22,8 +22,6 @@ RUN apt-get update && apt-get install -y software-properties-common && \
     python3.11-dev \
     python3.11-venv \
     python3.11-distutils \
-    python3-gdal \
-    python3-fiona \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -37,10 +35,6 @@ RUN python3 -m pip install --no-cache-dir pip setuptools --upgrade
 COPY pyproject.toml .
 COPY scripts/ ./scripts
 COPY roundware/ ./roundware
-
-# Create symlinks for GDAL and Fiona
-RUN ln -s /usr/lib/python3/dist-packages/GDAL* $VIRTUAL_ENV/lib/python3.11/site-packages/ && \
-    ln -s /usr/lib/python3/dist-packages/fiona* $VIRTUAL_ENV/lib/python3.11/site-packages/
 
 RUN python3 -m pip install .
 RUN python3 -m roundware.manage collectstatic --noinput
