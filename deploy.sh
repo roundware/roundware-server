@@ -3,7 +3,7 @@
 # See COPYRIGHT.txt, AUTHORS.txt, and LICENSE.txt in the project root directory.
 
 # Upgrade/Deployment for Roundware Server (http://www.roundware.org/)
-# Tested with Ubuntu 14.04 LTS 64 bit
+# Updated for Python 3.11 and Django 4.2 compatibility
 #
 # Use this to update production code.
 
@@ -34,7 +34,7 @@ cp $SOURCE_PATH/files/home-user-profile /home/$USERNAME/.profile
 # Set paths/directories
 WWW_PATH="/var/www/roundware"
 CODE_PATH="$WWW_PATH/source"
-VENV_PATH="$WWW_PATH"
+VENV_PATH="/var/www/roundware-venv"  # Updated: venv outside code directory
 
 # Install/Update the production code
 # TODO: Better deployment method.
@@ -42,8 +42,20 @@ rm -rf $CODE_PATH
 mkdir -p $CODE_PATH
 cp -R $SOURCE_PATH/. $CODE_PATH
 
+# Create or recreate virtual environment with Python 3.11
+if [ -d "$VENV_PATH" ]; then
+  echo "Removing existing virtual environment..."
+  rm -rf $VENV_PATH
+fi
+
+echo "Creating new virtual environment with Python 3.11..."
+python3.11 -m venv $VENV_PATH
+
 # Activate the environment
 source $VENV_PATH/bin/activate
+
+# Verify Python version
+python --version
 
 # Set python path to use production code
 export PYTHONPATH=$CODE_PATH
@@ -51,20 +63,31 @@ export PYTHONPATH=$CODE_PATH
 # Install upgrade pip
 python -m pip install -U pip wheel setuptools
 
-# Install Roundware requirements
-python -m pip install -r $CODE_PATH/requirements.txt --upgrade
+# Install Roundware requirements (updated path)
+if [ -f "$CODE_PATH/requirements/common.txt" ]; then
+  echo "Installing from requirements/common.txt..."
+  python -m pip install -r $CODE_PATH/requirements/common.txt --upgrade
+elif [ -f "$CODE_PATH/requirements.txt" ]; then
+  echo "Installing from requirements.txt..."
+  python -m pip install -r $CODE_PATH/requirements.txt --upgrade
+else
+  echo "Error: No requirements file found!"
+  exit 1
+fi
+
 if [ $ROUNDWARE_DEV ]; then
   python -m pip install -r $CODE_PATH/requirements/dev.txt --upgrade
 fi
 
 # Set $USERNAME to own WWW_PATH files
 chown $USERNAME:$USERNAME -R $WWW_PATH
+chown $USERNAME:$USERNAME -R $VENV_PATH
 
 # Run database migrations
-su - $USERNAME -c "$CODE_PATH/roundware/manage.py migrate --noinput"
+su - $USERNAME -c "$VENV_PATH/bin/python $CODE_PATH/roundware/manage.py migrate --noinput"
 
 # Collect static files for production
-su - $USERNAME -c "$CODE_PATH/roundware/manage.py collectstatic --noinput"
+su - $USERNAME -c "$VENV_PATH/bin/python $CODE_PATH/roundware/manage.py collectstatic --noinput"
 
 systemctl restart apache2
 
