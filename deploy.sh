@@ -83,6 +83,9 @@ fi
 chown $USERNAME:$USERNAME -R $WWW_PATH
 chown $USERNAME:$USERNAME -R $VENV_PATH
 
+# Fix venv permissions for package installation
+chmod -R u+w $VENV_PATH
+
 # Run database migrations
 su - $USERNAME -c "$VENV_PATH/bin/python $CODE_PATH/roundware/manage.py migrate --noinput"
 
