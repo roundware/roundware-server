@@ -64,8 +64,6 @@ dependencies = [
     "geopy",
     # cors support to remove php layer
     "django-cors-headers==3.3.0",
-    # fiona is a useful tool for processing geographic files (ETL)
-    "fiona",
     # geographic extensions for djangorestframework-gis
     "djangorestframework-gis<=0.16",
     # leaflet map utilities for django admin
@@ -86,6 +84,9 @@ test = [
     "django-webtest",
     "model_bakery",
     "mock",
+    "pytest",
+    "pytest-django",
+    "pytest-cov",
 ]
 
 [tool.setuptools.dynamic]

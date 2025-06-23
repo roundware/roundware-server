@@ -1,31 +1,42 @@
-FROM ubuntu:24.04
-RUN mkdir /code
+FROM ubuntu:22.04
+ENV DEBIAN_FRONTEND=noninteractive
+
 ENV PATH=/code:$PATH
 ENV PYTHONPATH=/code
 
 WORKDIR /code
-ADD requirements.apt .
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update -y && \
-    xargs -a requirements.apt apt-get install -y --fix-missing && \
-    apt-get upgrade -y gdal-bin \
+RUN apt-get update && apt-get install -y software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    add-apt-repository ppa:ubuntugis/ppa && \
+    apt-get update && \
+    apt-get install -y \
+    binutils \
+    ffmpeg \
+    gdal-bin \
+    git \
+    libgdal-dev \
+    libproj-dev \
+    mediainfo \
+    pacpl \
+    python3.11 \
+    python3.11-dev \
+    python3.11-venv \
+    python3.11-distutils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 ENV VIRTUAL_ENV=/pythonenv/roundware-venv
-RUN mkdir /pythonenv/
-RUN python3 -m venv $VIRTUAL_ENV
+RUN mkdir -p /pythonenv/ && \
+    python3.11 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-RUN python3 -m pip install pip setuptools --upgrade &&  \
-    which python3  \
-    && python3 --version
+RUN python3 -m pip install --no-cache-dir pip setuptools --upgrade
 
-ADD pyproject.toml .
-ADD scripts/ ./scripts
-ADD roundware/ ./roundware
+COPY pyproject.toml .
+COPY scripts/ ./scripts
+COPY roundware/ ./roundware
 
 RUN python3 -m pip install .
-RUN python3 -m roundware.manage collectstatic
+RUN python3 -m roundware.manage collectstatic --noinput
 
-ADD .coveragerc .
+COPY .coveragerc .
