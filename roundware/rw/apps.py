@@ -3,5 +3,5 @@ from django.apps import AppConfig
 
 
 class RoundwareConfig(AppConfig):
-    name = "rw"
+    name = "roundware.rw"
     verbose_name = "Roundware Core"

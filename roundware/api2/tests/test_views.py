@@ -149,7 +149,7 @@ def test_exception_handler_with_auth_header():
     exc.auth_header = 'Bearer realm="api"'
     response = exception_handler(exc, {})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response._headers.get('www-authenticate', (None, None))[1] == 'Bearer realm="api"'
+    assert response.headers.get('www-authenticate') == 'Bearer realm="api"'
 
 # Test view methods
 def test_api_view_options_method(api_rf, sample_view):
@@ -235,8 +235,8 @@ def test_api_view_options_allowed_methods(api_rf, sample_view):
     request = api_rf.options('/')
     response = sample_view.dispatch(request)
     assert response.status_code == status.HTTP_200_OK
-    assert 'allow' in response._headers
-    allow_header = response._headers['allow'][1].split(', ')
+    assert 'allow' in response.headers
+    allow_header = response.headers['allow'].split(', ')
     assert 'GET' in allow_header
     assert 'POST' in allow_header
     assert 'OPTIONS' in allow_header
@@ -274,7 +274,7 @@ def test_api_view_head_method(api_rf, sample_view_class):
     head_response = view.dispatch(head_request)
     
     assert head_response.status_code == get_response.status_code
-    assert head_response._headers == get_response._headers
+    assert dict(head_response.headers) == dict(get_response.headers)
     assert head_response.content == b''
 
 @pytest.mark.django_db
@@ -859,9 +859,9 @@ def test_finalize_response_with_vary_headers(api_rf):
     
     response = view.finalize_response(request, Response({'message': 'test'}))
     
-    assert 'vary' in response._headers
-    assert 'Accept-Version' in response._headers['vary'][1]
-    assert response._headers['custom-header'][1] == 'Value'
+    assert 'vary' in response.headers
+    assert 'Accept-Version' in response.headers['vary']
+    assert response.headers['custom-header'] == 'Value'
 
 # Test Versioning
 class CustomURLVersioning(versioning.BaseVersioning):
@@ -1041,8 +1041,8 @@ def test_dispatch_with_headers(api_rf):
     request = api_rf.get('/test/')
     response = view.dispatch(request)
     
-    assert 'allow' in response._headers
-    assert 'GET, OPTIONS' in response._headers['allow'][1]
+    assert 'allow' in response.headers
+    assert 'GET, OPTIONS' in response.headers['allow']
 
 @pytest.mark.django_db
 def test_dispatch_with_custom_headers(api_rf):
@@ -1058,8 +1058,8 @@ def test_dispatch_with_custom_headers(api_rf):
     request = api_rf.get('/test/')
     response = view.dispatch(request)
     
-    assert 'custom-header' in response._headers
-    assert response._headers['custom-header'][1] == 'test-value'
+    assert 'custom-header' in response.headers
+    assert response.headers['custom-header'] == 'test-value'
 
 # Test raise_uncaught_exception method
 @pytest.mark.django_db
@@ -1251,7 +1251,7 @@ def test_handle_exception_preserves_response_data(api_rf):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data == {'detail': 'Custom error', 'extra': 'data'}
     assert response.exception is True
-    assert response._headers['custom-header'] == ('Custom-Header', 'test')
+    assert response.headers['custom-header'] == 'test'
 
 # Test exception handler and context logic (lines 456-461)
 @pytest.mark.django_db
@@ -2039,13 +2039,13 @@ def test_finalize_response_vary_header_handling():
     final_response = view.finalize_response(request, response)
     
     # Verify Vary headers were properly handled
-    assert 'vary' in final_response._headers
-    vary_value = final_response._headers['vary'][1]
+    assert 'vary' in final_response.headers
+    vary_value = final_response.headers['vary']
     assert 'Accept-Language' in vary_value
     assert 'Cookie' in vary_value
     
     # Verify other headers were set
-    assert final_response._headers['custom-header'] == ('Custom-Header', 'test-value')
+    assert final_response.headers['custom-header'] == 'test-value'
 
 def test_finalize_response_multiple_vary_merging():
     """Test finalize_response merging multiple Vary headers."""
@@ -2077,8 +2077,8 @@ def test_finalize_response_multiple_vary_merging():
     final_response = view.finalize_response(request, response)
     
     # Verify all Vary headers were merged
-    assert 'vary' in final_response._headers
-    vary_value = final_response._headers['vary'][1]
+    assert 'vary' in final_response.headers
+    vary_value = final_response.headers['vary']
     assert 'Accept' in vary_value
     assert 'Accept-Language' in vary_value
     assert 'Cookie' in vary_value
@@ -2106,8 +2106,8 @@ def test_finalize_response_non_drf_response():
     final_response = view.finalize_response(request, response)
     
     # Verify headers were added to HttpResponse
-    assert final_response._headers['custom-header'] == ('Custom-Header', 'test-value')
-    assert 'Accept-Language' in final_response._headers['vary'][1]
+    assert final_response.headers['custom-header'] == 'test-value'
+    assert 'Accept-Language' in final_response.headers['vary']
 
 def test_handle_exception_not_authenticated_with_auth_header():
     """Test handle_exception with NotAuthenticated and WWW-Authenticate header."""

@@ -5,8 +5,8 @@ from __future__ import unicode_literals
 from django.contrib.admin import DateFieldListFilter, RelatedFieldListFilter
 from django.contrib.admin.utils import (get_model_from_relation,
                                        prepare_lookup_value)
-from django.utils.encoding import smart_text
-from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import smart_str
+from django.utils.translation import gettext_lazy as _
 
 from roundware.rw.models import Tag, TagCategory
 
@@ -121,6 +121,6 @@ class TagCategoryListFilter(RelatedFieldListFilter):
                'query_string': cl.get_query_string({}, [self.lookup_kwarg]),
                'display': _('All')}
         for val in self.lookup_choices:
-            yield {'selected': smart_text(val) == self.lookup_val,
+            yield {'selected': smart_str(val) == self.lookup_val,
                    'query_string': cl.get_query_string({self.lookup_kwarg: val}),
                    'display': val}

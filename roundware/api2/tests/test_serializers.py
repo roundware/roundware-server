@@ -809,7 +809,7 @@ def test_asset_serializer_with_all_fields():
     assert data['longitude'] == 20.0
     assert data['shape'] == {
         'type': 'MultiPolygon',
-        'coordinates': [[[[10.0, 20.0], [10.0, 20.1], [10.1, 20.1], [10.1, 20.0], [10.0, 20.0]]]]
+        'coordinates': [[[[20.0, 10.0], [20.1, 10.0], [20.1, 10.1], [20.0, 10.1], [20.0, 10.0]]]]
     }
 
 @pytest.mark.django_db

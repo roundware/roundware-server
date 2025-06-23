@@ -18,7 +18,7 @@ class RWTagOrderingSortedMultipleChoiceField(SortedMultipleChoiceField):
 from django.db import models
 from django import forms
 from django.template.defaultfilters import filesizeformat
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 import magic
 

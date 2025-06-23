@@ -3,7 +3,7 @@
 
 
 from __future__ import unicode_literals
-from django.conf.urls import url, include
+from django.urls import re_path as url, include
 from roundware.api1 import views
 import logging
 logger = logging.getLogger(__name__)
