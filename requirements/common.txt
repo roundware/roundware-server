@@ -15,7 +15,7 @@ django-braces==1.14.0
 # Loaded in roundware/urls.py
 # django-adminplus==0.2.1
 # Used in roundware/rw/forms.py
-django-crispy-forms==1.9.1
+django-crispy-forms>=2.0
 # Used in roundware/rw/widgets.py
 django-floppyforms==1.9.0
 # Used in roundware/rw/views.py:
@@ -23,7 +23,7 @@ django-extra-views==0.13.0
 # Used in roundware/rw/fields.py and roundware/rw/widgets.py
 django-sortedm2m==3.1.1
 # Required for RDF Date parsing
-python-dateutil==2.2
+python-dateutil>=2.9
 # Used in roundwared/icecast2.py
 requests>=2.32
 # Used in admin, including Batch Tag Add
@@ -33,11 +33,11 @@ psycopg2
 # geographic distance calculator utilities
 geopy
 # cors support to remove php layer
-django-cors-headers==3.3.0
+django-cors-headers>=4.0
 # geographic extensions for djangorestframework-gis
-djangorestframework-gis<=0.16
+djangorestframework-gis>=1.0
 # leaflet map utilities for django admin
-django-leaflet<0.27
+django-leaflet>=0.28
 # Bootstrap admin theme for Django 1.9
 # https://github.com/roundware/django-admin-bootstrapped/zipball/3.0.0
 # audio conversions
