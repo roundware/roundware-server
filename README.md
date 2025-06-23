@@ -40,6 +40,17 @@ settings in `/var/www/roundware/source/roundware/settings/common.py` can be
 overridden there. Do not modify any file within the `/var/www/roundware/source`
 directory unless you intend to maintain your own fork of Roundware Server.
 
+## Development & Deployment Guide
+
+📖 **For comprehensive development and deployment instructions, see [DEVELOPMENT_DEPLOYMENT_GUIDE.md](DEVELOPMENT_DEPLOYMENT_GUIDE.md)**
+
+This guide covers:
+- Local development with dev containers
+- Production deployment on Digital Ocean
+- Testing procedures for both environments
+- Troubleshooting common issues
+- Django 4.2 LTS upgrade details
+
 ## Local Development Environment
 
 Roundware is now containerized for local development using devcontainers. We have not yet containerized for production, though that is on the roadmap. We have optimized for VSCode, but any IDE that integrates devcontainers should work.
