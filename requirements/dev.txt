@@ -8,6 +8,8 @@ webtest
 django-webtest
 model_bakery
 mock
+pytest
+pytest-django
 
 #interactive interpreter for debugging
 ipython
