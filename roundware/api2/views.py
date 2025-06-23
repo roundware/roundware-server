@@ -1215,8 +1215,8 @@ class SpeakerViewSet(viewsets.ViewSet):
     API V2: api/2/speakers/
             api/2/speakers/:id/
     """
-    queryset = Speaker.objects.all()
-    permission_classes = (IsAuthenticated,)
+    queryset = Speaker.objects.prefetch_related('children', 'parents')
+    permission_classes = (IsAuthenticated, )
 
     def get_object(self, pk):
         try:

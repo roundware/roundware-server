@@ -342,9 +342,16 @@ class SessionSerializer(serializers.ModelSerializer):
 
 
 class SpeakerSerializer(serializers.ModelSerializer):
+    children = serializers.SerializerMethodField()
+
     class Meta:
         model = Speaker
         fields = "__all__"
+
+    def get_children(self, obj):
+        # Access the reverse relationship via `children`
+        return obj.children.values_list('id', flat=True)  # Return IDs of children
+    
 
     def to_representation(self, obj):
         result = super(SpeakerSerializer, self).to_representation(obj)

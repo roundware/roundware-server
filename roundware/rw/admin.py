@@ -493,6 +493,7 @@ class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
     list_display = ('id', 'activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'shape', 'uri')
     list_filter = ('project', 'activeyn')
     list_editable = ('activeyn', 'maxvolume', 'minvolume', 'shape')
+    filter_horizontal = ('parents', )
     ordering = ['id']
     save_as = True
     save_on_top = True
@@ -500,7 +501,7 @@ class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri', )
+            'fields': ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri', 'parents' )
         }),
         ('Geographical Data', {
             'fields': ('shape', 'attenuation_distance'),

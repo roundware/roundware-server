@@ -107,3 +107,19 @@ class TestAsset(RWTestCase):
 
     def test_distance(self):
         distance = self.asset1.distance({'latitude': 0, 'longitude': 0})
+
+class TestSpeaker(RWTestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.project = baker.make('rw.Project')
+        self.speaker1 = baker.make('rw.Speaker', project=self.project)
+        self.speaker2 = baker.make('rw.Speaker', project=self.project, parents=[self.speaker1])
+       
+    def test_speaker_children(self):
+        self.assertEqual(self.speaker1.parents.count(), 0)
+        self.assertEqual(self.speaker2.parents.count(), 1)
+        self.assertEqual(self.speaker1.children.count(), 1)
+        self.assertEqual(self.speaker2.children.count(), 0)
+
