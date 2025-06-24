@@ -548,6 +548,22 @@ class Speaker(models.Model):
 
     parents = models.ManyToManyField('Speaker', related_name='children', symmetrical=False, blank=True)
 
+    # Datetime tracking fields (like Asset model)
+    created = models.DateTimeField(default=datetime.now)
+    updated = models.DateTimeField(auto_now=True)
+
+    # Map display styling fields
+    fill_color = models.CharField(
+        max_length=9, 
+        default='#0000FF80',  # Semi-transparent blue
+        help_text='Hex color for polygon fill (supports alpha: #RRGGBBAA)'
+    )
+    border_color = models.CharField(
+        max_length=9, 
+        default='#0000FF',  # Solid blue
+        help_text='Hex color for polygon border (supports alpha: #RRGGBBAA)'
+    )
+
     objects = GeoManager()
 
     def __str__(self):
@@ -613,8 +629,9 @@ class Tag(models.Model):
     location = models.MultiPolygonField(geography=True, null=True, blank=True)
 
     # DEPRECATED: Used in API/1; could be generated from API/2 data
+    # Note: removed related_name since it has no effect on symmetrical relationships
     relationships_old = models.ManyToManyField(
-        'self', symmetrical=True, related_name='related_to', blank=True)
+        'self', symmetrical=True, blank=True)
 
     @mark_safe
     def get_loc(self):

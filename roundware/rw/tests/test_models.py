@@ -123,3 +123,42 @@ class TestSpeaker(RWTestCase):
         self.assertEqual(self.speaker1.children.count(), 1)
         self.assertEqual(self.speaker2.children.count(), 0)
 
+    def test_speaker_datetime_fields(self):
+        """Test that created and updated fields work correctly"""
+        speaker = baker.make('rw.Speaker', project=self.project)
+        
+        # Test that created and updated are set
+        self.assertIsNotNone(speaker.created)
+        self.assertIsNotNone(speaker.updated)
+        
+        # Test that created doesn't change on update but updated does
+        original_created = speaker.created
+        original_updated = speaker.updated
+        
+        # Small delay to ensure updated time changes
+        import time
+        time.sleep(0.01)
+        
+        speaker.code = 'updated'
+        speaker.save()
+        
+        self.assertEqual(speaker.created, original_created)
+        self.assertGreater(speaker.updated, original_updated)
+
+    def test_speaker_color_fields(self):
+        """Test that color fields have proper defaults and validation"""
+        speaker = baker.make('rw.Speaker', project=self.project)
+        
+        # Test default colors
+        self.assertEqual(speaker.fill_color, '#0000FF80')
+        self.assertEqual(speaker.border_color, '#0000FF')
+        
+        # Test custom colors can be set
+        speaker.fill_color = '#FF000080'
+        speaker.border_color = '#FF0000'
+        speaker.save()
+        
+        speaker.refresh_from_db()
+        self.assertEqual(speaker.fill_color, '#FF000080')
+        self.assertEqual(speaker.border_color, '#FF0000')
+

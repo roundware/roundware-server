@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 from django.forms.models import BaseModelFormSet
+from django import forms as django_forms
 
 import floppyforms as forms
 from crispy_forms.helper import FormHelper
@@ -10,7 +11,7 @@ from guardian.shortcuts import get_objects_for_user
 
 from django.conf import settings
 
-from roundware.rw.models import Tag, UIGroup, UIItem
+from roundware.rw.models import Tag, UIGroup, UIItem, Speaker
 from roundware.rw import fields
 from roundware.rw.widgets import (NonAdminRelatedFieldWidgetWrapper,
                                   DummyWidgetWrapper,
@@ -220,4 +221,122 @@ class UIGroupForSetupTagUIEditForm(UIGroupForSetupTagUIFormMixin,
             'select': 'Select Type',
             'index': 'Ordering',
             'header_text_loc': "Localized Header Text",
+        }
+
+
+class SpeakerForm(django_forms.ModelForm):
+    """
+    Custom form for Speaker model with color picker widgets that support alpha channel
+    """
+    # Virtual fields for the color picker UI
+    fill_color_rgb = django_forms.CharField(
+        required=False,
+        widget=django_forms.TextInput(attrs={
+            'type': 'color',
+            'title': 'Choose fill color (RGB)',
+            'style': 'width: 60px; height: 30px; margin-right: 10px;'
+        }),
+        help_text="RGB color component"
+    )
+    
+    fill_color_alpha = django_forms.IntegerField(
+        required=False,
+        min_value=0,
+        max_value=255,
+        initial=128,
+        widget=django_forms.NumberInput(attrs={
+            'type': 'range',
+            'min': '0',
+            'max': '255',
+            'step': '1',
+            'style': 'width: 100px; margin-right: 10px;',
+            'oninput': 'updateAlphaDisplay(this, "fill_alpha_display")'
+        }),
+        help_text="Alpha (transparency): 0=transparent, 255=opaque"
+    )
+    
+    border_color_rgb = django_forms.CharField(
+        required=False,
+        widget=django_forms.TextInput(attrs={
+            'type': 'color',
+            'title': 'Choose border color (RGB)',
+            'style': 'width: 60px; height: 30px; margin-right: 10px;'
+        }),
+        help_text="RGB color component"
+    )
+    
+    border_color_alpha = django_forms.IntegerField(
+        required=False,
+        min_value=0,
+        max_value=255,
+        initial=255,
+        widget=django_forms.NumberInput(attrs={
+            'type': 'range',
+            'min': '0',
+            'max': '255',
+            'step': '1',
+            'style': 'width: 100px; margin-right: 10px;',
+            'oninput': 'updateAlphaDisplay(this, "border_alpha_display")'
+        }),
+        help_text="Alpha (transparency): 0=transparent, 255=opaque"
+    )
+    
+    class Meta:
+        model = Speaker
+        fields = '__all__'
+        widgets = {
+            # Hide the actual hex fields since we use the RGB + alpha fields above
+            'fill_color': django_forms.HiddenInput(),
+            'border_color': django_forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(SpeakerForm, self).__init__(*args, **kwargs)
+        
+        # Parse existing hex values into RGB + alpha components
+        if self.instance and self.instance.pk:
+            # Parse fill_color (e.g., "#FF0000AA" -> RGB="#FF0000", Alpha=170)
+            if self.instance.fill_color:
+                fill_hex = self.instance.fill_color
+                if len(fill_hex) == 9:  # #RRGGBBAA
+                    self.fields['fill_color_rgb'].initial = fill_hex[:7]  # #RRGGBB
+                    self.fields['fill_color_alpha'].initial = int(fill_hex[7:9], 16)  # AA
+                elif len(fill_hex) == 7:  # #RRGGBB
+                    self.fields['fill_color_rgb'].initial = fill_hex
+                    self.fields['fill_color_alpha'].initial = 255
+                    
+            # Parse border_color
+            if self.instance.border_color:
+                border_hex = self.instance.border_color
+                if len(border_hex) == 9:  # #RRGGBBAA
+                    self.fields['border_color_rgb'].initial = border_hex[:7]  # #RRGGBB
+                    self.fields['border_color_alpha'].initial = int(border_hex[7:9], 16)  # AA
+                elif len(border_hex) == 7:  # #RRGGBB
+                    self.fields['border_color_rgb'].initial = border_hex
+                    self.fields['border_color_alpha'].initial = 255
+
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Combine RGB + alpha into 8-digit hex values
+        fill_rgb = cleaned_data.get('fill_color_rgb', '#0000FF')
+        fill_alpha = cleaned_data.get('fill_color_alpha', 128)
+        if fill_rgb and fill_alpha is not None:
+            # Convert alpha (0-255) to hex (00-FF)
+            alpha_hex = format(fill_alpha, '02X')
+            cleaned_data['fill_color'] = f"{fill_rgb}{alpha_hex}"
+            
+        border_rgb = cleaned_data.get('border_color_rgb', '#0000FF')
+        border_alpha = cleaned_data.get('border_color_alpha', 255)
+        if border_rgb and border_alpha is not None:
+            # Convert alpha (0-255) to hex (00-FF)
+            alpha_hex = format(border_alpha, '02X')
+            cleaned_data['border_color'] = f"{border_rgb}{alpha_hex}"
+            
+        return cleaned_data
+
+    class Media:
+        js = ('rw/js/speaker_color_admin.js',)
+        css = {
+            'all': ('rw/css/speaker_color_admin.css',)
         }

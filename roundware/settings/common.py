@@ -171,6 +171,7 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
+                'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
             ],
             "debug": DEBUG,
@@ -311,6 +312,9 @@ CACHES = {
 
 # use Twitter Bootstrap template pack for django-crispy-forms
 CRISPY_TEMPLATE_PACK = 'bootstrap'
+
+# Fix models.W042 warnings - use BigAutoField for new primary keys
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',

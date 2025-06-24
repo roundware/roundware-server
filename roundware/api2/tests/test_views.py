@@ -24,6 +24,7 @@ from rest_framework.request import Request
 from django.db import models
 from django.test.utils import override_settings
 from django.test.testcases import TransactionTestCase
+from django.urls import reverse
 
 # Test fixtures
 @pytest.fixture
@@ -2279,3 +2280,59 @@ def test_handle_exception_authentication_failed_custom_status():
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
     assert response['WWW-Authenticate'] == 'Bearer realm="api"'
     assert response.exception is True
+
+# Add this test to the existing SpeakerViewSet tests
+def test_speaker_datetime_fields_in_api_response(self):
+    """Test that created and updated fields are included in API responses"""
+    speaker = baker.make('rw.Speaker', project=self.project)
+    
+    # Test GET endpoint includes datetime fields
+    url = reverse('speaker-detail', args=[speaker.id])
+    response = self.client.get(url)
+    
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    data = response.json()
+    
+    self.assertIn('created', data)
+    self.assertIn('updated', data)
+    self.assertIsNotNone(data['created'])
+    self.assertIsNotNone(data['updated'])
+
+def test_speaker_color_fields_in_api_response(self):
+    """Test that color fields are included in API responses"""
+    speaker = baker.make('rw.Speaker', project=self.project)
+    
+    # Test GET endpoint includes color fields
+    url = reverse('speaker-detail', args=[speaker.id])
+    response = self.client.get(url)
+    
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    data = response.json()
+    
+    self.assertIn('fill_color', data)
+    self.assertIn('border_color', data)
+    self.assertEqual(data['fill_color'], '#0000FF80')
+    self.assertEqual(data['border_color'], '#0000FF')
+
+def test_speaker_color_fields_can_be_updated(self):
+    """Test that color fields can be updated via PATCH"""
+    speaker = baker.make('rw.Speaker', project=self.project)
+    
+    # Test PATCH endpoint can update color fields
+    url = reverse('speaker-detail', args=[speaker.id])
+    patch_data = {
+        'fill_color': '#FF000080',
+        'border_color': '#FF0000'
+    }
+    response = self.client.patch(url, patch_data, content_type='application/json')
+    
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    data = response.json()
+    
+    self.assertEqual(data['fill_color'], '#FF000080')
+    self.assertEqual(data['border_color'], '#FF0000')
+    
+    # Verify database was updated
+    speaker.refresh_from_db()
+    self.assertEqual(speaker.fill_color, '#FF000080')
+    self.assertEqual(speaker.border_color, '#FF0000')

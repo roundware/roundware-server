@@ -12,6 +12,8 @@ from roundware.rw.filters import AudiolengthListFilter, TagCategoryListFilter
 
 from leaflet.admin import LeafletGeoAdmin
 
+from roundware.rw.forms import SpeakerForm
+
 class VoteInline(admin.TabularInline):
     model = Vote
     extra = 1
@@ -490,14 +492,16 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
 
 
 class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
-    list_display = ('id', 'activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'shape', 'uri')
-    list_filter = ('project', 'activeyn')
+    form = SpeakerForm
+    list_display = ('id', 'activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'shape', 'uri', 'created', 'updated')
+    list_filter = ('project', 'activeyn', 'created')
     list_editable = ('activeyn', 'maxvolume', 'minvolume', 'shape')
     filter_horizontal = ('parents', )
     ordering = ['id']
     save_as = True
     save_on_top = True
     map_width = "400px"
+    readonly_fields = ('created', 'updated')
 
     fieldsets = (
         (None, {
@@ -505,6 +509,18 @@ class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
         }),
         ('Geographical Data', {
             'fields': ('shape', 'attenuation_distance'),
+        }),
+        ('Map Display Colors', {
+            'fields': (
+                ('fill_color_rgb', 'fill_color_alpha'),
+                ('border_color_rgb', 'border_color_alpha'),
+                ('fill_color', 'border_color'),  # Hidden fields for storage
+            ),
+            'description': 'Set colors for this speaker\'s polygon on the map. Use RGB color pickers and sliders to control transparency (alpha).',
+        }),
+        ('Timestamps', {
+            'fields': ('created', 'updated'),
+            'classes': ('collapse',)
         })
     )
 
@@ -512,10 +528,11 @@ class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
         css = {
             "all": (
                 "http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
-                "rw/css/speaker_admin.css"
+                "rw/css/speaker_admin.css",
+                "rw/css/speaker_color_admin.css"
             )
         }
-        js = []
+        js = ['rw/js/speaker_color_admin.js']
 
 
 class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):

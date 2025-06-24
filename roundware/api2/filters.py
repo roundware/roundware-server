@@ -245,11 +245,15 @@ class SpeakerFilterSet(django_filters.FilterSet):
     parent_ids_or = IntegerListFilter(field_name='parents', lookup_expr='in') # performs OR filtering
     parent_ids = IntegerListAndFilter(field_name='parents__id') # performs AND filtering
     children_ids_or = IntegerListFilter(field_name='children', lookup_expr='in') # performs OR filtering
-    children_ids = IntegerListAndFilter(field_name='children__id') # performs AND filtering 
+    children_ids = IntegerListAndFilter(field_name='children__id') # performs AND filtering
+    created__lte = django_filters.DateTimeFilter(field_name='created', lookup_expr='lte')
+    created__gte = django_filters.DateTimeFilter(field_name='created', lookup_expr='gte')
+    updated__lte = django_filters.DateTimeFilter(field_name='updated', lookup_expr='lte')
+    updated__gte = django_filters.DateTimeFilter(field_name='updated', lookup_expr='gte')
 
     class Meta:
         model = Speaker
-        fields = ["activeyn", "project_id", "parents", "children"]
+        fields = ["activeyn", "project_id", "parents", "children", "created", "updated"]
 
 
 class TagFilterSet(django_filters.FilterSet):
