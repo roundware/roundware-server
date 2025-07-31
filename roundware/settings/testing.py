@@ -7,11 +7,11 @@ LOGGING['handlers'] = {
         'class': 'logging.StreamHandler',
         'formatter': 'simple'
     },
-    # File handler for production-style logging
+    # File handler for production-style logging (only if directory exists)
     'file': {
         'level': 'INFO',
         'class': 'logging.FileHandler',
-        'filename': '/var/logs/roundware',
+        'filename': '/tmp/roundware_test.log',  # Use temp file for CI
         'formatter': 'verbose',
     }
 }
