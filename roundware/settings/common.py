@@ -42,6 +42,14 @@ ALLOWED_VIDEO_MIME_TYPES = ['video/quicktime']
 ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES \
                      + ALLOWED_TEXT_MIME_TYPES + ALLOWED_VIDEO_MIME_TYPES
 
+# Audio normalization settings
+# Target LUFS level for speaker audio normalization (default: -23 LUFS for broadcast standard)
+AUDIO_NORMALIZATION_TARGET_LUFS = -23.0
+# Enable audio normalization for speaker files (default: True)
+AUDIO_NORMALIZATION_ENABLED = True
+# Tolerance range for LUFS (files within this range won't be normalized)
+AUDIO_NORMALIZATION_TOLERANCE = 2.0
+
 # session_id assigned to files that are uploaded through the admin
 # MUST correspond to session_id that exists in session table
 DEFAULT_SESSION_ID = "1"
