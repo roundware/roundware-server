@@ -6,7 +6,27 @@ LOGGING['handlers'] = {
         'level': 'DEBUG',
         'class': 'logging.StreamHandler',
         'formatter': 'simple'
+    },
+    # File handler for production-style logging
+    'file': {
+        'level': 'INFO',
+        'class': 'logging.FileHandler',
+        'filename': '/var/logs/roundware',
+        'formatter': 'verbose',
     }
+}
+
+LOGGING['loggers'] = {
+    '': {
+        'handlers': ['console', 'file'],
+        'level': 'DEBUG',
+        'propagate': True
+    },
+    'roundware.lib': {
+        'level': 'INFO',
+        'handlers': ['console', 'file'],
+        'propagate': False,
+    },
 }
 
 CACHES = {
