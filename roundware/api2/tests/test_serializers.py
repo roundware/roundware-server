@@ -970,6 +970,48 @@ def test_speaker_serializer_with_children():
     assert set(data['children']) == set([child.id for child in children])
 
 @pytest.mark.django_db
+def test_speaker_serializer_with_varianturis():
+    """Test that varianturis field is properly serialized"""
+    project = baker.make(models.Project)
+    speaker = baker.make(models.Speaker, 
+        project=project,
+        varianturis=['http://example.com/audio1.mp3', 'http://example.com/audio2.mp3']
+    )
+    serializer = serializers.SpeakerSerializer(speaker)
+    data = serializer.data
+    
+    assert 'varianturis' in data
+    assert data['varianturis'] == ['http://example.com/audio1.mp3', 'http://example.com/audio2.mp3']
+    assert isinstance(data['varianturis'], list)
+
+@pytest.mark.django_db
+def test_speaker_serializer_with_empty_varianturis():
+    """Test that empty varianturis field is properly serialized"""
+    project = baker.make(models.Project)
+    speaker = baker.make(models.Speaker, 
+        project=project,
+        varianturis=[]
+    )
+    serializer = serializers.SpeakerSerializer(speaker)
+    data = serializer.data
+    
+    assert 'varianturis' in data
+    assert data['varianturis'] == []
+    assert isinstance(data['varianturis'], list)
+
+@pytest.mark.django_db
+def test_speaker_serializer_varianturis_default():
+    """Test that varianturis field has proper default value"""
+    project = baker.make(models.Project)
+    speaker = baker.make(models.Speaker, project=project)
+    # Don't set varianturis explicitly to test default
+    serializer = serializers.SpeakerSerializer(speaker)
+    data = serializer.data
+    
+    assert 'varianturis' in data
+    assert isinstance(data['varianturis'], list)
+
+@pytest.mark.django_db
 def test_tag_serializer_with_all_fields():
     project = baker.make(models.Project)
     category = baker.make(models.TagCategory)

@@ -2282,41 +2282,65 @@ def test_handle_exception_authentication_failed_custom_status():
     assert response.exception is True
 
 # Add this test to the existing SpeakerViewSet tests
-def test_speaker_datetime_fields_in_api_response(self):
+@pytest.mark.django_db
+def test_speaker_datetime_fields_in_api_response(client):
     """Test that created and updated fields are included in API responses"""
-    speaker = baker.make('rw.Speaker', project=self.project)
+    project = baker.make('rw.Project')
+    speaker = baker.make('rw.Speaker', project=project)
+    
+    # Create a user and token for authentication
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    user = User.objects.create_user(username='testuser', password='testpass')
+    token = Token.objects.create(user=user)
     
     # Test GET endpoint includes datetime fields
     url = reverse('speaker-detail', args=[speaker.id])
-    response = self.client.get(url)
+    response = client.get(url, HTTP_AUTHORIZATION=f'Token {token.key}')
     
-    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    assert response.status_code == status.HTTP_200_OK
     data = response.json()
     
-    self.assertIn('created', data)
-    self.assertIn('updated', data)
-    self.assertIsNotNone(data['created'])
-    self.assertIsNotNone(data['updated'])
+    assert 'created' in data
+    assert 'updated' in data
+    assert data['created'] is not None
+    assert data['updated'] is not None
 
-def test_speaker_color_fields_in_api_response(self):
+@pytest.mark.django_db
+def test_speaker_color_fields_in_api_response(client):
     """Test that color fields are included in API responses"""
-    speaker = baker.make('rw.Speaker', project=self.project)
+    project = baker.make('rw.Project')
+    speaker = baker.make('rw.Speaker', project=project)
+    
+    # Create a user and token for authentication
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    user = User.objects.create_user(username='testuser', password='testpass')
+    token = Token.objects.create(user=user)
     
     # Test GET endpoint includes color fields
     url = reverse('speaker-detail', args=[speaker.id])
-    response = self.client.get(url)
+    response = client.get(url, HTTP_AUTHORIZATION=f'Token {token.key}')
     
-    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    assert response.status_code == status.HTTP_200_OK
     data = response.json()
     
-    self.assertIn('fill_color', data)
-    self.assertIn('border_color', data)
-    self.assertEqual(data['fill_color'], '#0000FF80')
-    self.assertEqual(data['border_color'], '#0000FF')
+    assert 'fill_color' in data
+    assert 'border_color' in data
+    assert data['fill_color'] == '#0000FF80'
+    assert data['border_color'] == '#0000FF'
 
-def test_speaker_color_fields_can_be_updated(self):
+@pytest.mark.django_db
+def test_speaker_color_fields_can_be_updated(client):
     """Test that color fields can be updated via PATCH"""
-    speaker = baker.make('rw.Speaker', project=self.project)
+    project = baker.make('rw.Project')
+    speaker = baker.make('rw.Speaker', project=project)
+    
+    # Create a user and token for authentication
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    user = User.objects.create_user(username='testuser', password='testpass')
+    token = Token.objects.create(user=user)
     
     # Test PATCH endpoint can update color fields
     url = reverse('speaker-detail', args=[speaker.id])
@@ -2324,15 +2348,255 @@ def test_speaker_color_fields_can_be_updated(self):
         'fill_color': '#FF000080',
         'border_color': '#FF0000'
     }
-    response = self.client.patch(url, patch_data, content_type='application/json')
+    response = client.patch(url, patch_data, content_type='application/json', 
+                           HTTP_AUTHORIZATION=f'Token {token.key}')
     
-    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    assert response.status_code == status.HTTP_200_OK
     data = response.json()
     
-    self.assertEqual(data['fill_color'], '#FF000080')
-    self.assertEqual(data['border_color'], '#FF0000')
+    assert data['fill_color'] == '#FF000080'
+    assert data['border_color'] == '#FF0000'
     
     # Verify database was updated
     speaker.refresh_from_db()
-    self.assertEqual(speaker.fill_color, '#FF000080')
-    self.assertEqual(speaker.border_color, '#FF0000')
+    assert speaker.fill_color == '#FF000080'
+    assert speaker.border_color == '#FF0000'
+
+@pytest.mark.django_db
+def test_speaker_varianturis_field_in_api_response(client):
+    """Test that varianturis field is included in API responses"""
+    project = baker.make('rw.Project')
+    speaker = baker.make('rw.Speaker', 
+        project=project,
+        varianturis=['http://example.com/audio1.mp3', 'http://example.com/audio2.mp3']
+    )
+    
+    # Create a user and token for authentication
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    user = User.objects.create_user(username='testuser', password='testpass')
+    token = Token.objects.create(user=user)
+    
+    # Test GET endpoint includes varianturis field
+    url = reverse('speaker-detail', args=[speaker.id])
+    response = client.get(url, HTTP_AUTHORIZATION=f'Token {token.key}')
+    
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    
+    assert 'varianturis' in data
+    assert data['varianturis'] == ['http://example.com/audio1.mp3', 'http://example.com/audio2.mp3']
+    assert isinstance(data['varianturis'], list)
+
+@pytest.mark.django_db
+def test_speaker_varianturis_field_can_be_updated_via_patch(client):
+    """Test that varianturis field can be updated via PATCH"""
+    project = baker.make('rw.Project')
+    speaker = baker.make('rw.Speaker', 
+        project=project,
+        varianturis=['http://example.com/audio1.mp3']
+    )
+    
+    # Create a user and token for authentication
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    user = User.objects.create_user(username='testuser', password='testpass')
+    token = Token.objects.create(user=user)
+    
+    # Test PATCH endpoint can update varianturis field
+    url = reverse('speaker-detail', args=[speaker.id])
+    patch_data = {
+        'varianturis': [
+            'http://example.com/audio1.mp3',
+            'http://example.com/audio2.mp3',
+            'http://example.com/audio3.mp3'
+        ]
+    }
+    response = client.patch(url, patch_data, content_type='application/json', 
+                           HTTP_AUTHORIZATION=f'Token {token.key}')
+    
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    
+    assert len(data['varianturis']) == 3
+    assert 'http://example.com/audio1.mp3' in data['varianturis']
+    assert 'http://example.com/audio2.mp3' in data['varianturis']
+    assert 'http://example.com/audio3.mp3' in data['varianturis']
+    
+    # Verify database was updated
+    speaker.refresh_from_db()
+    assert len(speaker.varianturis) == 3
+
+@pytest.mark.django_db
+def test_speaker_add_variant_uri_endpoint(client):
+    """Test the add-variant-uri custom endpoint"""
+    project = baker.make('rw.Project')
+    speaker = baker.make('rw.Speaker', 
+        project=project,
+        varianturis=['http://example.com/audio1.mp3']
+    )
+    
+    # Create a user and token for authentication
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    user = User.objects.create_user(username='testuser', password='testpass')
+    token = Token.objects.create(user=user)
+    
+    # Test adding a new URI
+    url = reverse('speaker-add-variant-uri', args=[speaker.id])
+    data = {'uri': 'http://example.com/audio2.mp3'}
+    response = client.post(url, data, content_type='application/json', 
+                          HTTP_AUTHORIZATION=f'Token {token.key}')
+    
+    assert response.status_code == status.HTTP_200_OK
+    response_data = response.json()
+    
+    assert 'varianturis' in response_data
+    assert len(response_data['varianturis']) == 2
+    assert 'http://example.com/audio1.mp3' in response_data['varianturis']
+    assert 'http://example.com/audio2.mp3' in response_data['varianturis']
+    
+    # Verify database was updated
+    speaker.refresh_from_db()
+    assert len(speaker.varianturis) == 2
+    assert 'http://example.com/audio2.mp3' in speaker.varianturis
+
+@pytest.mark.django_db
+def test_speaker_add_variant_uri_duplicate_prevention(client):
+    """Test that adding duplicate URIs doesn't create duplicates"""
+    project = baker.make('rw.Project')
+    speaker = baker.make('rw.Speaker', 
+        project=project,
+        varianturis=['http://example.com/audio1.mp3']
+    )
+    
+    # Create a user and token for authentication
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    user = User.objects.create_user(username='testuser', password='testpass')
+    token = Token.objects.create(user=user)
+    
+    # Try to add the same URI again
+    url = reverse('speaker-add-variant-uri', args=[speaker.id])
+    data = {'uri': 'http://example.com/audio1.mp3'}
+    response = client.post(url, data, content_type='application/json', 
+                          HTTP_AUTHORIZATION=f'Token {token.key}')
+    
+    assert response.status_code == status.HTTP_200_OK
+    response_data = response.json()
+    
+    # Should still only have one URI
+    assert len(response_data['varianturis']) == 1
+    assert 'http://example.com/audio1.mp3' in response_data['varianturis']
+    
+    # Verify database wasn't changed
+    speaker.refresh_from_db()
+    assert len(speaker.varianturis) == 1
+
+@pytest.mark.django_db
+def test_speaker_add_variant_uri_missing_uri_field(client):
+    """Test that add-variant-uri endpoint returns error for missing uri field"""
+    project = baker.make('rw.Project')
+    speaker = baker.make('rw.Speaker', project=project)
+    
+    # Create a user and token for authentication
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    user = User.objects.create_user(username='testuser', password='testpass')
+    token = Token.objects.create(user=user)
+    
+    url = reverse('speaker-add-variant-uri', args=[speaker.id])
+    data = {}  # Missing 'uri' field
+    response = client.post(url, data, content_type='application/json', 
+                          HTTP_AUTHORIZATION=f'Token {token.key}')
+    
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'detail' in response.json()
+    assert 'uri' in response.json()['detail']
+
+@pytest.mark.django_db
+def test_speaker_remove_variant_uri_endpoint(client):
+    """Test the remove-variant-uri custom endpoint"""
+    project = baker.make('rw.Project')
+    speaker = baker.make('rw.Speaker', 
+        project=project,
+        varianturis=['http://example.com/audio1.mp3', 'http://example.com/audio2.mp3']
+    )
+    
+    # Create a user and token for authentication
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    user = User.objects.create_user(username='testuser', password='testpass')
+    token = Token.objects.create(user=user)
+    
+    # Test removing a URI
+    url = reverse('speaker-remove-variant-uri', args=[speaker.id])
+    data = {'uri': 'http://example.com/audio1.mp3'}
+    response = client.post(url, data, content_type='application/json', 
+                          HTTP_AUTHORIZATION=f'Token {token.key}')
+    
+    assert response.status_code == status.HTTP_200_OK
+    response_data = response.json()
+    
+    assert 'varianturis' in response_data
+    assert len(response_data['varianturis']) == 1
+    assert 'http://example.com/audio1.mp3' not in response_data['varianturis']
+    assert 'http://example.com/audio2.mp3' in response_data['varianturis']
+    
+    # Verify database was updated
+    speaker.refresh_from_db()
+    assert len(speaker.varianturis) == 1
+    assert 'http://example.com/audio1.mp3' not in speaker.varianturis
+
+@pytest.mark.django_db
+def test_speaker_remove_variant_uri_nonexistent_uri(client):
+    """Test that removing non-existent URI doesn't cause error"""
+    project = baker.make('rw.Project')
+    speaker = baker.make('rw.Speaker', 
+        project=project,
+        varianturis=['http://example.com/audio1.mp3']
+    )
+    
+    # Create a user and token for authentication
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    user = User.objects.create_user(username='testuser', password='testpass')
+    token = Token.objects.create(user=user)
+    
+    # Try to remove a URI that doesn't exist
+    url = reverse('speaker-remove-variant-uri', args=[speaker.id])
+    data = {'uri': 'http://example.com/nonexistent.mp3'}
+    response = client.post(url, data, content_type='application/json', 
+                          HTTP_AUTHORIZATION=f'Token {token.key}')
+    
+    assert response.status_code == status.HTTP_200_OK
+    response_data = response.json()
+    
+    # Should still have the original URI
+    assert len(response_data['varianturis']) == 1
+    assert 'http://example.com/audio1.mp3' in response_data['varianturis']
+    
+    # Verify database wasn't changed
+    speaker.refresh_from_db()
+    assert len(speaker.varianturis) == 1
+
+@pytest.mark.django_db
+def test_speaker_remove_variant_uri_missing_uri_field(client):
+    """Test that remove-variant-uri endpoint returns error for missing uri field"""
+    project = baker.make('rw.Project')
+    speaker = baker.make('rw.Speaker', project=project)
+    
+    # Create a user and token for authentication
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    user = User.objects.create_user(username='testuser', password='testpass')
+    token = Token.objects.create(user=user)
+    
+    url = reverse('speaker-remove-variant-uri', args=[speaker.id])
+    data = {}  # Missing 'uri' field
+    response = client.post(url, data, content_type='application/json', 
+                          HTTP_AUTHORIZATION=f'Token {token.key}')
+    
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'detail' in response.json()
+    assert 'uri' in response.json()['detail']
