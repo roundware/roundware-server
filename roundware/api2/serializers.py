@@ -350,7 +350,7 @@ class SpeakerSerializer(serializers.ModelSerializer):
 
     def get_children(self, obj):
         # Access the reverse relationship via `children`
-        return obj.children.values_list('id', flat=True)  # Return IDs of children
+        return list(obj.children.values_list('id', flat=True))  # Return IDs of children as list
     
 
     def to_representation(self, obj):
