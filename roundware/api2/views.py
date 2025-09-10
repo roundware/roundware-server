@@ -90,6 +90,12 @@ class AssetPagination(PageNumberPagination):
     max_page_size = 10000
 
 
+class SpeakerPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 10000
+
+
 class AssetViewSet(viewsets.GenericViewSet, AssetPaginationMixin,):
     """
     API V2: api/2/assets/
@@ -1210,13 +1216,14 @@ class SessionViewSet(viewsets.ViewSet):
         return Response(result)
 
 
-class SpeakerViewSet(viewsets.GenericViewSet):
+class SpeakerViewSet(viewsets.GenericViewSet, AssetPaginationMixin):
     """
     API V2: api/2/speakers/
             api/2/speakers/:id/
     """
     queryset = Speaker.objects.prefetch_related('children', 'parents')
     permission_classes = (IsAuthenticated, )
+    pagination_class = SpeakerPagination
     filter_backends = (DjangoFilterBackend, OrderingFilter,)
     ordering_fields = ('created', 'updated')
     filter_class = SpeakerFilterSet
@@ -1236,9 +1243,22 @@ class SpeakerViewSet(viewsets.GenericViewSet):
         
         Query Parameters:
         - ordering: Sort by field (e.g., 'created', '-created', 'updated', '-updated')
+        - paginate: Enable pagination (true/false, default: false)
+        - page_size: Number of items per page (default: 20, max: 10000)
+        - page: Page number to retrieve
         - All SpeakerFilterSet parameters for filtering
         """
         speakers = self.filter_queryset(self.get_queryset())
+        if "paginate" in request.query_params:
+            paginate = strtobool(request.query_params['paginate'])
+        else:
+            paginate = False
+
+        page = self.paginate_queryset(speakers)
+        if page is not None and paginate:
+            serializer = serializers.SpeakerSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
         serializer = serializers.SpeakerSerializer(speakers, many=True)
         return Response(serializer.data)
 
