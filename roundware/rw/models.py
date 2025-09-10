@@ -12,6 +12,7 @@ from django.core.exceptions import NON_FIELD_ERRORS
 from django.utils.safestring import mark_safe
 from django.db import transaction
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from roundware.rw.fields import ValidatedFileField
 from django.conf import settings
 from datetime import datetime
@@ -539,6 +540,13 @@ class Speaker(models.Model):
     minvolume = models.FloatField()
     uri = models.URLField()
     backupuri = models.URLField(blank=True)
+    varianturis = ArrayField(
+        models.URLField(),
+        size=None,  # No limit on array size
+        blank=True,
+        default=list,  # Empty list by default
+        help_text="Additional audio file URIs for this speaker"
+    )
 
     shape = models.MultiPolygonField(geography=True, null=True)
     boundary = models.GeometryField(geography=True, null=True, editable=False)
