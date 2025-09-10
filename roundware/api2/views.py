@@ -1210,13 +1210,19 @@ class SessionViewSet(viewsets.ViewSet):
         return Response(result)
 
 
-class SpeakerViewSet(viewsets.ViewSet):
+class SpeakerViewSet(viewsets.GenericViewSet):
     """
     API V2: api/2/speakers/
             api/2/speakers/:id/
     """
     queryset = Speaker.objects.prefetch_related('children', 'parents')
     permission_classes = (IsAuthenticated, )
+    filter_backends = (DjangoFilterBackend, OrderingFilter,)
+    ordering_fields = ('created', 'updated')
+    filter_class = SpeakerFilterSet
+
+    def get_queryset(self):
+        return Speaker.objects.prefetch_related('children', 'parents')
 
     def get_object(self, pk):
         try:
@@ -1227,8 +1233,12 @@ class SpeakerViewSet(viewsets.ViewSet):
     def list(self, request):
         """
         GET api/2/speakers/ - Provides list of Speakers filtered by parameters
+        
+        Query Parameters:
+        - ordering: Sort by field (e.g., 'created', '-created', 'updated', '-updated')
+        - All SpeakerFilterSet parameters for filtering
         """
-        speakers = SpeakerFilterSet(request.query_params).qs
+        speakers = self.filter_queryset(self.get_queryset())
         serializer = serializers.SpeakerSerializer(speakers, many=True)
         return Response(serializer.data)
 
