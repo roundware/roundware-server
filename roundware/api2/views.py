@@ -1310,6 +1310,63 @@ class SpeakerViewSet(viewsets.ViewSet):
                       status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(methods=['post'], detail=True, url_path='add-variant-uri')
+    def add_variant_uri(self, request, pk=None):
+        """
+        POST api/2/speakers/:id/add-variant-uri/ - Add a URI to the varianturis array
+        """
+        speaker = self.get_object(pk)
+        
+        # Validate that 'uri' is provided
+        if 'uri' not in request.data:
+            return Response(
+                {"detail": "Request must include 'uri' field."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        new_uri = request.data['uri']
+        
+        # Validate that it's a valid URL
+        if not new_uri or not isinstance(new_uri, str):
+            return Response(
+                {"detail": "URI must be a non-empty string."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Add the new URI to the array (avoid duplicates)
+        if new_uri not in speaker.varianturis:
+            speaker.varianturis.append(new_uri)
+            speaker.save(update_fields=['varianturis'])
+        
+        # Return the updated speaker data
+        serializer = serializers.SpeakerSerializer(speaker)
+        return Response(serializer.data)
+
+    @action(methods=['post'], detail=True, url_path='remove-variant-uri')
+    def remove_variant_uri(self, request, pk=None):
+        """
+        POST api/2/speakers/:id/remove-variant-uri/ - Remove a URI from the varianturis array
+        """
+        speaker = self.get_object(pk)
+        
+        # Validate that 'uri' is provided
+        if 'uri' not in request.data:
+            return Response(
+                {"detail": "Request must include 'uri' field."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        uri_to_remove = request.data['uri']
+        
+        # Remove the URI from the array
+        if uri_to_remove in speaker.varianturis:
+            speaker.varianturis.remove(uri_to_remove)
+            speaker.save(update_fields=['varianturis'])
+        
+        # Return the updated speaker data
+        serializer = serializers.SpeakerSerializer(speaker)
+        return Response(serializer.data)
+
 
 # class StreamViewSet(viewsets.ViewSet):
 #     """
