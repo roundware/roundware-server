@@ -1,0 +1,128 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+console.log('Custom speaker admin template loaded');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, looking for audio file input...');
+    
+    // Find the audio file input
+    const audioFileInput = document.getElementById('id_audio_file');
+    const variantUrisTextarea = document.querySelector('textarea[name="varianturis"]');
+    
+    console.log('Audio file input found:', audioFileInput);
+    console.log('Variant URIs textarea found:', variantUrisTextarea);
+    
+    if (!audioFileInput) {
+        console.error('Audio file input not found!');
+        return;
+    }
+    
+    const uploadButton = document.createElement('button');
+    uploadButton.type = 'button';
+    uploadButton.textContent = 'Upload Audio File';
+    uploadButton.className = 'default';
+    uploadButton.style.marginTop = '10px';
+    uploadButton.style.marginLeft = '10px';
+    
+    // Add upload button after the file input
+    if (audioFileInput && audioFileInput.parentNode) {
+        audioFileInput.parentNode.appendChild(uploadButton);
+        console.log('Upload button added');
+    } else {
+        console.error('Could not add upload button - no parent node');
+    }
+    
+    // Handle file upload
+    uploadButton.addEventListener('click', function() {
+        const file = audioFileInput.files[0];
+        if (!file) {
+            alert('Please select an audio file first.');
+            return;
+        }
+        
+        // Show loading state
+        uploadButton.disabled = true;
+        uploadButton.textContent = 'Uploading...';
+        
+        // Create FormData
+        const formData = new FormData();
+        formData.append('audio_file', file);
+        
+        // Get the current speaker ID from the URL
+        const urlParts = window.location.pathname.split('/');
+        const speakerId = urlParts[urlParts.length - 2]; // Get the ID before the trailing slash
+        
+        // Make AJAX request
+        fetch(`/admin/rw/speaker/${speakerId}/upload-audio/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the varianturis textarea
+                const currentUris = variantUrisTextarea.value.split('\n').filter(uri => uri.trim());
+                currentUris.push(data.uri);
+                variantUrisTextarea.value = currentUris.join('\n');
+                
+                // Clear the file input
+                audioFileInput.value = '';
+                
+                // Show success message
+                alert('Audio file uploaded successfully! URI added to varianturis.');
+            } else {
+                alert('Upload failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            alert('Upload failed: ' + error.message);
+        })
+        .finally(() => {
+            // Reset button state
+            uploadButton.disabled = false;
+            uploadButton.textContent = 'Upload Audio File';
+        });
+    });
+    
+    // Add some styling for the upload section
+    const audioFileField = audioFileInput ? audioFileInput.closest('.form-row') : null;
+    if (audioFileField) {
+        audioFileField.style.border = '1px solid #ddd';
+        audioFileField.style.padding = '10px';
+        audioFileField.style.marginBottom = '10px';
+        audioFileField.style.backgroundColor = '#f9f9f9';
+    }
+});
+</script>
+
+<style>
+.audio-upload-section {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.audio-upload-section h4 {
+    margin-top: 0;
+    color: #333;
+}
+
+.upload-progress {
+    display: none;
+    margin-top: 10px;
+}
+
+.upload-progress.show {
+    display: block;
+}
+</style>
+{% endblock %}

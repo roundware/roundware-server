@@ -281,6 +281,18 @@ class SpeakerForm(django_forms.ModelForm):
         help_text="Alpha (transparency): 0=transparent, 255=opaque"
     )
     
+    # File upload field for varianturis
+    audio_file = django_forms.FileField(
+        required=False,
+        label="Variant Audio File",
+        widget=django_forms.FileInput(attrs={
+            'accept': 'audio/*',
+            'style': 'margin-bottom: 10px;',
+            'id': 'audio-file-input'
+        }),
+        help_text="Upload an audio file to add to variant URIs"
+    )
+    
     class Meta:
         model = Speaker
         fields = '__all__'
@@ -289,7 +301,7 @@ class SpeakerForm(django_forms.ModelForm):
             'fill_color': django_forms.HiddenInput(),
             'border_color': django_forms.HiddenInput(),
         }
-
+    
     def __init__(self, *args, **kwargs):
         super(SpeakerForm, self).__init__(*args, **kwargs)
         

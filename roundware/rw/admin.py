@@ -14,7 +14,13 @@ from leaflet.admin import LeafletGeoAdmin
 
 from roundware.rw.forms import SpeakerForm
 from roundware.rw.widgets import VariantURIsWidget
+from roundware.rw.file_utils import handle_speaker_audio_upload, validate_audio_file
 from django import forms
+from django.http import JsonResponse
+from django.urls import path
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.conf import settings
 
 
 class SpeakerAdminForm(SpeakerForm):
@@ -506,6 +512,7 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
 
 class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
     form = SpeakerAdminForm
+    change_form_template = "admin/rw/speaker/change_form.html"
     list_display = ('id', 'activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'shape', 'uri', 'created', 'updated')
     list_filter = ('project', 'activeyn', 'created')
     list_editable = ('activeyn', 'maxvolume', 'minvolume', 'shape')
@@ -515,31 +522,66 @@ class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
     save_on_top = True
     map_width = "400px"
     readonly_fields = ('created', 'updated')
+    
+    # Add the audio_file field to the form fields
+    fields = ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri', 'backupuri', 'parents',
+              'audio_file', 'varianturis', 'shape', 'attenuation_distance',
+              'fill_color_rgb', 'fill_color_alpha', 'border_color_rgb', 'border_color_alpha',
+              'fill_color', 'border_color', 'created', 'updated')
+    
+    def get_urls(self):
+        """Add custom URLs for file upload functionality."""
+        urls = super().get_urls()
+        my_urls = [
+            path('<path:object_id>/upload-audio/', 
+                 self.admin_site.admin_view(self.upload_audio_view), 
+                 name='speaker_upload_audio'),
+        ]
+        return my_urls + urls
+    
+    @method_decorator(csrf_exempt)
+    def upload_audio_view(self, request, object_id):
+        """Handle audio file uploads for speakers."""
+        try:
+            speaker = self.get_object(request, object_id)
+            if not speaker:
+                return JsonResponse({'error': 'Speaker not found'}, status=404)
+            
+            if request.method == 'POST':
+                if 'audio_file' not in request.FILES:
+                    return JsonResponse({'error': 'No audio file provided'}, status=400)
+                
+                uploaded_file = request.FILES['audio_file']
+                
+                # Validate the file
+                is_valid, error_message = validate_audio_file(uploaded_file)
+                if not is_valid:
+                    return JsonResponse({'error': error_message}, status=400)
+                
+                # Handle the upload
+                try:
+                    file_uri = handle_speaker_audio_upload(uploaded_file, speaker, request)
+                    
+                    # Add the URI to varianturis if it's not already there
+                    if file_uri not in speaker.varianturis:
+                        speaker.varianturis.append(file_uri)
+                        speaker.save(update_fields=['varianturis'])
+                    
+                    return JsonResponse({
+                        'success': True, 
+                        'uri': file_uri, 
+                        'varianturis': speaker.varianturis,
+                        'message': 'Audio file uploaded successfully'
+                    })
+                    
+                except Exception as e:
+                    return JsonResponse({'error': f'Upload failed: {str(e)}'}, status=500)
+            
+            return JsonResponse({'error': 'Only POST method allowed'}, status=405)
+            
+        except Exception as e:
+            return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)
 
-    fieldsets = (
-        (None, {
-            'fields': ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri', 'backupuri', 'parents' )
-        }),
-        ('Additional Audio Files', {
-            'fields': ('varianturis',),
-            'description': 'Additional audio file URIs for this speaker. Enter one URI per line.',
-        }),
-        ('Geographical Data', {
-            'fields': ('shape', 'attenuation_distance'),
-        }),
-        ('Map Display Colors', {
-            'fields': (
-                ('fill_color_rgb', 'fill_color_alpha'),
-                ('border_color_rgb', 'border_color_alpha'),
-                ('fill_color', 'border_color'),  # Hidden fields for storage
-            ),
-            'description': 'Set colors for this speaker\'s polygon on the map. Use RGB color pickers and sliders to control transparency (alpha).',
-        }),
-        ('Timestamps', {
-            'fields': ('created', 'updated'),
-            'classes': ('collapse',)
-        })
-    )
 
     class Media:
         css = {
@@ -550,7 +592,11 @@ class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
                 "rw/css/variant_uris_admin.css"
             )
         }
-        js = ['rw/js/speaker_color_admin.js']
+        js = [
+            'admin/js/jquery.init.js',
+            'rw/js/speaker_color_admin.js',
+            'rw/js/speaker_upload_admin.js',
+        ]
 
 
 class ListeningHistoryItemAdmin(ProjectProtectedThroughAssetModelAdmin):
