@@ -14,6 +14,8 @@ from django.utils.html import conditional_escape
 from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
+from django.contrib.admin.widgets import AdminTextInputWidget
+from django.utils.html import format_html
 
 from sortedm2m.forms import SortedCheckboxSelectMultiple
 
@@ -205,3 +207,64 @@ class SetupTagUISortedCheckboxSelectMultiple(SortedCheckboxSelectMultiple):
         css = {'screen': (
             STATIC_URL + 'sortedm2m/widget.css',
         )}
+
+
+class VariantURIsWidget(AdminTextInputWidget):
+    """
+    Custom widget for managing variant URIs in the Django admin.
+    Provides a user-friendly interface for adding/removing URIs.
+    """
+    
+    def __init__(self, attrs=None):
+        super().__init__(attrs)
+        self.attrs.update({'class': 'variant-uris-widget'})
+    
+    def render(self, name, value, attrs=None, renderer=None):
+        if value is None:
+            value = []
+        elif isinstance(value, str):
+            # Handle case where value might be a string representation
+            # Try both comma-separated and newline-separated formats
+            if ',' in value and '\n' not in value:
+                # Comma-separated format
+                value = [v.strip() for v in value.split(',') if v.strip()]
+            else:
+                # Newline-separated format
+                value = [v.strip() for v in value.split('\n') if v.strip()]
+        
+        # Convert list to newline-separated string for textarea
+        uris_text = '\n'.join(value) if value else ''
+        
+        html = format_html(
+            '''
+            <div class="variant-uris-container">
+                <textarea name="{}" id="{}" rows="5" cols="80" 
+                         placeholder="Enter one URI per line...">{}</textarea>
+                <div class="variant-uris-help">
+                    <p><strong>Instructions:</strong></p>
+                    <ul>
+                        <li>Enter one URI per line</li>
+                        <li>Each URI should be a complete URL (e.g., http://example.com/audio.mp3)</li>
+                        <li>Empty lines will be ignored</li>
+                    </ul>
+                </div>
+            </div>
+            ''',
+            name,
+            attrs.get('id', '') if attrs else '',
+            uris_text
+        )
+        
+        return mark_safe(html)
+    
+    def value_from_datadict(self, data, files, name):
+        """
+        Convert the textarea input back to a list of URIs.
+        """
+        value = data.get(name, '')
+        if not value:
+            return []
+        
+        # Split by newlines and filter out empty strings
+        uris = [uri.strip() for uri in value.split('\n') if uri.strip()]
+        return uris

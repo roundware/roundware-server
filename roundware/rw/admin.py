@@ -13,6 +13,19 @@ from roundware.rw.filters import AudiolengthListFilter, TagCategoryListFilter
 from leaflet.admin import LeafletGeoAdmin
 
 from roundware.rw.forms import SpeakerForm
+from roundware.rw.widgets import VariantURIsWidget
+from django import forms
+
+
+class SpeakerAdminForm(SpeakerForm):
+    """Custom form for Speaker admin with enhanced varianturis widget."""
+    
+    class Meta(SpeakerForm.Meta):
+        widgets = {
+            **SpeakerForm.Meta.widgets,  # Inherit existing widgets
+            'varianturis': VariantURIsWidget(),
+        }
+
 
 class VoteInline(admin.TabularInline):
     model = Vote
@@ -492,7 +505,7 @@ class EnvelopeAdmin(ProjectProtectedThroughSessionModelAdmin):
 
 
 class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
-    form = SpeakerForm
+    form = SpeakerAdminForm
     list_display = ('id', 'activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'shape', 'uri', 'created', 'updated')
     list_filter = ('project', 'activeyn', 'created')
     list_editable = ('activeyn', 'maxvolume', 'minvolume', 'shape')
@@ -505,7 +518,11 @@ class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri', 'parents' )
+            'fields': ('activeyn', 'code', 'project', 'maxvolume', 'minvolume', 'uri', 'backupuri', 'parents' )
+        }),
+        ('Additional Audio Files', {
+            'fields': ('varianturis',),
+            'description': 'Additional audio file URIs for this speaker. Enter one URI per line.',
         }),
         ('Geographical Data', {
             'fields': ('shape', 'attenuation_distance'),
@@ -529,7 +546,8 @@ class SpeakerAdmin(LeafletGeoAdmin, ProjectProtectedModelAdmin):
             "all": (
                 "http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
                 "rw/css/speaker_admin.css",
-                "rw/css/speaker_color_admin.css"
+                "rw/css/speaker_color_admin.css",
+                "rw/css/variant_uris_admin.css"
             )
         }
         js = ['rw/js/speaker_color_admin.js']
