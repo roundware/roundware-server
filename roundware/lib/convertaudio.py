@@ -23,7 +23,14 @@ def convert_uploaded_file(filename):
         raise RoundException(
             "Uploaded file not found: " + filepath)
     else:
-        # Normalize audio if enabled in settings
+        # Apply audio compression if enabled in settings (before normalization)
+        if getattr(settings, 'AUDIO_COMPRESSION_ENABLED', True):
+            logger.info(f"Audio compression enabled - processing {filename}")
+            compress_audio_file(upload_dir, filename_prefix, filename_extension)
+        else:
+            logger.debug(f"Audio compression disabled - skipping {filename}")
+        
+        # Normalize audio if enabled in settings (after compression)
         if getattr(settings, 'AUDIO_NORMALIZATION_ENABLED', True):
             logger.info(f"Audio normalization enabled - processing {filename}")
             normalize_audio_file(upload_dir, filename_prefix, filename_extension)
@@ -209,4 +216,94 @@ def normalize_audio_file(upload_dir, filename_prefix, filename_extension):
                 
     except Exception as e:
         logger.error(f"Error normalizing audio file {os.path.basename(filepath)}: {e}")
+        return
+
+
+def compress_audio_file(upload_dir, filename_prefix, filename_extension):
+    """
+    Apply aggressive audio compression to flatten dynamics using ffmpeg.
+    Uses acompressor filter with configurable settings for aggressive compression.
+    """
+    filepath = os.path.join(upload_dir, filename_prefix + filename_extension)
+    
+    # Get compression settings from Django settings
+    ratio = getattr(settings, 'AUDIO_COMPRESSION_RATIO', 4.0)
+    threshold = getattr(settings, 'AUDIO_COMPRESSION_THRESHOLD', -12.0)
+    attack = getattr(settings, 'AUDIO_COMPRESSION_ATTACK', 5)
+    release = getattr(settings, 'AUDIO_COMPRESSION_RELEASE', 50)
+    makeup_gain = getattr(settings, 'AUDIO_COMPRESSION_MAKEUP_GAIN', 2.0)
+    
+    try:
+        # Check if file exists
+        if not os.path.exists(filepath):
+            logger.warning(f"File not found for compression: {filepath}")
+            return
+        
+        # Create temporary compressed file
+        temp_compressed_file = os.path.join(upload_dir, f"{filename_prefix}-compressed-temp{filename_extension}")
+        
+        # Build compression filter string
+        # Using acompressor filter for aggressive compression
+        # ratio: compression ratio (higher = more aggressive)
+        # threshold: level above which compression kicks in (in dB)
+        # attack: how quickly compression responds (in ms)
+        # release: how quickly compression releases (in ms)
+        # makeup: gain compensation after compression (in dB)
+        compression_filter = (
+            f"acompressor=ratio={ratio}:threshold={threshold}dB:"
+            f"attack={attack}:release={release}:makeup={makeup_gain}dB"
+        )
+        
+        # Build ffmpeg command for compression
+        compress_cmd = [
+            'ffmpeg', '-i', filepath,
+            '-af', compression_filter,
+            '-ar', '44100',  # Preserve original sample rate
+            '-y',  # Overwrite output file
+            temp_compressed_file
+        ]
+        
+        # For compressed formats, we need to re-encode
+        if filename_extension.lower() in ['.mp3']:
+            compress_cmd = [
+                'ffmpeg', '-i', filepath,
+                '-af', compression_filter,
+                '-acodec', 'libmp3lame', '-ar', '48000',
+                '-y',
+                temp_compressed_file
+            ]
+        elif filename_extension.lower() in ['.m4a', '.aac']:
+            compress_cmd = [
+                'ffmpeg', '-i', filepath,
+                '-af', compression_filter,
+                '-acodec', 'aac', '-ar', '48000',
+                '-y',
+                temp_compressed_file
+            ]
+        
+        logger.info(f"Applying audio compression - File: {os.path.basename(filepath)}, "
+                   f"Ratio: {ratio}, Threshold: {threshold}dB, Attack: {attack}ms, "
+                   f"Release: {release}ms, Makeup: {makeup_gain}dB")
+        
+        # Run compression
+        import subprocess
+        result = subprocess.run(compress_cmd, capture_output=True, text=True, timeout=60)
+        
+        if result.returncode == 0 and os.path.exists(temp_compressed_file):
+            # Replace the original file with the compressed version
+            os.replace(temp_compressed_file, filepath)
+            logger.info(f"Successfully compressed {os.path.basename(filepath)} with aggressive settings")
+        else:
+            logger.error(f"Compression failed for {os.path.basename(filepath)}")
+            logger.debug(f"FFmpeg stderr: {result.stderr}")
+            # Clean up temp file if it exists
+            if os.path.exists(temp_compressed_file):
+                os.remove(temp_compressed_file)
+            return
+            
+    except subprocess.TimeoutExpired:
+        logger.error(f"Timeout during compression of {os.path.basename(filepath)}")
+        return
+    except Exception as e:
+        logger.error(f"Error during audio compression: {e}")
         return

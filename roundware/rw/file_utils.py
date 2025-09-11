@@ -50,6 +50,20 @@ def handle_speaker_audio_upload(uploaded_file, speaker, request=None, project_id
         for chunk in uploaded_file.chunks():
             destination.write(chunk)
     
+    # Process the uploaded file (compression, normalization, format conversion)
+    try:
+        from roundware.lib.convertaudio import convert_uploaded_file
+        processed_filename = convert_uploaded_file(filename)
+        # Update filename to the processed version (MP3)
+        filename = processed_filename
+        file_path = os.path.join(settings.MEDIA_ROOT, filename)
+    except Exception as e:
+        # Log the error but don't fail the upload
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Audio processing failed for {filename}: {e}")
+        # Continue with original file if processing fails
+    
     # Build the full URI
     media_path = os.path.join(settings.MEDIA_URL, filename).replace('\\', '/')
     

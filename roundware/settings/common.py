@@ -42,6 +42,20 @@ ALLOWED_VIDEO_MIME_TYPES = ['video/quicktime']
 ALLOWED_MIME_TYPES = ALLOWED_AUDIO_MIME_TYPES + ALLOWED_IMAGE_MIME_TYPES \
                      + ALLOWED_TEXT_MIME_TYPES + ALLOWED_VIDEO_MIME_TYPES
 
+# Audio compression settings
+# Enable audio compression for speaker files (default: True)
+AUDIO_COMPRESSION_ENABLED = True
+# Compression ratio (higher = more aggressive compression, default: 8.0 for very aggressive)
+AUDIO_COMPRESSION_RATIO = 8.0
+# Compression threshold in dB (default: -30.0 dB for aggressive compression)
+AUDIO_COMPRESSION_THRESHOLD = -30.0
+# Attack time in milliseconds (default: 1ms for very fast response)
+AUDIO_COMPRESSION_ATTACK = 1
+# Release time in milliseconds (default: 100ms for sustained compression)
+AUDIO_COMPRESSION_RELEASE = 100
+# Makeup gain in dB to compensate for volume reduction (default: 6.0 dB for aggressive compression)
+AUDIO_COMPRESSION_MAKEUP_GAIN = 6.0
+
 # Audio normalization settings
 # Target LUFS level for speaker audio normalization (default: -23 LUFS for broadcast standard)
 AUDIO_NORMALIZATION_TARGET_LUFS = -23.0

@@ -72,6 +72,19 @@ class SpeakerUploadForm(forms.ModelForm):
         file_path = os.path.join('speaker_audio', unique_filename)
         saved_path = default_storage.save(file_path, uploaded_file)
         
+        # Process the uploaded file (compression, normalization, format conversion)
+        try:
+            from roundware.lib.convertaudio import convert_uploaded_file
+            processed_filename = convert_uploaded_file(unique_filename)
+            # Update saved_path to the processed version (MP3)
+            saved_path = os.path.join('speaker_audio', processed_filename)
+        except Exception as e:
+            # Log the error but don't fail the upload
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Audio processing failed for {unique_filename}: {e}")
+            # Continue with original file if processing fails
+        
         # Generate full URL
         base_url = getattr(settings, 'MEDIA_URL', '/media/')
         if not base_url.endswith('/'):
