@@ -38,7 +38,7 @@ class TestServer(APITestCase):
 
         # setup basics
         self.default_session = baker.make(Session)
-        self.english = baker.make(Language, language_code='en')
+        self.english = baker.make(Language, id=1, language_code='en')
         self.spanish = baker.make(Language, language_code='es')
         self.english_msg = baker.make(LocalizedString, localized_string="One",
                                       language=self.english)
