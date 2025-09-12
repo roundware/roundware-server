@@ -35,11 +35,15 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Install Dependencies
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive xargs -a requirements.apt apt-get install -y --fix-missing
-          python3 -m venv .venv
+          python -m venv .venv
           .venv/bin/python -m pip install --upgrade pip setuptools
           .venv/bin/python -m pip install .[test]
           echo "PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH" >> $GITHUB_ENV

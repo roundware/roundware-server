@@ -38,8 +38,8 @@ class RWTestCase(TestCase):
     def setUp(self):
         self.maxDiff = None
         self.default_session = baker.make(Session)
-        self.english = baker.make(Language, language_code='en', id=1)
-        self.spanish = baker.make(Language, language_code='es', id=2)
+        self.english = baker.make(Language, language_code='en')
+        self.spanish = baker.make(Language, language_code='es')
         self.english_msg = baker.make(LocalizedString, localized_string="One",
                                       language=self.english)
         self.spanish_msg = baker.make(LocalizedString, localized_string="Uno",
@@ -48,7 +48,7 @@ class RWTestCase(TestCase):
         self.tag1 = baker.make(Tag, data="{'json':'value'}",
                                loc_msg=[self.english_msg, self.spanish_msg],
                                tag_category=self.tagcat1,
-                               value='tag1', id=1)
+                               value='tag1')
 
 
 class FakeRequest(object):

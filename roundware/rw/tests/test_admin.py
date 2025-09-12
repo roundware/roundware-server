@@ -43,11 +43,11 @@ class TestAssetAdmin(RWTestCase, WebTest):
                                description='tag1')
         self.tag2 = baker.make(Tag, tag_category=self.tagcat2,
                                description='tag2')
-        self.asset1 = baker.make(Asset, id=1989081234, tags=[self.tag1],
+        self.asset1 = baker.make(Asset, tags=[self.tag1],
                                  audiolength=10)
-        self.asset2 = baker.make(Asset, id=2987123432, tags=[self.tag2],
+        self.asset2 = baker.make(Asset, tags=[self.tag2],
                                  audiolength=50000000000)
-        self.asset3 = baker.make(Asset, id=312343214134, tags=[],
+        self.asset3 = baker.make(Asset, tags=[],
                                  audiolength=60000000001)
 
     def _login(self, username, password):

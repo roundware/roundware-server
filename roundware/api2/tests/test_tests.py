@@ -30,7 +30,6 @@ def setup_test_data():
     # Create project
     project = baker.make(
         Project,
-        id=1,
         name='Uno',
         recording_radius=10,
         audio_format='ogg',
@@ -86,7 +85,6 @@ def setup_test_data():
     asset1 = baker.make(
         Asset,
         project=project,
-        id=1,
         audiolength=5000000000,
         volume=0.9,
         latitude='0.1',
@@ -98,7 +96,6 @@ def setup_test_data():
     asset2 = baker.make(
         Asset,
         project=project,
-        id=2,
         audiolength=10000000000,
         language=english,
         tags=(tag1,)
@@ -113,7 +110,7 @@ def setup_test_data():
     history2 = baker.make(ListeningHistoryItem, asset=asset2, session=session)
     
     # Create audio elements
-    track1 = baker.make(Audiotrack, project=project, id=1)
+    track1 = baker.make(Audiotrack, project=project)
     speaker1 = baker.make(
         Speaker,
         project=project,
@@ -231,7 +228,7 @@ class TestAPIEndpoints:
             "vote_type": "rate",
             "value": 2
         }
-        response = authenticated_client.post('/api/2/assets/1/votes/', data, format='json')
+        response = authenticated_client.post(f'/api/2/assets/{setup_test_data["asset1"].id}/votes/', data, format='json')
         assert response.status_code == status.HTTP_200_OK
         assert response.data["voter_id"] == user.id
         assert response.data["session_id"] == data["session_id"]
@@ -247,10 +244,10 @@ class TestAPIEndpoints:
             "vote_type": "rate",
             "value": 2
         }
-        authenticated_client.post('/api/2/assets/1/votes/', data, format='json')
+        authenticated_client.post(f'/api/2/assets/{setup_test_data["asset1"].id}/votes/', data, format='json')
         
         # Then get the votes
-        response = authenticated_client.get('/api/2/assets/1/votes/')
+        response = authenticated_client.get(f'/api/2/assets/{setup_test_data["asset1"].id}/votes/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data[0]["type"] == "rate"
         assert response.data[0]["avg"] == 2
@@ -345,11 +342,11 @@ class TestAPIEndpoints:
             "vote_type": "rate",
             "value": 2
         }
-        response = authenticated_client.post('/api/2/assets/1/votes/', data, format='json')
+        response = authenticated_client.post(f'/api/2/assets/{setup_test_data["asset1"].id}/votes/', data, format='json')
         assert response.status_code == status.HTTP_200_OK
         
         # Test get votes endpoint
-        response = authenticated_client.get('/api/2/assets/1/votes/')
+        response = authenticated_client.get(f'/api/2/assets/{setup_test_data["asset1"].id}/votes/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data[0]["type"] == "rate"
         assert response.data[0]["avg"] == 2

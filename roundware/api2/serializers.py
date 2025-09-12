@@ -328,7 +328,7 @@ class SessionSerializer(serializers.ModelSerializer):
         return value
 
     def validate_timezone(self, value):
-        if re.match("^[+-]?\d{4}$", value) is None:
+        if re.match(r"^[+-]?\d{4}$", value) is None:
             raise ValidationError("Timezone must be in RFC822 GMT format (e.g. '-0800')")
         return value
 

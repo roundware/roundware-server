@@ -38,7 +38,7 @@ class TestServer(APITestCase):
 
         # setup basics
         self.default_session = baker.make(Session)
-        self.english = baker.make(Language, id=1, language_code='en')
+        self.english = baker.make(Language, language_code='en')
         self.spanish = baker.make(Language, language_code='es')
         self.english_msg = baker.make(LocalizedString, localized_string="One",
                                       language=self.english)
@@ -48,7 +48,6 @@ class TestServer(APITestCase):
         # create project and session
         self.project1 = baker.make(
             Project,
-            id = 1,
             name = 'Uno',
             recording_radius = 10,
             audio_format = 'ogg',
@@ -147,14 +146,14 @@ class TestServer(APITestCase):
         )
 
         # setup assets and envelopes
-        self.asset1 = baker.make(Asset, project=self.project1, id=1,
+        self.asset1 = baker.make(Asset, project=self.project1,
                                  audiolength=5000000000, volume=0.9,
                                  created=datetime.datetime(
                                      2013, 11, 21, 21, 3, 6, 616402),
                                  latitude='0.1', longitude='0.1',
                                  language=self.english,
                                  tags=(self.tag1,))
-        self.asset2 = baker.make(Asset, project=self.project1, id=2,
+        self.asset2 = baker.make(Asset, project=self.project1,
                                  audiolength=10000000000,
                                  language=self.english,
                                  tags=(self.tag1,))
@@ -174,7 +173,7 @@ class TestServer(APITestCase):
                                    starttime=datetime.datetime(
                                        2013, 11, 21, 17, 29, 44, 610672),
                                    duration=6000000)
-        self.track1 = baker.make(Audiotrack, project=self.project1, id=1)
+        self.track1 = baker.make(Audiotrack, project=self.project1)
         self.speaker1 = baker.make(Speaker, project=self.project1,
                                    shape=TEST_POLYGONS["crazy_shape"],
                                    attenuation_distance=100, activeyn=True)
