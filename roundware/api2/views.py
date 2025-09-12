@@ -1194,7 +1194,8 @@ class SessionViewSet(viewsets.ViewSet):
         # rather than requiring multipart/form-data
         rdm = request.data.copy()
         if 'geo_listen_enabled' not in rdm:
-            p = Project.objects.get(id=rdm['project'])
+            project_id = rdm.get('project_id') or rdm.get('project')
+            p = Project.objects.get(id=project_id)
             rdm['geo_listen_enabled'] = p.geo_listen_enabled
             logger.info('geo_listen_enabled not passed! set to project value: %s' % rdm['geo_listen_enabled'])
         serializer = serializers.SessionSerializer(data=rdm, context={'request': request})

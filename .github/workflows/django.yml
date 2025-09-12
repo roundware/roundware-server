@@ -13,7 +13,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12"]
     services:
       # Label used to access the service container
       postgres:
@@ -56,8 +56,8 @@ jobs:
           ROUNDWARE_DB_HOST: postgres
           ROUNDWARE_DB_PORT: ${{ job.services.postgres.ports[5432] }}
         run: |
-          coverage run --source=roundware roundware/manage.py test --settings=roundware.settings.testing
-          coverage report -m > coverage-report.txt
+          .venv/bin/coverage run --source=roundware roundware/manage.py test --settings=roundware.settings.testing
+          .venv/bin/coverage report -m > coverage-report.txt
           cat coverage-report.txt
 #      - uses: actions/upload-artifact@v2
 #        with:

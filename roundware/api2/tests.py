@@ -214,7 +214,7 @@ class TestServer(APITestCase):
         url = reverse('session-list')
         # first pass no geo_listen_enabled
         data = {"timezone": "-0500",
-                "project_id": 1,
+                "project_id": self.project1.id,
                 "client_system": "iOS"}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
