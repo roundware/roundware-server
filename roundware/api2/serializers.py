@@ -552,6 +552,8 @@ class UIConfigItemSerializer(serializers.ModelSerializer):
 
         # display localized tag text in addition to tag_id
         tlm = Tag.objects.filter(pk=result['tag_id']).values_list('loc_msg__id', flat=True)
+        # Filter out None values from empty ManyToMany relationships
+        tlm = [id for id in tlm if id is not None]
         lm = _select_localized_string(tlm, session=session)
         result['tag_display_text'] = lm
 
