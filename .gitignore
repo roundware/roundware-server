@@ -5,7 +5,10 @@ build
 roundware/settings/local_settings.py
 
 build
-static
+# Ignore collected static files (production static directory)
+/var/www/roundware/static/
+# But allow source static files to be tracked
+!roundware/*/static/
 local_settings.py
 .coverage
 .idea/*

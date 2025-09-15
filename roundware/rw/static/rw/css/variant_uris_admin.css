@@ -1,0 +1,71 @@
+/* CSS for VariantURIsWidget in Django admin */
+
+.variant-uris-container {
+    margin: 10px 0;
+}
+
+/* Simple fix: just make all text in audio file field dark */
+.form-row .field-audio_file label {
+    color: #000 !important;
+    font-weight: bold !important;
+}
+
+.form-row .field-audio_file .help,
+.form-row .field-audio_file .helptext {
+    color: #333 !important;
+    font-style: italic !important;
+}
+
+/* Make sure the file input and any text is dark */
+.form-row .field-audio_file input[type="file"] {
+    color: #000 !important;
+}
+
+/* Target any text that might be light */
+.form-row .field-audio_file {
+    color: #000 !important;
+}
+
+.variant-uris-container textarea {
+    width: 100%;
+    max-width: 600px;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    background-color: #fff;
+    color: #333 !important;
+}
+
+.variant-uris-container textarea:focus {
+    border-color: #79aec8;
+    box-shadow: 0 0 0 2px rgba(121, 174, 200, 0.2);
+    outline: none;
+}
+
+.variant-uris-help {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f0f8ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.variant-uris-help p {
+    margin: 0 0 5px 0;
+    font-weight: bold;
+    color: #2c5aa0;
+}
+
+.variant-uris-help ul {
+    margin: 5px 0 0 0;
+    padding-left: 20px;
+}
+
+.variant-uris-help li {
+    margin: 2px 0;
+    color: #555;
+}

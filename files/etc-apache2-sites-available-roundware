@@ -6,15 +6,13 @@
   <Directory /var/www/roundware/static>
     Options -Indexes
     AllowOverride None
-    Order allow,deny
-    allow from all
+    Require all granted
   </Directory>
 
   <Directory /var/www/roundware/rwmedia>
     Options -Indexes
     AllowOverride None
-    Order allow,deny
-    allow from all
+    Require all granted
   </Directory>
 
   Alias /static /var/www/roundware/static
