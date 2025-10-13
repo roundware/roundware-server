@@ -73,9 +73,10 @@ class SpeakerUploadForm(forms.ModelForm):
         saved_path = default_storage.save(file_path, uploaded_file)
         
         # Process the uploaded file (compression, normalization, format conversion)
+        # Admin uploads default to NO compression for better quality
         try:
             from roundware.lib.convertaudio import convert_uploaded_file
-            processed_filename = convert_uploaded_file(unique_filename)
+            processed_filename = convert_uploaded_file(unique_filename, enable_compression=False)
             # Update saved_path to the processed version (MP3)
             saved_path = os.path.join('speaker_audio', processed_filename)
         except Exception as e:

@@ -15,7 +15,15 @@ logger = logging.getLogger(__name__)
 
 # Converts the given file to both wav and mp3 and stores the files in the audio directory.
 # Handles files of various formats depending on the file extension.
-def convert_uploaded_file(filename):
+def convert_uploaded_file(filename, enable_compression=None):
+    """
+    Convert uploaded audio file with optional compression control.
+    
+    Args:
+        filename: Name of the file to convert
+        enable_compression: Boolean to override compression setting. 
+                          If None, uses settings.AUDIO_COMPRESSION_ENABLED
+    """
     (filename_prefix, filename_extension) = os.path.splitext(filename)
     upload_dir = settings.MEDIA_ROOT
     filepath = os.path.join(upload_dir, filename)
@@ -23,12 +31,18 @@ def convert_uploaded_file(filename):
         raise RoundException(
             "Uploaded file not found: " + filepath)
     else:
-        # Apply audio compression if enabled in settings (before normalization)
-        if getattr(settings, 'AUDIO_COMPRESSION_ENABLED', True):
+        # Determine if compression should be applied
+        if enable_compression is None:
+            compression_enabled = getattr(settings, 'AUDIO_COMPRESSION_ENABLED', True)
+        else:
+            compression_enabled = enable_compression
+        
+        # Apply audio compression if enabled (before normalization)
+        if compression_enabled:
             logger.info(f"Audio compression enabled - processing {filename}")
             compress_audio_file(upload_dir, filename_prefix, filename_extension)
         else:
-            logger.debug(f"Audio compression disabled - skipping {filename}")
+            logger.info(f"Audio compression disabled - skipping {filename}")
         
         # Normalize audio if enabled in settings (after compression)
         if getattr(settings, 'AUDIO_NORMALIZATION_ENABLED', True):

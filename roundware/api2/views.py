@@ -1274,6 +1274,19 @@ class SpeakerViewSet(viewsets.GenericViewSet, AssetPaginationMixin):
     def create(self, request):
         """
         POST api/2/speakers/ - Create a new Speaker
+        
+        Parameters:
+        - file: Audio file to upload (multipart/form-data)
+        - audio_compression: Boolean to enable/disable audio compression (default: false)
+        - project_id: Project ID
+        - code: Speaker code
+        - maxvolume: Maximum volume (0.0-1.0)
+        - minvolume: Minimum volume (0.0-1.0)
+        - uri: Audio URI (if not uploading file)
+        - backupuri: Backup audio URI
+        - shape: GeoJSON shape for speaker area
+        - attenuation_distance: Distance for audio attenuation
+        - activeyn: Whether speaker is active (boolean)
         """
         if "project_id" in request.data:
             request.data['project'] = request.data['project_id']

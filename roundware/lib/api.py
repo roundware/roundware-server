@@ -773,8 +773,16 @@ def save_speaker_from_request(request):
 
     # Do I need to delete the original file after copying to rwmedia/?
 
+    # Check for audio_compression parameter in request data
+    # Default to False (disable compression) for better quality by default
+    enable_compression = request.data.get('audio_compression', False)
+    if isinstance(enable_compression, str):
+        enable_compression = enable_compression.lower() in ('true', '1', 'yes', 'on')
+    
+    logger.info("Audio compression setting: %s for file: %s", enable_compression, dest_filename)
+
     # Make sure speaker audio is available in both mp3 and m4a (for iOS) to be comprehensive
-    newfilename = convertaudio.convert_uploaded_file(dest_filename)
+    newfilename = convertaudio.convert_uploaded_file(dest_filename, enable_compression)
     if not newfilename:
         raise RoundException("File not converted successfully: " + newfilename)
 

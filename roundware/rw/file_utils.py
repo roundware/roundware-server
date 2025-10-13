@@ -51,9 +51,10 @@ def handle_speaker_audio_upload(uploaded_file, speaker, request=None, project_id
             destination.write(chunk)
     
     # Process the uploaded file (compression, normalization, format conversion)
+    # Admin uploads default to NO compression for better quality
     try:
         from roundware.lib.convertaudio import convert_uploaded_file
-        processed_filename = convert_uploaded_file(filename)
+        processed_filename = convert_uploaded_file(filename, enable_compression=False)
         # Update filename to the processed version (MP3)
         filename = processed_filename
         file_path = os.path.join(settings.MEDIA_ROOT, filename)
