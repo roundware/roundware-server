@@ -1390,6 +1390,10 @@ class SpeakerViewSet(viewsets.GenericViewSet, AssetPaginationMixin):
     def remove_variant_uri(self, request, pk=None):
         """
         POST api/2/speakers/:id/remove-variant-uri/ - Remove a URI from the varianturis array
+        
+        Parameters:
+        - uri: URI to remove from varianturis array
+        - delete-binary: Boolean to delete the actual audio file (default: false)
         """
         speaker = self.get_object(pk)
         
@@ -1401,15 +1405,110 @@ class SpeakerViewSet(viewsets.GenericViewSet, AssetPaginationMixin):
             )
         
         uri_to_remove = request.data['uri']
+        delete_binary = request.data.get('delete-binary', False)
+        
+        # Convert string boolean to actual boolean if needed
+        if isinstance(delete_binary, str):
+            delete_binary = delete_binary.lower() in ('true', '1', 'yes', 'on')
         
         # Remove the URI from the array
         if uri_to_remove in speaker.varianturis:
             speaker.varianturis.remove(uri_to_remove)
             speaker.save(update_fields=['varianturis'])
+            
+            # Delete the binary file if requested
+            if delete_binary:
+                try:
+                    from django.conf import settings
+                    import os
+                    from urllib.parse import urlparse
+                    
+                    # Extract filename from URI
+                    parsed_url = urlparse(uri_to_remove)
+                    filename = os.path.basename(parsed_url.path)
+                    
+                    if filename:
+                        # Construct full file path
+                        file_path = os.path.join(settings.MEDIA_ROOT, filename)
+                        
+                        # Delete the file if it exists
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
+                            
+                except Exception as e:
+                    # Log the error but don't fail the request
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"Failed to delete binary file for URI {uri_to_remove}: {e}")
         
         # Return the updated speaker data
         serializer = serializers.SpeakerSerializer(speaker)
         return Response(serializer.data)
+
+    @action(methods=['post'], detail=True, url_path='upload-variant')
+    def upload_variant(self, request, pk=None):
+        """
+        POST api/2/speakers/:id/upload-variant/ - Upload audio file and add to varianturis array
+        """
+        speaker = self.get_object(pk)
+        
+        # Validate that 'file' is provided
+        if 'file' not in request.FILES:
+            return Response(
+                {"detail": "Request must include 'file' field."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        uploaded_file = request.FILES['file']
+        
+        # Validate the file using the same validation as main speaker creation
+        from roundware.rw.file_utils import validate_audio_file
+        is_valid, error_message = validate_audio_file(uploaded_file)
+        if not is_valid:
+            return Response(
+                {"detail": f"Invalid audio file: {error_message}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Process the file using the same logic as main speaker creation
+            from roundware.lib.api import save_speaker_from_request
+            
+            # Create a mock request object with the necessary attributes
+            class MockRequest:
+                def __init__(self, original_request, project_id, audio_compression):
+                    self.FILES = original_request.FILES
+                    self.data = {
+                        'project': project_id,
+                        'audio_compression': audio_compression
+                    }
+                    self.get_host = original_request.get_host
+            
+            mock_request = MockRequest(
+                request, 
+                speaker.project.id, 
+                request.data.get('audio_compression', False)
+            )
+            
+            # Process the file and get the URI
+            file_uri = save_speaker_from_request(mock_request)
+            
+            # Add the URI to varianturis if it's not already there
+            if file_uri not in speaker.varianturis:
+                speaker.varianturis.append(file_uri)
+                speaker.save(update_fields=['varianturis'])
+            
+            # Return the updated speaker data
+            serializer = serializers.SpeakerSerializer(speaker)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            # Clean up any uploaded files on failure
+            # Note: save_speaker_from_request handles its own cleanup
+            return Response(
+                {"detail": f"Upload failed: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 # class StreamViewSet(viewsets.ViewSet):
